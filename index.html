@@ -142,7 +142,6 @@
   <!-- PROCUREMENT + BUDGET -->
   <div class="cards-row">
 
-    <!-- PROCUREMENT: nuovo layout con pipeline e barre -->
     <div class="card half">
       <div class="section-head">
         <div>
@@ -157,87 +156,96 @@
       </div>
 
       <style>
-        .proc-vcard {
-          background: #0b1623;
-          border: 1px solid #1a2e45;
-          border-radius: 10px;
-          padding: 14px;
-          margin-bottom: 12px;
+        /* ── CARD SLIM ─────────────────────────────────────── */
+        .pv {
+          background:#0b1623;
+          border:1px solid #1a2e45;
+          border-radius:10px;
+          padding:10px 14px;
+          margin-bottom:8px;
+          border-left:3px solid #1a2e45;
         }
-        .proc-vcard.del-red  { border-left: 4px solid #ef4444; }
-        .proc-vcard.del-yellow { border-left: 4px solid #f59e0b; }
-        .proc-vcard.del-green  { border-left: 4px solid #22c55e; }
-        .proc-vhead {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
+        .pv.del-red    { border-left-color:#ef4444; }
+        .pv.del-yellow { border-left-color:#f59e0b; }
+        .pv.del-green  { border-left-color:#22c55e; }
+
+        /* riga 1: nome + badge + link */
+        .pv-head {
+          display:flex; align-items:center; gap:8px; margin-bottom:8px;
         }
-        .proc-vname { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
-        .proc-dbadge {
-          font-size: 0.7rem; font-weight: 600;
-          padding: 2px 9px; border-radius: 20px;
+        .pv-name {
+          font-size:0.88rem; font-weight:700; color:#e2e8f0;
+          text-decoration:none;
         }
-        .dbadge-red    { background:rgba(239,68,68,0.15);  color:#ef4444; }
-        .dbadge-yellow { background:rgba(245,158,11,0.15); color:#f59e0b; }
-        .dbadge-green  { background:rgba(34,197,94,0.15);  color:#22c55e; }
-        /* Pipeline */
-        .proc-pipe {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #060e18;
-          border-radius: 8px;
-          padding: 10px 8px;
-          margin-bottom: 12px;
+        .pv-name:hover { color:#38bdf8; }
+        .pv-badge {
+          font-size:0.65rem; font-weight:700;
+          padding:2px 8px; border-radius:20px; flex-shrink:0;
         }
-        .pipe-step {
-          display: flex; flex-direction: column;
-          align-items: center; flex: 1; position: relative;
+        .pb-red    { background:rgba(239,68,68,.15);  color:#ef4444; }
+        .pb-yellow { background:rgba(245,158,11,.15); color:#f59e0b; }
+        .pb-green  { background:rgba(34,197,94,.15);  color:#22c55e; }
+
+        /* riga ritardo: item scaduti */
+        .pv-delay-row {
+          display:flex; align-items:center; gap:6px;
+          background:#1a0a0a; border-radius:6px;
+          padding:5px 10px; margin-bottom:8px;
+          font-size:0.7rem; color:#ef4444;
         }
-        .pipe-step:not(:last-child)::after {
-          content: '›';
-          position: absolute; right: -4px; top: 10px;
-          color: #334155; font-size: 1rem;
+        .pv-delay-row span { color:#94a3b8; }
+
+        /* riga 2: pipeline inline */
+        .pv-pipe {
+          display:flex; align-items:center; gap:6px;
+          margin-bottom:8px; flex-wrap:wrap;
         }
-        .pipe-dot {
-          width: 30px; height: 30px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 0.72rem; font-weight: 700; margin-bottom: 3px;
+        .pv-step {
+          display:flex; flex-direction:column; align-items:center; gap:2px;
         }
-        .pd-done   { background:#166534; color:#86efac; border:2px solid #22c55e; }
-        .pd-active { background:#1e3a8a; color:#93c5fd; border:2px solid #3b82f6; }
-        .pd-warn   { background:#78350f; color:#fcd34d; border:2px solid #f59e0b; }
-        .pd-idle   { background:#1e293b; color:#475569; border:2px solid #334155; }
-        .pipe-lbl  { font-size: 0.6rem; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; text-align:center; }
-        /* Barre */
-        .proc-bars { margin-bottom: 12px; }
-        .pbar-row  { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
-        .pbar-lbl  { width:80px; font-size:0.67rem; color:#64748b; text-align:right; white-space:nowrap; }
-        .pbar-track { flex:1; height:7px; background:#1e293b; border-radius:4px; overflow:hidden; }
-        .pbar-fill  { height:100%; border-radius:4px; }
-        .pf-blue   { background:linear-gradient(90deg,#1d4ed8,#3b82f6); }
-        .pf-green  { background:linear-gradient(90deg,#15803d,#22c55e); }
-        .pf-orange { background:linear-gradient(90deg,#c2410c,#f97316); }
-        .pbar-pct  { width:30px; font-size:0.68rem; color:#94a3b8; text-align:right; }
-        /* Alert badges */
-        .proc-abadges { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-        .ab {
-          display:flex; align-items:center; gap:7px;
-          background:#060e18; border-radius:7px; padding:7px 10px;
-          font-size:0.73rem;
+        .pv-dot {
+          width:26px; height:26px; border-radius:50%;
+          display:flex; align-items:center; justify-content:center;
+          font-size:0.68rem; font-weight:800; border:2px solid;
         }
-        .ab-ico  { font-size:0.9rem; }
-        .ab-num  { font-size:1rem; font-weight:700; min-width:20px; }
-        .ab-txt  { color:#64748b; line-height:1.25; }
-        .ab-r .ab-num { color:#ef4444; }
-        .ab-y .ab-num { color:#f59e0b; }
-        .ab-b .ab-num { color:#38bdf8; }
-        .ab-g .ab-num { color:#22c55e; }
+        .pvd-done   { background:#166534; color:#86efac; border-color:#22c55e; }
+        .pvd-active { background:#1e3a8a; color:#93c5fd; border-color:#3b82f6; }
+        .pvd-warn   { background:#78350f; color:#fcd34d; border-color:#f59e0b; }
+        .pvd-idle   { background:#1e293b; color:#475569; border-color:#334155; }
+        .pv-slbl {
+          font-size:0.55rem; color:#475569;
+          text-transform:uppercase; letter-spacing:.3px; text-align:center;
+        }
+        .pv-arr { color:#334155; font-size:0.8rem; margin-bottom:14px; }
+
+        /* riga 3: barre compatte */
+        .pv-bars { display:flex; flex-direction:column; gap:4px; margin-bottom:8px; }
+        .pv-bar-row { display:flex; align-items:center; gap:6px; }
+        .pv-bar-lbl { width:70px; font-size:0.62rem; color:#475569; text-align:right; white-space:nowrap; }
+        .pv-bar-track { flex:1; height:5px; background:#1e293b; border-radius:3px; overflow:hidden; }
+        .pv-bar-fill { height:100%; border-radius:3px; }
+        .pvbf-blue   { background:linear-gradient(90deg,#1d4ed8,#3b82f6); }
+        .pvbf-green  { background:linear-gradient(90deg,#15803d,#22c55e); }
+        .pvbf-orange { background:linear-gradient(90deg,#c2410c,#f97316); }
+        .pv-bar-pct { width:26px; font-size:0.62rem; color:#64748b; text-align:right; }
+
+        /* riga 4: alert badges inline — solo se > 0 */
+        .pv-alerts { display:flex; gap:6px; flex-wrap:wrap; }
+        .pva {
+          display:flex; align-items:center; gap:4px;
+          background:#060e18; border-radius:6px;
+          padding:3px 8px; font-size:0.68rem;
+        }
+        .pva-num { font-weight:700; }
+        .pva-txt { color:#475569; }
+        .pva-r .pva-num { color:#ef4444; }
+        .pva-y .pva-num { color:#f59e0b; }
+        .pva-b .pva-num { color:#38bdf8; }
+        .pva-g .pva-num { color:#22c55e; }
       </style>
     </div>
 
-    <!-- BUDGET (invariato) -->
+    <!-- BUDGET -->
     <div class="card half">
       <div class="section-head">
         <div>
@@ -302,15 +310,14 @@
 <script src="app.js"></script>
 
 <script>
-// ── PROCUREMENT PIPELINE RENDERER ──────────────────────────────────────
+// ── PROCUREMENT SLIM RENDERER ───────────────────────────────────────────
 async function loadProcurement() {
   try {
-    const url = 'data-procurement.json?t=' + Date.now();
-    const res  = await fetch(url);
+    const res = await fetch('data-procurement.json?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
-    // Aggiorna label sync
+    // sync label
     const syncEl = document.getElementById('proc-sync-label');
     if (syncEl && data.lastSync) {
       const d = new Date(data.lastSync);
@@ -323,98 +330,136 @@ async function loadProcurement() {
     if (!container) return;
     container.innerHTML = '';
 
+    const today = new Date();
+
     for (const v of data.vessels) {
       const col   = v.deliveryColor || 'green';
       const label = col === 'red' ? '🔴 Ritardo' : col === 'yellow' ? '🟡 A rischio' : '🟢 In linea';
 
-      // percentuali barre
-      const rfqClosedPct = v.totalReq > 0
-        ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100))
-        : 0;
-      const reqToPO  = v.pctReqToPO  || 0;
-      const poDNrecv = v.orders > 0
-        ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100))
-        : 0;
+      // ── calcolo item scaduti (data passata + DN non ricevuto a bordo) ──
+      let itemsScaduti = 0;
+      let itemsScadutiNomi = [];
+      if (v.items && v.items.length) {
+        for (const item of v.items) {
+          if (!item.deliveryDate) continue;
+          const dDiff = (new Date(item.deliveryDate) - today) / 86400000;
+          const dnOk  = (item.dnStatus || '').includes('Received');
+          const poCanc= (item.poStatus || '').includes('Cancelled');
+          const reqCanc=(item.reqStatus|| '').includes('Cancelled');
+          if (dDiff < 0 && !dnOk && !poCanc && !reqCanc) {
+            itemsScaduti++;
+            if (itemsScadutiNomi.length < 2) {
+              // nome breve (max 30 char)
+              itemsScadutiNomi.push(item.description.substring(0, 30) + (item.description.length > 30 ? '…' : ''));
+            }
+          }
+        }
+      }
 
-      // colori step pipeline
-      const rfqCls = v.rfqOpen === 0 ? 'pd-done' : (v.rfqOverdue7 > 0 ? 'pd-warn' : 'pd-active');
-      const poCls  = v.orders  > 0  ? 'pd-done' : (v.readyForPO > 0   ? 'pd-warn' : 'pd-idle');
-      const dnCls  = v.dnPending > 0 ? 'pd-active' : (v.dn > 0        ? 'pd-done' : 'pd-idle');
+      // ── fix overdue: RFQ >7gg solo se NON c'è già un PO valido ──
+      const rfqOverdueReal = (v.items || []).filter(item => {
+        const hasPO  = !!item.poStatus && !item.poStatus.includes('Cancelled');
+        const rfqOpen= (item.rfqIssued||0) > (item.rfqClosed||0) && !!item.rfqStatus;
+        return rfqOpen && !hasPO && (item.rfqDays||0) > 7;
+      }).length;
+
+      // ── percentuali barre ──
+      const rfqClosedPct = v.totalReq > 0
+        ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100)) : 0;
+      const reqToPO  = v.pctReqToPO || 0;
+      const poDNrecv = v.orders > 0
+        ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100)) : 0;
+
+      // ── colori step pipeline ──
+      const rfqCls = v.rfqOpen === 0 ? 'pvd-done'
+                   : rfqOverdueReal > 0 ? 'pvd-warn' : 'pvd-active';
+      const poCls  = v.orders > 0 ? 'pvd-done'
+                   : v.readyForPO > 0 ? 'pvd-warn' : 'pvd-idle';
+      const dnCls  = v.dnPending > 0 ? 'pvd-active'
+                   : v.dn > 0 ? 'pvd-done' : 'pvd-idle';
+
+      // ── riga ritardo ──
+      const delayRow = (col === 'red' && itemsScaduti > 0) ? `
+        <div class="pv-delay-row">
+          🔴 <strong>${itemsScaduti} item</strong> con consegna scaduta
+          <span>·</span>
+          <span>DN non ricevuto a bordo</span>
+          ${itemsScadutiNomi.length ? `<span>· es: ${itemsScadutiNomi.join(', ')}</span>` : ''}
+        </div>` : '';
+
+      // ── alert badges (solo se > 0) ──
+      const badges = [
+        rfqOverdueReal > 0
+          ? `<div class="pva pva-r"><span class="pva-num">${rfqOverdueReal}</span><span class="pva-txt">⏳ RFQ &gt;7gg</span></div>` : '',
+        v.readyForPO > 0
+          ? `<div class="pva pva-y"><span class="pva-num">${v.readyForPO}</span><span class="pva-txt">📋 Pronte PO</span></div>` : '',
+        v.poReadyForDN > 0
+          ? `<div class="pva pva-b"><span class="pva-num">${v.poReadyForDN}</span><span class="pva-txt">📦 PO senza DN</span></div>` : '',
+        v.dnPending > 0
+          ? `<div class="pva pva-g"><span class="pva-num">${v.dnPending}</span><span class="pva-txt">🚢 DN transit</span></div>` : '',
+      ].join('');
 
       container.innerHTML += `
-        <div class="proc-vcard del-${col}">
-          <div class="proc-vhead">
-            <a href="vessel-detail.html?vessel=${v.vesselId}" style="text-decoration:none;">
-  <span class="proc-vname" style="cursor:pointer;">🚢 ${v.vesselName} ↗</span>
-</a>
-            <span class="proc-dbadge dbadge-${col}">${label}</span>
+        <div class="pv del-${col}">
+
+          <div class="pv-head">
+            <a class="pv-name" href="vessel-detail.html?vessel=${v.vesselId}">
+              🚢 ${v.vesselName} ↗
+            </a>
+            <span class="pv-badge pb-${col}">${label}</span>
           </div>
 
-          <div class="proc-pipe">
-            <div class="pipe-step">
-              <div class="pipe-dot pd-done">${v.totalReq}</div>
-              <div class="pipe-lbl">REQ</div>
-            </div>
-            <div class="pipe-step">
-              <div class="pipe-dot ${rfqCls}">${v.rfqOpen}</div>
-              <div class="pipe-lbl">RFQ aperte</div>
-            </div>
-            <div class="pipe-step">
-              <div class="pipe-dot ${poCls}">${v.orders}</div>
-              <div class="pipe-lbl">PO attivi</div>
-            </div>
-            <div class="pipe-step">
-              <div class="pipe-dot ${dnCls}">${v.dnPending}</div>
-              <div class="pipe-lbl">DN transit</div>
-            </div>
-          </div>
+          ${delayRow}
 
-          <div class="proc-bars">
-            <div class="pbar-row">
-              <span class="pbar-lbl">RFQ chiuse</span>
-              <div class="pbar-track"><div class="pbar-fill pf-blue" style="width:${rfqClosedPct}%"></div></div>
-              <span class="pbar-pct">${rfqClosedPct}%</span>
+          <div class="pv-pipe">
+            <div class="pv-step">
+              <div class="pv-dot pvd-done">${v.totalReq}</div>
+              <div class="pv-slbl">REQ</div>
             </div>
-            <div class="pbar-row">
-              <span class="pbar-lbl">REQ → PO</span>
-              <div class="pbar-track"><div class="pbar-fill pf-green" style="width:${reqToPO}%"></div></div>
-              <span class="pbar-pct">${reqToPO}%</span>
+            <span class="pv-arr">›</span>
+            <div class="pv-step">
+              <div class="pv-dot ${rfqCls}">${v.rfqOpen}</div>
+              <div class="pv-slbl">RFQ</div>
             </div>
-            <div class="pbar-row">
-              <span class="pbar-lbl">PO ricevuti</span>
-              <div class="pbar-track"><div class="pbar-fill pf-orange" style="width:${poDNrecv}%"></div></div>
-              <span class="pbar-pct">${poDNrecv}%</span>
+            <span class="pv-arr">›</span>
+            <div class="pv-step">
+              <div class="pv-dot ${poCls}">${v.orders}</div>
+              <div class="pv-slbl">PO</div>
+            </div>
+            <span class="pv-arr">›</span>
+            <div class="pv-step">
+              <div class="pv-dot ${dnCls}">${v.dnPending}</div>
+              <div class="pv-slbl">DN</div>
             </div>
           </div>
 
-          <div class="proc-abadges">
-            <div class="ab ab-r">
-              <span class="ab-ico">⏳</span>
-              <span class="ab-num">${v.rfqOverdue7}</span>
-              <span class="ab-txt">RFQ oltre 7gg<br>senza risposta</span>
+          <div class="pv-bars">
+            <div class="pv-bar-row">
+              <span class="pv-bar-lbl">RFQ chiuse</span>
+              <div class="pv-bar-track"><div class="pv-bar-fill pvbf-blue"   style="width:${rfqClosedPct}%"></div></div>
+              <span class="pv-bar-pct">${rfqClosedPct}%</span>
             </div>
-            <div class="ab ab-y">
-              <span class="ab-ico">📋</span>
-              <span class="ab-num">${v.readyForPO}</span>
-              <span class="ab-txt">REQ pronte<br>per ordine</span>
+            <div class="pv-bar-row">
+              <span class="pv-bar-lbl">REQ → PO</span>
+              <div class="pv-bar-track"><div class="pv-bar-fill pvbf-green"  style="width:${reqToPO}%"></div></div>
+              <span class="pv-bar-pct">${reqToPO}%</span>
             </div>
-            <div class="ab ab-b">
-              <span class="ab-ico">📦</span>
-              <span class="ab-num">${v.poReadyForDN}</span>
-              <span class="ab-txt">PO senza<br>DN inviato</span>
-            </div>
-            <div class="ab ab-g">
-              <span class="ab-ico">🚢</span>
-              <span class="ab-num">${v.dnPending}</span>
-              <span class="ab-txt">DN in attesa<br>conferma bordo</span>
+            <div class="pv-bar-row">
+              <span class="pv-bar-lbl">PO ricevuti</span>
+              <div class="pv-bar-track"><div class="pv-bar-fill pvbf-orange" style="width:${poDNrecv}%"></div></div>
+              <span class="pv-bar-pct">${poDNrecv}%</span>
             </div>
           </div>
+
+          ${badges ? `<div class="pv-alerts">${badges}</div>` : ''}
+
         </div>
       `;
     }
+
   } catch(e) {
     const c = document.getElementById('proc-vessels-container');
-    if (c) c.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore caricamento procurement: ' + e.message + '</p>';
+    if (c) c.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore: ' + e.message + '</p>';
   }
 }
 
