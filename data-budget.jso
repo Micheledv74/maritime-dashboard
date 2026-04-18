@@ -1,0 +1,74 @@
+{
+  "lastSync": "2026-04-16T22:00:00",
+  "currency": "EUR",
+  "vessels": [
+    {
+      "vesselId": "peppino",
+      "vesselName": "PEPPINO",
+      "totalBudget": 100000,
+      "usedBudget": 68000,
+      "residualBudget": 32000,
+      "percentageUsed": 68,
+      "semaphore": "green",
+      "history": [
+        { "month": "2026-01", "spent": 14000 },
+        { "month": "2026-02", "spent": 18000 },
+        { "month": "2026-03", "spent": 21000 },
+        { "month": "2026-04", "spent": 15000 }
+      ]
+    },
+    {
+      "vesselId": "medliguria",
+      "vesselName": "MED LIGURIA",
+      "totalBudget": 100000,
+      "usedBudget": 74000,
+      "residualBudget": 26000,
+      "percentageUsed": 74,
+      "semaphore": "yellow",
+      "history": [
+        { "month": "2026-01", "spent": 16000 },
+        { "month": "2026-02", "spent": 20000 },
+        { "month": "2026-03", "spent": 22000 },
+        { "month": "2026-04", "spent": 16000 }
+      ]
+    },
+    {
+      "vesselId": "medtoscana",
+      "vesselName": "MED TOSCANA",
+      "totalBudget": 100000,
+      "usedBudget": 89000,
+      "residualBudget": 11000,
+      "percentageUsed": 89,
+      "semaphore": "red",
+      "history": [
+        { "month": "2026-01", "spent": 19000 },
+        { "month": "2026-02", "spent": 24000 },
+        { "month": "2026-03", "spent": 27000 },
+        { "month": "2026-04", "spent": 19000 }
+      ]
+    },
+    {
+      "vesselId": "norrbotten",
+      "vesselName": "NORRBOTTEN",
+      "totalBudget": 100000,
+      "usedBudget": 61000,
+      "residualBudget": 39000,
+      "percentageUsed": 61,
+      "semaphore": "green",
+      "history": [
+        { "month": "2026-01", "spent": 12000 },
+        { "month": "2026-02", "spent": 16000 },
+        { "month": "2026-03", "spent": 19000 },
+        { "month": "2026-04", "spent": 14000 }
+      ]
+    }
+  ],
+  "fleetSummary": {
+    "totalBudget": 400000,
+    "totalUsed": 292000,
+    "totalResidual": 108000,
+    "averagePercentage": 73,
+    "criticalVessels": ["medtoscana"],
+    "warnVessels": ["medliguria"]
+  }
+}

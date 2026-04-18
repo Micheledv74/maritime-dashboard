@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maritime Purchasing HQ</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="dashboard">
+
+<!-- ERROR BANNER -->
+<div id="data-error" style="display:none;background:#3d1a1a;color:#ff5f63;padding:12px 20px;text-align:center;font-size:0.88rem;">
+  ⚠️ Errore caricamento dati JSON — verifica che i file data-*.json siano presenti nella cartella.
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-main">
+    <div>
+      <h1 id="title">Maritime Purchasing HQ</h1>
+      <p id="subtitle">Dashboard operativa per flotta e procurement</p>
+    </div>
+    <div class="topbar-right">
+      <span class="status-dot"></span>
+      <span>Live</span>
+      <span>·</span>
+      <span data-i18n="fleet">Fleet</span> <strong>4 navi</strong>
+      <span>·</span>
+      <span data-i18n="alerts">Alerts</span> <strong>3</strong>
+      <span>·</span>
+      <span data-i18n="critical">Critico</span> <strong id="kpi-alerts">2</strong>
+      <span>·</span>
+      <span id="sync-time">Sync 16 Apr · 22:00</span>
+    </div>
+  </div>
+</header>
+
+<main class="dashboard">
+
+  <!-- HERO: Fleet Overview -->
+  <section class="card hero">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="fleetOverview">Fleet Overview</h2>
+        <p class="section-sub" data-i18n="fleetOverviewSub">Mappa + KPI globali</p>
+      </div>
+      <span style="color:#6f8aa5;font-size:0.8rem;">VesselFinder embed · Noon Report</span>
+    </div>
+    <div class="hero-grid">
+      <div class="map-panel">
+        <div class="map-title">⚓ LIVE FLEET TRACKING</div>
+        <div class="map-body">
+          <div>
+            <div style="font-size:2rem;margin-bottom:8px;">🗺️</div>
+            <div style="color:#8ad9ff;">VesselFinder embed</div>
+            <div style="color:#6f8aa5;font-size:0.82rem;margin-top:4px;" data-i18n="mapPlaceholder">Connessione mappa in attesa</div>
+          </div>
+        </div>
+        <div class="map-foot">
+          <span>🟢 <strong id="map-on-time">2</strong> <span data-i18n="onTime">On time</span></span>
+          <span>🟡 <strong id="map-delay">1</strong> <span data-i18n="delayRisk">Delay risk</span></span>
+          <span>⚓ <strong id="map-anchored">1</strong> <span data-i18n="anchored">All'ancora</span></span>
+          <span>🔵 <strong>3</strong> <span data-i18n="portCalls">Scali 48h</span></span>
+        </div>
+      </div>
+      <div class="kpi-panel">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="naviMonitorate">Navi monitorate</span>
+            <strong id="kpi-vessels">4</strong>
+            <small data-i18n="fleetAttiva">Fleet attiva</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Open RFQ</span>
+            <strong id="kpi-rfq">14</strong>
+            <small data-i18n="tutteLeNavi">Tutte le navi</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="budgetMedio">Budget medio</span>
+            <strong id="kpi-budget" style="color:#ffbf3c;">74%</strong>
+            <small data-i18n="utilizzoFlotta">Utilizzo flotta</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="alertsCritici">Alerts critici</span>
+            <strong id="kpi-alerts-hero" style="color:#ff5f63;">2</strong>
+            <small data-i18n="azioneRichiesta">Azione richiesta</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="deliveryPending">Delivery pending</span>
+            <strong id="kpi-delivery">6</strong>
+            <small data-i18n="entro48ore">Entro 48 ore</small>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="emailOperative">Email operative</span>
+            <strong>9</strong>
+            <small data-i18n="nonGestite">Non gestite</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALERTS -->
+  <section class="card">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="alertsPriority">Alerts & Priorità</h2>
+        <p class="section-sub" data-i18n="alertsSub">Sempre in cima · aggiornati dal digest</p>
+      </div>
+      <span style="color:#6f8aa5;font-size:0.8rem;" data-i18n="semaforoOperativo">Semaforo operativo</span>
+    </div>
+    <div class="alert-list">
+      <div class="alert crit">
+        <div class="alert-title">⚠️ <span data-i18n="alert1Title">Delivery delay risk</span></div>
+        <div class="alert-sub">MED TOSCANA · <span data-i18n="alert1Sub">scadenza confermata saltata · agire oggi</span></div>
+      </div>
+      <div class="alert crit">
+        <div class="alert-title">🔴 <span data-i18n="alert2Title">Budget soglia rossa</span></div>
+        <div class="alert-sub">MED TOSCANA · <span data-i18n="alert2Sub">89% budget usato · verifica residuo</span></div>
+      </div>
+      <div class="alert warn">
+        <div class="alert-title">🟡 <span data-i18n="alert3Title">Captain request pending</span></div>
+        <div class="alert-sub">MED LIGURIA · <span data-i18n="alert3Sub">richiesta supplies in attesa risposta</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLEET SUMMARY -->
+  <section class="card">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="fleetSummary">Fleet Summary</h2>
+        <p class="section-sub" data-i18n="fleetSummarySub">4 card sintetiche · click per pagina dedicata</p>
+      </div>
+      <span style="color:#6f8aa5;font-size:0.8rem;">Dati da Noon Report via N8N</span>
+    </div>
+    <!-- Popolato dinamicamente da app.js -->
+    <div class="fleet-grid" id="fleet-grid">
+      <div style="color:#6f8aa5;font-size:0.88rem;padding:20px;text-align:center;">Caricamento dati fleet...</div>
+    </div>
+  </section>
+
+  <!-- PROCUREMENT + BUDGET -->
+  <div class="cards-row">
+    <div class="card half">
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="procurementStatus">Procurement Status</h2>
+          <p class="section-sub" data-i18n="procurementSub">Numeri per nave</p>
+        </div>
+        <span style="color:#6f8aa5;font-size:0.8rem;">Dati Infoship via N8N</span>
+      </div>
+      <div class="proc-table">
+        <div class="proc-row head">
+          <span data-i18n="nave">NAVE</span>
+          <span>RFQ</span>
+          <span data-i18n="ordini">ORDINI</span>
+          <span>DN</span>
+          <span data-i18n="consegna">CONSEGNA</span>
+        </div>
+        <!-- Popolato dinamicamente da app.js -->
+        <div id="proc-table-body">
+          <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card half">
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="budgetMonitor">Budget Monitor</h2>
+          <p class="section-sub" data-i18n="budgetMonitorSub">Semaforo per nave</p>
+        </div>
+        <span style="color:#6f8aa5;font-size:0.8rem;">Input manuale Notion</span>
+      </div>
+      <!-- Popolato dinamicamente da app.js -->
+      <div class="budget-list" id="budget-list">
+        <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL DIGEST -->
+  <section class="card">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="emailDigest">Email Digest</h2>
+        <p class="section-sub" data-i18n="emailDigestSub">Semafori in home · link a Outlook per dettaglio</p>
+      </div>
+      <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;">
+      <div style="background:#0b1623;border:1px solid #1a4d2e;border-radius:14px;padding:16px;">
+        <div style="font-size:2rem;font-weight:800;color:#2fd06f;">3</div>
+        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="orderConf">Conferme ordine</div>
+        <div style="font-size:0.8rem;color:#6f8aa5;" data-i18n="orderConfSub">Conferme ordine ricevute</div>
+      </div>
+      <div style="background:#0b1623;border:1px solid #3d2e00;border-radius:14px;padding:16px;">
+        <div style="font-size:2rem;font-weight:800;color:#ffbf3c;">2</div>
+        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="captainReq">Richieste capitano</div>
+        <div style="font-size:0.8rem;color:#6f8aa5;" data-i18n="captainReqSub">1 richiesta con priorità alta</div>
+      </div>
+      <div style="background:#0b1623;border:1px solid #3d1a1a;border-radius:14px;padding:16px;">
+        <div style="font-size:2rem;font-weight:800;color:#ff5f63;">1</div>
+        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="supplierDelay">Avviso ritardo fornitore</div>
+        <div style="font-size:0.8rem;color:#6f8aa5;">MED TOSCANA · <span data-i18n="ritardoDelivery">ritardo delivery</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="ghost-btn" data-i18n="apriDigest">📧 Apri email digest completo</button>
+      <a href="mailto:" style="text-decoration:none;"><button class="ghost-btn">↗ Apri Outlook</button></a>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <span id="last-sync-label" style="color:#4a6a85;font-size:0.78rem;"></span>
+  <span>·</span>
+  <span>Maritime Purchase HQ · v4 · dark mode · mobile-first</span>
+  <button class="lang-btn" id="lang-it">IT</button>
+  <button class="lang-btn" id="lang-en">EN</button>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

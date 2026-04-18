@@ -1,0 +1,86 @@
+{
+  "lastSync": "2026-04-16T22:00:00",
+  "vessels": [
+    {
+      "id": "peppino",
+      "name": "PEPPINO",
+      "imo": "9000001",
+      "status": "moored",
+      "statusColor": "green",
+      "location": "Genova",
+      "agent": "ABC Shipping",
+      "agentContact": "+39 081 000 0001",
+      "position": "Genova anchorage",
+      "nextPort": "Napoli",
+      "eta": "2026-04-17T22:00:00",
+      "etb": "2026-04-18T01:00:00",
+      "etd": "2026-04-19T10:00:00",
+      "lastNoonReport": "2026-04-16T12:00:00",
+      "openItems": 3,
+      "alertLevel": "ok",
+      "alerts": []
+    },
+    {
+      "id": "medliguria",
+      "name": "MED LIGURIA",
+      "imo": "9000002",
+      "status": "navigation",
+      "statusColor": "yellow",
+      "location": "Palermo",
+      "agent": "Delta Agency",
+      "agentContact": "+39 091 000 0002",
+      "position": "At sea — Tyrrhenian",
+      "nextPort": "Valencia",
+      "eta": "2026-04-18T04:00:00",
+      "etb": "2026-04-18T07:30:00",
+      "etd": "2026-04-19T20:00:00",
+      "lastNoonReport": "2026-04-16T12:00:00",
+      "openItems": 5,
+      "alertLevel": "warn",
+      "alerts": [
+        { "type": "warn", "message": "Captain request pending — awaiting response" }
+      ]
+    },
+    {
+      "id": "medtoscana",
+      "name": "MED TOSCANA",
+      "imo": "9000003",
+      "status": "delay_risk",
+      "statusColor": "red",
+      "location": "Port Said",
+      "agent": "Eastern Marine Agency",
+      "agentContact": "+39 081 000 0003",
+      "position": "Port Said anchorage",
+      "nextPort": "Alexandria",
+      "eta": "2026-04-17T23:30:00",
+      "etb": "2026-04-18T02:00:00",
+      "etd": "2026-04-19T18:00:00",
+      "lastNoonReport": "2026-04-16T12:00:00",
+      "openItems": 4,
+      "alertLevel": "crit",
+      "alerts": [
+        { "type": "crit", "message": "Delivery delay risk — confirmed deadline missed" },
+        { "type": "crit", "message": "Budget threshold red — 89% used" }
+      ]
+    },
+    {
+      "id": "norrbotten",
+      "name": "NORRBOTTEN",
+      "imo": "9000004",
+      "status": "on_time",
+      "statusColor": "green",
+      "location": "Marseille",
+      "agent": "Nordic Maritime",
+      "agentContact": "+33 4 000 0004",
+      "position": "Gulf of Lion",
+      "nextPort": "Marseille",
+      "eta": "2026-04-18T07:15:00",
+      "etb": "2026-04-18T10:00:00",
+      "etd": "2026-04-20T06:00:00",
+      "lastNoonReport": "2026-04-16T12:00:00",
+      "openItems": 2,
+      "alertLevel": "ok",
+      "alerts": []
+    }
+  ]
+}
