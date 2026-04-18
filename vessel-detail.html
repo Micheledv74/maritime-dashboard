@@ -30,20 +30,21 @@
     .ks-l{font-size:0.58rem;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
     .ks-bar{height:3px;background:#1e293b;border-radius:2px;margin-top:5px;overflow:hidden}
     .ks-f{height:100%;border-radius:2px}
-    .fb{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
-    .fg{background:linear-gradient(90deg,#15803d,#22c55e)}
-    .fo{background:linear-gradient(90deg,#c2410c,#f97316)}
-    .fp{background:linear-gradient(90deg,#6d28d9,#a78bfa)}
-    .fgr{background:#334155}
+    .kfb{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
+    .kfg{background:linear-gradient(90deg,#15803d,#22c55e)}
+    .kfo{background:linear-gradient(90deg,#c2410c,#f97316)}
+    .kfp{background:linear-gradient(90deg,#6d28d9,#a78bfa)}
+    .kfgr{background:#334155}
 
     /* FILTRI */
     .filter-bar{display:flex;gap:6px;padding:10px 20px;flex-wrap:wrap;
       border-bottom:1px solid #1a2e45;background:#080f1c;align-items:center}
     .fb-btn{background:#0b1623;border:1px solid #1a2e45;color:#94a3b8;
-      padding:4px 11px;border-radius:20px;font-size:0.7rem;cursor:pointer;transition:all .15s}
+      padding:4px 11px;border-radius:20px;font-size:0.7rem;cursor:pointer;transition:all .15s;
+      font-family:inherit}
     .fb-btn:hover,.fb-btn.active{background:#1e3a8a;border-color:#3b82f6;color:#93c5fd}
-    .fb-btn.fr.active{background:rgba(239,68,68,.2);border-color:#ef4444;color:#ef4444}
-    .fb-btn.fy.active{background:rgba(245,158,11,.2);border-color:#f59e0b;color:#f59e0b}
+    .fb-btn.fr.active {background:rgba(239,68,68,.2);border-color:#ef4444;color:#ef4444}
+    .fb-btn.fy.active {background:rgba(245,158,11,.2);border-color:#f59e0b;color:#f59e0b}
     .fb-btn.fgg.active{background:rgba(34,197,94,.2);border-color:#22c55e;color:#22c55e}
     .fc{margin-left:auto;font-size:0.7rem;color:#475569}
 
@@ -52,65 +53,59 @@
 
     .item-row{
       background:#0b1623;border:1px solid #1a2e45;border-radius:10px;
-      padding:10px 14px;display:grid;
-      grid-template-columns: 1fr auto;
-      gap:8px 12px;
+      padding:10px 14px;
       transition:background .1s;
     }
     .item-row:hover{background:#0d1a2a}
     .item-row.hidden-row{display:none}
 
-    /* riga superiore: descrizione + data */
-    .item-top{display:flex;align-items:center;gap:10px;grid-column:1/-1}
+    /* riga superiore */
+    .item-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
     .item-num{font-size:0.62rem;color:#334155;min-width:22px;text-align:right;flex-shrink:0}
     .item-desc{font-size:0.8rem;font-weight:600;color:#cbd5e1;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
     .item-sup{font-size:0.68rem;color:#475569;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;flex-shrink:0}
-    .item-date{font-size:0.75rem;font-weight:700;flex-shrink:0;margin-left:auto}
+    .item-date{font-size:0.75rem;font-weight:700;flex-shrink:0;margin-left:auto;padding-left:8px}
     .del-ok  {color:#4ade80}
     .del-warn{color:#f59e0b}
     .del-late{color:#ef4444}
     .del-none{color:#334155}
 
-    /* riga pipeline */
-    .item-pipe{display:flex;align-items:center;gap:5px;grid-column:1/-1;flex-wrap:wrap}
+    /* pipeline */
+    .item-pipe{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 
-    /* step singolo */
-    .step{display:flex;align-items:center;gap:4px}
-    .step-dot{
-      width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1.5px solid;
-    }
-    /* colori dot */
-    .d-none   {background:#1e293b;border-color:#334155}
-    .d-blue   {background:#1e3a8a;border-color:#3b82f6}
-    .d-green  {background:#14532d;border-color:#22c55e}
-    .d-yellow {background:#78350f;border-color:#f59e0b}
-    .d-red    {background:#7f1d1d;border-color:#ef4444}
-    .d-purple {background:#4c1d95;border-color:#a78bfa}
-    .d-gray   {background:#1e293b;border-color:#64748b}
-    .d-cyan   {background:#0c4a6e;border-color:#38bdf8}
+    .step{display:flex;align-items:center;gap:5px}
+    .step-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1.5px solid}
+    .d-none  {background:#1e293b;border-color:#334155}
+    .d-blue  {background:#1e3a8a;border-color:#3b82f6}
+    .d-green {background:#14532d;border-color:#22c55e}
+    .d-yellow{background:#78350f;border-color:#f59e0b}
+    .d-red   {background:#7f1d1d;border-color:#ef4444}
+    .d-purple{background:#4c1d95;border-color:#a78bfa}
+    .d-cyan  {background:#0c4a6e;border-color:#38bdf8}
+    .d-gray  {background:#1e293b;border-color:#64748b}
 
-    .step-lbl{font-size:0.63rem;color:#64748b;white-space:nowrap}
-    .step-lbl.active{color:#e2e8f0}
+    .step-lbl{font-size:0.63rem;color:#475569;white-space:nowrap}
+    .step-lbl.on{color:#e2e8f0}
 
-    /* barra rfq% */
-    .rfq-bar-wrap{display:flex;align-items:center;gap:4px}
+    /* barra rfq */
+    .rfq-wrap{display:flex;align-items:center;gap:4px}
     .rfq-track{width:36px;height:4px;background:#1e293b;border-radius:2px;overflow:hidden}
     .rfq-fill{height:100%;border-radius:2px}
-    .rfq-pct{font-size:0.6rem;color:#64748b;width:22px}
     .rfq-fill.p100{background:linear-gradient(90deg,#15803d,#22c55e)}
     .rfq-fill.p50 {background:linear-gradient(90deg,#c2410c,#f59e0b)}
     .rfq-fill.p0  {background:#334155}
+    .rfq-pct{font-size:0.6rem;color:#64748b;min-width:24px}
 
-    /* freccia separatore */
-    .pipe-arr{color:#1e293b;font-size:0.75rem}
+    .pipe-arr{color:#1e293b;font-size:0.8rem;flex-shrink:0}
 
     .empty{padding:40px;text-align:center;color:#475569;font-size:0.82rem}
   </style>
 </head>
 <body>
 
+<!-- TOPBAR -->
 <div class="vd-top">
   <a class="vd-back" href="index.html">← Dashboard</a>
   <span class="vd-title" id="vd-name">—</span>
@@ -123,275 +118,292 @@
   <div class="ks">
     <div class="ks-n" style="color:#a5b4fc" id="k-req">—</div>
     <div class="ks-l">REQ tot</div>
-    <div class="ks-bar"><div class="ks-f fp" style="width:100%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfp" style="width:100%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#fcd34d" id="k-rfqo">—</div>
     <div class="ks-l">RFQ aperte</div>
-    <div class="ks-bar"><div class="ks-f fb" id="k-rfqo-b" style="width:0%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfb" id="k-rfqo-b" style="width:0%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#ef4444" id="k-over">—</div>
     <div class="ks-l">Scadute &gt;7gg</div>
-    <div class="ks-bar"><div class="ks-f fgr" style="width:100%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfgr" style="width:100%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#38bdf8" id="k-r2p">—</div>
     <div class="ks-l">REQ→PO %</div>
-    <div class="ks-bar"><div class="ks-f fb" id="k-r2p-b" style="width:0%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfb" id="k-r2p-b" style="width:0%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#4ade80" id="k-po">—</div>
     <div class="ks-l">PO attivi</div>
-    <div class="ks-bar"><div class="ks-f fg" id="k-po-b" style="width:0%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfg" id="k-po-b" style="width:0%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#f97316" id="k-p2d">—</div>
     <div class="ks-l">PO→DN %</div>
-    <div class="ks-bar"><div class="ks-f fo" id="k-p2d-b" style="width:0%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfo" id="k-p2d-b" style="width:0%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#7dd3fc" id="k-dn">—</div>
     <div class="ks-l">DN transit</div>
-    <div class="ks-bar"><div class="ks-f fb" id="k-dn-b" style="width:0%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfb" id="k-dn-b" style="width:0%"></div></div>
   </div>
   <div class="ks">
     <div class="ks-n" style="color:#d8b4fe" id="k-rdy">—</div>
     <div class="ks-l">Pronti PO</div>
-    <div class="ks-bar"><div class="ks-f fp" style="width:100%"></div></div>
+    <div class="ks-bar"><div class="ks-f kfp" style="width:100%"></div></div>
   </div>
 </div>
 
 <!-- FILTRI -->
 <div class="filter-bar">
-  <button class="fb-btn active"  data-f="all">Tutti</button>
-  <button class="fb-btn fr"      data-f="rfq-open">🔴 RFQ aperte</button>
-  <button class="fb-btn fy"      data-f="overdue">⏳ &gt;7gg</button>
-  <button class="fb-btn fy"      data-f="ready-po">📋 Pronte PO</button>
-  <button class="fb-btn fy"      data-f="po-no-dn">📦 PO senza DN</button>
-  <button class="fb-btn fgg"     data-f="dn-transit">🚢 DN transit</button>
-  <button class="fb-btn"         data-f="cancelled">🚫 Cancellati</button>
+  <button class="fb-btn active" data-f="all">Tutti</button>
+  <button class="fb-btn fr"     data-f="rfq-open">🔴 RFQ aperte</button>
+  <button class="fb-btn fy"     data-f="overdue">⏳ &gt;7gg</button>
+  <button class="fb-btn fy"     data-f="ready-po">📋 Pronte PO</button>
+  <button class="fb-btn fy"     data-f="po-no-dn">📦 PO senza DN</button>
+  <button class="fb-btn fgg"    data-f="dn-transit">🚢 DN transit</button>
+  <button class="fb-btn"        data-f="cancelled">🚫 Cancellati</button>
   <span class="fc" id="f-count"></span>
 </div>
 
-<!-- LISTA -->
+<!-- LISTA ITEMS -->
 <div class="items-list" id="items-list">
   <div class="empty">Caricamento...</div>
 </div>
 
 <script>
-// ── helpers ──────────────────────────────────────────────────────────────
-const today = new Date();
+const TODAY = new Date();
 
-function delClass(ds){
-  if(!ds) return 'del-none';
-  const d=new Date(ds), diff=(d-today)/86400000;
-  return diff<0?'del-late':diff<7?'del-warn':'del-ok';
+// ── colore data consegna ──────────────────────────────────────────────
+function delClass(ds) {
+  if (!ds) return 'del-none';
+  const diff = (new Date(ds) - TODAY) / 86400000;
+  return diff < 0 ? 'del-late' : diff < 7 ? 'del-warn' : 'del-ok';
 }
-function fmtDate(ds){
-  if(!ds) return '—';
-  const d=new Date(ds);
-  return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
-}
-
-// dot color per ogni step
-function reqDot(s){
-  if(!s) return 'd-none';
-  if(s.includes('Cancelled')) return 'd-red';
-  if(s.includes('Price'))     return 'd-yellow';
-  if(s.includes('Ordered'))   return 'd-green';
-  return 'd-blue';
-}
-function rfqDot(s,pct){
-  if(!s) return 'd-none';
-  if(s.includes('Refused'))      return 'd-red';
-  if(s.includes('Acknowledged')) return pct===100?'d-green':'d-blue';
-  if(s.includes('Sent'))         return 'd-yellow';
-  return 'd-blue';
-}
-function poDot(s){
-  if(!s) return 'd-none';
-  if(s.includes('Cancelled')) return 'd-red';
-  if(s.includes('Finalized')) return 'd-green';
-  if(s.includes('Published')) return 'd-yellow';
-  if(s.includes('Approved')||s.includes('Confirmed')) return 'd-blue';
-  return 'd-blue';
-}
-function dnDot(s){
-  if(!s) return 'd-none';
-  if(s.includes('Received'))  return 'd-green';
-  if(s.includes('Shipped'))   return 'd-cyan';
-  if(s.includes('Ready'))     return 'd-purple';
-  return 'd-blue';
-}
-function isActive(s){ return !!s && !s.includes('Cancelled'); }
-
-// barra rfq%
-function rfqBarClass(p){
-  if(p===100) return 'p100';
-  if(p===0)   return 'p0';
-  return 'p50';
+function fmtDate(ds) {
+  if (!ds) return '—';
+  return new Date(ds).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
 }
 
-// flag filtri
-function flags(item){
-  const rfqOpen = item.rfqIssued > item.rfqClosed && !!item.rfqStatus;
+// ── dot color per step ────────────────────────────────────────────────
+function reqDot(s) {
+  if (!s) return 'd-none';
+  if (s.includes('Cancelled'))    return 'd-red';
+  if (s.includes('Price'))        return 'd-yellow';
+  if (s.includes('Ordered'))      return 'd-green';
+  return 'd-blue';
+}
+function rfqDot(s, pct) {
+  if (!s) return 'd-none';
+  if (s.includes('Refused'))      return 'd-red';
+  if (s.includes('Acknowledged')) return pct === 100 ? 'd-green' : 'd-blue';
+  if (s.includes('Sent'))         return 'd-yellow';
+  return 'd-blue';
+}
+function poDot(s) {
+  if (!s) return 'd-none';
+  if (s.includes('Cancelled'))    return 'd-red';
+  if (s.includes('Finalized'))    return 'd-green';
+  if (s.includes('Published'))    return 'd-yellow';
+  if (s.includes('Approved') || s.includes('Confirmed')) return 'd-blue';
+  return 'd-blue';
+}
+function dnDot(s) {
+  if (!s) return 'd-none';
+  if (s.includes('Received'))     return 'd-green';
+  if (s.includes('Shipped'))      return 'd-cyan';
+  if (s.includes('Ready'))        return 'd-purple';
+  return 'd-blue';
+}
+
+// ── label breve ───────────────────────────────────────────────────────
+function short(s, prefix) {
+  if (!s) return '—';
+  return s.replace(prefix + ' ', '');
+}
+function isOn(s) { return !!s && !s.includes('Cancelled'); }
+
+// ── barra rfq ─────────────────────────────────────────────────────────
+function rfqBarCls(p) {
+  return p === 100 ? 'p100' : p === 0 ? 'p0' : 'p50';
+}
+
+// ── flags filtro ──────────────────────────────────────────────────────
+function getFlags(item) {
+  const hasPO   = !!item.poStatus && !item.poStatus.includes('Cancelled');
+  const rfqOpen = (item.rfqIssued || 0) > (item.rfqClosed || 0)
+                  && !!item.rfqStatus
+                  && !hasPO;   // ← se c'è già un PO, RFQ non è "aperta"
   return {
     rfqOpen,
-    overdue   : rfqOpen && (item.rfqDays||0)>7,
-    readyForPO: (item.rfqStatus||'').includes('Acknowledged') && !item.poStatus,
-    poNoDN    : !!item.poStatus && !item.dnStatus && !item.poStatus.includes('Cancelled'),
-    dnTransit : (item.dnStatus||'').includes('Shipped')||(item.dnStatus||'').includes('Ready'),
-    cancelled : (item.reqStatus||'').includes('Cancelled')||(item.poStatus||'').includes('Cancelled'),
+    overdue   : rfqOpen && (item.rfqDays || 0) > 7 && !hasPO,  // ← stessa logica
+    readyForPO: (item.rfqStatus || '').includes('Acknowledged') && !item.poStatus,
+    poNoDN    : !!item.poStatus && !item.poStatus.includes('Cancelled') && !item.dnStatus,
+    dnTransit : !!(item.dnStatus || '').match(/Shipped|Ready/),
+    cancelled : !!(item.reqStatus || '').includes('Cancelled') || !!(item.poStatus || '').includes('Cancelled'),
   };
 }
 
-// ── render ───────────────────────────────────────────────────────────────
-let rows=[];
+// ── filtri ────────────────────────────────────────────────────────────
+let allRows = [];
 
-function applyFilter(f){
-  let n=0;
-  rows.forEach(({el,fl})=>{
-    const show = f==='all'         ? true
-               : f==='rfq-open'   ? fl.rfqOpen
-               : f==='overdue'    ? fl.overdue
-               : f==='ready-po'   ? fl.readyForPO
-               : f==='po-no-dn'   ? fl.poNoDN
-               : f==='dn-transit' ? fl.dnTransit
-               : f==='cancelled'  ? fl.cancelled
-               : true;
-    el.classList.toggle('hidden-row',!show);
-    if(show) n++;
+function applyFilter(f) {
+  let n = 0;
+  allRows.forEach(({ el, fl }) => {
+    const show =
+      f === 'all'        ? true        :
+      f === 'rfq-open'   ? fl.rfqOpen  :
+      f === 'overdue'    ? fl.overdue  :
+      f === 'ready-po'   ? fl.readyForPO :
+      f === 'po-no-dn'   ? fl.poNoDN   :
+      f === 'dn-transit' ? fl.dnTransit :
+      f === 'cancelled'  ? fl.cancelled : true;
+    el.classList.toggle('hidden-row', !show);
+    if (show) n++;
   });
-  document.getElementById('f-count').textContent=n+' items';
+  document.getElementById('f-count').textContent = n + ' items';
 }
 
-document.querySelectorAll('.fb-btn').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.fb-btn').forEach(x=>x.classList.remove('active'));
+document.querySelectorAll('.fb-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.fb-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     applyFilter(b.dataset.f);
   });
 });
 
-// ── main ─────────────────────────────────────────────────────────────────
-async function init(){
-  const vesselId = new URLSearchParams(location.search).get('vessel')||'';
-  const data = await fetch('data-procurement.json?t='+Date.now()).then(r=>r.json());
+// ── MAIN ──────────────────────────────────────────────────────────────
+async function init() {
+  const vesselId = new URLSearchParams(location.search).get('vessel') || '';
 
-  // sync
-  if(data.lastSync){
-    const d=new Date(data.lastSync);
-    document.getElementById('vd-sync').textContent=
-      'Sync '+d.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  let data;
+  try {
+    const res = await fetch('data-procurement.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+  } catch (e) {
+    document.getElementById('items-list').innerHTML =
+      `<div class="empty" style="color:#ef4444">⚠️ Errore caricamento JSON: ${e.message}</div>`;
+    return;
   }
 
-  const v = data.vessels.find(x=>x.vesselId===vesselId)||data.vessels[0];
-  if(!v) return;
+  // sync label
+  if (data.lastSync) {
+    const d = new Date(data.lastSync);
+    document.getElementById('vd-sync').textContent =
+      'Sync ' + d.toLocaleString('it-IT', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+  }
+
+  // trova nave
+  const v = (vesselId
+    ? data.vessels.find(x => x.vesselId === vesselId)
+    : null) || data.vessels[0];
+
+  if (!v) {
+    document.getElementById('items-list').innerHTML =
+      `<div class="empty" style="color:#ef4444">⚠️ Nave non trovata: "${vesselId}"</div>`;
+    return;
+  }
 
   // topbar
-  document.title = v.vesselName+' · Maritime HQ';
-  document.getElementById('vd-name').textContent='🚢 '+v.vesselName;
-  const col=v.deliveryColor||'green';
-  const badge=document.getElementById('vd-badge');
-  badge.textContent=col==='red'?'🔴 Ritardo':col==='yellow'?'🟡 A rischio':'🟢 In linea';
-  badge.className='vd-badge b-'+col;
+  document.title = v.vesselName + ' · Maritime HQ';
+  document.getElementById('vd-name').textContent = '🚢 ' + v.vesselName;
+  const col = v.deliveryColor || 'green';
+  const badge = document.getElementById('vd-badge');
+  badge.textContent = col === 'red' ? '🔴 Ritardo' : col === 'yellow' ? '🟡 A rischio' : '🟢 In linea';
+  badge.className = 'vd-badge b-' + col;
 
-  // kpi
-  const pctRfq = v.totalReq>0?Math.round((v.rfqOpen/v.totalReq)*100):0;
-  const pctDN  = v.orders>0?Math.round((v.dn/v.orders)*100):0;
-  document.getElementById('k-req').textContent    = v.totalReq;
-  document.getElementById('k-rfqo').textContent   = v.rfqOpen;
-  document.getElementById('k-rfqo-b').style.width = pctRfq+'%';
-  document.getElementById('k-over').textContent   = v.rfqOverdue7;
-  document.getElementById('k-r2p').textContent    = v.pctReqToPO+'%';
-  document.getElementById('k-r2p-b').style.width  = v.pctReqToPO+'%';
-  document.getElementById('k-po').textContent     = v.orders;
-  document.getElementById('k-po-b').style.width   = v.pctReqToPO+'%';
-  document.getElementById('k-p2d').textContent    = v.pctPOToDN+'%';
-  document.getElementById('k-p2d-b').style.width  = v.pctPOToDN+'%';
-  document.getElementById('k-dn').textContent     = v.dnPending;
-  document.getElementById('k-dn-b').style.width   = pctDN+'%';
-  document.getElementById('k-rdy').textContent    = v.readyForPO;
+  // KPI
+  const pctRfq = v.totalReq > 0 ? Math.round((v.rfqOpen / v.totalReq) * 100) : 0;
+  const pctDN  = v.orders   > 0 ? Math.round((v.dn     / v.orders)   * 100) : 0;
 
-  // lista items
+  document.getElementById('k-req').textContent    = v.totalReq    || 0;
+  document.getElementById('k-rfqo').textContent   = v.rfqOpen     || 0;
+  document.getElementById('k-rfqo-b').style.width = pctRfq + '%';
+  document.getElementById('k-over').textContent   = v.rfqOverdue7 || 0;
+  document.getElementById('k-r2p').textContent    = (v.pctReqToPO || 0) + '%';
+  document.getElementById('k-r2p-b').style.width  = (v.pctReqToPO || 0) + '%';
+  document.getElementById('k-po').textContent     = v.orders      || 0;
+  document.getElementById('k-po-b').style.width   = (v.pctReqToPO || 0) + '%';
+  document.getElementById('k-p2d').textContent    = (v.pctPOToDN  || 0) + '%';
+  document.getElementById('k-p2d-b').style.width  = (v.pctPOToDN  || 0) + '%';
+  document.getElementById('k-dn').textContent     = v.dnPending   || 0;
+  document.getElementById('k-dn-b').style.width   = pctDN + '%';
+  document.getElementById('k-rdy').textContent    = v.readyForPO  || 0;
+
+  // LISTA ITEMS
   const list = document.getElementById('items-list');
-  list.innerHTML='';
-  rows=[];
+  list.innerHTML = '';
+  allRows = [];
 
-  v.items.forEach((item,i)=>{
-    const pct = item.rfqPct||0;
-    const fl  = flags(item);
+  if (!v.items || v.items.length === 0) {
+    list.innerHTML = '<div class="empty">Nessun item disponibile per questa nave.</div>';
+    return;
+  }
+
+  v.items.forEach((item, i) => {
+    const pct = item.rfqPct || 0;
+    const fl  = getFlags(item);
     const dc  = delClass(item.deliveryDate);
 
-    // step labels brevi
-    const reqLbl = item.reqStatus ? item.reqStatus.replace('REQ ','') : '—';
-    const rfqLbl = item.rfqStatus ? item.rfqStatus.replace('RFQ ','') : '—';
-    const poLbl  = item.poStatus  ? item.poStatus.replace('PO ','')   : '—';
-    const dnLbl  = item.dnStatus  ? item.dnStatus.replace('DN ','')   : '—';
-
     const el = document.createElement('div');
-    el.className='item-row';
-    el.innerHTML=`
+    el.className = 'item-row';
+    el.innerHTML = `
       <div class="item-top">
-        <span class="item-num">${i+1}</span>
-        <span class="item-desc" title="${item.description}">${item.description}</span>
-        <span class="item-sup" title="${item.supplier||'—'}">${item.supplier||'—'}</span>
+        <span class="item-num">${i + 1}</span>
+        <span class="item-desc" title="${item.description || ''}">${item.description || '—'}</span>
+        <span class="item-sup"  title="${item.supplier || '—'}">${item.supplier || '—'}</span>
         <span class="item-date ${dc}">${fmtDate(item.deliveryDate)}</span>
       </div>
 
       <div class="item-pipe">
 
-        <!-- REQ -->
         <div class="step">
           <div class="step-dot ${reqDot(item.reqStatus)}"></div>
-          <span class="step-lbl ${isActive(item.reqStatus)?'active':''}">REQ · ${reqLbl}</span>
+          <span class="step-lbl ${isOn(item.reqStatus) ? 'on' : ''}">REQ · ${short(item.reqStatus, 'REQ')}</span>
         </div>
 
         <span class="pipe-arr">›</span>
 
-        <!-- RFQ + barra -->
         <div class="step">
-          <div class="step-dot ${rfqDot(item.rfqStatus,pct)}"></div>
-          <span class="step-lbl ${isActive(item.rfqStatus)?'active':''}">RFQ · ${rfqLbl}</span>
+          <div class="step-dot ${rfqDot(item.rfqStatus, pct)}"></div>
+          <span class="step-lbl ${isOn(item.rfqStatus) ? 'on' : ''}">RFQ · ${short(item.rfqStatus, 'RFQ')}</span>
         </div>
-        <div class="rfq-bar-wrap">
+        <div class="rfq-wrap">
           <div class="rfq-track">
-            <div class="rfq-fill ${rfqBarClass(pct)}" style="width:${pct}%"></div>
+            <div class="rfq-fill ${rfqBarCls(pct)}" style="width:${pct}%"></div>
           </div>
-          <span class="rfq-pct">${item.rfqClosed}/${item.rfqIssued}</span>
+          <span class="rfq-pct">${item.rfqClosed || 0}/${item.rfqIssued || 0}</span>
         </div>
 
         <span class="pipe-arr">›</span>
 
-        <!-- PO -->
         <div class="step">
           <div class="step-dot ${poDot(item.poStatus)}"></div>
-          <span class="step-lbl ${isActive(item.poStatus)?'active':''}">PO · ${poLbl}</span>
+          <span class="step-lbl ${isOn(item.poStatus) ? 'on' : ''}">PO · ${short(item.poStatus, 'PO')}</span>
         </div>
 
         <span class="pipe-arr">›</span>
 
-        <!-- DN -->
         <div class="step">
           <div class="step-dot ${dnDot(item.dnStatus)}"></div>
-          <span class="step-lbl ${isActive(item.dnStatus)?'active':''}">DN · ${dnLbl}</span>
+          <span class="step-lbl ${isOn(item.dnStatus) ? 'on' : ''}">DN · ${short(item.dnStatus, 'DN')}</span>
         </div>
 
       </div>
     `;
 
     list.appendChild(el);
-    rows.push({el,fl});
+    allRows.push({ el, fl });
   });
 
-  document.getElementById('f-count').textContent=v.items.length+' items';
+  document.getElementById('f-count').textContent = v.items.length + ' items';
 }
 
-init().catch(e=>{
-  document.getElementById('items-list').innerHTML=
-    `<div class="empty" style="color:#ef4444">⚠️ Errore: ${e.message}</div>`;
-});
+init();
 </script>
 </body>
 </html>
