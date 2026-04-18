@@ -134,7 +134,6 @@
       </div>
       <span style="color:#6f8aa5;font-size:0.8rem;">Dati da Noon Report via N8N</span>
     </div>
-    <!-- Popolato dinamicamente da app.js -->
     <div class="fleet-grid" id="fleet-grid">
       <div style="color:#6f8aa5;font-size:0.88rem;padding:20px;text-align:center;">Caricamento dati fleet...</div>
     </div>
@@ -142,29 +141,103 @@
 
   <!-- PROCUREMENT + BUDGET -->
   <div class="cards-row">
+
+    <!-- PROCUREMENT: nuovo layout con pipeline e barre -->
     <div class="card half">
       <div class="section-head">
         <div>
           <h2 data-i18n="procurementStatus">Procurement Status</h2>
-          <p class="section-sub" data-i18n="procurementSub">Numeri per nave</p>
+          <p class="section-sub" id="proc-sync-label">Dati Infoship via N8N</p>
         </div>
-        <span style="color:#6f8aa5;font-size:0.8rem;">Dati Infoship via N8N</span>
+        <span style="color:#6f8aa5;font-size:0.8rem;">Pipeline per nave</span>
       </div>
-      <div class="proc-table">
-        <div class="proc-row head">
-          <span data-i18n="nave">NAVE</span>
-          <span>RFQ</span>
-          <span data-i18n="ordini">ORDINI</span>
-          <span>DN</span>
-          <span data-i18n="consegna">CONSEGNA</span>
-        </div>
-        <!-- Popolato dinamicamente da app.js -->
-        <div id="proc-table-body">
-          <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
-        </div>
+
+      <div id="proc-vessels-container">
+        <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
       </div>
+
+      <style>
+        .proc-vcard {
+          background: #0b1623;
+          border: 1px solid #1a2e45;
+          border-radius: 10px;
+          padding: 14px;
+          margin-bottom: 12px;
+        }
+        .proc-vcard.del-red  { border-left: 4px solid #ef4444; }
+        .proc-vcard.del-yellow { border-left: 4px solid #f59e0b; }
+        .proc-vcard.del-green  { border-left: 4px solid #22c55e; }
+        .proc-vhead {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+        .proc-vname { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
+        .proc-dbadge {
+          font-size: 0.7rem; font-weight: 600;
+          padding: 2px 9px; border-radius: 20px;
+        }
+        .dbadge-red    { background:rgba(239,68,68,0.15);  color:#ef4444; }
+        .dbadge-yellow { background:rgba(245,158,11,0.15); color:#f59e0b; }
+        .dbadge-green  { background:rgba(34,197,94,0.15);  color:#22c55e; }
+        /* Pipeline */
+        .proc-pipe {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #060e18;
+          border-radius: 8px;
+          padding: 10px 8px;
+          margin-bottom: 12px;
+        }
+        .pipe-step {
+          display: flex; flex-direction: column;
+          align-items: center; flex: 1; position: relative;
+        }
+        .pipe-step:not(:last-child)::after {
+          content: '›';
+          position: absolute; right: -4px; top: 10px;
+          color: #334155; font-size: 1rem;
+        }
+        .pipe-dot {
+          width: 30px; height: 30px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.72rem; font-weight: 700; margin-bottom: 3px;
+        }
+        .pd-done   { background:#166534; color:#86efac; border:2px solid #22c55e; }
+        .pd-active { background:#1e3a8a; color:#93c5fd; border:2px solid #3b82f6; }
+        .pd-warn   { background:#78350f; color:#fcd34d; border:2px solid #f59e0b; }
+        .pd-idle   { background:#1e293b; color:#475569; border:2px solid #334155; }
+        .pipe-lbl  { font-size: 0.6rem; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; text-align:center; }
+        /* Barre */
+        .proc-bars { margin-bottom: 12px; }
+        .pbar-row  { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+        .pbar-lbl  { width:80px; font-size:0.67rem; color:#64748b; text-align:right; white-space:nowrap; }
+        .pbar-track { flex:1; height:7px; background:#1e293b; border-radius:4px; overflow:hidden; }
+        .pbar-fill  { height:100%; border-radius:4px; }
+        .pf-blue   { background:linear-gradient(90deg,#1d4ed8,#3b82f6); }
+        .pf-green  { background:linear-gradient(90deg,#15803d,#22c55e); }
+        .pf-orange { background:linear-gradient(90deg,#c2410c,#f97316); }
+        .pbar-pct  { width:30px; font-size:0.68rem; color:#94a3b8; text-align:right; }
+        /* Alert badges */
+        .proc-abadges { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+        .ab {
+          display:flex; align-items:center; gap:7px;
+          background:#060e18; border-radius:7px; padding:7px 10px;
+          font-size:0.73rem;
+        }
+        .ab-ico  { font-size:0.9rem; }
+        .ab-num  { font-size:1rem; font-weight:700; min-width:20px; }
+        .ab-txt  { color:#64748b; line-height:1.25; }
+        .ab-r .ab-num { color:#ef4444; }
+        .ab-y .ab-num { color:#f59e0b; }
+        .ab-b .ab-num { color:#38bdf8; }
+        .ab-g .ab-num { color:#22c55e; }
+      </style>
     </div>
 
+    <!-- BUDGET (invariato) -->
     <div class="card half">
       <div class="section-head">
         <div>
@@ -173,47 +246,47 @@
         </div>
         <span style="color:#6f8aa5;font-size:0.8rem;">Input manuale Notion</span>
       </div>
-      <!-- Popolato dinamicamente da app.js -->
       <div class="budget-list" id="budget-list">
         <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
       </div>
     </div>
   </div>
 
-<!-- EMAIL DIGEST -->
-<section class="card">
-  <div class="section-head">
-    <div>
-      <h2 data-i18n="emailDigest">Email Digest</h2>
-      <p class="section-sub" data-i18n="emailDigestSub">Semafori in home · link a Outlook per dettaglio</p>
+  <!-- EMAIL DIGEST -->
+  <section class="card">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="emailDigest">Email Digest</h2>
+        <p class="section-sub" data-i18n="emailDigestSub">Semafori in home · link a Outlook per dettaglio</p>
+      </div>
+      <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
     </div>
-    <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;">
-    <div style="background:#0b1623;border:1px solid #1a4d2e;border-radius:14px;padding:16px;">
-      <div id="email-order-conf-count" style="font-size:2rem;font-weight:800;color:#2fd06f;">—</div>
-      <div style="font-size:0.88rem;margin-top:4px;" data-i18n="orderConf">Conferme ordine</div>
-      <div id="email-order-conf-sub" style="font-size:0.8rem;color:#6f8aa5;" data-i18n="orderConfSub">Conferme ordine ricevute</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;">
+      <div style="background:#0b1623;border:1px solid #1a4d2e;border-radius:14px;padding:16px;">
+        <div id="email-order-conf-count" style="font-size:2rem;font-weight:800;color:#2fd06f;">—</div>
+        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="orderConf">Conferme ordine</div>
+        <div id="email-order-conf-sub" style="font-size:0.8rem;color:#6f8aa5;" data-i18n="orderConfSub">Conferme ordine ricevute</div>
+      </div>
+      <div style="background:#0b1623;border:1px solid #3d2e00;border-radius:14px;padding:16px;">
+        <div id="email-captain-count" style="font-size:2rem;font-weight:800;color:#ffbf3c;">—</div>
+        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="captainReq">Richieste capitano</div>
+        <div id="email-captain-sub" style="font-size:0.8rem;color:#6f8aa5;" data-i18n="captainReqSub">1 richiesta con priorità alta</div>
+      </div>
+      <div style="background:#0b1623;border:1px solid #3d1a1a;border-radius:14px;padding:16px;">
+        <div id="email-delay-count" style="font-size:2rem;font-weight:800;color:#ff5f63;">—</div>
+        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="supplierDelay">Avviso ritardo fornitore</div>
+        <div style="font-size:0.8rem;color:#6f8aa5;"><span id="email-delay-vessel">—</span> · <span data-i18n="ritardoDelivery">ritardo delivery</span></div>
+      </div>
     </div>
-    <div style="background:#0b1623;border:1px solid #3d2e00;border-radius:14px;padding:16px;">
-      <div id="email-captain-count" style="font-size:2rem;font-weight:800;color:#ffbf3c;">—</div>
-      <div style="font-size:0.88rem;margin-top:4px;" data-i18n="captainReq">Richieste capitano</div>
-      <div id="email-captain-sub" style="font-size:0.8rem;color:#6f8aa5;" data-i18n="captainReqSub">1 richiesta con priorità alta</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="email-digest.html" style="text-decoration:none;">
+        <button class="ghost-btn" data-i18n="apriDigest">📧 Open full email digest</button>
+      </a>
+      <a href="ms-outlook:" style="text-decoration:none;">
+        <button class="ghost-btn">↗ Apri Outlook</button>
+      </a>
     </div>
-    <div style="background:#0b1623;border:1px solid #3d1a1a;border-radius:14px;padding:16px;">
-      <div id="email-delay-count" style="font-size:2rem;font-weight:800;color:#ff5f63;">—</div>
-      <div style="font-size:0.88rem;margin-top:4px;" data-i18n="supplierDelay">Avviso ritardo fornitore</div>
-      <div style="font-size:0.8rem;color:#6f8aa5;"><span id="email-delay-vessel">—</span> · <span data-i18n="ritardoDelivery">ritardo delivery</span></div>
-    </div>
-  </div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;">
-  <a href="email-digest.html" style="text-decoration:none;">
-    <button class="ghost-btn" data-i18n="apriDigest">📧 Open full email digest</button>
-  </a>
-  <a href="ms-outlook:" style="text-decoration:none;">
-    <button class="ghost-btn">↗ Apri Outlook</button>
-  </a>
-</div>
+  </section>
 
 </main>
 
@@ -227,5 +300,125 @@
 </footer>
 
 <script src="app.js"></script>
+
+<script>
+// ── PROCUREMENT PIPELINE RENDERER ──────────────────────────────────────
+async function loadProcurement() {
+  try {
+    const url = 'data-procurement.json?t=' + Date.now();
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    // Aggiorna label sync
+    const syncEl = document.getElementById('proc-sync-label');
+    if (syncEl && data.lastSync) {
+      const d = new Date(data.lastSync);
+      syncEl.textContent = 'Sync: ' + d.toLocaleString('it-IT', {
+        day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'
+      });
+    }
+
+    const container = document.getElementById('proc-vessels-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    for (const v of data.vessels) {
+      const col   = v.deliveryColor || 'green';
+      const label = col === 'red' ? '🔴 Ritardo' : col === 'yellow' ? '🟡 A rischio' : '🟢 In linea';
+
+      // percentuali barre
+      const rfqClosedPct = v.totalReq > 0
+        ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100))
+        : 0;
+      const reqToPO  = v.pctReqToPO  || 0;
+      const poDNrecv = v.orders > 0
+        ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100))
+        : 0;
+
+      // colori step pipeline
+      const rfqCls = v.rfqOpen === 0 ? 'pd-done' : (v.rfqOverdue7 > 0 ? 'pd-warn' : 'pd-active');
+      const poCls  = v.orders  > 0  ? 'pd-done' : (v.readyForPO > 0   ? 'pd-warn' : 'pd-idle');
+      const dnCls  = v.dnPending > 0 ? 'pd-active' : (v.dn > 0        ? 'pd-done' : 'pd-idle');
+
+      container.innerHTML += `
+        <div class="proc-vcard del-${col}">
+          <div class="proc-vhead">
+            <span class="proc-vname">🚢 ${v.vesselName}</span>
+            <span class="proc-dbadge dbadge-${col}">${label}</span>
+          </div>
+
+          <div class="proc-pipe">
+            <div class="pipe-step">
+              <div class="pipe-dot pd-done">${v.totalReq}</div>
+              <div class="pipe-lbl">REQ</div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-dot ${rfqCls}">${v.rfqOpen}</div>
+              <div class="pipe-lbl">RFQ aperte</div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-dot ${poCls}">${v.orders}</div>
+              <div class="pipe-lbl">PO attivi</div>
+            </div>
+            <div class="pipe-step">
+              <div class="pipe-dot ${dnCls}">${v.dnPending}</div>
+              <div class="pipe-lbl">DN transit</div>
+            </div>
+          </div>
+
+          <div class="proc-bars">
+            <div class="pbar-row">
+              <span class="pbar-lbl">RFQ chiuse</span>
+              <div class="pbar-track"><div class="pbar-fill pf-blue" style="width:${rfqClosedPct}%"></div></div>
+              <span class="pbar-pct">${rfqClosedPct}%</span>
+            </div>
+            <div class="pbar-row">
+              <span class="pbar-lbl">REQ → PO</span>
+              <div class="pbar-track"><div class="pbar-fill pf-green" style="width:${reqToPO}%"></div></div>
+              <span class="pbar-pct">${reqToPO}%</span>
+            </div>
+            <div class="pbar-row">
+              <span class="pbar-lbl">PO ricevuti</span>
+              <div class="pbar-track"><div class="pbar-fill pf-orange" style="width:${poDNrecv}%"></div></div>
+              <span class="pbar-pct">${poDNrecv}%</span>
+            </div>
+          </div>
+
+          <div class="proc-abadges">
+            <div class="ab ab-r">
+              <span class="ab-ico">⏳</span>
+              <span class="ab-num">${v.rfqOverdue7}</span>
+              <span class="ab-txt">RFQ oltre 7gg<br>senza risposta</span>
+            </div>
+            <div class="ab ab-y">
+              <span class="ab-ico">📋</span>
+              <span class="ab-num">${v.readyForPO}</span>
+              <span class="ab-txt">REQ pronte<br>per ordine</span>
+            </div>
+            <div class="ab ab-b">
+              <span class="ab-ico">📦</span>
+              <span class="ab-num">${v.poReadyForDN}</span>
+              <span class="ab-txt">PO senza<br>DN inviato</span>
+            </div>
+            <div class="ab ab-g">
+              <span class="ab-ico">🚢</span>
+              <span class="ab-num">${v.dnPending}</span>
+              <span class="ab-txt">DN in attesa<br>conferma bordo</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  } catch(e) {
+    const c = document.getElementById('proc-vessels-container');
+    if (c) c.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore caricamento procurement: ' + e.message + '</p>';
+  }
+}
+
+loadProcurement();
+setInterval(loadProcurement, 300000);
+</script>
+
 </body>
 </html>
