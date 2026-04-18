@@ -344,7 +344,9 @@ async function loadProcurement() {
       container.innerHTML += `
         <div class="proc-vcard del-${col}">
           <div class="proc-vhead">
-            <span class="proc-vname">🚢 ${v.vesselName}</span>
+            <a href="vessel-detail.html?vessel=${v.vesselId}" style="text-decoration:none;">
+  <span class="proc-vname" style="cursor:pointer;">🚢 ${v.vesselName} ↗</span>
+</a>
             <span class="proc-dbadge dbadge-${col}">${label}</span>
           </div>
 
