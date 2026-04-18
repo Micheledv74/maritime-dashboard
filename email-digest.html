@@ -5,8 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Email Digest — Maritime HQ</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .email-card {
+      background: #0b1623;
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border 0.2s;
+    }
+    .email-card:hover { filter: brightness(1.08); cursor: pointer; }
+    .email-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .email-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .email-subject {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .email-summary {
+      font-size: 0.85rem;
+      color: #8aa7c2;
+      line-height: 1.5;
+    }
+    .email-draft {
+      background: #0d1e30;
+      border: 1px dashed #284866;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.83rem;
+      color: #6f8aa5;
+      line-height: 1.6;
+    }
+    .email-draft .draft-label {
+      font-size: 0.72rem;
+      color: #4a6a85;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .email-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .action-btn.send   { background: #1a4d2e; color: #2fd06f; }
+    .action-btn.edit   { background: #1a2a3d; color: #57d4ff; }
+    .action-btn.archive{ background: #1a1a2a; color: #6f8aa5; }
+    .action-btn:hover  { filter: brightness(1.2); }
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid #284866;
+      background: transparent;
+      color: #8aa7c2;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .filter-btn.active {
+      background: #1a3d5c;
+      color: #57d4ff;
+      border-color: #57d4ff;
+    }
+    .digest-kpi {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .digest-kpi-card {
+      background: #0b1623;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .digest-kpi-num {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+    .digest-kpi-label {
+      font-size: 0.78rem;
+      color: #6f8aa5;
+      margin-top: 4px;
+    }
+  </style>
 </head>
 <body data-page="email-digest">
+
+<div id="data-error" style="display:none;background:#3d1a1a;color:#ff5f63;padding:12px 20px;text-align:center;font-size:0.88rem;">
+  ⚠️ Errore caricamento dati JSON
+</div>
 
 <header class="topbar">
   <div class="topbar-main">
@@ -18,33 +130,217 @@
       <a href="index.html" style="text-decoration:none;">
         <button class="ghost-btn">← Dashboard</button>
       </a>
+      <a href="ms-outlook:" style="text-decoration:none;">
+        <button class="ghost-btn">↗ Apri Outlook</button>
+      </a>
     </div>
   </div>
 </header>
 
 <main class="dashboard">
+
+  <!-- KPI DIGEST -->
   <section class="card">
     <div class="section-head">
       <div>
         <h2>📧 Email Digest</h2>
-        <p class="section-sub">Lista completa messaggi operativi · in configurazione</p>
+        <p class="section-sub">Messaggi operativi · classificati da AI · <span id="last-sync-label" style="color:#4a6a85;"></span></p>
       </div>
+      <span style="color:#6f8aa5;font-size:0.8rem;">N8N + AI parsing · Outlook</span>
     </div>
-    <div id="email-msg-list">
-      <div style="color:#6f8aa5;padding:20px;text-align:center;">
-        🔧 Sezione in configurazione — prossimamente AI email client integrato
+    <div class="digest-kpi">
+      <div class="digest-kpi-card" style="border:1px solid #1a4d2e;">
+        <div class="digest-kpi-num" style="color:#2fd06f;" id="dkpi-conf">3</div>
+        <div class="digest-kpi-label">Conferme ordine</div>
+      </div>
+      <div class="digest-kpi-card" style="border:1px solid #3d2e00;">
+        <div class="digest-kpi-num" style="color:#ffbf3c;" id="dkpi-captain">2</div>
+        <div class="digest-kpi-label">Richieste capitano</div>
+      </div>
+      <div class="digest-kpi-card" style="border:1px solid #3d1a1a;">
+        <div class="digest-kpi-num" style="color:#ff5f63;" id="dkpi-delay">1</div>
+        <div class="digest-kpi-label">Ritardi fornitore</div>
+      </div>
+      <div class="digest-kpi-card" style="border:1px solid #284866;">
+        <div class="digest-kpi-num" style="color:#57d4ff;" id="dkpi-total">9</div>
+        <div class="digest-kpi-label">Non gestite</div>
       </div>
     </div>
   </section>
+
+  <!-- FILTER BAR -->
+  <section class="card">
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterEmails('all', this)">Tutti</button>
+      <button class="filter-btn" onclick="filterEmails('order_confirmation', this)">📦 Conferme ordine</button>
+      <button class="filter-btn" onclick="filterEmails('captain_request', this)">⚓ Captain request</button>
+      <button class="filter-btn" onclick="filterEmails('supplier_delay', this)">⚠️ Ritardi</button>
+      <button class="filter-btn" onclick="filterEmails('rfq_response', this)">📋 RFQ</button>
+    </div>
+  </section>
+
+  <!-- EMAIL LIST -->
+  <section class="card">
+    <div style="display:grid;gap:14px;" id="email-msg-list">
+
+      <!-- CRITICAL: Supplier delay -->
+      <div class="email-card" style="border:1px solid #3d1a1a;" data-type="supplier_delay">
+        <div class="email-meta">
+          <span class="email-badge" style="background:#3d1a1a;color:#ff5f63;">⚠️ Critico</span>
+          <span class="email-badge" style="background:#1a2a3d;color:#8aa7c2;">MED TOSCANA</span>
+          <span style="color:#4a6a85;font-size:0.78rem;">16 Apr 2026 · 09:14</span>
+        </div>
+        <div class="email-subject">Avviso ritardo delivery — LubriMar Italia</div>
+        <div class="email-summary">
+          🤖 <strong>AI Summary:</strong> LubriMar Italia comunica ritardo di 3 giorni sulla consegna dell'ordine MT-001 (lubrificanti motore). Nuova data prevista: 19 Apr 2026. Motivazione: problema logistico porto di Genova.
+        </div>
+        <div class="email-draft">
+          <div class="draft-label">✏️ Bozza risposta AI</div>
+          Gentile LubriMar Italia,<br>
+          in riferimento all'ordine MT-001, prendiamo atto del ritardo comunicato.<br>
+          Vi chiediamo conferma scritta della nuova data di consegna (19 Apr 2026) e aggiornamento tracking spedizione.<br>
+          Cordiali saluti,<br>
+          Maritime Purchasing HQ
+        </div>
+        <div class="email-actions">
+          <button class="action-btn send">✉️ Invia bozza</button>
+          <button class="action-btn edit">✏️ Modifica</button>
+          <button class="action-btn archive">📁 Archivia</button>
+        </div>
+      </div>
+
+      <!-- HIGH: Captain request MED TOSCANA -->
+      <div class="email-card" style="border:1px solid #3d2e00;" data-type="captain_request">
+        <div class="email-meta">
+          <span class="email-badge" style="background:#3d2e00;color:#ffbf3c;">⚓ Captain request</span>
+          <span class="email-badge" style="background:#1a2a3d;color:#8aa7c2;">MED TOSCANA</span>
+          <span style="color:#4a6a85;font-size:0.78rem;">15 Apr 2026 · 17:42</span>
+        </div>
+        <div class="email-subject">Captain request — ordine urgente supplies</div>
+        <div class="email-summary">
+          🤖 <strong>AI Summary:</strong> Il comandante di MED TOSCANA richiede approvvigionamento urgente: 40 kg farina, 20 L olio cucina, kit medicale reintegro. Stima costo: €320. Porto di consegna: Alexandria, ETA 18 Apr.
+        </div>
+        <div class="email-draft">
+          <div class="draft-label">✏️ Bozza risposta AI</div>
+          Comandante,<br>
+          richiesta ricevuta e presa in carico.<br>
+          Procediamo con l'ordine a fornitore locale Alexandria per consegna entro ETB previsto.<br>
+          Confermiamo appena ordine piazzato.<br>
+          Maritime Purchasing HQ
+        </div>
+        <div class="email-actions">
+          <button class="action-btn send">✉️ Invia bozza</button>
+          <button class="action-btn edit">✏️ Modifica</button>
+          <button class="action-btn archive">📁 Archivia</button>
+        </div>
+      </div>
+
+      <!-- HIGH: Captain request MED LIGURIA -->
+      <div class="email-card" style="border:1px solid #3d2e00;" data-type="captain_request">
+        <div class="email-meta">
+          <span class="email-badge" style="background:#3d2e00;color:#ffbf3c;">⚓ Captain request</span>
+          <span class="email-badge" style="background:#1a2a3d;color:#8aa7c2;">MED LIGURIA</span>
+          <span style="color:#4a6a85;font-size:0.78rem;">15 Apr 2026 · 11:08</span>
+        </div>
+        <div class="email-subject">Captain request — provisions urgenti Valencia</div>
+        <div class="email-summary">
+          🤖 <strong>AI Summary:</strong> Il comandante di MED LIGURIA richiede provisions per scalo Valencia. Lista: acqua minerale 200 bott., frutta fresca 30 kg, carne congelata 25 kg. Fornitore suggerito: NauticalFood SpA. Budget stimato: €480.
+        </div>
+        <div class="email-draft">
+          <div class="draft-label">✏️ Bozza risposta AI</div>
+          Comandante,<br>
+          richiesta Valencia ricevuta.<br>
+          Contatteremo NauticalFood SpA per conferma disponibilità e consegna in banchina.<br>
+          Aggiornamento previsto entro 2 ore.<br>
+          Maritime Purchasing HQ
+        </div>
+        <div class="email-actions">
+          <button class="action-btn send">✉️ Invia bozza</button>
+          <button class="action-btn edit">✏️ Modifica</button>
+          <button class="action-btn archive">📁 Archivia</button>
+        </div>
+      </div>
+
+      <!-- NORMAL: Order confirmation NORRBOTTEN -->
+      <div class="email-card" style="border:1px solid #1a4d2e;" data-type="order_confirmation">
+        <div class="email-meta">
+          <span class="email-badge" style="background:#1a4d2e;color:#2fd06f;">📦 Conferma ordine</span>
+          <span class="email-badge" style="background:#1a2a3d;color:#8aa7c2;">NORRBOTTEN</span>
+          <span style="color:#4a6a85;font-size:0.78rem;">16 Apr 2026 · 08:30</span>
+        </div>
+        <div class="email-subject">Order confirmation #4415 — Nordic Provisions AB</div>
+        <div class="email-summary">
+          🤖 <strong>AI Summary:</strong> Nordic Provisions AB conferma ordine #4415 per cold store provisions NORRBOTTEN. Consegna confermata 18 Apr 2026, porto Marseille, banchina 7. Importo: €1.240. Nessuna azione richiesta.
+        </div>
+        <div class="email-actions">
+          <button class="action-btn archive">📁 Archivia</button>
+        </div>
+      </div>
+
+      <!-- NORMAL: Order confirmation PEPPINO -->
+      <div class="email-card" style="border:1px solid #1a4d2e;" data-type="order_confirmation">
+        <div class="email-meta">
+          <span class="email-badge" style="background:#1a4d2e;color:#2fd06f;">📦 Conferma ordine</span>
+          <span class="email-badge" style="background:#1a2a3d;color:#8aa7c2;">PEPPINO</span>
+          <span style="color:#4a6a85;font-size:0.78rem;">15 Apr 2026 · 14:55</span>
+        </div>
+        <div class="email-subject">Order confirmation #4401 — Marine Parts SRL</div>
+        <div class="email-summary">
+          🤖 <strong>AI Summary:</strong> Marine Parts SRL conferma ordine #4401 spare parts motore principale PEPPINO. Spedizione avvenuta, tracking attivo. Consegna prevista 16 Apr 2026 porto Genova. Importo: €3.800.
+        </div>
+        <div class="email-actions">
+          <button class="action-btn archive">📁 Archivia</button>
+        </div>
+      </div>
+
+      <!-- NORMAL: RFQ response PEPPINO -->
+      <div class="email-card" style="border:1px solid #284866;" data-type="rfq_response">
+        <div class="email-meta">
+          <span class="email-badge" style="background:#1a2a3d;color:#57d4ff;">📋 RFQ response</span>
+          <span class="email-badge" style="background:#1a2a3d;color:#8aa7c2;">PEPPINO</span>
+          <span style="color:#4a6a85;font-size:0.78rem;">14 Apr 2026 · 16:20</span>
+        </div>
+        <div class="email-subject">RFQ response — SafeSea Italy · Safety equipment</div>
+        <div class="email-summary">
+          🤖 <strong>AI Summary:</strong> SafeSea Italy risponde alla RFQ per rinnovo safety equipment PEPPINO. Offerta: €2.150 tutto incluso, consegna 18 Apr Genova. Sconto 5% applicato su ordine precedente. Da approvare.
+        </div>
+        <div class="email-draft">
+          <div class="draft-label">✏️ Bozza risposta AI</div>
+          Gentile SafeSea Italy,<br>
+          grazie per la vostra offerta.<br>
+          Procediamo con l'approvazione dell'ordine per €2.150 con consegna 18 Apr Genova.<br>
+          Inviate conferma d'ordine formale a questo indirizzo.<br>
+          Maritime Purchasing HQ
+        </div>
+        <div class="email-actions">
+          <button class="action-btn send">✉️ Invia bozza</button>
+          <button class="action-btn edit">✏️ Modifica</button>
+          <button class="action-btn archive">📁 Archivia</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
 </main>
 
 <footer class="footer">
-  <span id="last-sync-label" style="color:#4a6a85;font-size:0.78rem;"></span>
-  <span>·</span>
-  <span>Maritime Purchase HQ · Email Digest · dark mode</span>
+  <span style="color:#4a6a85;font-size:0.78rem;">Maritime Purchase HQ · Email Digest · dark mode · mobile-first</span>
   <button class="lang-btn" id="lang-it">IT</button>
   <button class="lang-btn" id="lang-en">EN</button>
 </footer>
+
+<!-- FILTER SCRIPT -->
+<script>
+function filterEmails(type, btn) {
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".email-card").forEach(card => {
+    card.style.display =
+      type === "all" || card.dataset.type === type ? "flex" : "none";
+  });
+}
+</script>
 
 <script src="app.js"></script>
 </body>
