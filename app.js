@@ -250,7 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
   Promise.all([
     fetch("data-fleet.json").then(r => r.json()),
     fetch("data-procurement.json").then(r => r.json()),
-    fetch("data-budget.json").then(r => r.json())
+    fetch("data-budget.json").then(r => r.json()),
+fetch("data-email.json").then(r => r.json())
   ])
   .then(([fleetData, procData, budgetData]) => {
     if (page === "dashboard") {

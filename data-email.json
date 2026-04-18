@@ -1,0 +1,67 @@
+{
+  "lastSync": "2026-04-18T10:00:00",
+  "summary": {
+    "orderConfirmations": 3,
+    "captainRequests": 2,
+    "captainRequestsHigh": 1,
+    "supplierDelays": 1,
+    "supplierDelayVessel": "MED TOSCANA",
+    "totalUnhandled": 9
+  },
+  "messages": [
+    {
+      "id": "email-001",
+      "vessel": "peppino",
+      "type": "order_confirmation",
+      "subject": "Order confirmation #4401",
+      "date": "2026-04-16",
+      "priority": "normal",
+      "handled": false
+    },
+    {
+      "id": "email-002",
+      "vessel": "medliguria",
+      "type": "captain_request",
+      "subject": "Captain request — supplies urgenti",
+      "date": "2026-04-16",
+      "priority": "high",
+      "handled": false
+    },
+    {
+      "id": "email-003",
+      "vessel": "medtoscana",
+      "type": "supplier_delay",
+      "subject": "Avviso ritardo delivery",
+      "date": "2026-04-16",
+      "priority": "critical",
+      "handled": false
+    },
+    {
+      "id": "email-004",
+      "vessel": "medtoscana",
+      "type": "captain_request",
+      "subject": "Captain request — ordine urgente",
+      "date": "2026-04-15",
+      "priority": "high",
+      "handled": false
+    },
+    {
+      "id": "email-005",
+      "vessel": "norrbotten",
+      "type": "order_confirmation",
+      "subject": "Order confirmation #4415",
+      "date": "2026-04-16",
+      "priority": "normal",
+      "handled": false
+    },
+    {
+      "id": "email-006",
+      "vessel": "peppino",
+      "type": "rfq_response",
+      "subject": "RFQ response received",
+      "date": "2026-04-14",
+      "priority": "normal",
+      "handled": false
+    }
+  ]
+}
