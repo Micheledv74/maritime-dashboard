@@ -180,37 +180,37 @@
     </div>
   </div>
 
-  <!-- EMAIL DIGEST -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="emailDigest">Email Digest</h2>
-        <p class="section-sub" data-i18n="emailDigestSub">Semafori in home · link a Outlook per dettaglio</p>
-      </div>
-      <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
+<!-- EMAIL DIGEST -->
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h2 data-i18n="emailDigest">Email Digest</h2>
+      <p class="section-sub" data-i18n="emailDigestSub">Semafori in home · link a Outlook per dettaglio</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;">
-      <div style="background:#0b1623;border:1px solid #1a4d2e;border-radius:14px;padding:16px;">
-        <div style="font-size:2rem;font-weight:800;color:#2fd06f;">3</div>
-        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="orderConf">Conferme ordine</div>
-        <div style="font-size:0.8rem;color:#6f8aa5;" data-i18n="orderConfSub">Conferme ordine ricevute</div>
-      </div>
-      <div style="background:#0b1623;border:1px solid #3d2e00;border-radius:14px;padding:16px;">
-        <div style="font-size:2rem;font-weight:800;color:#ffbf3c;">2</div>
-        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="captainReq">Richieste capitano</div>
-        <div style="font-size:0.8rem;color:#6f8aa5;" data-i18n="captainReqSub">1 richiesta con priorità alta</div>
-      </div>
-      <div style="background:#0b1623;border:1px solid #3d1a1a;border-radius:14px;padding:16px;">
-        <div style="font-size:2rem;font-weight:800;color:#ff5f63;">1</div>
-        <div style="font-size:0.88rem;margin-top:4px;" data-i18n="supplierDelay">Avviso ritardo fornitore</div>
-        <div style="font-size:0.8rem;color:#6f8aa5;">MED TOSCANA · <span data-i18n="ritardoDelivery">ritardo delivery</span></div>
-      </div>
+    <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;">
+    <div style="background:#0b1623;border:1px solid #1a4d2e;border-radius:14px;padding:16px;">
+      <div id="email-order-conf-count" style="font-size:2rem;font-weight:800;color:#2fd06f;">—</div>
+      <div style="font-size:0.88rem;margin-top:4px;" data-i18n="orderConf">Conferme ordine</div>
+      <div id="email-order-conf-sub" style="font-size:0.8rem;color:#6f8aa5;" data-i18n="orderConfSub">Conferme ordine ricevute</div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="ghost-btn" data-i18n="apriDigest">📧 Apri email digest completo</button>
-      <a href="mailto:" style="text-decoration:none;"><button class="ghost-btn">↗ Apri Outlook</button></a>
+    <div style="background:#0b1623;border:1px solid #3d2e00;border-radius:14px;padding:16px;">
+      <div id="email-captain-count" style="font-size:2rem;font-weight:800;color:#ffbf3c;">—</div>
+      <div style="font-size:0.88rem;margin-top:4px;" data-i18n="captainReq">Richieste capitano</div>
+      <div id="email-captain-sub" style="font-size:0.8rem;color:#6f8aa5;" data-i18n="captainReqSub">1 richiesta con priorità alta</div>
     </div>
-  </section>
+    <div style="background:#0b1623;border:1px solid #3d1a1a;border-radius:14px;padding:16px;">
+      <div id="email-delay-count" style="font-size:2rem;font-weight:800;color:#ff5f63;">—</div>
+      <div style="font-size:0.88rem;margin-top:4px;" data-i18n="supplierDelay">Avviso ritardo fornitore</div>
+      <div style="font-size:0.8rem;color:#6f8aa5;"><span id="email-delay-vessel">—</span> · <span data-i18n="ritardoDelivery">ritardo delivery</span></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="ghost-btn" data-i18n="apriDigest">📧 Apri email digest completo</button>
+    <a href="mailto:" style="text-decoration:none;"><button class="ghost-btn">↗ Apri Outlook</button></a>
+  </div>
+</section>
 
 </main>
 
