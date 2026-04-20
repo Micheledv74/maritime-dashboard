@@ -522,7 +522,7 @@ function renderVesselPage(fleetData, procData, budgetData, vesselId) {
 
   // trova dati della nave
   const vessel   = fleetData.vessels.find(v => v.id === vesselId);
-  const procV    = procData.vessels.find(v => v.vesselId === vesselId);
+  const procV    = proc.Vessels.find(v => v.vesselId === vesselId);
   const budgetV  = budgetData.vessels.find(v => v.vesselId === vesselId);
 
   if (!vessel || !procV) {
