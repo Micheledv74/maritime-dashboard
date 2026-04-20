@@ -289,7 +289,7 @@ function renderDashboard(fleetData, procData, budgetData, emailData) {
   const budgetVessels= budgetData.vessels;
   // filtra solo navi reali (esclude hqs o altre voci non-fleet)
   const fleetIds     = vessels.map(v => v.id);
-  const procVessels  = procData.vessels.filter(v => fleetIds.includes(v.vesselId));
+  const procVessels  = procVessels.filter(v => fleetIds.includes(v.vesselId));
 
   // ── Sync timestamp (usa lastSync da procurement — aggiornato da N8N)
   const syncEl = document.getElementById("sync-time");
