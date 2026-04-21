@@ -1,2 +1,2 @@
 # maritime-dashboard
-SSSDAm masiritime dashboard
+SSSDAm maritime dashboard
