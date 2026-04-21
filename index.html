@@ -584,6 +584,7 @@ async function loadProcurement(){
     container.innerHTML = '';
 
     for(const v of data.vessels){
+      if(!fleetIds.includes(v.vesselId)) continue;
       const col   = v.deliveryColor || 'green';
       const label = col==='red'?'🔴 Ritardo':col==='yellow'?'🟡 A rischio':'🟢 In linea';
 
