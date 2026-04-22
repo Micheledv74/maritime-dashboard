@@ -337,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const syncEl = document.getElementById("sync-time");
     if (syncEl) {
       const d = new Date(fleetData.lastSync);
-      syncEl.textContent = `Sync ${d.getDate()} ${d.toLocaleString("en",{month:"short"})} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+      syncEl.textContent = `Ultimo sync: ${d.toLocaleString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}`;
     }
 
     // KPI globali calcolati dagli items
@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sync label
     const syncLabel = document.getElementById("last-sync-label");
     if (syncLabel) {
-      syncLabel.textContent = `${translations[lang].lastSync}: ${formatDate(fleetData.lastSync)}`;
+      syncLabel.textContent = `${translations[lang].lastSync}: ${new Date(fleetData.lastSync).toLocaleString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}`;
     }
   }
 
@@ -620,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sync label vessel
     const syncLabel = document.getElementById("last-sync-label");
     if (syncLabel) {
-      syncLabel.textContent = `${translations[lang].lastSync}: ${formatDate(fleetData.lastSync)}`;
+      syncLabel.textContent = `${translations[lang].lastSync}: ${new Date(fleetData.lastSync).toLocaleString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}`;
     }
   }
 
