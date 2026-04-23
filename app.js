@@ -1,635 +1,332 @@
-document.addEventListener("DOMContentLoaded", () => {
+/* ============================================================
+   Maritime Purchasing HQ — app.js
+   i18n IT/EN + fetch JSON + dynamic render
+   ============================================================ */
 
-  // ─────────────────────────────────────────────
-  // TRANSLATIONS
-  // ─────────────────────────────────────────────
-  const translations = {
-    it: {
-      title: "Maritime Purchasing HQ",
-      subtitle: "Dashboard operativa per flotta e procurement",
-      fleetOverview: "Fleet Overview",
-      fleetOverviewSub: "Mappa + KPI globali",
-      mapPlaceholder: "Connessione mappa in attesa",
-      fleet: "Fleet",
-      alerts: "Alerts",
-      critical: "Critico",
-      onTime: "On time",
-      delayRisk: "Delay risk",
-      anchored: "All'ancora",
-      portCalls: "Scali 48h",
-      naviMonitorate: "Navi monitorate",
-      fleetAttiva: "Fleet attiva",
-      tutteLeNavi: "Tutte le navi",
-      budgetMedio: "Budget medio",
-      utilizzoFlotta: "Utilizzo flotta",
-      alertsCritici: "Alerts critici",
-      azioneRichiesta: "Azione richiesta",
-      deliveryPending: "Delivery pending",
-      entro48ore: "Entro 48 ore",
-      emailOperative: "Email operative",
-      nonGestite: "Non gestite",
-      alertsPriority: "Alerts & Priorità",
-      alertsSub: "Sempre in cima · aggiornati dal digest",
-      semaforoOperativo: "Semaforo operativo",
-      alert1Title: "Delivery delay risk",
-      alert1Sub: "scadenza confermata saltata · agire oggi",
-      alert2Title: "Budget soglia rossa",
-      alert2Sub: "89% budget usato · verifica residuo",
-      alert3Title: "Captain request pending",
-      alert3Sub: "richiesta supplies in attesa risposta",
-      fleetSummary: "Fleet Summary",
-      fleetSummarySub: "4 card sintetiche · click per pagina dedicata",
-      nextPort: "Prossimo Porto",
-      openItems: "Items aperti",
-      dettaglioNave: "Dettaglio nave →",
-      procurementStatus: "Procurement Status",
-      procurementSub: "Numeri per nave",
-      nave: "NAVE",
-      ordini: "ORDINI",
-      budgetMonitor: "Budget Monitor",
-      budgetMonitorSub: "Semaforo per nave",
-      emailDigest: "Email Digest",
-      emailDigestSub: "Semafori in home · link a Outlook per dettaglio",
-      orderConf: "Conferme ordine",
-      orderConfSub: "Conferme ordine ricevute",
-      captainReq: "Richieste capitano",
-      captainReqSub: "1 richiesta con priorità alta",
-      supplierDelay: "Avviso ritardo fornitore",
-      ritardoDelivery: "ritardo delivery",
-      apriDigest: "📧 Apri email digest completo",
-      backDash: "← Dashboard",
-      routeInfo: "Route & Port Info",
-      agent: "Agente",
-      position: "Posizione",
-      procurementVesselSub: "Items aperti su questa nave",
-      budgetVesselSub: "Utilizzo per questa nave",
-      item: "Item",
-      ordine: "Ord.",
-      consegna: "Consegna",
-      certifications: "Certificazioni & Scadenze",
-      certificationsSub: "Semaforo scadenze per questa nave",
-      certExpired: "Scaduto / meno di 15 giorni",
-      certExpiring: "Scade entro 30 giorni",
-      certValid: "Valido oltre 30 giorni",
-      emailCollegate: "Email collegate",
-      emailCollegateSub: "Messaggi operativi recenti su questa nave",
-      emailOrderConf: "Order confirmation",
-      emailRFQ: "RFQ response received",
-      captainRequest: "Captain request — supplies",
-      loadingError: "Errore caricamento dati",
-      lastSync: "Ultimo sync"
-    },
-    en: {
-      title: "Maritime Purchasing HQ",
-      subtitle: "Operational dashboard for fleet and procurement",
-      fleetOverview: "Fleet Overview",
-      fleetOverviewSub: "Map + Global KPIs",
-      mapPlaceholder: "Map connection pending",
-      fleet: "Fleet",
-      alerts: "Alerts",
-      critical: "Critical",
-      onTime: "On time",
-      delayRisk: "Delay risk",
-      anchored: "Anchored",
-      portCalls: "Port calls 48h",
-      naviMonitorate: "Vessels monitored",
-      fleetAttiva: "Active fleet",
-      tutteLeNavi: "All vessels",
-      budgetMedio: "Average budget",
-      utilizzoFlotta: "Fleet usage",
-      alertsCritici: "Critical alerts",
-      azioneRichiesta: "Action required",
-      deliveryPending: "Delivery pending",
-      entro48ore: "Within 48h",
-      emailOperative: "Operative emails",
-      nonGestite: "Not handled",
-      alertsPriority: "Alerts & Priorities",
-      alertsSub: "Always on top · updated from digest",
-      semaforoOperativo: "Operational semaphore",
-      alert1Title: "Delivery delay risk",
-      alert1Sub: "confirmed deadline missed · act today",
-      alert2Title: "Budget red threshold",
-      alert2Sub: "89% budget used · verify balance",
-      alert3Title: "Captain request pending",
-      alert3Sub: "supply request awaiting response",
-      fleetSummary: "Fleet Summary",
-      fleetSummarySub: "4 vessel cards · click for dedicated page",
-      nextPort: "Next Port",
-      openItems: "Open items",
-      dettaglioNave: "Vessel detail →",
-      procurementStatus: "Procurement Status",
-      procurementSub: "Numbers per vessel",
-      nave: "VESSEL",
-      ordini: "ORDERS",
-      budgetMonitor: "Budget Monitor",
-      budgetMonitorSub: "Semaphore per vessel",
-      emailDigest: "Email Digest",
-      emailDigestSub: "Semaphores at home · link to Outlook for detail",
-      orderConf: "Order confirmations",
-      orderConfSub: "Order confirmations received",
-      captainReq: "Captain requests",
-      captainReqSub: "1 high priority request",
-      supplierDelay: "Supplier delay notice",
-      ritardoDelivery: "delivery delay",
-      apriDigest: "📧 Open full email digest",
-      backDash: "← Dashboard",
-      routeInfo: "Route & Port Info",
-      agent: "Agent",
-      position: "Position",
-      procurementVesselSub: "Open items for this vessel",
-      budgetVesselSub: "Usage for this vessel",
-      item: "Item",
-      ordine: "Ord.",
-      consegna: "Delivery",
-      certifications: "Certifications & Expiry",
-      certificationsSub: "Expiry semaphore for this vessel",
-      certExpired: "Expired / under 15 days",
-      certExpiring: "Expiring within 30 days",
-      certValid: "Valid beyond 30 days",
-      emailCollegate: "Related emails",
-      emailCollegateSub: "Recent operational messages for this vessel",
-      emailOrderConf: "Order confirmation",
-      emailRFQ: "RFQ response received",
-      captainRequest: "Captain request — supplies",
-      loadingError: "Data loading error",
-      lastSync: "Last sync"
-    }
-  };
+/* ── TRANSLATIONS ── */
+const i18n = {
+  en: {
+    title:              "Maritime Purchasing HQ",
+    subtitle:           "Operational Command Center",
+    fleetMap:           "Fleet Status Map",
+    activeFleet:        "Active Fleet",
+    openRFQ:            "Open RFQ",
+    budgetAvg:          "Budget Avg",
+    critAlerts:         "Crit Alerts",
+    deliveryPending:    "Delivery Pending",
+    operativeEmails:    "Operative Emails",
+    alerts:             "Alerts",
+    fleetSummary:       "Fleet Summary",
+    viewDetails:        "View Details →",
+    procurementStatus:  "Procurement Status",
+    vessel:             "Vessel",
+    rfq:                "RFQ",
+    orders:             "Orders",
+    dn:                 "DN",
+    budgetMonitor:      "Budget Monitor",
+    residual:           "Residual",
+    certifications:     "Certifications & Expiry",
+    expired:            "Expired / <15d",
+    expiring30d:        "Expiring 30d",
+    valid:              "Valid",
+    messageComposer:    "Message Composer",
+    poweredBy:          "Powered by Maritime Purchasing HQ",
+    lastSync:           "Last sync",
+    onTime:             "On Time",
+    delayRisk:          "Delay Risk",
+    anchored:           "Anchored",
+    moored:             "Moored",
+    navigation:         "Navigation",
+    nextPort:           "Next port",
+    eta:                "ETA",
+    openItems:          "Open items",
+  },
+  it: {
+    title:              "Maritime Purchasing HQ",
+    subtitle:           "Centro Comando Operativo",
+    fleetMap:           "Mappa Stato Flotta",
+    activeFleet:        "Flotta Attiva",
+    openRFQ:            "RFQ Aperti",
+    budgetAvg:          "Budget Medio",
+    critAlerts:         "Alert Critici",
+    deliveryPending:    "Consegne Pending",
+    operativeEmails:    "Email Operative",
+    alerts:             "Avvisi",
+    fleetSummary:       "Riepilogo Flotta",
+    viewDetails:        "Vedi Dettaglio →",
+    procurementStatus:  "Stato Acquisti",
+    vessel:             "Nave",
+    rfq:                "RFQ",
+    orders:             "Ordini",
+    dn:                 "DN",
+    budgetMonitor:      "Monitor Budget",
+    residual:           "Residuo",
+    certifications:     "Certificazioni & Scadenze",
+    expired:            "Scaduti / <15g",
+    expiring30d:        "In scadenza 30g",
+    valid:              "Validi",
+    messageComposer:    "Compositore Messaggi",
+    poweredBy:          "Powered by Maritime Purchasing HQ",
+    lastSync:           "Ultimo aggiornamento",
+    onTime:             "In Orario",
+    delayRisk:          "Rischio Ritardo",
+    anchored:           "Ancorato",
+    moored:             "Ormeggiato",
+    navigation:         "Navigazione",
+    nextPort:           "Porto successivo",
+    eta:                "ETA",
+    openItems:          "Voci aperte",
+  }
+};
 
-  // ─────────────────────────────────────────────
-  // LANGUAGE
-  // ─────────────────────────────────────────────
-  function setLanguage(lang) {
-    if (document.getElementById("title"))
-      document.getElementById("title").textContent = translations[lang].title;
-    if (document.getElementById("subtitle"))
-      document.getElementById("subtitle").textContent = translations[lang].subtitle;
+/* ── LANGUAGE ── */
+let currentLang = localStorage.getItem("dashboardLang") || "en";
 
-    document.querySelectorAll("[data-i18n]").forEach((el) => {
-      const key = el.getAttribute("data-i18n");
-      if (translations[lang][key]) el.textContent = translations[lang][key];
+function applyLang(lang) {
+  currentLang = lang;
+  localStorage.setItem("dashboardLang", lang);
+  const t = i18n[lang];
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (t[key]) el.textContent = t[key];
+  });
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.id === "lang-" + lang);
+  });
+}
+
+/* ── CLOCK ── */
+function updateClock() {
+  const el = document.getElementById("current-time");
+  if (!el) return;
+  const now = new Date();
+  el.textContent = now.toUTCString().slice(0, 25) + " UTC";
+}
+
+/* ── HELPERS ── */
+function statusColor(s) {
+  if (!s) return "neutral";
+  s = s.toLowerCase();
+  if (s.includes("on_time") || s.includes("moored")) return "green";
+  if (s.includes("delay") || s.includes("navigation")) return "yellow";
+  if (s.includes("anchor")) return "red";
+  return "green";
+}
+
+function formatDate(iso) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  } catch { return iso; }
+}
+
+function formatDateTime(iso) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) +
+           " " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + " UTC";
+  } catch { return iso; }
+}
+
+/* ── TEMPLATES COMPOSER ── */
+const templates = {
+  "eta-agent": (v) => `TO: ${v ? v.agent : "[Agent]"}\nSUBJECT: ETA Confirmation Request — ${v ? v.name : "[Vessel]"}\n\nDear ${v ? v.agent : "[Agent]"},\nPlease confirm ETA for ${v ? v.name : "[Vessel]"} at ${v ? v.nextPort : "[Port]"}.\nExpected arrival: ${formatDateTime(v ? v.eta : null)}\n\nBest regards,\nMaritime Purchasing HQ`,
+  "order-confirm": (v) => `TO: [Supplier]\nSUBJECT: Order Confirmation — ${v ? v.name : "[Vessel]"}\n\nDear [Supplier],\nWe confirm the purchase order for ${v ? v.name : "[Vessel]"}.\nDelivery port: ${v ? v.nextPort : "[Port]"}\nETA: ${formatDateTime(v ? v.eta : null)}\n\nBest regards,\nMaritime Purchasing HQ`,
+  "captain-req": (v) => `TO: Captain — ${v ? v.name : "[Vessel]"}\nSUBJECT: Request Acknowledged — ${v ? v.name : "[Vessel]"}\n\nDear Captain,\nYour request has been received and is being processed.\nWe will update you before ETB: ${formatDateTime(v ? v.etb : null)}\n\nBest regards,\nMaritime Purchasing HQ`,
+};
+
+/* ── RENDER FLEET CARDS ── */
+function renderFleet(vessels) {
+  const container = document.getElementById("fleet-container");
+  if (!container) return;
+  const t = i18n[currentLang];
+  container.innerHTML = vessels.map(v => {
+    const col = v.statusColor || statusColor(v.status);
+    const statusLabel = t[v.status] || v.status || "—";
+    return `<div class="ship-card">
+      <div class="ship-status-bar ${col}"></div>
+      <div class="ship-name">${v.name}</div>
+      <div class="ship-meta">
+        <span>📍 ${v.location || "—"}</span>
+        <span>${t.nextPort}: ${v.nextPort || "—"}</span>
+        <span>${t.eta}: ${formatDateTime(v.eta)}</span>
+        <span>${t.openItems}: ${v.openItems || 0}</span>
+      </div>
+      <a class="ghost-btn" href="vessel.html?vessel=${v.id}" data-i18n="viewDetails">${t.viewDetails}</a>
+    </div>`;
+  }).join("");
+}
+
+/* ── RENDER ALERTS ── */
+function renderAlerts(vessels) {
+  const container = document.getElementById("alerts-container");
+  if (!container) return;
+  const allAlerts = [];
+  vessels.forEach(v => {
+    (v.alerts || []).forEach(a => {
+      allAlerts.push({ vessel: v.name, ...a });
     });
-
-    const btnIt = document.getElementById("lang-it");
-    const btnEn = document.getElementById("lang-en");
-    if (btnIt) btnIt.classList.toggle("active", lang === "it");
-    if (btnEn) btnEn.classList.toggle("active", lang === "en");
-    localStorage.setItem("dashboardLang", lang);
+  });
+  if (allAlerts.length === 0) {
+    container.innerHTML = `<div class="alert warn">⚓ No active alerts at this time.</div>`;
+    return;
   }
+  container.innerHTML = allAlerts.map(a =>
+    `<div class="alert ${a.type}">
+      <span>${a.type === "crit" ? "🚨" : "⚠️"}</span>
+      <span><strong>${a.vessel}</strong> — ${a.message}</span>
+    </div>`
+  ).join("");
+}
 
-  const btnIt = document.getElementById("lang-it");
-  const btnEn = document.getElementById("lang-en");
-  if (btnIt) btnIt.addEventListener("click", () => setLanguage("it"));
-  if (btnEn) btnEn.addEventListener("click", () => setLanguage("en"));
+/* ── RENDER KPI FROM FLEET ── */
+function renderKPI(fleetData, budgetData, procData, emailData) {
+  const vessels = fleetData.vessels || [];
 
-  const savedLang = localStorage.getItem("dashboardLang") || "it";
-  setLanguage(savedLang);
-
-  // ─────────────────────────────────────────────
-  // HELPERS
-  // ─────────────────────────────────────────────
-  function formatDate(isoString) {
-    if (!isoString) return "—";
-    const d = new Date(isoString);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = d.toLocaleString("en", { month: "short" });
-    const year = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    return `${day} ${month} ${year} · ${hh}:${mm}`;
-  }
-
-  function statusLabel(status) {
-    const map = {
-      moored:      { it: "Moored",      en: "Moored",      bg: "#1a4d2e", color: "#2fd06f" },
-      navigation:  { it: "Navigation",  en: "Navigation",  bg: "#3d2e00", color: "#ffbf3c" },
-      delay_risk:  { it: "Delay risk",  en: "Delay risk",  bg: "#3d1a1a", color: "#ff5f63" },
-      on_time:     { it: "On time",     en: "On time",     bg: "#1a3d22", color: "#2fd06f" },
-      anchored:    { it: "All'ancora",  en: "Anchored",    bg: "#1a2a3d", color: "#57d4ff" }
-    };
-    return map[status] || { it: status, en: status, bg: "#1a2a3d", color: "#8aa7c2" };
-  }
-
-  function semaphoreColor(level) {
-    if (level === "green") return "#2fd06f";
-    if (level === "yellow") return "#ffbf3c";
-    if (level === "red") return "#ff5f63";
-    return "#8aa7c2";
-  }
-
-  function deliveryLabel(delivery, lang) {
-    const map = {
-      today:    { it: "Oggi",    en: "Today",    color: "#2fd06f" },
-      tomorrow: { it: "Domani",  en: "Tomorrow", color: "#ffbf3c" },
-      delayed:  { it: "Ritardo", en: "Delayed",  color: "#ff5f63" },
-      "48h":    { it: "48h",     en: "48h",      color: "#2fd06f" }
-    };
-    return map[delivery] || { it: delivery, en: delivery, color: "#8aa7c2" };
-  }
-
-  function badgeHTML(value, color, bg) {
-    return `<span style="background:${bg};color:${color};padding:2px 9px;border-radius:20px;">${value}</span>`;
-  }
-
-  const colorMap = {
-    green:  { color: "#2fd06f", bg: "#1a4d2e" },
-    yellow: { color: "#ffbf3c", bg: "#3d2e00" },
-    red:    { color: "#ff5f63", bg: "#3d1a1a" },
-    gray:   { color: "#6f8aa5", bg: "#0b1623" }
-  };
-
-  // ─────────────────────────────────────────────
-  // KPI ITEMS — unica fonte di verità
-  // Calcola tutti i KPI procurement dagli items[]
-  // così contatori e lista usano sempre la stessa logica
-  // ─────────────────────────────────────────────
-  function calcKPI(proc) {
-    if (!proc || !proc.items) return {
-      rfqOpenItems: [], scaduteItems: [], poAttiviItems: [],
-      dnTransitItems: [], prontiPoItems: [],
-      rfqOpenCount: 0, scaduteCount: 0, poAttiviCount: 0,
-      dnTransitCount: 0, prontiPoCount: 0
-    };
-
-    const activeItems = proc.items.filter(i =>
-      i.reqStatus !== "REQ Cancelled" &&
-      i.poStatus  !== "PO Cancelled"
-    );
-
-    // RFQ APERTE: RFQ Sent to Vendor o REQ Endorsed, senza PO ancora emesso
-    const rfqOpenItems = activeItems.filter(i =>
-      (i.rfqStatus === "RFQ Sent to Vendor" || i.reqStatus === "REQ Endorsed") &&
-      (!i.poStatus || i.poStatus === "")
-    );
-
-    // SCADUTE >7GG: RFQ Sent to Vendor senza PO, da più di 7 giorni
-    const scaduteItems = rfqOpenItems.filter(i =>
-      i.rfqDays !== null && i.rfqDays > 7
-    );
-
-    // PO ATTIVI: PO emesso ma DN non ancora emesso
-    const poAttiviItems = activeItems.filter(i =>
-      i.poStatus && i.poStatus !== "" &&
-      (!i.dnStatus || i.dnStatus === "")
-    );
-
-    // DN TRANSIT: DN in viaggio verso la nave
-    const dnTransitItems = activeItems.filter(i =>
-      i.dnStatus === "DN Shipped to Vessel" ||
-      i.dnStatus === "DN Ready for Shipment"
-    );
-
-    // PRONTI PO: offerta ricevuta da >7gg, PO non ancora emesso
-    const prontiPoItems = activeItems.filter(i =>
-      i.rfqStatus === "RFQ Offer Acknowledged" &&
-      (!i.poStatus || i.poStatus === "") &&
-      i.rfqDays !== null && i.rfqDays > 7
-    );
-
-    return {
-      activeItems,
-      rfqOpenItems,  rfqOpenCount:   rfqOpenItems.length,
-      scaduteItems,  scaduteCount:   scaduteItems.length,
-      poAttiviItems, poAttiviCount:  poAttiviItems.length,
-      dnTransitItems,dnTransitCount: dnTransitItems.length,
-      prontiPoItems, prontiPoCount:  prontiPoItems.length
-    };
-  }
-
-  // ─────────────────────────────────────────────
-  // DETECT PAGE
-  // ─────────────────────────────────────────────
-  const page = document.body.dataset.page;
-  const vesselId = document.body.dataset.vessel;
-
-  // ─────────────────────────────────────────────
-  // FETCH ALL DATA
-  // ─────────────────────────────────────────────
-  Promise.all([
-    fetch("data-fleet.json").then(r => r.json()),
-    fetch("data-procurement.json").then(r => r.json()),
-    fetch("data-budget.json").then(r => r.json()),
-    fetch("data-email.json").then(r => r.json())
-  ])
-  .then(([fleetData, procData, budgetData]) => {
-    if (page === "dashboard") {
-      renderDashboard(fleetData, procData, budgetData);
-    } else if (page === "vessel" && vesselId) {
-      renderVesselPage(fleetData, procData, budgetData, vesselId);
-    }
-  })
-  .catch(err => {
-    console.error("Data load error:", err);
-    const errEl = document.getElementById("data-error");
-    if (errEl) errEl.style.display = "block";
+  let onTime = 0, delayRisk = 0, anchored = 0;
+  let critCount = 0;
+  vessels.forEach(v => {
+    if (v.alertLevel === "crit") critCount++;
+    const s = (v.status || "").toLowerCase();
+    if (s.includes("on_time") || s.includes("moored")) onTime++;
+    else if (s.includes("delay") || s.includes("navigation")) delayRisk++;
+    else if (s.includes("anchor")) anchored++;
   });
 
-  // ─────────────────────────────────────────────
-  // RENDER DASHBOARD
-  // ─────────────────────────────────────────────
-  function renderDashboard(fleetData, procData, budgetData) {
-    const lang = localStorage.getItem("dashboardLang") || "it";
-    const vessels = fleetData.vessels;
-    const budgetVessels = budgetData.vessels;
-    const procVessels = procData.vessels;
+  const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  setEl("kpi-fleet", vessels.length);
+  setEl("map-fleet-count", vessels.length);
+  setEl("map-on-time", onTime);
+  setEl("map-delay", delayRisk);
+  setEl("map-anchored", anchored);
+  setEl("kpi-alerts", critCount);
 
-    // Sync timestamp
-    const syncEl = document.getElementById("sync-time");
-    if (syncEl) {
-      const d = new Date(fleetData.lastSync);
-      syncEl.textContent = `Ultimo sync: ${d.toLocaleString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}`;
-    }
+  if (budgetData) {
+    const avg = budgetData.fleetSummary?.averagePercentage || 0;
+    setEl("kpi-budget", avg + "%");
+  }
+  if (procData) {
+    const allVessels = procData.vessels || [];
+    const totalRFQ = allVessels.reduce((s, v) => s + (v.rfqOpen || 0), 0);
+    const totalDN  = allVessels.reduce((s, v) => s + (v.dnPending || 0), 0);
+    setEl("kpi-rfq", totalRFQ);
+    setEl("kpi-delivery", totalDN);
+  }
+  if (emailData) {
+    setEl("kpi-emails", emailData.summary?.totalUnhandled || 0);
+  }
+}
 
-    // KPI globali calcolati dagli items
-    const critCount    = vessels.filter(v => v.alertLevel === "crit").length;
-    const onTimeCount  = vessels.filter(v => v.alertLevel === "ok").length;
-    const delayCount   = vessels.filter(v => v.alertLevel === "crit").length;
-    const anchoredCount= vessels.filter(v => v.status === "anchored").length;
-    const avgBudget    = Math.round(budgetData.fleetSummary.averagePercentage);
+/* ── RENDER PROCUREMENT TABLE ── */
+function renderProcurement(procData) {
+  const tbody = document.getElementById("proc-tbody");
+  if (!tbody || !procData) return;
+  const vessels = procData.vessels || [];
+  tbody.innerHTML = vessels.map(v => {
+    const rfqCol = v.rfqOpen > 0 ? (v.rfqOverdue7 > 0 ? "red" : "yellow") : "green";
+    const ordCol = v.orders > 0 ? "neutral" : "green";
+    const dnCol  = v.delivery === "delayed" ? "red" : (v.dnPending > 0 ? "yellow" : "green");
+    return `<tr>
+      <td>${v.vesselName}</td>
+      <td><span class="proc-badge ${rfqCol}">${v.rfqOpen}</span></td>
+      <td><span class="proc-badge ${ordCol}">${v.orders}</span></td>
+      <td><span class="proc-badge ${dnCol}">${v.dn} <small style="opacity:.7">(${v.dnPending} pend.)</small></span></td>
+    </tr>`;
+  }).join("");
+}
 
-    const totalRfqOpen   = procVessels.reduce((s,v) => s + calcKPI(v).rfqOpenCount, 0);
-    const totalDnTransit = procVessels.reduce((s,v) => s + calcKPI(v).dnTransitCount, 0);
+/* ── RENDER BUDGET ── */
+function renderBudget(budgetData) {
+  const container = document.getElementById("budget-container");
+  if (!container || !budgetData) return;
+  const t = i18n[currentLang];
+  container.innerHTML = (budgetData.vessels || []).map(v => {
+    const pct = v.percentageUsed || 0;
+    const col = v.semaphore || (pct >= 85 ? "red" : pct >= 70 ? "yellow" : "green");
+    return `<div class="budget-item">
+      <div class="budget-item-header">
+        <span>${v.vesselName}</span>
+        <span class="pct" style="color:${col === 'red' ? '#ff5f63' : col === 'yellow' ? '#ffbf3c' : '#2fd06f'}">${pct}%</span>
+      </div>
+      <div class="budget-bar"><div class="fill ${col}" style="width:${pct}%"></div></div>
+      <div class="budget-sub">${t.residual}: €${(v.residualBudget || 0).toLocaleString("en-IE")}</div>
+    </div>`;
+  }).join("");
+}
 
-    setEl("kpi-vessels",  vessels.length);
-    setEl("kpi-rfq",      totalRfqOpen);
-    setEl("kpi-budget",   avgBudget + "%");
-    setEl("kpi-alerts",   critCount);
-    setEl("kpi-delivery", totalDnTransit);
-    setEl("map-on-time",  onTimeCount);
-    setEl("map-delay",    delayCount);
-    setEl("map-anchored", anchoredCount);
+/* ── COMPOSER ── */
+function initComposer(vessels) {
+  const preview = document.getElementById("email-preview");
+  const templates_els = document.querySelectorAll(".template-box");
+  if (!preview || !templates_els.length) return;
 
-    // Fleet cards
-    const fleetGrid = document.getElementById("fleet-grid");
-    if (fleetGrid) {
-      fleetGrid.innerHTML = vessels.map(v => {
-        const sl = statusLabel(v.status);
-        const bv = budgetVessels.find(b => b.vesselId === v.id) || {};
-        const pv = procVessels.find(p => p.vesselId === v.id) || {};
-        const pct = bv.percentageUsed || 0;
-        const bc = colorMap[bv.semaphore] || colorMap.gray;
-        const dl = deliveryLabel(pv.delivery, lang);
-        const alertIcon = v.alertLevel === "crit" ? "🔴 🟡" : v.alertLevel === "warn" ? "🟡" : "🟢 🟢";
-        const alertText = v.alertLevel === "crit" ? `${v.alerts.length} alert` : v.alertLevel === "warn" ? "1 attenzione" : "OK";
+  let selectedTemplate = "eta-agent";
+  let selectedVessel = vessels && vessels.length ? vessels[0] : null;
 
-        return `
-        <div class="ship-card">
-          <div>
-            <div class="ship-name">${v.name}</div>
-            <div class="ship-meta">${v.location} · Agent: ${v.agent}</div>
-            <div style="margin-top:6px;">
-              <span style="background:${sl.bg};color:${sl.color};padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">${sl.it}</span>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;text-align:left;width:100%;">
-            <div><span style="color:#6f8aa5;">${lang === "it" ? "Prossimo Porto" : "Next Port"}</span><br><strong>${v.nextPort}</strong></div>
-            <div><span style="color:#6f8aa5;">ETA</span><br><strong>${formatDate(v.eta).split(" · ")[0].slice(0,6)} · ${formatDate(v.eta).split(" · ")[1]}</strong></div>
-            <div><span style="color:#6f8aa5;">${lang === "it" ? "Items aperti" : "Open items"}</span><br><strong>${v.openItems} proc.</strong></div>
-            <div><span style="color:#6f8aa5;">Budget</span><br><strong style="color:${bc.color};">${pct}%</strong></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-            <span style="font-size:0.82rem;">${alertIcon} ${alertText}</span>
-            <a href="vessel-${v.id}.html" style="text-decoration:none;">
-              <button class="ghost-btn">${lang === "it" ? "Dettaglio nave →" : "Vessel detail →"}</button>
-            </a>
-          </div>
-        </div>`;
-      }).join("");
-    }
-
-    // Procurement table
-    const procTable = document.getElementById("proc-table-body");
-    if (procTable) {
-      procTable.innerHTML = procVessels.map(v => {
-        const kpi = calcKPI(v);
-        const rfqC = kpi.rfqOpenCount > 1 ? colorMap.red : kpi.rfqOpenCount === 1 ? colorMap.yellow : colorMap.gray;
-        const poC  = kpi.poAttiviCount > 0 ? colorMap.yellow : colorMap.gray;
-        const dnC  = kpi.dnTransitCount > 0 ? colorMap.yellow : colorMap.gray;
-        const dl   = deliveryLabel(v.delivery, lang);
-        return `
-        <div class="proc-row">
-          <span>${v.vesselName}</span>
-          <span>${badgeHTML(kpi.rfqOpenCount,  rfqC.color, rfqC.bg)}</span>
-          <span>${badgeHTML(kpi.poAttiviCount, poC.color,  poC.bg)}</span>
-          <span>${badgeHTML(kpi.dnTransitCount,dnC.color,  dnC.bg)}</span>
-          <span style="color:${dl.color};font-weight:600;">${dl[lang]}</span>
-        </div>`;
-      }).join("");
-    }
-
-    // Budget bars
-    const budgetList = document.getElementById("budget-list");
-    if (budgetList) {
-      budgetList.innerHTML = budgetVessels.map(v => {
-        const c = colorMap[v.semaphore] || colorMap.gray;
-        const residual = (v.residualBudget / 1000).toFixed(0);
-        const used = (v.usedBudget / 1000).toFixed(0);
-        const total = (v.totalBudget / 1000).toFixed(0);
-        return `
-        <div class="budget-item">
-          <div class="budget-top">
-            <strong>${v.vesselName}</strong>
-            <span style="color:${c.color};">${v.percentageUsed}% · €${residual}k residui</span>
-          </div>
-          <div class="budget-bar">
-            <div class="fill ${v.semaphore}" style="width:${v.percentageUsed}%;"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:#6f8aa5;">
-            <span>Usato: €${used}k</span><span>Totale: €${total}k</span>
-          </div>
-        </div>`;
-      }).join("");
-    }
-
-    // Sync label
-    const syncLabel = document.getElementById("last-sync-label");
-    if (syncLabel) {
-      syncLabel.textContent = `${translations[lang].lastSync}: ${new Date(fleetData.lastSync).toLocaleString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}`;
-    }
+  function updatePreview() {
+    const fn = templates[selectedTemplate];
+    preview.textContent = fn ? fn(selectedVessel) : "Select a template...";
   }
 
-  // ─────────────────────────────────────────────
-  // RENDER VESSEL PAGE
-  // ─────────────────────────────────────────────
-  function renderVesselPage(fleetData, procData, budgetData, vesselId) {
-    const lang   = localStorage.getItem("dashboardLang") || "it";
-    const vessel = fleetData.vessels.find(v => v.id === vesselId);
-    const proc   = procData.vessels.find(v => v.vesselId === vesselId);
-    const budget = budgetData.vessels.find(v => v.vesselId === vesselId);
+  templates_els.forEach(box => {
+    box.addEventListener("click", () => {
+      templates_els.forEach(b => b.classList.remove("active"));
+      box.classList.add("active");
+      selectedTemplate = box.dataset.template;
+      updatePreview();
+    });
+  });
 
-    if (!vessel) return;
+  updatePreview();
+}
 
-    const sl = statusLabel(vessel.status);
+/* ── MAIN LOAD ── */
+async function loadDashboard() {
+  try {
+    const [fleetRes, budgetRes, procRes, emailRes] = await Promise.allSettled([
+      fetch("data-fleet.json").then(r => r.json()),
+      fetch("data-budget.json").then(r => r.json()),
+      fetch("data-procurement.json").then(r => r.json()),
+      fetch("data-email.json").then(r => r.json()),
+    ]);
 
-    // Header nave
-    setEl("vessel-name", vessel.name);
-    setEl("vessel-meta", `${vessel.location} · Agent: ${vessel.agent} · IMO: ${vessel.imo}`);
-    const statusBadge = document.getElementById("vessel-status-badge");
-    if (statusBadge) {
-      statusBadge.textContent = sl.it;
-      statusBadge.style.background = sl.bg;
-      statusBadge.style.color = sl.color;
+    const fleetData  = fleetRes.status  === "fulfilled" ? fleetRes.value  : null;
+    const budgetData = budgetRes.status === "fulfilled" ? budgetRes.value : null;
+    const procData   = procRes.status   === "fulfilled" ? procRes.value   : null;
+    const emailData  = emailRes.status  === "fulfilled" ? emailRes.value  : null;
+
+    if (fleetData) {
+      renderFleet(fleetData.vessels || []);
+      renderAlerts(fleetData.vessels || []);
+      renderKPI(fleetData, budgetData, procData, emailData);
+      initComposer(fleetData.vessels || []);
+    }
+    if (procData)   renderProcurement(procData);
+    if (budgetData) renderBudget(budgetData);
+
+    // Last sync
+    const syncEl = document.getElementById("last-sync");
+    if (syncEl && fleetData?.lastSync) {
+      syncEl.textContent = i18n[currentLang].lastSync + ": " + formatDate(fleetData.lastSync);
     }
 
-    // Route info
-    setEl("vessel-next-port",    vessel.nextPort);
-    setEl("vessel-eta",          formatDate(vessel.eta));
-    setEl("vessel-etb",          formatDate(vessel.etb));
-    setEl("vessel-etd",          formatDate(vessel.etd));
-    setEl("vessel-agent-name",   vessel.agent);
-    setEl("vessel-agent-contact",vessel.agentContact);
-    setEl("vessel-position",     vessel.position);
-    setEl("vessel-noon-report",  formatDate(vessel.lastNoonReport));
-
-    // ── Procurement KPI (calcolati dagli items)
-    if (proc) {
-      const kpi = calcKPI(proc);
-
-      // Tile KPI
-      setEl("kpi-rfq-open",    kpi.rfqOpenCount);
-      setEl("kpi-scadute",     kpi.scaduteCount);
-      setEl("kpi-po-attivi",   kpi.poAttiviCount);
-      setEl("kpi-dn-transit",  kpi.dnTransitCount);
-      setEl("kpi-pronti-po",   kpi.prontiPoCount);
-
-      // Colori tile SCADUTE: rosso se > 0
-      const scaduteEl = document.getElementById("kpi-scadute");
-      if (scaduteEl) scaduteEl.style.color = kpi.scaduteCount > 0 ? "#ff5f63" : "#ffbf3c";
-
-      // Lista items con filtri
-      const itemsContainer = document.getElementById("vessel-items-body");
-      if (itemsContainer) {
-        let activeFilter = "rfq-aperte";
-
-        // Bottoni filtro
-        const filterBtns = document.querySelectorAll("[data-filter]");
-        filterBtns.forEach(btn => {
-          btn.addEventListener("click", () => {
-            activeFilter = btn.dataset.filter;
-            filterBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            renderItems();
-          });
-        });
-
-        function getFilteredItems() {
-          switch (activeFilter) {
-            case "tutti":        return kpi.activeItems;
-            case "rfq-aperte":   return kpi.rfqOpenItems;
-            case "scadute":      return kpi.scaduteItems;
-            case "po-attivi":    return kpi.poAttiviItems;
-            case "dn-transit":   return kpi.dnTransitItems;
-            case "pronti-po":    return kpi.prontiPoItems;
-            case "cancellati":   return proc.items.filter(i =>
-                                   i.reqStatus === "REQ Cancelled" ||
-                                   i.poStatus  === "PO Cancelled");
-            default:             return kpi.activeItems;
-          }
-        }
-
-        function rfqProgressBar(issued, closed) {
-          if (!issued || issued === 0) return "";
-          const pct = Math.round((closed / issued) * 100);
-          const color = pct >= 100 ? "#2fd06f" : pct > 50 ? "#ffbf3c" : "#ff5f63";
-          return `
-          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
-            <div style="flex:1;height:4px;background:#1e3a52;border-radius:2px;">
-              <div style="width:${pct}%;height:100%;background:${color};border-radius:2px;"></div>
-            </div>
-            <span style="font-size:0.75rem;color:#6f8aa5;">${closed}/${issued}</span>
-          </div>`;
-        }
-
-        function statusDot(status, color) {
-          return status
-            ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:4px;"></span>`
-            : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1e3a52;margin-right:4px;"></span>`;
-        }
-
-        function itemColor(item) {
-          if (item.rfqStatus === "RFQ Sent to Vendor" && item.rfqDays > 7) return "#ff5f63";
-          if (item.rfqStatus === "RFQ Sent to Vendor") return "#ffbf3c";
-          if (item.rfqStatus === "RFQ Offer Acknowledged") return "#57d4ff";
-          if (item.poStatus)  return "#2fd06f";
-          return "#8aa7c2";
-        }
-
-        function renderItems() {
-          const filtered = getFilteredItems();
-          if (!filtered.length) {
-            itemsContainer.innerHTML = `<div style="color:#6f8aa5;padding:16px;text-align:center;">Nessun item per questo filtro</div>`;
-            return;
-          }
-          itemsContainer.innerHTML = filtered.map(item => {
-            const ic = itemColor(item);
-            const reqDot = statusDot(item.reqStatus, item.reqStatus === "REQ Cancelled" ? "#ff5f63" : "#ffbf3c");
-            const rfqDot = statusDot(item.rfqStatus, item.rfqStatus === "RFQ Sent to Vendor" ? "#ffbf3c" : item.rfqStatus === "RFQ Offer Acknowledged" ? "#57d4ff" : "#6f8aa5");
-            const poDot  = statusDot(item.poStatus,  "#2fd06f");
-            const dnDot  = statusDot(item.dnStatus,  item.dnStatus === "DN Received on Board" ? "#2fd06f" : "#57d4ff");
-            const daysLabel = item.rfqDays !== null && item.rfqDays > 0 ? `<span style="color:#6f8aa5;font-size:0.75rem;">${item.rfqDays}gg</span>` : "";
-
-            return `
-            <div class="proc-item" style="padding:10px 14px;border-bottom:1px solid #0f2030;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                <div style="flex:1;">
-                  <div style="font-size:0.78rem;color:#6f8aa5;margin-bottom:2px;">${item.id}</div>
-                  <div style="font-size:0.88rem;font-weight:600;color:#e0eaf5;">${item.description}</div>
-                  <div style="font-size:0.78rem;color:#8aa7c2;margin-top:2px;">${item.supplier}</div>
-                </div>
-                <div style="text-align:right;font-size:0.78rem;color:#6f8aa5;">
-                  ${item.deliveryDate !== "—" ? item.deliveryDate : ""}
-                  ${daysLabel}
-                </div>
-              </div>
-              ${rfqProgressBar(item.rfqIssued, item.rfqClosed)}
-              <div style="display:flex;gap:16px;margin-top:6px;font-size:0.78rem;">
-                <span>${reqDot}${item.reqStatus || "—"}</span>
-                <span>${rfqDot}${item.rfqStatus || "—"}</span>
-                <span>${poDot}${item.poStatus || "—"}</span>
-                <span>${dnDot}${item.dnStatus || "—"}</span>
-              </div>
-            </div>`;
-          }).join("");
-        }
-
-        renderItems();
-      }
-    }
-
-    // Budget
-    if (budget) {
-      const c = colorMap[budget.semaphore] || colorMap.gray;
-      const residual = (budget.residualBudget / 1000).toFixed(0);
-      const used = (budget.usedBudget / 1000).toFixed(0);
-      const total = (budget.totalBudget / 1000).toFixed(0);
-
-      setEl("vessel-budget-label", `${vessel.name}`);
-      setEl("vessel-budget-pct",   `${budget.percentageUsed}% · €${residual}k residui`);
-      const pctEl = document.getElementById("vessel-budget-pct");
-      if (pctEl) pctEl.style.color = c.color;
-
-      const barFill = document.getElementById("vessel-budget-fill");
-      if (barFill) {
-        barFill.style.width = budget.percentageUsed + "%";
-        barFill.className = `fill ${budget.semaphore}`;
-      }
-      setEl("vessel-budget-used",  `Usato: €${used}k`);
-      setEl("vessel-budget-total", `Totale: €${total}k`);
-    }
-
-    // Sync label vessel
-    const syncLabel = document.getElementById("last-sync-label");
-    if (syncLabel) {
-      syncLabel.textContent = `${translations[lang].lastSync}: ${new Date(fleetData.lastSync).toLocaleString("it-IT", { day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })}`;
-    }
+  } catch (err) {
+    console.error("Dashboard load error:", err);
   }
+}
 
-  // ─────────────────────────────────────────────
-  // UTILITY
-  // ─────────────────────────────────────────────
-  function setEl(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
+/* ── INIT ── */
+document.addEventListener("DOMContentLoaded", () => {
+  applyLang(currentLang);
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  document.getElementById("lang-it")?.addEventListener("click", () => { applyLang("it"); renderBudget(window._budgetData); });
+  document.getElementById("lang-en")?.addEventListener("click", () => { applyLang("en"); renderBudget(window._budgetData); });
+
+  if (document.getElementById("fleet-container")) {
+    loadDashboard();
   }
-
 });
