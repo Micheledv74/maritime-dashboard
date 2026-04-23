@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vessel Detail — Maritime Purchasing HQ</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="status-dot"></div>
+        <div class="topbar-title" data-i18n="title">Maritime Purchasing HQ</div>
+        <div class="topbar-time" id="current-time"></div>
+    </div>
+
+    <!-- VESSEL DASHBOARD -->
+    <div class="dashboard">
+
+        <!-- VESSEL HEADER -->
+        <div class="vessel-header">
+            <a href="index.html" class="vessel-back-btn">← Back to Dashboard</a>
+            <div class="vessel-title" id="vessel-name">Loading...</div>
+            <span class="vessel-status-badge" id="vessel-status-badge">—</span>
+        </div>
+
+        <!-- ROUTE & PORT INFO + PROCUREMENT -->
+        <div class="vessel-grid-2 main-grid">
+
+            <!-- ROUTE & PORT -->
+            <section class="card">
+                <div class="section-head">
+                    <span class="section-icon">🧭</span>
+                    <span>Route &amp; Port Info</span>
+                </div>
+                <table class="info-table" id="route-table">
+                    <tr><td>Location</td><td id="v-location">—</td></tr>
+                    <tr><td>Next Port</td><td id="v-nextport">—</td></tr>
+                    <tr><td>ETA</td><td id="v-eta">—</td></tr>
+                    <tr><td>ETB</td><td id="v-etb">—</td></tr>
+                    <tr><td>ETD</td><td id="v-etd">—</td></tr>
+                    <tr><td>Agent</td><td id="v-agent">—</td></tr>
+                    <tr><td>Agent Contact</td><td id="v-agent-contact">—</td></tr>
+                    <tr><td>Position</td><td id="v-position">—</td></tr>
+                    <tr><td>Last Noon Report</td><td id="v-noon">—</td></tr>
+                </table>
+            </section>
+
+            <!-- PROCUREMENT -->
+            <section class="card">
+                <div class="section-head">
+                    <span class="section-icon">📋</span>
+                    <span>Procurement Status</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="vessel-proc-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Supplier</th>
+                                <th>RFQ</th>
+                                <th>PO</th>
+                                <th>DN</th>
+                                <th>Delivery</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vessel-proc-tbody">
+                            <tr><td colspan="6" style="color:#4a6a88;padding:14px;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- BUDGET + CERTIFICATIONS -->
+        <div class="vessel-grid-2 main-grid">
+
+            <!-- BUDGET -->
+            <section class="card">
+                <div class="section-head">
+                    <span class="section-icon">💰</span>
+                    <span>Budget</span>
+                </div>
+                <div id="vessel-budget-container">
+                    <div style="color:#4a6a88;font-size:13px;">Loading budget...</div>
+                </div>
+            </section>
+
+            <!-- CERTIFICATIONS -->
+            <section class="card">
+                <div class="section-head">
+                    <span class="section-icon">📜</span>
+                    <span>Certifications &amp; Expiry</span>
+                </div>
+                <div class="cert-grid">
+                    <div class="cert-box crit">
+                        <div class="cert-num" id="v-cert-crit">—</div>
+                        <div>Expired / &lt;15d</div>
+                    </div>
+                    <div class="cert-box warn">
+                        <div class="cert-num" id="v-cert-warn">—</div>
+                        <div>Expiring 30d</div>
+                    </div>
+                    <div class="cert-box ok">
+                        <div class="cert-num" id="v-cert-ok">—</div>
+                        <div>Valid</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- EMAIL DIGEST -->
+        <section class="card">
+            <div class="section-head">
+                <span class="section-icon">📧</span>
+                <span>Email Digest</span>
+            </div>
+            <div class="email-list" id="vessel-email-list">
+                <div style="color:#4a6a88;font-size:13px;">Loading emails...</div>
+            </div>
+        </section>
+
+    </div><!-- /dashboard -->
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-left">
+            <span data-i18n="poweredBy">Powered by Maritime Purchasing HQ</span>
+        </div>
+        <div class="footer-right">
+            <button id="lang-it" class="lang-btn">IT</button>
+            <button id="lang-en" class="lang-btn active">EN</button>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+    /* ── VESSEL PAGE LOGIC ── */
+
+    function getVesselParam() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("vessel") || "";
+    }
+
+    function formatDT(iso) {
+        if (!iso) return "—";
+        try {
+            const d = new Date(iso);
+            return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"})
+                   + " " + d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + " UTC";
+        } catch { return iso; }
+    }
+
+    function formatD(iso) {
+        if (!iso) return "—";
+        try {
+            const d = new Date(iso);
+            return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"});
+        } catch { return iso; }
+    }
+
+    function setPillClass(status) {
+        if (!status) return "neutral";
+        const s = status.toLowerCase();
+        if (s.includes("finalized") || s.includes("received") || s.includes("acknowledged")) return "ok";
+        if (s.includes("published") || s.includes("shipped")) return "warn";
+        if (s.includes("cancelled") || s.includes("overdue")) return "crit";
+        if (s.includes("sent") || s.includes("ordered")) return "warn";
+        return "neutral";
+    }
+
+    function isOverdue(dateStr) {
+        if (!dateStr) return false;
+        return new Date(dateStr) < new Date();
+    }
+
+    async function loadVesselPage() {
+        const vesselId = getVesselParam();
+        if (!vesselId) {
+            document.getElementById("vessel-name").textContent = "Vessel not found";
+            return;
+        }
+
+        try {
+            const [fleetRes, budgetRes, procRes, emailRes] = await Promise.allSettled([
+                fetch("data-fleet.json").then(r => r.json()),
+                fetch("data-budget.json").then(r => r.json()),
+                fetch("data-procurement.json").then(r => r.json()),
+                fetch("data-email.json").then(r => r.json()),
+            ]);
+
+            const fleetData  = fleetRes.status  === "fulfilled" ? fleetRes.value  : null;
+            const budgetData = budgetRes.status  === "fulfilled" ? budgetRes.value : null;
+            const procData   = procRes.status    === "fulfilled" ? procRes.value   : null;
+            const emailData  = emailRes.status   === "fulfilled" ? emailRes.value  : null;
+
+            // ── FLEET DATA ──
+            if (fleetData) {
+                const vessel = (fleetData.vessels || []).find(v => v.id === vesselId);
+                if (vessel) {
+                    document.title = vessel.name + " — Maritime Purchasing HQ";
+                    document.getElementById("vessel-name").textContent = vessel.name;
+
+                    const badge = document.getElementById("vessel-status-badge");
+                    const col = vessel.statusColor || "green";
+                    badge.textContent = vessel.status.replace("_", " ").toUpperCase();
+                    badge.className = "vessel-status-badge " + col;
+
+                    document.getElementById("v-location").textContent      = vessel.location || "—";
+                    document.getElementById("v-nextport").textContent       = vessel.nextPort || "—";
+                    document.getElementById("v-eta").textContent            = formatDT(vessel.eta);
+                    document.getElementById("v-etb").textContent            = formatDT(vessel.etb);
+                    document.getElementById("v-etd").textContent            = formatDT(vessel.etd);
+                    document.getElementById("v-agent").textContent          = vessel.agent || "—";
+                    document.getElementById("v-agent-contact").textContent  = vessel.agentContact || "—";
+                    document.getElementById("v-position").textContent       = vessel.position || "—";
+                    document.getElementById("v-noon").textContent           = formatDT(vessel.lastNoonReport);
+                }
+            }
+
+            // ── PROCUREMENT DATA ──
+            if (procData) {
+                const vProc = (procData.vessels || []).find(v => v.vesselId === vesselId);
+                const tbody = document.getElementById("vessel-proc-tbody");
+                if (vProc && vProc.items && vProc.items.length > 0) {
+                    tbody.innerHTML = vProc.items.map(item => {
+                        const overdue = isOverdue(item.deliveryDate) && !item.dnStatus.toLowerCase().includes("received");
+                        return `<tr>
+                            <td title="${item.description}">${item.description.substring(0,40)}${item.description.length > 40 ? "…" : ""}</td>
+                            <td style="font-size:11px;color:#86a4c0;">${item.supplier || "—"}</td>
+                            <td><span class="status-pill ${setPillClass(item.rfqStatus)}">${item.rfqIssued}/${item.rfqClosed}</span></td>
+                            <td><span class="status-pill ${setPillClass(item.poStatus)}">${item.poStatus ? item.poStatus.replace("PO ","") : "—"}</span></td>
+                            <td><span class="status-pill ${setPillClass(item.dnStatus)}">${item.dnStatus ? item.dnStatus.replace("DN ","") : "—"}</span></td>
+                            <td style="${overdue ? 'color:#ff5f63;font-weight:700;' : 'color:#86a4c0;'}">${formatD(item.deliveryDate)}</td>
+                        </tr>`;
+                    }).join("");
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" style="color:#4a6a88;padding:14px;">No procurement data available for this vessel.</td></tr>`;
+                }
+            }
+
+            // ── BUDGET DATA ──
+            if (budgetData) {
+                const vBudget = (budgetData.vessels || []).find(v => v.vesselId === vesselId);
+                const container = document.getElementById("vessel-budget-container");
+                if (vBudget) {
+                    const pct = vBudget.percentageUsed || 0;
+                    const col = vBudget.semaphore || (pct >= 85 ? "red" : pct >= 70 ? "yellow" : "green");
+                    const colHex = col === "red" ? "#ff5f63" : col === "yellow" ? "#ffbf3c" : "#2fd06f";
+                    container.innerHTML = `
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+                            <span style="color:#d7e8f6;">${vBudget.vesselName}</span>
+                            <span style="color:${colHex};font-weight:700;">${pct}%</span>
+                        </div>
+                        <div class="budget-bar" style="margin-bottom:12px;">
+                            <div class="fill ${col}" style="width:${pct}%"></div>
+                        </div>
+                        <table class="info-table">
+                            <tr><td>Total Budget</td><td style="color:#57d4ff;">€${(vBudget.totalBudget||0).toLocaleString("en-IE")}</td></tr>
+                            <tr><td>Used</td><td style="color:${colHex};">€${(vBudget.usedBudget||0).toLocaleString("en-IE")}</td></tr>
+                            <tr><td>Residual</td><td style="color:#2fd06f;">€${(vBudget.residualBudget||0).toLocaleString("en-IE")}</td></tr>
+                        </table>
+                        <div style="margin-top:14px;">
+                            <div style="font-size:11px;color:#86a4c0;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Monthly spend</div>
+                            ${(vBudget.history||[]).map(h => `
+                                <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #1a3048;">
+                                    <span style="color:#89a8c5;">${h.month}</span>
+                                    <span style="color:#d7e8f6;">€${h.spent.toLocaleString("en-IE")}</span>
+                                </div>`).join("")}
+                        </div>`;
+                } else {
+                    container.innerHTML = `<div style="color:#4a6a88;">No budget data available.</div>`;
+                }
+            }
+
+            // ── EMAIL DATA ──
+            if (emailData) {
+                const vEmails = (emailData.messages || []).filter(m => m.vessel === vesselId);
+                const container = document.getElementById("vessel-email-list");
+                if (vEmails.length > 0) {
+                    container.innerHTML = vEmails.map(m => {
+                        const dotClass = m.priority === "critical" ? "crit" : m.priority === "high" ? "warn" : "normal";
+                        const emoji    = m.type === "supplier_delay" ? "🚛" : m.type === "captain_request" ? "👨‍✈️" : m.type === "rfq_response" ? "📝" : "📦";
+                        return `<div class="email-item">
+                            <div class="email-dot ${dotClass}"></div>
+                            <div class="email-info">
+                                <div class="email-subject">${emoji} ${m.subject}</div>
+                                <div class="email-meta">${m.date} · ${m.type.replace(/_/g," ")} · Priority: ${m.priority}</div>
+                            </div>
+                            <a href="mailto:?subject=${encodeURIComponent(m.subject)}" style="font-size:11px;color:#57d4ff;text-decoration:none;white-space:nowrap;">Open ↗</a>
+                        </div>`;
+                    }).join("");
+                } else {
+                    container.innerHTML = `<div style="color:#4a6a88;font-size:13px;">No emails for this vessel.</div>`;
+                }
+            }
+
+            // ── CERTIFICATIONS (placeholder — da certifications.json futuro) ──
+            document.getElementById("v-cert-crit").textContent = "2";
+            document.getElementById("v-cert-warn").textContent = "1";
+            document.getElementById("v-cert-ok").textContent   = "12";
+
+        } catch(err) {
+            console.error("Vessel page error:", err);
+            document.getElementById("vessel-name").textContent = "Error loading vessel data";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        applyLang(currentLang);
+        updateClock();
+        setInterval(updateClock, 30000);
+        document.getElementById("lang-it")?.addEventListener("click", () => applyLang("it"));
+        document.getElementById("lang-en")?.addEventListener("click", () => applyLang("en"));
+        loadVesselPage();
+    });
+    </script>
+
+</body>
+</html>
