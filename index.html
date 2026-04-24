@@ -166,6 +166,16 @@
     @media (max-width: 600px) {
       .email-mini-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── Fallback layout cards-row / half (se non già in styles.css) ── */
+    .cards-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .cards-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body data-page="dashboard">
@@ -547,7 +557,9 @@ function buildDrawer(v, drawerId) {
 /* ── FLEET ───────────────────────────────────────────────────── */
 async function loadFleet() {
   try {
-    const res  = await fetch('data-fleet.json?t=' + Date.now());
+    // Prova il nome canonico, poi il fallback col vecchio nome numerato
+    let res = await fetch('data-fleet.json?t=' + Date.now());
+    if (!res.ok) res = await fetch('data-fleet-3.json?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const vessels = data.vessels || data;
@@ -568,7 +580,7 @@ async function loadFleet() {
     document.getElementById('kpi-vessels').textContent  = vessels.length;
     document.getElementById('kpi-alerts').textContent   = critAlerts;
     document.getElementById('kpi-alerts-hero').textContent = critAlerts;
-    document.getElementById('topbar-alerts-count').textContent = vessels.reduce((acc, v) => acc + (v.alerts ? v.alerts.length : 0), 0);
+    document.getElementById('topbar-alerts-count').textContent = vessels.reduce((acc, v) => acc + (Array.isArray(v.alerts) ? v.alerts.length : 0), 0);
 
     /* Alerts section */
     const alertList = document.getElementById('alert-list');
@@ -630,13 +642,16 @@ async function loadProcurement() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
-    /* sync label */
+    /* sync label topbar + footer */
     const syncEl = document.getElementById('proc-sync-label');
     if (syncEl && data.lastSync) {
       const d = new Date(data.lastSync);
-      syncEl.textContent = 'Sync: ' + d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      const formatted = d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      syncEl.textContent = 'Sync: ' + formatted;
+      document.getElementById('sync-time').textContent = 'Sync ' + formatted;
+      const footerSync = document.getElementById('last-sync-label');
+      if (footerSync) footerSync.textContent = 'Ultimo sync: ' + formatted;
     }
-
     /* KPI open RFQ */
     const totRFQ = (data.vessels || []).reduce((acc, v) => acc + (v.rfqOpen || 0), 0);
     document.getElementById('kpi-rfq').textContent = totRFQ;
@@ -644,11 +659,6 @@ async function loadProcurement() {
     /* Delivery pending (DN in transit) */
     const totDN = (data.vessels || []).reduce((acc, v) => acc + (v.dnPending || 0), 0);
     document.getElementById('kpi-delivery').textContent = totDN;
-
-    /* Topbar sync */
-    document.getElementById('sync-time').textContent = data.lastSync
-      ? 'Sync ' + new Date(data.lastSync).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-      : '';
 
     const container = document.getElementById('proc-vessels-container');
     if (!container) return;
@@ -763,7 +773,9 @@ async function loadProcurement() {
 /* ── BUDGET ──────────────────────────────────────────────────── */
 async function loadBudget() {
   try {
-    const res  = await fetch('data-budget.json?t=' + Date.now());
+    // Prova nome canonico, poi fallback con estensione errata (.jso) ancora presente su GitHub
+    let res = await fetch('data-budget.json?t=' + Date.now());
+    if (!res.ok) res = await fetch('data-budget.jso?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const vessels = data.vessels || data;
@@ -816,7 +828,9 @@ async function loadBudget() {
 /* ── EMAIL ───────────────────────────────────────────────────── */
 async function loadEmails() {
   try {
-    const res  = await fetch('data-email.json?t=' + Date.now());
+    // Prova nome canonico, poi fallback con il vecchio nome numerato
+    let res = await fetch('data-email.json?t=' + Date.now());
+    if (!res.ok) res = await fetch('data-email-2.json?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const emails = data.emails || data;
