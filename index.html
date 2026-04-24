@@ -8,7 +8,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>" />
 
   <style>
-    /* ── CARD SLIM PROCUREMENT ─────────────────────────────────── */
+    /* ── PROCUREMENT CARD SLIM ──────────────────────────────────── */
     .pv {
       background: #0b1623;
       border: 1px solid #1a2e45;
@@ -22,17 +22,10 @@
     .pv.del-yellow { border-left-color: #f59e0b; }
     .pv.del-green  { border-left-color: #22c55e; }
 
-    /* riga 1 */
     .pv-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
-    .pv-name {
-      font-size: 0.88rem; font-weight: 700; color: #e2e8f0;
-      text-decoration: none; flex: 1;
-    }
+    .pv-name { font-size: 0.88rem; font-weight: 700; color: #e2e8f0; text-decoration: none; flex: 1; }
     .pv-name:hover { color: #38bdf8; }
-    .pv-badge {
-      font-size: 0.65rem; font-weight: 700;
-      padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
-    }
+    .pv-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
     .pb-red    { background: rgba(239,68,68,.15);  color: #ef4444; }
     .pb-yellow { background: rgba(245,158,11,.15); color: #f59e0b; }
     .pb-green  { background: rgba(34,197,94,.15);  color: #22c55e; }
@@ -43,7 +36,6 @@
     }
     .pv-toggle:hover { color: #94a3b8; background: #1e293b; }
 
-    /* riga 2: barre compatte */
     .pv-bars { display: flex; flex-direction: column; gap: 3px; margin-bottom: 7px; }
     .pv-bar-row { display: flex; align-items: center; gap: 6px; }
     .pv-bar-lbl { width: 68px; font-size: 0.6rem; color: #475569; text-align: right; white-space: nowrap; }
@@ -54,14 +46,12 @@
     .pvbf-orange { background: linear-gradient(90deg, #c2410c, #f97316); }
     .pv-bar-pct { width: 26px; font-size: 0.6rem; color: #64748b; text-align: right; }
 
-    /* riga 3: alert badges inline */
     .pv-alerts { display: flex; gap: 5px; flex-wrap: wrap; }
     .pva {
       display: flex; align-items: center; gap: 4px;
       background: #060e18; border-radius: 6px;
       padding: 3px 8px; font-size: 0.67rem;
-      cursor: pointer; border: 1px solid transparent;
-      transition: all .15s;
+      cursor: pointer; border: 1px solid transparent; transition: all .15s;
     }
     .pva:hover { border-color: #334155; }
     .pva-num { font-weight: 700; }
@@ -70,9 +60,7 @@
     .pva-y .pva-num { color: #f59e0b; }
     .pva-b .pva-num { color: #38bdf8; }
     .pva-g .pva-num { color: #22c55e; }
-    .pva.active-badge { background: #1e293b; border-color: #334155; }
 
-    /* riga ritardo */
     .pv-delay-row {
       display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
       background: #1a0a0a; border-radius: 6px;
@@ -81,10 +69,9 @@
     }
     .pv-delay-row span { color: #94a3b8; }
 
-    /* ── DRAWER ────────────────────────────────────────────────── */
+    /* ── DRAWER ─────────────────────────────────────────────────── */
     .pv-drawer { display: none; margin-top: 10px; border-top: 1px solid #1a2e45; padding-top: 10px; }
     .pv-drawer.open { display: block; }
-
     .drawer-filter { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
     .df-btn {
       background: #0b1623; border: 1px solid #1a2e45; color: #94a3b8;
@@ -97,11 +84,7 @@
     .df-btn.active.fg { background: rgba(34,197,94,.2); border-color: #22c55e; color: #22c55e; }
     .df-count { margin-left: auto; font-size: 0.65rem; color: #475569; }
 
-    /* item dentro il drawer */
-    .dr-item {
-      background: #060e18; border: 1px solid #1a2e45; border-radius: 8px;
-      padding: 8px 12px; margin-bottom: 5px; font-size: 0.75rem;
-    }
+    .dr-item { background: #060e18; border: 1px solid #1a2e45; border-radius: 8px; padding: 8px 12px; margin-bottom: 5px; font-size: 0.75rem; }
     .dr-item.hidden { display: none; }
     .dr-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
     .dr-ids { display: flex; gap: 5px; flex-shrink: 0; }
@@ -114,8 +97,6 @@
     .del-warn { color: #f59e0b; }
     .del-late { color: #ef4444; }
     .del-none { color: #334155; }
-
-    /* pipeline mini nel drawer */
     .dr-pipe { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .dr-step { display: flex; align-items: center; gap: 4px; }
     .dr-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid; flex-shrink: 0; }
@@ -132,30 +113,19 @@
     .dr-rfq { font-size: 0.6rem; color: #64748b; }
     .dr-empty { color: #475569; font-size: 0.75rem; padding: 12px; text-align: center; }
 
-    /* link dettaglio nave */
     .pv-detail-link {
-      display: block; text-align: center;
-      color: #38bdf8; font-size: 0.7rem;
-      margin-top: 10px; padding: 6px;
-      background: #060e18; border-radius: 6px;
+      display: block; text-align: center; color: #38bdf8; font-size: 0.7rem;
+      margin-top: 10px; padding: 6px; background: #060e18; border-radius: 6px;
       text-decoration: none; border: 1px solid #1a2e45;
     }
     .pv-detail-link:hover { background: #0b1a2e; border-color: #1d4ed8; }
 
-    /* email digest mini card */
-    .email-mini-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    .email-mini-card {
-      border-radius: 14px;
-      padding: 16px;
-    }
-    .email-mini-card.green { background: #0b1623; border: 1px solid #1a4d2e; }
+    /* ── EMAIL DIGEST ───────────────────────────────────────────── */
+    .email-mini-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 14px; }
+    .email-mini-card { border-radius: 14px; padding: 16px; }
+    .email-mini-card.green  { background: #0b1623; border: 1px solid #1a4d2e; }
     .email-mini-card.yellow { background: #0b1623; border: 1px solid #3d2e00; }
-    .email-mini-card.red { background: #0b1623; border: 1px solid #3d1a1a; }
+    .email-mini-card.red    { background: #0b1623; border: 1px solid #3d1a1a; }
     .email-mini-num { font-size: 2rem; font-weight: 800; }
     .email-mini-num.green  { color: #2fd06f; }
     .email-mini-num.yellow { color: #ffbf3c; }
@@ -163,29 +133,30 @@
     .email-mini-lbl { font-size: 0.88rem; margin-top: 4px; }
     .email-mini-sub { font-size: 0.8rem; color: #6f8aa5; }
 
-    @media (max-width: 600px) {
-      .email-mini-grid { grid-template-columns: 1fr; }
+    /* ── LAYOUT ─────────────────────────────────────────────────── */
+    .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* ── MOCKUP BADGE ───────────────────────────────────────────── */
+    .mockup-tag {
+      display: inline-block; font-size: 0.58rem; font-weight: 700;
+      background: rgba(255,191,60,0.1); color: #ffbf3c;
+      border: 1px solid rgba(255,191,60,0.25); border-radius: 4px;
+      padding: 1px 5px; margin-left: 5px; vertical-align: middle;
+      letter-spacing: 0.04em;
     }
 
-    /* ── Fallback layout cards-row / half (se non già in styles.css) ── */
-    .cards-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 900px) {
-      .cards-row { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .cards-row { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .email-mini-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body data-page="dashboard">
 
-<!-- ERROR BANNER -->
+<!-- ERROR BANNER — visibile solo se il fetch procurement fallisce -->
 <div id="data-error" style="display:none;background:#3d1a1a;color:#ff5f63;padding:12px 20px;text-align:center;font-size:0.88rem;">
-  ⚠️ Errore caricamento dati JSON — verifica che i file data-*.json siano presenti nella cartella.
+  ⚠️ Errore caricamento dati procurement — verifica che data-procurement.json sia presente nella root del repo.
 </div>
 
-<!-- TOPBAR -->
+<!-- ── TOPBAR ────────────────────────────────────────────────────── -->
 <header class="topbar">
   <div class="topbar-main">
     <div>
@@ -196,11 +167,11 @@
       <span class="status-dot"></span>
       <span>Live</span>
       <span>·</span>
-      <span data-i18n="fleet">Fleet</span> <strong id="topbar-fleet-count">4 navi</strong>
+      <span data-i18n="fleet">Fleet</span> <strong>4 navi</strong>
       <span>·</span>
-      <span data-i18n="alerts">Alerts</span> <strong id="topbar-alerts-count">—</strong>
+      <span data-i18n="alerts">Alerts</span> <strong>3</strong>
       <span>·</span>
-      <span data-i18n="critical">Critico</span> <strong id="kpi-alerts">—</strong>
+      <span data-i18n="critical">Critico</span> <strong>2</strong>
       <span>·</span>
       <span id="sync-time">Sync —</span>
     </div>
@@ -209,7 +180,7 @@
 
 <main class="dashboard">
 
-  <!-- ── HERO ─────────────────────────────────────────────────── -->
+  <!-- ── HERO ──────────────────────────────────────────────────── -->
   <section class="card hero">
     <div class="section-head">
       <div>
@@ -230,44 +201,44 @@
           </div>
         </div>
         <div class="map-foot">
-          <span>🟢 <strong id="map-on-time">—</strong> On time</span>
-          <span>🟡 <strong id="map-delay">—</strong> Delay risk</span>
-          <span>⚓ <strong id="map-anchored">—</strong> All'ancora</span>
-          <span>🔵 <strong id="map-port-calls">—</strong> Scali 48h</span>
+          <span>🟢 <strong>2</strong> On time</span>
+          <span>🟡 <strong>1</strong> Delay risk</span>
+          <span>⚓ <strong>1</strong> Moored</span>
+          <span>🔵 <strong>3</strong> Scali 48h</span>
         </div>
       </div>
 
       <div class="kpi-panel">
         <div class="kpi-grid">
           <div class="kpi-card">
-            <span class="kpi-label" data-i18n="kpiVessels">Navi monitorate</span>
-            <strong id="kpi-vessels">4</strong>
-            <small data-i18n="kpiVesselsSub">Fleet attiva</small>
+            <span class="kpi-label">Navi monitorate</span>
+            <strong>4</strong>
+            <small>Fleet attiva</small>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label" data-i18n="kpiRFQ">Open RFQ</span>
+            <span class="kpi-label">Open RFQ</span>
             <strong id="kpi-rfq">—</strong>
-            <small data-i18n="kpiRFQSub">Tutte le navi</small>
+            <small>Tutte le navi</small>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label" data-i18n="kpiBudget">Budget medio</span>
-            <strong id="kpi-budget" style="color:#ffbf3c;">—</strong>
-            <small data-i18n="kpiBudgetSub">Utilizzo flotta</small>
+            <span class="kpi-label">Budget medio</span>
+            <strong style="color:#ffbf3c;">73%</strong>
+            <small>Utilizzo flotta</small>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label" data-i18n="kpiAlerts">Alerts critici</span>
-            <strong id="kpi-alerts-hero" style="color:#ff5f63;">—</strong>
-            <small data-i18n="kpiAlertsSub">Azione richiesta</small>
+            <span class="kpi-label">Alerts critici</span>
+            <strong style="color:#ff5f63;">2</strong>
+            <small>Azione richiesta</small>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label" data-i18n="kpiDelivery">Delivery pending</span>
+            <span class="kpi-label">Delivery pending</span>
             <strong id="kpi-delivery">—</strong>
-            <small data-i18n="kpiDeliverySub">Entro 48 ore</small>
+            <small>DN in transito</small>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label" data-i18n="kpiEmails">Email operative</span>
-            <strong id="kpi-emails">—</strong>
-            <small data-i18n="kpiEmailsSub">Non gestite</small>
+            <span class="kpi-label">Email operative</span>
+            <strong>9</strong>
+            <small>Non gestite</small>
           </div>
         </div>
       </div>
@@ -275,7 +246,9 @@
     </div>
   </section>
 
-  <!-- ── ALERTS ────────────────────────────────────────────────── -->
+  <!-- ── ALERTS ─────────────────────────────────────────────────── -->
+  <!-- MOCKUP: alert hardcoded con nomi navi reali -->
+  <!-- Da sostituire con fetch data-fleet.json quando disponibile -->
   <section class="card">
     <div class="section-head">
       <div>
@@ -284,12 +257,25 @@
       </div>
       <span style="color:#6f8aa5;font-size:0.8rem;">Semaforo operativo</span>
     </div>
-    <div class="alert-list" id="alert-list">
-      <div class="alert warn">Caricamento alert...</div>
+    <div class="alert-list">
+      <div class="alert crit">
+        <div class="alert-title">⚠️ Delivery delay risk — consegna scaduta non ricevuta</div>
+        <div class="alert-sub">MED TOSCANA · scadenza confermata saltata · agire oggi</div>
+      </div>
+      <div class="alert crit">
+        <div class="alert-title">🔴 Budget soglia rossa — 89% utilizzato</div>
+        <div class="alert-sub">MED TOSCANA · €11.000 residui · verifica disponibilità</div>
+      </div>
+      <div class="alert warn">
+        <div class="alert-title">🟡 Captain request pending — richiesta supplies</div>
+        <div class="alert-sub">MED LIGURIA · richiesta capitano in attesa di risposta HQ</div>
+      </div>
     </div>
   </section>
 
-  <!-- ── FLEET SUMMARY ─────────────────────────────────────────── -->
+  <!-- ── FLEET SUMMARY ──────────────────────────────────────────── -->
+  <!-- MOCKUP: dati nave hardcoded con valori realistici -->
+  <!-- Da sostituire con fetch data-fleet.json quando disponibile -->
   <section class="card">
     <div class="section-head">
       <div>
@@ -298,66 +284,173 @@
       </div>
       <span style="color:#6f8aa5;font-size:0.8rem;">Dati da Noon Report via N8N</span>
     </div>
-    <div class="fleet-grid" id="fleet-grid">
-      <div style="color:#6f8aa5;font-size:0.88rem;padding:20px;text-align:center;">Caricamento dati fleet...</div>
+    <div class="fleet-grid">
+
+      <div class="ship-card">
+        <div class="ship-status-bar green"></div>
+        <div class="ship-name">PEPPINO</div>
+        <div class="ship-meta">
+          <span class="ship-status green">Moored</span>
+          <span>Genova</span>
+        </div>
+        <div class="ship-meta">
+          <span>→ Napoli</span>
+          <span>ETA: 28/04</span>
+        </div>
+        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: ABC Shipping</div>
+        <a href="vessel.html?vessel=peppino" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
+      </div>
+
+      <div class="ship-card">
+        <div class="ship-status-bar yellow"></div>
+        <div class="ship-name">MED LIGURIA</div>
+        <div class="ship-meta">
+          <span class="ship-status yellow">Navigation</span>
+          <span>Palermo</span>
+        </div>
+        <div class="ship-meta">
+          <span>→ Valencia</span>
+          <span>ETA: 27/04</span>
+        </div>
+        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: Delta Agency</div>
+        <a href="vessel.html?vessel=med-liguria" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
+      </div>
+
+      <div class="ship-card">
+        <div class="ship-status-bar red"></div>
+        <div class="ship-name" style="display:flex;align-items:center;gap:6px;">MED TOSCANA <span style="font-size:0.75rem;">🔴</span></div>
+        <div class="ship-meta">
+          <span class="ship-status red">Delay Risk</span>
+          <span>Port Said</span>
+        </div>
+        <div class="ship-meta">
+          <span>→ Alexandria</span>
+          <span>ETA: 26/04</span>
+        </div>
+        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: Eastern Marine Agency</div>
+        <a href="vessel.html?vessel=med-toscana" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
+      </div>
+
+      <div class="ship-card">
+        <div class="ship-status-bar green"></div>
+        <div class="ship-name">NORRBOTTEN</div>
+        <div class="ship-meta">
+          <span class="ship-status green">On Time</span>
+          <span>Gulf of Lion</span>
+        </div>
+        <div class="ship-meta">
+          <span>→ Marseille</span>
+          <span>ETA: 29/04</span>
+        </div>
+        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: Nordic Maritime</div>
+        <a href="vessel.html?vessel=norrbotten" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
+      </div>
+
     </div>
   </section>
 
-  <!-- ── PROCUREMENT + BUDGET ──────────────────────────────────── -->
+  <!-- ── PROCUREMENT (REALE) + BUDGET (MOCKUP) ──────────────────── -->
   <div class="cards-row">
 
+    <!-- PROCUREMENT: dati reali da data-procurement.json -->
     <div class="card half">
       <div class="section-head">
         <div>
-          <h2 data-i18n="procurementStatus">Procurement Status</h2>
-          <p class="section-sub" id="proc-sync-label">Dati Notion via N8N</p>
+          <h2 data-i18n="procurementStatus">Stato Acquisti</h2>
+          <p class="section-sub" id="proc-sync-label">Caricamento dati Notion…</p>
         </div>
         <span style="color:#6f8aa5;font-size:0.8rem;">Pipeline per nave</span>
       </div>
       <div id="proc-vessels-container">
-        <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
+        <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento…</div>
       </div>
     </div>
 
+    <!-- BUDGET: mockup hardcoded — da sostituire con fetch data-budget.json -->
     <div class="card half">
       <div class="section-head">
         <div>
-          <h2 data-i18n="budgetMonitor">Budget Monitor</h2>
+          <h2>Budget Monitor <span class="mockup-tag">MOCKUP</span></h2>
           <p class="section-sub">Semaforo per nave</p>
         </div>
         <span style="color:#6f8aa5;font-size:0.8rem;">Input manuale Notion</span>
       </div>
-      <div class="budget-list" id="budget-list">
-        <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento...</div>
+      <div class="budget-list">
+
+        <div class="budget-item">
+          <div class="budget-row">
+            <span class="budget-name">PEPPINO</span>
+            <span class="budget-pct" style="color:#2fd06f;">68%</span>
+          </div>
+          <div class="budget-bar"><div class="fill" style="width:68%;background:#2fd06f;"></div></div>
+          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
+            <span>€68k / €100k</span><span>residuo: €32.000</span>
+          </div>
+        </div>
+
+        <div class="budget-item">
+          <div class="budget-row">
+            <span class="budget-name">MED LIGURIA</span>
+            <span class="budget-pct" style="color:#ffbf3c;">74%</span>
+          </div>
+          <div class="budget-bar"><div class="fill" style="width:74%;background:#ffbf3c;"></div></div>
+          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
+            <span>€74k / €100k</span><span>residuo: €26.000</span>
+          </div>
+        </div>
+
+        <div class="budget-item">
+          <div class="budget-row">
+            <span class="budget-name">MED TOSCANA</span>
+            <span class="budget-pct" style="color:#ff5f63;">89%</span>
+          </div>
+          <div class="budget-bar"><div class="fill" style="width:89%;background:#ff5f63;"></div></div>
+          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
+            <span>€89k / €100k</span><span>residuo: €11.000</span>
+          </div>
+        </div>
+
+        <div class="budget-item">
+          <div class="budget-row">
+            <span class="budget-name">NORRBOTTEN</span>
+            <span class="budget-pct" style="color:#2fd06f;">61%</span>
+          </div>
+          <div class="budget-bar"><div class="fill" style="width:61%;background:#2fd06f;"></div></div>
+          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
+            <span>€61k / €100k</span><span>residuo: €39.000</span>
+          </div>
+        </div>
+
       </div>
     </div>
 
   </div>
 
-  <!-- ── EMAIL DIGEST ──────────────────────────────────────────── -->
+  <!-- ── EMAIL DIGEST (MOCKUP) ──────────────────────────────────── -->
+  <!-- MOCKUP: valori hardcoded — da sostituire con fetch data-email.json -->
   <section class="card">
     <div class="section-head">
       <div>
-        <h2 data-i18n="emailDigest">Email Digest</h2>
+        <h2>Email Digest <span class="mockup-tag">MOCKUP</span></h2>
         <p class="section-sub">Semafori in home · link a Outlook per dettaglio</p>
       </div>
       <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
     </div>
     <div class="email-mini-grid">
       <div class="email-mini-card green">
-        <div id="email-order-conf-count" class="email-mini-num green">—</div>
-        <div class="email-mini-lbl" data-i18n="emailOrderConf">Conferme ordine</div>
-        <div id="email-order-conf-sub" class="email-mini-sub">Conferme ordine ricevute</div>
+        <div class="email-mini-num green">4</div>
+        <div class="email-mini-lbl">Conferme ordine</div>
+        <div class="email-mini-sub">4 conferme ricevute oggi</div>
       </div>
       <div class="email-mini-card yellow">
-        <div id="email-captain-count" class="email-mini-num yellow">—</div>
-        <div class="email-mini-lbl" data-i18n="emailCaptain">Richieste capitano</div>
-        <div id="email-captain-sub" class="email-mini-sub">Richieste in arrivo</div>
+        <div class="email-mini-num yellow">2</div>
+        <div class="email-mini-lbl">Richieste capitano</div>
+        <div class="email-mini-sub">1 richiesta con priorità alta</div>
       </div>
       <div class="email-mini-card red">
-        <div id="email-delay-count" class="email-mini-num red">—</div>
-        <div class="email-mini-lbl" data-i18n="emailDelay">Avviso ritardo fornitore</div>
-        <div class="email-mini-sub"><span id="email-delay-vessel">—</span> · ritardo delivery</div>
+        <div class="email-mini-num red">1</div>
+        <div class="email-mini-lbl">Avviso ritardo fornitore</div>
+        <div class="email-mini-sub">MED TOSCANA · ritardo delivery</div>
       </div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -380,10 +473,12 @@
   <button class="lang-btn active" id="lang-en">EN</button>
 </footer>
 
-<script src="app.js?v=20260423-1"></script>
+<script src="app.js?v=20260424-2"></script>
 <script>
 /* ================================================================
-   index.js inline — logica specifica della dashboard home
+   LOGICA PROCUREMENT — unica sezione con dati reali da JSON.
+   Tutte le altre sezioni (Fleet, Alerts, Budget, Email) sono
+   mockup hardcoded nell'HTML e non richiedono fetch.
    ================================================================ */
 
 const TODAY = new Date();
@@ -403,29 +498,29 @@ function delClass(ds) {
 function reqDot(s) {
   if (!s) return 'd-none';
   if (s.includes('Cancelled')) return 'd-red';
-  if (s.includes('Price')) return 'd-yellow';
-  if (s.includes('Ordered')) return 'd-green';
+  if (s.includes('Price'))     return 'd-yellow';
+  if (s.includes('Ordered'))   return 'd-green';
   return 'd-blue';
 }
 function rfqDot(s, p) {
   if (!s) return 'd-none';
-  if (s.includes('Refused')) return 'd-red';
+  if (s.includes('Refused'))      return 'd-red';
   if (s.includes('Acknowledged')) return p === 100 ? 'd-green' : 'd-blue';
-  if (s.includes('Sent')) return 'd-yellow';
+  if (s.includes('Sent'))         return 'd-yellow';
   return 'd-blue';
 }
 function poDot(s) {
   if (!s) return 'd-none';
-  if (s.includes('Cancelled')) return 'd-red';
-  if (s.includes('Finalized')) return 'd-green';
+  if (s.includes('Cancelled'))                            return 'd-red';
+  if (s.includes('Finalized'))                            return 'd-green';
   if (s.includes('Published') || s.includes('Approved')) return 'd-yellow';
   return 'd-blue';
 }
 function dnDot(s) {
   if (!s) return 'd-none';
   if (s.includes('Received')) return 'd-green';
-  if (s.includes('Shipped')) return 'd-cyan';
-  if (s.includes('Ready')) return 'd-purple';
+  if (s.includes('Shipped'))  return 'd-cyan';
+  if (s.includes('Ready'))    return 'd-purple';
   return 'd-blue';
 }
 function short(s, pfx) {
@@ -447,10 +542,10 @@ function getFlags(item) {
   };
 }
 
-/* ── DRAWER per singola nave ─────────────────────────────────── */
+/* ── DRAWER per singola nave ──────────────────────────────────── */
 function buildDrawer(v, drawerId) {
-  const items  = v.items || [];
-  const wrap   = document.getElementById(drawerId);
+  const items = v.items || [];
+  const wrap  = document.getElementById(drawerId);
   if (!wrap) return;
 
   const tagged = items.map(item => ({ item, fl: getFlags(item) }));
@@ -467,9 +562,7 @@ function buildDrawer(v, drawerId) {
 
   wrap.innerHTML = `
     <div class="drawer-filter" id="${drawerId}-fbar">
-      ${filters.map((f, i) => `
-        <button class="df-btn ${f.cls} ${i === 0 ? 'active' : ''}" data-f="${f.key}">${f.label}</button>
-      `).join('')}
+      ${filters.map((f, i) => `<button class="df-btn ${f.cls} ${i === 0 ? 'active' : ''}" data-f="${f.key}">${f.label}</button>`).join('')}
       <span class="df-count" id="${drawerId}-cnt">${items.length} items</span>
     </div>
     <div id="${drawerId}-list"></div>
@@ -543,162 +636,97 @@ function buildDrawer(v, drawerId) {
     if (cntEl) cntEl.textContent = n + ' items';
   }
 
-  document.getElementById(drawerId + '-fbar')
-    .querySelectorAll('.df-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        document.getElementById(drawerId + '-fbar')
-          .querySelectorAll('.df-btn').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        applyDrawerFilter(b.dataset.f);
-      });
+  document.getElementById(drawerId + '-fbar').querySelectorAll('.df-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.getElementById(drawerId + '-fbar').querySelectorAll('.df-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      applyDrawerFilter(b.dataset.f);
     });
+  });
 }
 
-/* ── FLEET ───────────────────────────────────────────────────── */
-async function loadFleet() {
-  try {
-    // Prova il nome canonico, poi il fallback col vecchio nome numerato
-    let res = await fetch('data-fleet.json?t=' + Date.now());
-    if (!res.ok) res = await fetch('data-fleet-3.json?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const vessels = data.vessels || data;
-
-    /* KPI contatori mappa */
-    let onTime = 0, delayRisk = 0, anchored = 0, portCalls = 0, critAlerts = 0;
-    vessels.forEach(v => {
-      if (v.status === 'on_time' || v.status === 'moored') onTime++;
-      else if (v.status === 'delay_risk') delayRisk++;
-      else if (v.status === 'anchored') anchored++;
-      if ((v.eta && new Date(v.eta) - TODAY < 172800000)) portCalls++;
-      if (v.alertLevel === 'crit') critAlerts++;
-    });
-    document.getElementById('map-on-time').textContent  = onTime;
-    document.getElementById('map-delay').textContent    = delayRisk;
-    document.getElementById('map-anchored').textContent = anchored;
-    document.getElementById('map-port-calls').textContent = portCalls;
-    document.getElementById('kpi-vessels').textContent  = vessels.length;
-    document.getElementById('kpi-alerts').textContent   = critAlerts;
-    document.getElementById('kpi-alerts-hero').textContent = critAlerts;
-    document.getElementById('topbar-alerts-count').textContent = vessels.reduce((acc, v) => acc + (Array.isArray(v.alerts) ? v.alerts.length : 0), 0);
-
-    /* Alerts section */
-    const alertList = document.getElementById('alert-list');
-    alertList.innerHTML = '';
-    let hasAlerts = false;
-    vessels.forEach(v => {
-      (v.alerts || []).forEach(a => {
-        hasAlerts = true;
-        const cls  = a.level === 'crit' ? 'crit' : 'warn';
-        const icon = a.level === 'crit' ? '⚠️' : '🟡';
-        const div  = document.createElement('div');
-        div.className = 'alert ' + cls;
-        div.innerHTML = `<div class="alert-title">${icon} ${a.title || a.text || a}</div><div class="alert-sub">${v.name} · ${a.sub || ''}</div>`;
-        alertList.appendChild(div);
-      });
-    });
-    if (!hasAlerts) {
-      alertList.innerHTML = '<div class="alert warn">Nessun alert attivo · tutti i sistemi operativi</div>';
-    }
-
-    /* Fleet cards */
-    const grid = document.getElementById('fleet-grid');
-    grid.innerHTML = '';
-    const colorMap = { on_time: 'green', moored: 'green', navigation: 'yellow', delay_risk: 'red', anchored: 'yellow' };
-    const statusLabel = { on_time: 'On Time', moored: 'Moored', navigation: 'Navigation', delay_risk: 'Delay Risk', anchored: 'Anchored' };
-    vessels.forEach(v => {
-      const col   = colorMap[v.status] || 'green';
-      const slabel = statusLabel[v.status] || v.status;
-      const vesId = v.id || v.name.toLowerCase().replace(/\s+/g, '-');
-      const card  = document.createElement('div');
-      card.className = 'ship-card';
-      card.innerHTML = `
-        <div class="ship-status-bar ${col}"></div>
-        <div class="ship-name">${v.name}</div>
-        <div class="ship-meta">
-          <span class="ship-status ${col}">${slabel}</span>
-          <span>${v.location || v.currentPort || '—'}</span>
-        </div>
-        <div class="ship-meta">
-          <span>→ ${v.nextPort || '—'}</span>
-          <span>ETA: ${v.eta ? fmtDate(v.eta) : '—'}</span>
-        </div>
-        <div class="ship-meta" style="margin-top:6px;color:#4a6a85;font-size:0.78rem;">Agent: ${v.agent || '—'}</div>
-        <a href="vessel.html?vessel=${vesId}" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
-      `;
-      grid.appendChild(card);
-    });
-
-  } catch (e) {
-    console.warn('Fleet load error:', e.message);
-    document.getElementById('data-error').style.display = 'block';
-  }
-}
-
-/* ── PROCUREMENT ─────────────────────────────────────────────── */
+/* ── PROCUREMENT MAIN ─────────────────────────────────────────── */
 async function loadProcurement() {
   try {
-    const res  = await fetch('data-procurement.json?t=' + Date.now());
+    const res = await fetch('data-procurement.json?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 
-    /* sync label topbar + footer */
-    const syncEl = document.getElementById('proc-sync-label');
-    if (syncEl && data.lastSync) {
-      const d = new Date(data.lastSync);
-      const formatted = d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-      syncEl.textContent = 'Sync: ' + formatted;
-      document.getElementById('sync-time').textContent = 'Sync ' + formatted;
-      const footerSync = document.getElementById('last-sync-label');
-      if (footerSync) footerSync.textContent = 'Ultimo sync: ' + formatted;
+    /* Sync timestamp → topbar + sezione + footer */
+    if (data.lastSync) {
+      const formatted = new Date(data.lastSync).toLocaleString('it-IT', {
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+      });
+      const syncEl  = document.getElementById('proc-sync-label');
+      const topEl   = document.getElementById('sync-time');
+      const footEl  = document.getElementById('last-sync-label');
+      if (syncEl) syncEl.textContent = 'Sync: ' + formatted;
+      if (topEl)  topEl.textContent  = 'Sync ' + formatted;
+      if (footEl) footEl.textContent = 'Ultimo sync: ' + formatted;
     }
-    /* KPI open RFQ */
-    const totRFQ = (data.vessels || []).reduce((acc, v) => acc + (v.rfqOpen || 0), 0);
-    document.getElementById('kpi-rfq').textContent = totRFQ;
 
-    /* Delivery pending (DN in transit) */
-    const totDN = (data.vessels || []).reduce((acc, v) => acc + (v.dnPending || 0), 0);
-    document.getElementById('kpi-delivery').textContent = totDN;
+    /* KPI reali: Open RFQ e Delivery pending */
+    const vessels = data.vessels || [];
+    const totRFQ  = vessels.reduce((acc, v) => acc + (v.rfqOpen   || 0), 0);
+    const totDN   = vessels.reduce((acc, v) => acc + (v.dnPending || 0), 0);
+    const elRFQ = document.getElementById('kpi-rfq');
+    const elDN  = document.getElementById('kpi-delivery');
+    if (elRFQ) elRFQ.textContent = totRFQ;
+    if (elDN)  elDN.textContent  = totDN;
 
+    /* Render card procurement per nave */
     const container = document.getElementById('proc-vessels-container');
     if (!container) return;
     container.innerHTML = '';
 
     const FLEET_IDS = ['peppino', 'medliguria', 'medtoscana', 'norrbotten'];
-    for (const v of (data.vessels || [])) {
+
+    for (const v of vessels) {
       if (!FLEET_IDS.includes(v.vesselId)) continue;
 
       const col   = v.deliveryColor || 'green';
       const label = col === 'red' ? '🔴 Ritardo' : col === 'yellow' ? '🟡 A rischio' : '🟢 In linea';
 
-      /* items scaduti */
+      /* Item scaduti */
       let nScad = 0, nomiScad = [];
       (v.items || []).forEach(item => {
         if (!item.deliveryDate) return;
-        const diff  = (new Date(item.deliveryDate) - TODAY) / 86400000;
-        const dnOk  = (item.dnStatus || '').includes('Received');
-        const canc  = (item.poStatus || '').includes('Cancelled') || (item.reqStatus || '').includes('Cancelled');
+        const diff = (new Date(item.deliveryDate) - TODAY) / 86400000;
+        const dnOk = (item.dnStatus  || '').includes('Received');
+        const canc = (item.poStatus  || '').includes('Cancelled')
+                  || (item.reqStatus || '').includes('Cancelled');
         if (diff < 0 && !dnOk && !canc) {
           nScad++;
           if (nomiScad.length < 2) nomiScad.push((item.description || '').substring(0, 28) + '…');
         }
       });
 
+      /* Overdue RFQ */
       const rfqOverdueReal = (v.items || []).filter(item => {
         const hasPO   = !!item.poStatus && !item.poStatus.includes('Cancelled');
         const rfqOpen = (item.rfqIssued || 0) > (item.rfqClosed || 0) && !!item.rfqStatus && !hasPO;
         return rfqOpen && !hasPO && (item.rfqDays || 0) > 7;
       }).length;
 
-      const rfqClosedPct = v.totalReq > 0 ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100)) : 0;
-      const reqToPO      = v.pctReqToPO || 0;
-      const poDNrecv     = v.orders > 0 ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100)) : 0;
+      /* Progress bars */
+      const rfqClosedPct = v.totalReq > 0
+        ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100)) : 0;
+      const reqToPO  = v.pctReqToPO || (v.orders > 0 && v.totalReq > 0
+        ? Math.round((v.orders / v.totalReq) * 100) : 0);
+      const poDNrecv = v.orders > 0
+        ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100)) : 0;
+      const barsEmpty = rfqClosedPct === 0 && reqToPO === 0 && poDNrecv === 0;
 
+      /* Alert badges inline */
       const badges = [
-        rfqOverdueReal > 0 ? `<div class="pva pva-r" data-drawer="${v.vesselId}-drawer" data-f="overdue"><span class="pva-num">${rfqOverdueReal}</span><span class="pva-txt">⏳ RFQ &gt;7gg</span></div>` : '',
-        v.readyForPO  > 0  ? `<div class="pva pva-y" data-drawer="${v.vesselId}-drawer" data-f="ready-po"><span class="pva-num">${v.readyForPO}</span><span class="pva-txt">📋 Pronte PO</span></div>` : '',
-        v.poReadyForDN > 0 ? `<div class="pva pva-b" data-drawer="${v.vesselId}-drawer" data-f="po-no-dn"><span class="pva-num">${v.poReadyForDN}</span><span class="pva-txt">📦 PO senza DN</span></div>` : '',
-        v.dnPending    > 0 ? `<div class="pva pva-g" data-drawer="${v.vesselId}-drawer" data-f="dn-transit"><span class="pva-num">${v.dnPending}</span><span class="pva-txt">🚢 DN transit</span></div>` : '',
+        rfqOverdueReal > 0
+          ? `<div class="pva pva-r" data-drawer="${v.vesselId}-drawer" data-f="overdue"><span class="pva-num">${rfqOverdueReal}</span><span class="pva-txt">⏳ RFQ &gt;7gg</span></div>` : '',
+        (v.readyForPO  || 0) > 0
+          ? `<div class="pva pva-y" data-drawer="${v.vesselId}-drawer" data-f="ready-po"><span class="pva-num">${v.readyForPO}</span><span class="pva-txt">📋 Pronte PO</span></div>` : '',
+        (v.poReadyForDN || 0) > 0
+          ? `<div class="pva pva-b" data-drawer="${v.vesselId}-drawer" data-f="po-no-dn"><span class="pva-num">${v.poReadyForDN}</span><span class="pva-txt">📦 PO senza DN</span></div>` : '',
+        (v.dnPending   || 0) > 0
+          ? `<div class="pva pva-g" data-drawer="${v.vesselId}-drawer" data-f="dn-transit"><span class="pva-num">${v.dnPending}</span><span class="pva-txt">🚢 DN transit</span></div>` : '',
       ].join('');
 
       const delayRow = (col === 'red' && nScad > 0) ? `
@@ -720,6 +748,14 @@ async function loadProcurement() {
         </div>
         ${delayRow}
         <div class="pv-bars">
+          ${barsEmpty
+            ? `<div style="font-size:0.7rem;color:#475569;padding:2px 0;">
+                 REQ: ${v.totalReq || '—'} &nbsp;·&nbsp;
+                 RFQ aperte: ${v.rfqOpen || 0} &nbsp;·&nbsp;
+                 Ordini: ${v.orders || 0} &nbsp;·&nbsp;
+                 DN: ${v.dn || 0}
+               </div>`
+            : `
           <div class="pv-bar-row">
             <span class="pv-bar-lbl">RFQ chiuse</span>
             <div class="pv-bar-track"><div class="pv-bar-fill pvbf-blue" style="width:${rfqClosedPct}%"></div></div>
@@ -734,7 +770,7 @@ async function loadProcurement() {
             <span class="pv-bar-lbl">PO ricevuti</span>
             <div class="pv-bar-track"><div class="pv-bar-fill pvbf-orange" style="width:${poDNrecv}%"></div></div>
             <span class="pv-bar-pct">${poDNrecv}%</span>
-          </div>
+          </div>`}
         </div>
         ${badges ? `<div class="pv-alerts">${badges}</div>` : ''}
         <div class="pv-drawer" id="${drawerId}"></div>
@@ -766,113 +802,15 @@ async function loadProcurement() {
 
   } catch (e) {
     const c = document.getElementById('proc-vessels-container');
-    if (c) c.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore: ' + e.message + '</p>';
+    if (c) c.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore caricamento procurement: ' + e.message + '</p>';
+    document.getElementById('data-error').style.display = 'block';
   }
 }
 
-/* ── BUDGET ──────────────────────────────────────────────────── */
-async function loadBudget() {
-  try {
-    // Prova nome canonico, poi fallback con estensione errata (.jso) ancora presente su GitHub
-    let res = await fetch('data-budget.json?t=' + Date.now());
-    if (!res.ok) res = await fetch('data-budget.jso?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const vessels = data.vessels || data;
-
-    const list = document.getElementById('budget-list');
-    list.innerHTML = '';
-
-    let totalPct = 0, count = 0;
-    vessels.forEach(v => {
-      const pct  = v.percentageUsed || 0;
-      const sem  = v.semaphore || (pct >= 85 ? 'red' : pct >= 70 ? 'yellow' : 'green');
-      const fill = sem === 'red' ? '#ff5f63' : sem === 'yellow' ? '#ffbf3c' : '#2fd06f';
-      const used = v.usedBudget ? '€' + (v.usedBudget / 1000).toFixed(0) + 'k' : '—';
-      const tot  = v.totalBudget ? '€' + (v.totalBudget / 1000).toFixed(0) + 'k' : '—';
-      totalPct += pct; count++;
-
-      const item = document.createElement('div');
-      item.className = 'budget-item';
-      item.innerHTML = `
-        <div class="budget-row">
-          <span class="budget-name">${v.vesselName || v.name}</span>
-          <span class="budget-pct" style="color:${fill}">${pct}%</span>
-        </div>
-        <div class="budget-bar">
-          <div class="fill" style="width:${pct}%;background:${fill}"></div>
-        </div>
-        <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
-          <span>${used} / ${tot}</span>
-          <span>residuo: €${((v.totalBudget || 0) - (v.usedBudget || 0)).toLocaleString('it-IT')}</span>
-        </div>
-      `;
-      list.appendChild(item);
-    });
-
-    if (count > 0) {
-      const avg = Math.round(totalPct / count);
-      const el  = document.getElementById('kpi-budget');
-      if (el) {
-        el.textContent = avg + '%';
-        el.style.color = avg >= 85 ? '#ff5f63' : avg >= 70 ? '#ffbf3c' : '#2fd06f';
-      }
-    }
-
-  } catch (e) {
-    const list = document.getElementById('budget-list');
-    if (list) list.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore: ' + e.message + '</p>';
-  }
-}
-
-/* ── EMAIL ───────────────────────────────────────────────────── */
-async function loadEmails() {
-  try {
-    // Prova nome canonico, poi fallback con il vecchio nome numerato
-    let res = await fetch('data-email.json?t=' + Date.now());
-    if (!res.ok) res = await fetch('data-email-2.json?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const emails = data.emails || data;
-
-    let orderConf = 0, captainReq = 0, supplierDelay = 0, delayVessel = '—';
-    const unhandled = emails.filter(e => e.handled === false);
-
-    unhandled.forEach(e => {
-      if (e.type === 'order_confirmation') orderConf++;
-      else if (e.type === 'captain_request') captainReq++;
-      else if (e.type === 'supplier_delay') { supplierDelay++; delayVessel = e.vessel || e.vesselName || '—'; }
-    });
-
-    document.getElementById('email-order-conf-count').textContent = orderConf;
-    document.getElementById('email-captain-count').textContent    = captainReq;
-    document.getElementById('email-delay-count').textContent      = supplierDelay;
-    document.getElementById('email-delay-vessel').textContent     = delayVessel;
-    document.getElementById('email-order-conf-sub').textContent   = orderConf + ' conferme ricevute';
-    document.getElementById('email-captain-sub').textContent      = captainReq > 0 ? captainReq + ' richiesta/e in attesa' : 'Nessuna richiesta';
-    document.getElementById('kpi-emails').textContent             = unhandled.length;
-
-  } catch (e) {
-    console.warn('Email load error:', e.message);
-  }
-}
-
-/* ── CLOCK ───────────────────────────────────────────────────── */
-function updateClock() {
-  const el = document.getElementById('sync-time');
-  if (el && !el.textContent.startsWith('Sync')) {
-    el.textContent = new Date().toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-  }
-}
-
-/* ── INIT ────────────────────────────────────────────────────── */
+/* ── INIT ─────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  loadFleet();
   loadProcurement();
-  loadBudget();
-  loadEmails();
-  updateClock();
-  setInterval(loadProcurement, 300000); // refresh ogni 5 min
+  setInterval(loadProcurement, 300000); // auto-refresh ogni 5 minuti
 });
 </script>
 
