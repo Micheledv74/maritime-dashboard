@@ -1,332 +1,101 @@
-/* ============================================================
-   Maritime Purchasing HQ — app.js
-   i18n IT/EN + fetch JSON + dynamic render
-   ============================================================ */
-
-/* ── TRANSLATIONS ── */
-const i18n = {
-  en: {
-    title:              "Maritime Purchasing HQ",
-    subtitle:           "Operational Command Center",
-    fleetMap:           "Fleet Status Map",
-    activeFleet:        "Active Fleet",
-    openRFQ:            "Open RFQ",
-    budgetAvg:          "Budget Avg",
-    critAlerts:         "Crit Alerts",
-    deliveryPending:    "Delivery Pending",
-    operativeEmails:    "Operative Emails",
-    alerts:             "Alerts",
-    fleetSummary:       "Fleet Summary",
-    viewDetails:        "View Details →",
-    procurementStatus:  "Procurement Status",
-    vessel:             "Vessel",
-    rfq:                "RFQ",
-    orders:             "Orders",
-    dn:                 "DN",
-    budgetMonitor:      "Budget Monitor",
-    residual:           "Residual",
-    certifications:     "Certifications & Expiry",
-    expired:            "Expired / <15d",
-    expiring30d:        "Expiring 30d",
-    valid:              "Valid",
-    messageComposer:    "Message Composer",
-    poweredBy:          "Powered by Maritime Purchasing HQ",
-    lastSync:           "Last sync",
-    onTime:             "On Time",
-    delayRisk:          "Delay Risk",
-    anchored:           "Anchored",
-    moored:             "Moored",
-    navigation:         "Navigation",
-    nextPort:           "Next port",
-    eta:                "ETA",
-    openItems:          "Open items",
-  },
-  it: {
-    title:              "Maritime Purchasing HQ",
-    subtitle:           "Centro Comando Operativo",
-    fleetMap:           "Mappa Stato Flotta",
-    activeFleet:        "Flotta Attiva",
-    openRFQ:            "RFQ Aperti",
-    budgetAvg:          "Budget Medio",
-    critAlerts:         "Alert Critici",
-    deliveryPending:    "Consegne Pending",
-    operativeEmails:    "Email Operative",
-    alerts:             "Avvisi",
-    fleetSummary:       "Riepilogo Flotta",
-    viewDetails:        "Vedi Dettaglio →",
-    procurementStatus:  "Stato Acquisti",
-    vessel:             "Nave",
-    rfq:                "RFQ",
-    orders:             "Ordini",
-    dn:                 "DN",
-    budgetMonitor:      "Monitor Budget",
-    residual:           "Residuo",
-    certifications:     "Certificazioni & Scadenze",
-    expired:            "Scaduti / <15g",
-    expiring30d:        "In scadenza 30g",
-    valid:              "Validi",
-    messageComposer:    "Compositore Messaggi",
-    poweredBy:          "Powered by Maritime Purchasing HQ",
-    lastSync:           "Ultimo aggiornamento",
-    onTime:             "In Orario",
-    delayRisk:          "Rischio Ritardo",
-    anchored:           "Ancorato",
-    moored:             "Ormeggiato",
-    navigation:         "Navigazione",
-    nextPort:           "Porto successivo",
-    eta:                "ETA",
-    openItems:          "Voci aperte",
-  }
+;(function(){
+const T={
+en:{title:"Maritime Purchasing HQ",subtitle:"Fleet Operations KPIs",fleetOverview:"Fleet Overview",alerts:"Alerts",fleetSummary:"Fleet Summary",procurement:"Procurement",budget:"Budget Monitor",certifications:"Certifications",composer:"Message Composer",routeInfo:"Route & Port Info",procStatus:"Procurement Status",emails:"Operative Emails",viewDetails:"View Details",backDash:"← Back to Dashboard",eta:"ETA",etb:"ETB",etd:"ETD",agent:"Agent",position:"Position",lastNoon:"Last noon report",itemDesc:"Item description",expiredLabel:"Expired / ≤15d",expiringLabel:"Expiring 30d",validLabel:"Valid",onTime:"On time",delayRisk:"Delay risk",anchored:"Anchored"},
+it:{title:"Maritime Purchasing HQ",subtitle:"KPI Operativi Flotta",fleetOverview:"Panoramica Flotta",alerts:"Avvisi",fleetSummary:"Riepilogo Flotta",procurement:"Procurement",budget:"Monitor Budget",certifications:"Certificati",composer:"Compositore Email",routeInfo:"Rotta & Porto",procStatus:"Stato Procurement",emails:"Email Operative",viewDetails:"Dettagli",backDash:"← Torna alla Dashboard",eta:"ETA",etb:"ETB",etd:"ETD",agent:"Agente",position:"Posizione",lastNoon:"Ultimo noon report",itemDesc:"Descrizione",expiredLabel:"Scaduti / ≤15gg",expiringLabel:"Scad. 30gg",validLabel:"Validi",onTime:"In orario",delayRisk:"Ritardo",anchored:"Ancorata"}
 };
 
-/* ── LANGUAGE ── */
-let currentLang = localStorage.getItem("dashboardLang") || "en";
+let lang="en";
+try{const s=localStorage.getItem("dashboardLang");if(s==="it"||s==="en")lang=s;}catch(e){}
 
-function applyLang(lang) {
-  currentLang = lang;
-  localStorage.setItem("dashboardLang", lang);
-  const t = i18n[lang];
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (t[key]) el.textContent = t[key];
-  });
-  document.querySelectorAll(".lang-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.id === "lang-" + lang);
-  });
+function applyI18n(l){
+  const t=T[l]||T.en;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(t[k]!==undefined)el.textContent=t[k];});
+  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.toggle("active",b.dataset.lang===l));
 }
 
-/* ── CLOCK ── */
-function updateClock() {
-  const el = document.getElementById("current-time");
-  if (!el) return;
-  const now = new Date();
-  el.textContent = now.toUTCString().slice(0, 25) + " UTC";
-}
+const V={
+"peppino":{name:"PEPPINO",sc:"on-time",sk:"onTime",eta:"2026-04-28 08:00",etb:"2026-04-28 10:00",etd:"2026-04-29 16:00",agent:"Eastern Marine Agency",contact:"ops@easterning.it",pos:"N 44°25.123 E 008°55.456",noon:"2026-04-27 12:00",b:{u:136000,t:200000,p:68,c:"green"},cc:0,cw:1,co:4,
+proc:[{d:"Main Engine Spares",r:"2026-PEP-SHPR-00012",po:"2026-PEP-HQPO-00008",dn:"2026-PEP-HQDN-00005",s:[1,1,1,1]},{d:"Lube Oil 40W",r:"2026-PEP-SHPR-00013",po:"2026-PEP-HQPO-00009",dn:"",s:[1,1,1,0]},{d:"Safety Equipment",r:"2026-PEP-SHPR-00014",po:"",dn:"",s:[1,1,0,0]}],
+em:[{s:"warn",sub:"ETA Update Request",from:"ops@easterning.it",dt:"2026-04-27"},{s:"ok",sub:"PO Confirmation ACK",from:"supplier@marine.com",dt:"2026-04-26"}]},
 
-/* ── HELPERS ── */
-function statusColor(s) {
-  if (!s) return "neutral";
-  s = s.toLowerCase();
-  if (s.includes("on_time") || s.includes("moored")) return "green";
-  if (s.includes("delay") || s.includes("navigation")) return "yellow";
-  if (s.includes("anchor")) return "red";
-  return "green";
-}
+"med-liguria":{name:"MED LIGURIA",sc:"delay",sk:"delayRisk",eta:"2026-04-29 14:00",etb:"2026-04-29 17:00",etd:"2026-04-30 22:00",agent:"Tyrrhenian Port Services",contact:"livorno@tyrrhenian.it",pos:"N 43°33.890 E 010°18.210",noon:"2026-04-27 12:00",b:{u:184000,t:200000,p:92,c:"red"},cc:1,cw:2,co:2,
+proc:[{d:"Fuel Injectors Set",r:"2026-MLG-SHPR-00020",po:"2026-MLG-HQPO-00014",dn:"2026-MLG-HQDN-00009",s:[1,1,1,1]},{d:"Deck Hatch Gaskets",r:"2026-MLG-SHPR-00021",po:"2026-MLG-HQPO-00015",dn:"",s:[1,1,1,0]},{d:"Hydraulic Oil 46",r:"2026-MLG-SHPR-00022",po:"",dn:"",s:[1,0,0,0]}],
+em:[{s:"crit",sub:"Budget Overrun Alert",from:"finance@hq.internal",dt:"2026-04-27"},{s:"warn",sub:"Delivery Delay Notice",from:"supplier@marine.com",dt:"2026-04-26"}]},
 
-function formatDate(iso) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-  } catch { return iso; }
-}
+"med-toscana":{name:"MED TOSCANA",sc:"on-time",sk:"onTime",eta:"2026-04-30 07:00",etb:"2026-04-30 09:00",etd:"2026-04-30 20:00",agent:"Toscana Maritime Agents",contact:"port@toscanamaritime.it",pos:"N 42°05.340 E 011°47.680",noon:"2026-04-27 12:00",b:{u:164000,t:200000,p:82,c:"yellow"},cc:0,cw:1,co:4,
+proc:[{d:"Navigation Lights",r:"2026-MDT-SHPR-00018",po:"2026-MDT-HQPO-00011",dn:"",s:[1,1,1,0]},{d:"Fire Extinguisher Pack",r:"2026-MDT-SHPR-00019",po:"",dn:"",s:[1,1,0,0]}],
+em:[{s:"ok",sub:"Captain Request Received",from:"master@medtoscana.it",dt:"2026-04-27"},{s:"warn",sub:"Certificate Expiry — ISM",from:"compliance@hq.internal",dt:"2026-04-25"}]},
 
-function formatDateTime(iso) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) +
-           " " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + " UTC";
-  } catch { return iso; }
-}
-
-/* ── TEMPLATES COMPOSER ── */
-const templates = {
-  "eta-agent": (v) => `TO: ${v ? v.agent : "[Agent]"}\nSUBJECT: ETA Confirmation Request — ${v ? v.name : "[Vessel]"}\n\nDear ${v ? v.agent : "[Agent]"},\nPlease confirm ETA for ${v ? v.name : "[Vessel]"} at ${v ? v.nextPort : "[Port]"}.\nExpected arrival: ${formatDateTime(v ? v.eta : null)}\n\nBest regards,\nMaritime Purchasing HQ`,
-  "order-confirm": (v) => `TO: [Supplier]\nSUBJECT: Order Confirmation — ${v ? v.name : "[Vessel]"}\n\nDear [Supplier],\nWe confirm the purchase order for ${v ? v.name : "[Vessel]"}.\nDelivery port: ${v ? v.nextPort : "[Port]"}\nETA: ${formatDateTime(v ? v.eta : null)}\n\nBest regards,\nMaritime Purchasing HQ`,
-  "captain-req": (v) => `TO: Captain — ${v ? v.name : "[Vessel]"}\nSUBJECT: Request Acknowledged — ${v ? v.name : "[Vessel]"}\n\nDear Captain,\nYour request has been received and is being processed.\nWe will update you before ETB: ${formatDateTime(v ? v.etb : null)}\n\nBest regards,\nMaritime Purchasing HQ`,
+"norrbotten":{name:"NORRBOTTEN",sc:"anchored",sk:"anchored",eta:"2026-05-02 10:00",etb:"2026-05-02 14:00",etd:"2026-05-03 08:00",agent:"Naples Bay Agencies",contact:"nba@naplesagency.it",pos:"N 40°50.120 E 014°16.330",noon:"2026-04-27 12:00",b:{u:124000,t:200000,p:62,c:"green"},cc:0,cw:0,co:5,
+proc:[{d:"Electrical Cables Set",r:"2026-NRB-SHPR-00015",po:"2026-NRB-HQPO-00010",dn:"2026-NRB-HQDN-00007",s:[1,1,1,1]},{d:"Refit Steel Plates",r:"2026-NRB-SHPR-00016",po:"",dn:"",s:[1,0,0,0]}],
+em:[{s:"ok",sub:"Refit Schedule Confirmed",from:"yard@napolidockyard.it",dt:"2026-04-26"}]}
 };
 
-/* ── RENDER FLEET CARDS ── */
-function renderFleet(vessels) {
-  const container = document.getElementById("fleet-container");
-  if (!container) return;
-  const t = i18n[currentLang];
-  container.innerHTML = vessels.map(v => {
-    const col = v.statusColor || statusColor(v.status);
-    const statusLabel = t[v.status] || v.status || "—";
-    return `<div class="ship-card">
-      <div class="ship-status-bar ${col}"></div>
-      <div class="ship-name">${v.name}</div>
-      <div class="ship-meta">
-        <span>📍 ${v.location || "—"}</span>
-        <span>${t.nextPort}: ${v.nextPort || "—"}</span>
-        <span>${t.eta}: ${formatDateTime(v.eta)}</span>
-        <span>${t.openItems}: ${v.openItems || 0}</span>
-      </div>
-      <a class="ghost-btn" href="vessel.html?vessel=${v.id}" data-i18n="viewDetails">${t.viewDetails}</a>
-    </div>`;
-  }).join("");
+function setT(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+function initVessel(){
+  const vid=(new URLSearchParams(window.location.search).get("vessel"))||"peppino";
+  const v=V[vid]||V["peppino"];
+  document.title=v.name+" — Maritime Purchasing HQ";
+  const tEl=document.querySelector(".vessel-page-title");
+  if(tEl)tEl.textContent=v.name;
+  const badge=document.querySelector(".vessel-status-badge");
+  if(badge){
+    badge.className="vessel-status-badge "+v.sc;
+    const bt=badge.querySelector(".badge-text");
+    if(bt)bt.setAttribute("data-i18n",v.sk);
+  }
+  setT("route-eta",v.eta);setT("route-etb",v.etb);setT("route-etd",v.etd);
+  setT("route-agent",v.agent);setT("route-contact",v.contact);
+  setT("route-position",v.pos);setT("route-noon",v.noon);
+  const pctEl=document.getElementById("vessel-budget-pct");
+  const fillEl=document.getElementById("vessel-budget-fill");
+  const amtEl=document.getElementById("vessel-budget-amount");
+  if(pctEl)pctEl.textContent=v.b.p+"%";
+  if(fillEl){fillEl.style.width=v.b.p+"%";fillEl.className="fill "+v.b.c;}
+  if(amtEl)amtEl.textContent="€"+(v.b.u/1000).toFixed(0)+"K / €"+(v.b.t/1000).toFixed(0)+"K";
+  setT("cert-crit",v.cc);setT("cert-warn",v.cw);setT("cert-ok",v.co);
+  const tbody=document.getElementById("vessel-proc-tbody");
+  if(tbody){
+    const L=["REQ","RFQ","PO","DN"];
+    tbody.innerHTML=v.proc.map(r=>{
+      const ph=r.s.map((x,i)=>`<div class="step-dot ${x?"done":"empty"}" title="${L[i]}">${L[i][0]}</div>${i<3?`<div class="step-line${x&&r.s[i+1]?" done":""}"></div>`:""}`).join("");
+      return`<tr><td>${r.d}</td><td class="text-xs text-muted">${r.r}</td><td class="text-xs">${r.po||"—"}</td><td class="text-xs">${r.dn||"—"}</td><td><div class="progress-steps">${ph}</div></td></tr>`;
+    }).join("");
+  }
+  const ec=document.getElementById("vessel-emails");
+  if(ec)ec.innerHTML=v.em.map(e=>`<a class="email-item" href="mailto:${e.from}"><span class="email-dot ${e.s}"></span><span class="email-subject">${e.sub}</span><span class="email-from">${e.from}</span><span class="email-date">${e.dt}</span></a>`).join("");
 }
 
-/* ── RENDER ALERTS ── */
-function renderAlerts(vessels) {
-  const container = document.getElementById("alerts-container");
-  if (!container) return;
-  const allAlerts = [];
-  vessels.forEach(v => {
-    (v.alerts || []).forEach(a => {
-      allAlerts.push({ vessel: v.name, ...a });
-    });
-  });
-  if (allAlerts.length === 0) {
-    container.innerHTML = `<div class="alert warn">⚓ No active alerts at this time.</div>`;
-    return;
-  }
-  container.innerHTML = allAlerts.map(a =>
-    `<div class="alert ${a.type}">
-      <span>${a.type === "crit" ? "🚨" : "⚠️"}</span>
-      <span><strong>${a.vessel}</strong> — ${a.message}</span>
-    </div>`
-  ).join("");
+function initComposer(){
+  const btns=document.querySelectorAll(".template-box");
+  const prev=document.querySelector(".composer-preview-text");
+  const TPLS=[
+    "Subject: ETA Confirmation Request\n\nDear Agent,\nPlease confirm ETA and berthing windows for [VESSEL] at [PORT].\n\nBest regards,\nMaritime Purchasing HQ",
+    "Subject: Order Confirmation — [PO_NUMBER]\n\nDear Supplier,\nThis is to confirm PO [PO_NUMBER] for [VESSEL].\nPlease acknowledge receipt and confirm dispatch date.\n\nBest regards,\nMaritime Purchasing HQ",
+    "Subject: Captain Request — [VESSEL]\n\nDear Captain,\nYour requisition [REQ_NUMBER] has been received.\nEstimated response: 24h.\n\nBest regards,\nMaritime Purchasing HQ"
+  ];
+  btns.forEach((b,i)=>b.addEventListener("click",()=>{
+    btns.forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    if(prev)prev.value=TPLS[i]||"";
+  }));
 }
 
-/* ── RENDER KPI FROM FLEET ── */
-function renderKPI(fleetData, budgetData, procData, emailData) {
-  const vessels = fleetData.vessels || [];
-
-  let onTime = 0, delayRisk = 0, anchored = 0;
-  let critCount = 0;
-  vessels.forEach(v => {
-    if (v.alertLevel === "crit") critCount++;
-    const s = (v.status || "").toLowerCase();
-    if (s.includes("on_time") || s.includes("moored")) onTime++;
-    else if (s.includes("delay") || s.includes("navigation")) delayRisk++;
-    else if (s.includes("anchor")) anchored++;
-  });
-
-  const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-  setEl("kpi-fleet", vessels.length);
-  setEl("map-fleet-count", vessels.length);
-  setEl("map-on-time", onTime);
-  setEl("map-delay", delayRisk);
-  setEl("map-anchored", anchored);
-  setEl("kpi-alerts", critCount);
-
-  if (budgetData) {
-    const avg = budgetData.fleetSummary?.averagePercentage || 0;
-    setEl("kpi-budget", avg + "%");
+function init(){
+  applyI18n(lang);
+  document.querySelectorAll(".lang-btn").forEach(b=>b.addEventListener("click",()=>{
+    lang=b.dataset.lang;
+    try{localStorage.setItem("dashboardLang",lang);}catch(e){}
+    applyI18n(lang);
+  }));
+  if(document.querySelector(".vessel-page-title")){
+    initVessel();
+    applyI18n(lang);
   }
-  if (procData) {
-    const allVessels = procData.vessels || [];
-    const totalRFQ = allVessels.reduce((s, v) => s + (v.rfqOpen || 0), 0);
-    const totalDN  = allVessels.reduce((s, v) => s + (v.dnPending || 0), 0);
-    setEl("kpi-rfq", totalRFQ);
-    setEl("kpi-delivery", totalDN);
-  }
-  if (emailData) {
-    setEl("kpi-emails", emailData.summary?.totalUnhandled || 0);
-  }
+  initComposer();
 }
 
-/* ── RENDER PROCUREMENT TABLE ── */
-function renderProcurement(procData) {
-  const tbody = document.getElementById("proc-tbody");
-  if (!tbody || !procData) return;
-  const vessels = procData.vessels || [];
-  tbody.innerHTML = vessels.map(v => {
-    const rfqCol = v.rfqOpen > 0 ? (v.rfqOverdue7 > 0 ? "red" : "yellow") : "green";
-    const ordCol = v.orders > 0 ? "neutral" : "green";
-    const dnCol  = v.delivery === "delayed" ? "red" : (v.dnPending > 0 ? "yellow" : "green");
-    return `<tr>
-      <td>${v.vesselName}</td>
-      <td><span class="proc-badge ${rfqCol}">${v.rfqOpen}</span></td>
-      <td><span class="proc-badge ${ordCol}">${v.orders}</span></td>
-      <td><span class="proc-badge ${dnCol}">${v.dn} <small style="opacity:.7">(${v.dnPending} pend.)</small></span></td>
-    </tr>`;
-  }).join("");
-}
-
-/* ── RENDER BUDGET ── */
-function renderBudget(budgetData) {
-  const container = document.getElementById("budget-container");
-  if (!container || !budgetData) return;
-  const t = i18n[currentLang];
-  container.innerHTML = (budgetData.vessels || []).map(v => {
-    const pct = v.percentageUsed || 0;
-    const col = v.semaphore || (pct >= 85 ? "red" : pct >= 70 ? "yellow" : "green");
-    return `<div class="budget-item">
-      <div class="budget-item-header">
-        <span>${v.vesselName}</span>
-        <span class="pct" style="color:${col === 'red' ? '#ff5f63' : col === 'yellow' ? '#ffbf3c' : '#2fd06f'}">${pct}%</span>
-      </div>
-      <div class="budget-bar"><div class="fill ${col}" style="width:${pct}%"></div></div>
-      <div class="budget-sub">${t.residual}: €${(v.residualBudget || 0).toLocaleString("en-IE")}</div>
-    </div>`;
-  }).join("");
-}
-
-/* ── COMPOSER ── */
-function initComposer(vessels) {
-  const preview = document.getElementById("email-preview");
-  const templates_els = document.querySelectorAll(".template-box");
-  if (!preview || !templates_els.length) return;
-
-  let selectedTemplate = "eta-agent";
-  let selectedVessel = vessels && vessels.length ? vessels[0] : null;
-
-  function updatePreview() {
-    const fn = templates[selectedTemplate];
-    preview.textContent = fn ? fn(selectedVessel) : "Select a template...";
-  }
-
-  templates_els.forEach(box => {
-    box.addEventListener("click", () => {
-      templates_els.forEach(b => b.classList.remove("active"));
-      box.classList.add("active");
-      selectedTemplate = box.dataset.template;
-      updatePreview();
-    });
-  });
-
-  updatePreview();
-}
-
-/* ── MAIN LOAD ── */
-async function loadDashboard() {
-  try {
-    const [fleetRes, budgetRes, procRes, emailRes] = await Promise.allSettled([
-      fetch("data-fleet.json").then(r => r.json()),
-      fetch("data-budget.json").then(r => r.json()),
-      fetch("data-procurement.json").then(r => r.json()),
-      fetch("data-email.json").then(r => r.json()),
-    ]);
-
-    const fleetData  = fleetRes.status  === "fulfilled" ? fleetRes.value  : null;
-    const budgetData = budgetRes.status === "fulfilled" ? budgetRes.value : null;
-    const procData   = procRes.status   === "fulfilled" ? procRes.value   : null;
-    const emailData  = emailRes.status  === "fulfilled" ? emailRes.value  : null;
-
-    if (fleetData) {
-      renderFleet(fleetData.vessels || []);
-      renderAlerts(fleetData.vessels || []);
-      renderKPI(fleetData, budgetData, procData, emailData);
-      initComposer(fleetData.vessels || []);
-    }
-    if (procData)   renderProcurement(procData);
-    if (budgetData) renderBudget(budgetData);
-
-    // Last sync
-    const syncEl = document.getElementById("last-sync");
-    if (syncEl && fleetData?.lastSync) {
-      syncEl.textContent = i18n[currentLang].lastSync + ": " + formatDate(fleetData.lastSync);
-    }
-
-  } catch (err) {
-    console.error("Dashboard load error:", err);
-  }
-}
-
-/* ── INIT ── */
-document.addEventListener("DOMContentLoaded", () => {
-  applyLang(currentLang);
-  updateClock();
-  setInterval(updateClock, 30000);
-
-  document.getElementById("lang-it")?.addEventListener("click", () => { applyLang("it"); renderBudget(window._budgetData); });
-  document.getElementById("lang-en")?.addEventListener("click", () => { applyLang("en"); renderBudget(window._budgetData); });
-
-  if (document.getElementById("fleet-container")) {
-    loadDashboard();
-  }
-});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);
+else init();
+})();
