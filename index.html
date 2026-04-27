@@ -5,740 +5,287 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Maritime Purchasing HQ</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>" />
+  <script>
+    // Simple i18n from app.js (vessel page needs it too)
+    document.addEventListener("DOMContentLoaded", function () {
+      const lang = localStorage.getItem("dashboardLang") || "en";
+      document.getElementById("lang-it").classList.toggle("active", lang === "it");
+      document.getElementById("lang-en").classList.toggle("active", lang === "en");
+    });
+  </script>
 </head>
-<body>
-
-<!-- ── TOPBAR ──────────────────────────────────────────────────── -->
-<header class="topbar">
-  <div class="topbar-main">
-    <div>
-      <h1>⚓ Maritime Purchasing HQ</h1>
-      <p>Dashboard operativa · flotta &amp; procurement</p>
+<body class="dark">
+  <header class="topbar">
+    <div class="topbar-title">
+      <span class="status-dot pulse"></span>
+      <h1 data-i18n="title">Maritime Purchasing HQ</h1>
     </div>
-    <div class="topbar-right">
-      <span class="status-dot"></span>
-      <span>Live</span>
-      <span>·</span>
-      <span>Fleet <strong>4 navi</strong></span>
-      <span>·</span>
-      <span>Alerts <strong id="tb-alerts">3</strong></span>
-      <span>·</span>
-      <span>Critico <strong id="tb-crit" style="color:#ff5f63;">2</strong></span>
-      <span>·</span>
-      <span id="sync-time" style="color:#4a6a85;">Sync —</span>
+    <div class="topbar-meta">
+      <span class="topbar-timestamp">Last update: 2026‑04‑27 15:30</span>
     </div>
-  </div>
-</header>
+  </header>
 
-<!-- ERROR BANNER -->
-<div id="data-error" style="display:none;background:#3d1a1a;color:#ff5f63;padding:10px 20px;text-align:center;font-size:0.82rem;">
-  ⚠️ Errore caricamento procurement — verifica che <code>data-procurement.json</code> sia presente nel repo.
-</div>
+  <main class="dashboard">
 
-<main class="dashboard">
-
-  <!-- ── HERO: MAPPA + KPI ──────────────────────────────────────── -->
-  <section class="card hero">
-    <div class="section-head">
-      <div>
-        <h2>Fleet Overview</h2>
-        <p class="section-sub">Mappa live · KPI globali di flotta</p>
-      </div>
-      <span style="color:#4a6a85;font-size:0.75rem;">VesselFinder embed · Noon Report</span>
-    </div>
-    <div class="hero-grid">
-
-      <div class="map-panel">
-        <div class="map-title">⚓ &nbsp;LIVE FLEET TRACKING</div>
-        <div class="map-body">
-          <div>
-            <div style="font-size:2.2rem;margin-bottom:10px;">🗺️</div>
-            <div style="color:#57d4ff;font-size:0.9rem;font-weight:600;">VesselFinder embed</div>
-            <div style="color:#4a6a85;font-size:0.78rem;margin-top:6px;">Integrazione in attesa · 4 navi monitorate</div>
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="map-panel">
+          <div class="section-head">
+            <h2 data-i18n="fleetOverview">Fleet Overview</h2>
+            <div class="map-meta">
+              <span class="map-meta-item">4 ships</span>
+              <span class="map-meta-item">2 on time</span>
+              <span class="map-meta-item">1 delay risk</span>
+              <span class="map-meta-item">1 anchored</span>
+              <span class="map-meta-item">3 calls 48h</span>
+            </div>
+          </div>
+          <div class="map-body">
+            <svg class="fleet-map" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+              <!-- Nomi reali navi -->
+              <text x="80" y="120" class="map-ship-name">PEPPINO</text>
+              <text x="180" y="160" class="map-ship-name">MED LIGURIA</text>
+              <text x="280" y="100" class="map-ship-name">MED TOSCANA</text>
+              <text x="400" y="180" class="map-ship-name">NORRBOTTEN</text>
+            </svg>
           </div>
         </div>
-        <div class="map-foot">
-          <span>🟢 <strong>2</strong> On time</span>
-          <span>🟡 <strong>1</strong> Delay risk</span>
-          <span>⚓ <strong>1</strong> Moored</span>
-          <span>🔵 <strong>3</strong> Scali 48h</span>
+
+        <div class="kpi-panel">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span class="kpi-label">Vessels monitored</span>
+              </div>
+              <div class="kpi-value">4</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span class="kpi-label">Open RFQ</span>
+              </div>
+              <div class="kpi-value">14</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span class="kpi-label">Avg. budget used</span>
+              </div>
+              <div class="kpi-value">74%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span class="kpi-label">Critical alerts</span>
+              </div>
+              <div class="kpi-value">2</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span class="kpi-label">Delivery pending</span>
+              </div>
+              <div class="kpi的价值">6</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span class="kpi-label">Operative emails</span>
+              </div>
+              <div class="kpi-value">9</div>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="kpi-panel">
-        <div class="kpi-grid">
-
-          <div class="kpi-card">
-            <span class="kpi-label">Navi monitorate</span>
-            <strong>4</strong>
-            <small>Fleet attiva</small>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Open RFQ</span>
-            <strong id="kpi-rfq" style="color:#57d4ff;">—</strong>
-            <small>Tutte le navi</small>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Budget medio</span>
-            <strong style="color:#ffbf3c;">73%</strong>
-            <small>Utilizzo flotta</small>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Alerts critici</span>
-            <strong style="color:#ff5f63;">2</strong>
-            <small>Azione richiesta</small>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">DN in transito</span>
-            <strong id="kpi-delivery" style="color:#2fd06f;">—</strong>
-            <small>Delivery pending</small>
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Email operative</span>
-            <strong style="color:#8ad9ff;">9</strong>
-            <small>Non gestite</small>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ── ALERTS ──────────────────────────────────────────────────── -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2>Alerts &amp; Priorità</h2>
-        <p class="section-sub">Sempre in cima · aggiornati dal digest</p>
-      </div>
-      <span style="color:#4a6a85;font-size:0.75rem;">Semaforo operativo</span>
-    </div>
-    <div class="alert-list">
-      <div class="alert crit">
-        <div class="alert-title">⚠️ Delivery delay risk — consegna scaduta non ricevuta a bordo</div>
-        <div class="alert-sub">MED TOSCANA · scadenza confermata saltata · DN non ricevuto · agire oggi</div>
+    <section class="alerts">
+      <div class="section-head">
+        <h2 data-i18n="alerts">Alerts</h2>
       </div>
       <div class="alert crit">
-        <div class="alert-title">🔴 Budget soglia critica — 89% del budget annuale utilizzato</div>
-        <div class="alert-sub">MED TOSCANA · €11.000 residui su €100.000 allocati · verifica disponibilità</div>
+        <span>PEPPINO — Delivery delay risk</span>
+      </div>
+      <div class="alert crit">
+        <span>MED LIGURIA — Budget threshold red</span>
       </div>
       <div class="alert warn">
-        <div class="alert-title">🟡 Captain request pending — richiesta supplies in attesa di risposta HQ</div>
-        <div class="alert-sub">MED LIGURIA · richiesta ricevuta · alta priorità · risposta attesa entro oggi</div>
+        <span>MED TOSCANA — Captain request pending</span>
       </div>
-    </div>
-  </section>
-
-  <!-- ── FLEET SUMMARY ───────────────────────────────────────────── -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2>Fleet Summary</h2>
-        <p class="section-sub">4 navi · click per scheda operativa completa</p>
+      <div class="alert">
+        <span>NORRBOTTEN — All OK</span>
       </div>
-      <span style="color:#4a6a85;font-size:0.75rem;">Dati Noon Report via N8N</span>
-    </div>
-    <div class="fleet-grid">
+    </section>
 
-      <div class="ship-card">
-        <div class="ship-status-bar green"></div>
-        <div class="ship-name">PEPPINO</div>
-        <div class="ship-meta" style="padding-top:10px;">
-          <span class="ship-status green">Moored</span>
-          <span>Genova</span>
-        </div>
-        <div class="ship-meta">
-          <span style="color:#4a6a85;">→ Napoli</span>
-          <span>ETA: 28/04</span>
-        </div>
-        <div class="ship-meta" style="padding-bottom:10px;color:#4a6a85;font-size:0.72rem;">
-          Agent: ABC Shipping
-        </div>
-        <div style="padding:0 12px 12px;">
-          <a href="vessel.html?vessel=peppino" class="ghost-btn" style="display:block;text-align:center;text-decoration:none;">
-            View Details →
-          </a>
-        </div>
-      </div>
-
-      <div class="ship-card">
-        <div class="ship-status-bar yellow"></div>
-        <div class="ship-name">MED LIGURIA</div>
-        <div class="ship-meta" style="padding-top:10px;">
-          <span class="ship-status yellow">Navigation</span>
-          <span>Palermo</span>
-        </div>
-        <div class="ship-meta">
-          <span style="color:#4a6a85;">→ Valencia</span>
-          <span>ETA: 27/04</span>
-        </div>
-        <div class="ship-meta" style="padding-bottom:10px;color:#4a6a85;font-size:0.72rem;">
-          Agent: Delta Agency
-        </div>
-        <div style="padding:0 12px 12px;">
-          <a href="vessel.html?vessel=med-liguria" class="ghost-btn" style="display:block;text-align:center;text-decoration:none;">
-            View Details →
-          </a>
-        </div>
-      </div>
-
-      <div class="ship-card">
-        <div class="ship-status-bar red"></div>
-        <div class="ship-name" style="display:flex;align-items:center;gap:6px;padding:12px 14px 4px;">
-          MED TOSCANA <span style="font-size:0.7rem;">🔴</span>
-        </div>
-        <div class="ship-meta" style="padding-top:4px;">
-          <span class="ship-status red">Delay Risk</span>
-          <span>Port Said</span>
-        </div>
-        <div class="ship-meta">
-          <span style="color:#4a6a85;">→ Alexandria</span>
-          <span>ETA: 26/04</span>
-        </div>
-        <div class="ship-meta" style="padding-bottom:10px;color:#4a6a85;font-size:0.72rem;">
-          Agent: Eastern Marine Agency
-        </div>
-        <div style="padding:0 12px 12px;">
-          <a href="vessel.html?vessel=med-toscana" class="ghost-btn" style="display:block;text-align:center;text-decoration:none;">
-            View Details →
-          </a>
-        </div>
-      </div>
-
-      <div class="ship-card">
-        <div class="ship-status-bar green"></div>
-        <div class="ship-name">NORRBOTTEN</div>
-        <div class="ship-meta" style="padding-top:10px;">
-          <span class="ship-status green">On Time</span>
-          <span>Gulf of Lion</span>
-        </div>
-        <div class="ship-meta">
-          <span style="color:#4a6a85;">→ Marseille</span>
-          <span>ETA: 29/04</span>
-        </div>
-        <div class="ship-meta" style="padding-bottom:10px;color:#4a6a85;font-size:0.72rem;">
-          Agent: Nordic Maritime
-        </div>
-        <div style="padding:0 12px 12px;">
-          <a href="vessel.html?vessel=norrbotten" class="ghost-btn" style="display:block;text-align:center;text-decoration:none;">
-            View Details →
-          </a>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ── PROCUREMENT (dati reali) + BUDGET (mockup) ─────────────── -->
-  <div class="cards-row">
-
-    <div class="card half">
+    <section class="fleet-summary">
       <div class="section-head">
-        <div>
-          <h2>Stato Acquisti</h2>
-          <p class="section-sub" id="proc-sync-label">Caricamento dati…</p>
-        </div>
-        <span style="color:#4a6a85;font-size:0.75rem;">Notion via N8N · pipeline per nave</span>
+        <h2 data-i18n="fleetSummary">Fleet Summary</h2>
       </div>
-      <div id="proc-vessels-container">
-        <div style="color:#4a6a85;font-size:0.82rem;padding:20px;text-align:center;">
-          ⏳ Caricamento dati procurement…
-        </div>
-      </div>
-    </div>
+      <div class="fleet-grid">
+        <article class="ship-card">
+          <header class="ship-name">PEPPINO</header>
+          <div class="ship-meta">
+            <div class="ship-status on_time">On time</div>
+            <div class="ship-port">Genoa</div>
+          </div>
+          <p class="ship-desc">Engine & deck spares, provisions</p>
+          <a href="vessel.html?vessel=peppino" class="ghost-btn">View Details</a>
+        </article>
 
-    <div class="card half">
+        <article class="ship-card">
+          <header class="ship-name">MED LIGURIA</header>
+          <div class="ship-meta">
+            <div class="ship-status warn">Delay risk</div>
+            <div class="ship-port">Livorno</div>
+          </div>
+          <p class="ship-desc">Main engine parts, lube oils</p>
+          <a href="vessel.html?vessel=med-liguria" class="ghost-btn">View Details</a>
+        </article>
+
+        <article class="ship-card">
+          <header class="ship-name">MED TOSCANA</header>
+          <div class="ship-meta">
+            <div class="ship-status info">On time</div>
+            <div class="ship-port">Civitavecchia</div>
+          </div>
+          <p class="ship-desc">Deck equipment, safety gear</p>
+          <a href="vessel.html?vessel=med-toscana" class="ghost-btn">View Details</a>
+        </article>
+
+        <article class="ship-card">
+          <header class="ship-name">NORRBOTTEN</header>
+          <div class="ship-meta">
+            <div class="ship-status anchored">Anchored</div>
+            <div class="ship-port">Naples</div>
+          </div>
+          <p class="ship-desc">Refit spares, electrical components</p>
+          <a href="vessel.html?vessel=norrbotten" class="ghost-btn">View Details</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="procurement">
       <div class="section-head">
-        <div>
-          <h2>Budget Monitor</h2>
-          <p class="section-sub">Semaforo allocazione annuale per nave</p>
-        </div>
-        <span style="color:#4a6a85;font-size:0.75rem;">Input manuale Notion</span>
+        <h2 data-i18n="procurement">Procurement</h2>
       </div>
-      <div class="budget-list">
+      <table class="proc-table">
+        <thead>
+          <tr class="proc-row head">
+            <th class="vessel">Vessel</th>
+            <th class="rfq">RFQ</th>
+            <th class="orders">Orders</th>
+            <th class="dn">DN</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="proc-row">
+            <td class="vessel">PEPPINO</td>
+            <td class="rfq">4</td>
+            <td class="orders">12</td>
+            <td class="dn">3</td>
+          </tr>
+          <tr class="proc-row">
+            <td class="vessel">MED LIGURIA</td>
+            <td class="rfq">3</td>
+            <td class="orders">10</td>
+            <td class="dn">2</td>
+          </tr>
+          <tr class="proc-row">
+            <td class="vessel">MED TOSCANA</td>
+            <td class="rfq">5</td>
+            <td class="orders">11</td>
+            <td class="dn">4</td>
+          </tr>
+          <tr class="proc-row">
+            <td class="vessel">NORRBOTTEN</td>
+            <td class="rfq">2</td>
+            <td class="orders">9</td>
+            <td class="dn">1</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">PEPPINO</span>
-            <span class="budget-pct" style="color:#2fd06f;">68%</span>
-          </div>
+    <section class="budget-monitor">
+      <div class="section-head">
+        <h2 data-i18n="budget">Budget Monitor</h2>
+      </div>
+      <ul class="budget-list">
+        <li class="budget-item">
+          <div class="budget-label">PEPPINO</div>
           <div class="budget-bar">
-            <div class="fill" style="width:68%;background:linear-gradient(90deg,#15803d,#2fd06f);"></div>
+            <div class="fill green" style="width: 68%"></div>
           </div>
-          <div class="budget-row" style="font-size:0.72rem;color:#4a6a85;margin-top:3px;">
-            <span>€68.000 / €100.000</span><span>residuo: €32.000</span>
-          </div>
-        </div>
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">MED LIGURIA</span>
-            <span class="budget-pct" style="color:#ffbf3c;">74%</span>
-          </div>
+          <div class="budget-amount">€136K / €200K</div>
+        </li>
+        <li class="budget-item">
+          <div class="budget-label">MED LIGURIA</div>
           <div class="budget-bar">
-            <div class="fill" style="width:74%;background:linear-gradient(90deg,#92400e,#ffbf3c);"></div>
+            <div class="fill red" style="width: 92%"></div>
           </div>
-          <div class="budget-row" style="font-size:0.72rem;color:#4a6a85;margin-top:3px;">
-            <span>€74.000 / €100.000</span><span>residuo: €26.000</span>
-          </div>
-        </div>
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">MED TOSCANA</span>
-            <span class="budget-pct" style="color:#ff5f63;">89%</span>
-          </div>
+          <div class="budget-amount">€184K / €200K</div>
+        </li>
+        <li class="budget-item">
+          <div class="budget-label">MED TOSCANA</div>
           <div class="budget-bar">
-            <div class="fill" style="width:89%;background:linear-gradient(90deg,#991b1b,#ff5f63);"></div>
+            <div class="fill yellow" style="width: 82%"></div>
           </div>
-          <div class="budget-row" style="font-size:0.72rem;color:#4a6a85;margin-top:3px;">
-            <span>€89.000 / €100.000</span><span style="color:#ff5f63;font-weight:700;">residuo: €11.000 ⚠️</span>
-          </div>
-        </div>
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">NORRBOTTEN</span>
-            <span class="budget-pct" style="color:#2fd06f;">61%</span>
-          </div>
+          <div class="budget-amount">€164K / €200K</div>
+        </li>
+        <li class="budget-item">
+          <div class="budget-label">NORRBOTTEN</div>
           <div class="budget-bar">
-            <div class="fill" style="width:61%;background:linear-gradient(90deg,#15803d,#2fd06f);"></div>
+            <div class="fill green" style="width: 62%"></div>
           </div>
-          <div class="budget-row" style="font-size:0.72rem;color:#4a6a85;margin-top:3px;">
-            <span>€61.000 / €100.000</span><span>residuo: €39.000</span>
-          </div>
+          <div class="budget-amount">€124K / €200K</div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="certifications">
+      <div class="section-head">
+        <h2 data-i18n="certifications">Certifications</h2>
+      </div>
+      <div class="cert-grid">
+        <div class="cert-box crit">
+          <div class="cert-num">1</div>
+          <span data-i18n="exp_bad">Expired</span><br/>15‑d window
         </div>
-
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ── EMAIL DIGEST ─────────────────────────────────────────────── -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2>Email Digest</h2>
-        <p class="section-sub">Semafori operativi · link a Outlook per dettaglio</p>
-      </div>
-      <span style="color:#4a6a85;font-size:0.75rem;">Parsing N8N da Outlook</span>
-    </div>
-    <div class="email-mini-grid">
-      <div class="email-mini-card green">
-        <div class="email-mini-num green">4</div>
-        <div class="email-mini-lbl">Conferme ordine</div>
-        <div class="email-mini-sub">4 order confirmations ricevute oggi</div>
-      </div>
-      <div class="email-mini-card yellow">
-        <div class="email-mini-num yellow">2</div>
-        <div class="email-mini-lbl">Richieste capitano</div>
-        <div class="email-mini-sub">1 con priorità alta · risposta attesa</div>
-      </div>
-      <div class="email-mini-card red">
-        <div class="email-mini-num red">1</div>
-        <div class="email-mini-lbl">Avviso ritardo fornitore</div>
-        <div class="email-mini-sub">MED TOSCANA · delivery in ritardo</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="email-digest.html" style="text-decoration:none;">
-        <button class="ghost-btn">📧 Open full email digest</button>
-      </a>
-      <a href="ms-outlook:" style="text-decoration:none;">
-        <button class="ghost-btn">↗ Apri Outlook</button>
-      </a>
-    </div>
-  </section>
-
-</main>
-
-<footer class="footer">
-  <span id="last-sync-label"></span>
-  <span>·</span>
-  <span>Maritime Purchase HQ · v5 · dark mode</span>
-  <button class="lang-btn" id="lang-it">IT</button>
-  <button class="lang-btn active" id="lang-en">EN</button>
-</footer>
-
-<script src="app.js"></script>
-<script>
-/* ================================================================
-   INDEX.JS — Procurement real data · tutto il resto mockup
-   ================================================================ */
-const TODAY = new Date();
-
-/* ── Utilità ─────────────────────────────────────────────────── */
-function fmtDate(ds) {
-  if (!ds) return '—';
-  return new Date(ds).toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit' });
-}
-function delClass(ds) {
-  if (!ds) return 'del-none';
-  const d = (new Date(ds) - TODAY) / 86400000;
-  return d < 0 ? 'del-late' : d < 7 ? 'del-warn' : 'del-ok';
-}
-function reqDot(s) {
-  if (!s) return 'd-none';
-  if (s.includes('Cancelled')) return 'd-red';
-  if (s.includes('Price'))     return 'd-yellow';
-  if (s.includes('Ordered'))   return 'd-green';
-  return 'd-blue';
-}
-function rfqDot(s, p) {
-  if (!s) return 'd-none';
-  if (s.includes('Refused'))      return 'd-red';
-  if (s.includes('Acknowledged')) return p === 100 ? 'd-green' : 'd-blue';
-  if (s.includes('Sent'))         return 'd-yellow';
-  return 'd-blue';
-}
-function poDot(s) {
-  if (!s) return 'd-none';
-  if (s.includes('Cancelled'))                            return 'd-red';
-  if (s.includes('Finalized'))                            return 'd-green';
-  if (s.includes('Published') || s.includes('Approved')) return 'd-yellow';
-  return 'd-blue';
-}
-function dnDot(s) {
-  if (!s) return 'd-none';
-  if (s.includes('Received')) return 'd-green';
-  if (s.includes('Shipped'))  return 'd-cyan';
-  if (s.includes('Ready'))    return 'd-purple';
-  return 'd-blue';
-}
-function short(s, pfx) { return s ? s.replace(pfx + ' ', '') : '—'; }
-function isOn(s) { return !!s && !s.includes('Cancelled'); }
-
-/* ── Classificazione item in tab ─────────────────────────────── */
-function classifyItem(item) {
-  const reqSt = item.reqStatus || '';
-  const rfqSt = item.rfqStatus || '';
-  const poSt  = item.poStatus  || '';
-  const dnSt  = item.dnStatus  || '';
-
-  const cancelled = reqSt.includes('Cancelled') || poSt.includes('Cancelled');
-  const hasPO     = !!poSt && !poSt.includes('Cancelled');
-  const rfqIssued = item.rfqIssued || 0;
-  const rfqClosed = item.rfqClosed || 0;
-  const rfqPct    = item.rfqPct || (rfqIssued > 0 ? Math.round(rfqClosed / rfqIssued * 100) : 0);
-
-  // Tab 1 — REQ Aperte: endorsed + RFQ send to vendor, escluse cancelled
-  const isReqAperta = !cancelled && (
-    reqSt.includes('Endorsed') ||
-    reqSt.includes('Ordered')  ||
-    rfqSt.includes('Sent')     ||
-    rfqSt.includes('Issued')   ||
-    rfqSt.includes('Pending')
-  ) && !hasPO;
-
-  // Tab 2 — Pronte per PO: RFQ Offer Acknowledged o >50% RFQ chiuse
-  const isProntaPO = !cancelled && !hasPO && (
-    rfqSt.includes('Acknowledged') || rfqPct >= 50
-  );
-
-  // Tab 3 — PO Send: PO emesso (Published / Approved / Finalized), non cancelled
-  const isPOSend = hasPO && (
-    poSt.includes('Published') ||
-    poSt.includes('Approved')  ||
-    poSt.includes('Finalized')
-  );
-
-  // Tab 4 — DN on Board: DN Shipped / Ready / Received
-  const isDNBoard = !!dnSt && (
-    dnSt.includes('Shipped') ||
-    dnSt.includes('Ready')   ||
-    dnSt.includes('Received')
-  );
-
-  return { cancelled, isReqAperta, isProntaPO, isPOSend, isDNBoard };
-}
-
-/* ── DRAWER ──────────────────────────────────────────────────── */
-function buildDrawer(v, drawerId) {
-  const items  = v.items || [];
-  const wrap   = document.getElementById(drawerId);
-  if (!wrap) return;
-
-  // Classifica ogni item
-  const classified = items.map(item => ({ item, cls: classifyItem(item) }));
-
-  // Contatori per le 4 tab
-  const counts = {
-    reqAperte : classified.filter(x => x.cls.isReqAperta).length,
-    prontaPO  : classified.filter(x => x.cls.isProntaPO).length,
-    poSend    : classified.filter(x => x.cls.isPOSend).length,
-    dnBoard   : classified.filter(x => x.cls.isDNBoard).length,
-  };
-
-  wrap.innerHTML = `
-    <!-- KPI strip cliccabile -->
-    <div class="proc-kpi-strip" style="margin-bottom:14px;">
-      <div class="proc-kpi-card tab-blue active" data-tab="${drawerId}-tab-req" style="padding:10px 12px;">
-        <div class="proc-kpi-num">${counts.reqAperte}</div>
-        <div class="proc-kpi-lbl">REQ Aperte</div>
-      </div>
-      <div class="proc-kpi-card tab-yellow" data-tab="${drawerId}-tab-po-ready" style="padding:10px 12px;">
-        <div class="proc-kpi-num">${counts.prontaPO}</div>
-        <div class="proc-kpi-lbl">Pronte PO</div>
-      </div>
-      <div class="proc-kpi-card tab-green" data-tab="${drawerId}-tab-po-send" style="padding:10px 12px;">
-        <div class="proc-kpi-num">${counts.poSend}</div>
-        <div class="proc-kpi-lbl">PO Send</div>
-      </div>
-      <div class="proc-kpi-card tab-cyan" data-tab="${drawerId}-tab-dn" style="padding:10px 12px;">
-        <div class="proc-kpi-num">${counts.dnBoard}</div>
-        <div class="proc-kpi-lbl">DN on Board</div>
-      </div>
-    </div>
-
-    <!-- Tab nav -->
-    <div class="proc-tabs">
-      <button class="proc-tab-btn active" data-panel="${drawerId}-tab-req">REQ Aperte</button>
-      <button class="proc-tab-btn" data-panel="${drawerId}-tab-po-ready">Pronte per PO</button>
-      <button class="proc-tab-btn" data-panel="${drawerId}-tab-po-send">PO Send</button>
-      <button class="proc-tab-btn" data-panel="${drawerId}-tab-dn">DN on Board</button>
-    </div>
-
-    <!-- Panels -->
-    <div id="${drawerId}-tab-req"      class="proc-tab-panel active"></div>
-    <div id="${drawerId}-tab-po-ready" class="proc-tab-panel"></div>
-    <div id="${drawerId}-tab-po-send"  class="proc-tab-panel"></div>
-    <div id="${drawerId}-tab-dn"       class="proc-tab-panel"></div>
-
-    <a class="pv-detail-link" href="vessel.html?vessel=${v.vesselId}">
-      📋 Apri scheda completa ${v.vesselName} →
-    </a>
-  `;
-
-  // Popola le 4 tab
-  const panels = {
-    req     : document.getElementById(drawerId + '-tab-req'),
-    poReady : document.getElementById(drawerId + '-tab-po-ready'),
-    poSend  : document.getElementById(drawerId + '-tab-po-send'),
-    dn      : document.getElementById(drawerId + '-tab-dn'),
-  };
-
-  classified.forEach(({ item, cls }) => {
-    const targets = [];
-    if (cls.isReqAperta) targets.push(panels.req);
-    if (cls.isProntaPO)  targets.push(panels.poReady);
-    if (cls.isPOSend)    targets.push(panels.poSend);
-    if (cls.isDNBoard)   targets.push(panels.dn);
-
-    if (targets.length === 0) return;
-
-    const pct    = item.rfqPct || 0;
-    const dc     = delClass(item.deliveryDate);
-    const reqNum = item.reqNum || (item.id ? '#' + item.id.split(' ').pop() : '—');
-    const poNum  = item.poNum  || (item.poStatus && !item.poStatus.includes('Cancelled') ? (item.poRef || '—') : '—');
-
-    const html = `
-      <div class="dr-item">
-        <div class="dr-top">
-          <div class="dr-ids">
-            <span class="dr-req" title="N° REQ">REQ ${reqNum}</span>
-            <span class="dr-po"  title="N° PO">PO ${poNum}</span>
-          </div>
-          <span class="dr-desc" title="${item.description || ''}">${item.description || '—'}</span>
-          <span class="dr-sup"  title="${item.supplier || '—'}">${item.supplier || '—'}</span>
-          <span class="dr-date ${dc}">${fmtDate(item.deliveryDate)}</span>
+        <div class="cert-box warn">
+          <div class="cert-num">3</div>
+          <span data-i18n="exp_warn">Expiring 30d</span>
         </div>
-        <div class="dr-pipe">
-          <div class="dr-step">
-            <div class="dr-dot ${reqDot(item.reqStatus)}"></div>
-            <span class="dr-lbl ${isOn(item.reqStatus) ? 'on' : ''}">REQ · ${short(item.reqStatus, 'REQ')}</span>
-          </div>
-          <span class="dr-arr">›</span>
-          <div class="dr-step">
-            <div class="dr-dot ${rfqDot(item.rfqStatus, pct)}"></div>
-            <span class="dr-lbl ${isOn(item.rfqStatus) ? 'on' : ''}">RFQ · ${short(item.rfqStatus, 'RFQ')} <span class="dr-rfq">(${item.rfqClosed || 0}/${item.rfqIssued || 0})</span></span>
-          </div>
-          <span class="dr-arr">›</span>
-          <div class="dr-step">
-            <div class="dr-dot ${poDot(item.poStatus)}"></div>
-            <span class="dr-lbl ${isOn(item.poStatus) ? 'on' : ''}">PO · ${short(item.poStatus, 'PO')}</span>
-          </div>
-          <span class="dr-arr">›</span>
-          <div class="dr-step">
-            <div class="dr-dot ${dnDot(item.dnStatus)}"></div>
-            <span class="dr-lbl ${isOn(item.dnStatus) ? 'on' : ''}">DN · ${short(item.dnStatus, 'DN')}</span>
-          </div>
+        <div class="cert-box ok">
+          <div class="cert-num">11</div>
+          <span data-i18n="exp_ok">Valid certificates</span>
         </div>
-      </div>`;
+      </div>
+    </section>
 
-    targets.forEach(t => { t.innerHTML += html; });
-  });
-
-  // Messaggio vuoto se nessun item
-  [panels.req, panels.poReady, panels.poSend, panels.dn].forEach(p => {
-    if (!p.children.length) {
-      p.innerHTML = '<div class="dr-empty">✅ Nessun item in questa categoria</div>';
-    }
-  });
-
-  // KPI click → attiva tab
-  wrap.querySelectorAll('.proc-kpi-card[data-tab]').forEach(kpi => {
-    kpi.addEventListener('click', () => {
-      const panelId = kpi.dataset.tab;
-      wrap.querySelectorAll('.proc-kpi-card').forEach(k => k.classList.remove('active'));
-      kpi.classList.add('active');
-      wrap.querySelectorAll('.proc-tab-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.panel === panelId);
-      });
-      wrap.querySelectorAll('.proc-tab-panel').forEach(p => {
-        p.classList.toggle('active', p.id === panelId);
-      });
-    });
-  });
-
-  // Tab btn click
-  wrap.querySelectorAll('.proc-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const panelId = btn.dataset.panel;
-      wrap.querySelectorAll('.proc-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      wrap.querySelectorAll('.proc-tab-panel').forEach(p => {
-        p.classList.toggle('active', p.id === panelId);
-      });
-      // Sync KPI highlight
-      wrap.querySelectorAll('.proc-kpi-card').forEach(k => {
-        k.classList.toggle('active', k.dataset.tab === panelId);
-      });
-    });
-  });
-}
-
-/* ── PROCUREMENT MAIN ─────────────────────────────────────────── */
-async function loadProcurement() {
-  try {
-    const res = await fetch('data-procurement.json?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-
-    /* ── Sync timestamp ── */
-    if (data.lastSync) {
-      const d   = new Date(data.lastSync);
-      const fmt = d.toLocaleString('it-IT', {
-        day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'
-      });
-      const el1 = document.getElementById('proc-sync-label');
-      const el2 = document.getElementById('sync-time');
-      const el3 = document.getElementById('last-sync-label');
-      if (el1) el1.textContent = 'Ultimo sync: ' + fmt;
-      if (el2) el2.textContent = 'Sync ' + fmt;
-      if (el3) el3.textContent = 'Ultimo sync: ' + fmt;
-    }
-
-    /* ── KPI reali ── */
-    const vessels = data.vessels || [];
-    const totRFQ = vessels.reduce((a, v) => a + (v.rfqOpen   || 0), 0);
-    const totDN  = vessels.reduce((a, v) => a + (v.dnPending || 0), 0);
-    const elR = document.getElementById('kpi-rfq');
-    const elD = document.getElementById('kpi-delivery');
-    if (elR) elR.textContent = totRFQ;
-    if (elD) elD.textContent = totDN;
-
-    /* ── Render card per nave ── */
-    const container = document.getElementById('proc-vessels-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const FLEET = ['peppino','medliguria','medtoscana','norrbotten'];
-
-    for (const v of vessels) {
-      if (!FLEET.includes(v.vesselId)) continue;
-
-      const col   = v.deliveryColor || 'green';
-      const label = col === 'red' ? '🔴 Ritardo' : col === 'yellow' ? '🟡 A rischio' : '🟢 In linea';
-
-      /* item scaduti */
-      let nScad = 0, nomiScad = [];
-      (v.items || []).forEach(item => {
-        if (!item.deliveryDate) return;
-        const diff = (new Date(item.deliveryDate) - TODAY) / 86400000;
-        const dnOk = (item.dnStatus  || '').includes('Received');
-        const canc = (item.poStatus  || '').includes('Cancelled')
-                  || (item.reqStatus || '').includes('Cancelled');
-        if (diff < 0 && !dnOk && !canc) {
-          nScad++;
-          if (nomiScad.length < 2) nomiScad.push((item.description || '').substring(0, 30) + '…');
-        }
-      });
-
-      /* Progress bars */
-      const rfqClosedPct = v.totalReq > 0
-        ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100)) : 0;
-      const reqToPO  = v.pctReqToPO || (v.orders > 0 && v.totalReq > 0
-        ? Math.round((v.orders / v.totalReq) * 100) : 0);
-      const poDNrecv = v.orders > 0
-        ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100)) : 0;
-
-      const delayRow = (col === 'red' && nScad > 0) ? `
-        <div class="pv-delay-row">
-          🔴 <strong>${nScad} item</strong> con consegna scaduta
-          <span>·</span> <span>DN non ricevuto a bordo</span>
-          ${nomiScad.length ? `<span>· es: ${nomiScad.join(', ')}</span>` : ''}
-        </div>` : '';
-
-      const drawerId = v.vesselId + '-drawer';
-
-      const card = document.createElement('div');
-      card.className = 'pv del-' + col;
-      card.innerHTML = `
-        <div class="pv-head">
-          <span class="pv-name">🚢 ${v.vesselName}</span>
-          <span class="pv-badge pb-${col}">${label}</span>
-          <button class="pv-toggle" data-target="${drawerId}">▼ dettagli</button>
+    <section class="message-composer">
+      <div class="section-head">
+        <h2 data-i18n="composer">Message Composer</h2>
+      </div>
+      <div class="composer-grid">
+        <div class="template-list">
+          <button class="template-box">Request ETA + Agent</button>
+          <button class="template-box">Order confirmation</button>
+          <button class="template-box">Captain request</button>
         </div>
-        ${delayRow}
-        <div class="pv-bars">
-          <div class="pv-bar-row">
-            <span class="pv-bar-lbl">RFQ chiuse</span>
-            <div class="pv-bar-track"><div class="pv-bar-fill pvbf-blue" style="width:${rfqClosedPct}%"></div></div>
-            <span class="pv-bar-pct">${rfqClosedPct}%</span>
-          </div>
-          <div class="pv-bar-row">
-            <span class="pv-bar-lbl">REQ → PO</span>
-            <div class="pv-bar-track"><div class="pv-bar-fill pvbf-green" style="width:${reqToPO}%"></div></div>
-            <span class="pv-bar-pct">${reqToPO}%</span>
-          </div>
-          <div class="pv-bar-row">
-            <span class="pv-bar-lbl">PO ricevuti</span>
-            <div class="pv-bar-track"><div class="pv-bar-fill pvbf-orange" style="width:${poDNrecv}%"></div></div>
-            <span class="pv-bar-pct">${poDNrecv}%</span>
-          </div>
+        <div class="composer-preview">
+          <textarea placeholder="Preview email content..."
+                    class="composer-text"></textarea>
         </div>
-        <div class="pv-drawer" id="${drawerId}"></div>
-      `;
-      container.appendChild(card);
+      </div>
+    </section>
 
-      buildDrawer(v, drawerId);
+  </main>
 
-      card.querySelector('.pv-toggle').addEventListener('click', function () {
-        const drawer = document.getElementById(this.dataset.target);
-        const open   = drawer.classList.toggle('open');
-        this.textContent = open ? '▲ chiudi' : '▼ dettagli';
-      });
-    }
+  <footer class="footer">
+    <div class="footer-meta">
+      <span>Maritime Purchasing HQ © 2026</span>
+    </div>
+    <div class="footer-lang">
+      <button id="lang-it" class="lang-btn" data-i18n="lang_it">IT</button>
+      <button id="lang-en" class="lang-btn" data-i18n="lang_en">EN</button>
+    </div>
+  </footer>
 
-  } catch (e) {
-    const c = document.getElementById('proc-vessels-container');
-    if (c) c.innerHTML = '<p style="color:#ff5f63;font-size:0.82rem;padding:14px;">⚠️ ' + e.message + '</p>';
-    document.getElementById('data-error').style.display = 'block';
-  }
-}
-
-/* ── INIT ─────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  loadProcurement();
-  setInterval(loadProcurement, 300000);
-});
-</script>
+  <script src="app.js"></script>
 </body>
 </html>
