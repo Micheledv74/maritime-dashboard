@@ -1,818 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maritime Purchasing HQ</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>" />
-
-  <style>
-    /* ── PROCUREMENT CARD SLIM ──────────────────────────────────── */
-    .pv {
-      background: #0b1623;
-      border: 1px solid #1a2e45;
-      border-left: 3px solid #1a2e45;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
-      transition: background .15s;
-    }
-    .pv.del-red    { border-left-color: #ef4444; }
-    .pv.del-yellow { border-left-color: #f59e0b; }
-    .pv.del-green  { border-left-color: #22c55e; }
-
-    .pv-head { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
-    .pv-name { font-size: 0.88rem; font-weight: 700; color: #e2e8f0; text-decoration: none; flex: 1; }
-    .pv-name:hover { color: #38bdf8; }
-    .pv-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
-    .pb-red    { background: rgba(239,68,68,.15);  color: #ef4444; }
-    .pb-yellow { background: rgba(245,158,11,.15); color: #f59e0b; }
-    .pb-green  { background: rgba(34,197,94,.15);  color: #22c55e; }
-    .pv-toggle {
-      background: none; border: none; color: #475569; cursor: pointer;
-      font-size: 0.75rem; padding: 2px 6px; border-radius: 4px;
-      transition: all .15s; flex-shrink: 0;
-    }
-    .pv-toggle:hover { color: #94a3b8; background: #1e293b; }
-
-    .pv-bars { display: flex; flex-direction: column; gap: 3px; margin-bottom: 7px; }
-    .pv-bar-row { display: flex; align-items: center; gap: 6px; }
-    .pv-bar-lbl { width: 68px; font-size: 0.6rem; color: #475569; text-align: right; white-space: nowrap; }
-    .pv-bar-track { flex: 1; height: 4px; background: #1e293b; border-radius: 3px; overflow: hidden; }
-    .pv-bar-fill { height: 100%; border-radius: 3px; }
-    .pvbf-blue   { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
-    .pvbf-green  { background: linear-gradient(90deg, #15803d, #22c55e); }
-    .pvbf-orange { background: linear-gradient(90deg, #c2410c, #f97316); }
-    .pv-bar-pct { width: 26px; font-size: 0.6rem; color: #64748b; text-align: right; }
-
-    .pv-alerts { display: flex; gap: 5px; flex-wrap: wrap; }
-    .pva {
-      display: flex; align-items: center; gap: 4px;
-      background: #060e18; border-radius: 6px;
-      padding: 3px 8px; font-size: 0.67rem;
-      cursor: pointer; border: 1px solid transparent; transition: all .15s;
-    }
-    .pva:hover { border-color: #334155; }
-    .pva-num { font-weight: 700; }
-    .pva-txt { color: #475569; }
-    .pva-r .pva-num { color: #ef4444; }
-    .pva-y .pva-num { color: #f59e0b; }
-    .pva-b .pva-num { color: #38bdf8; }
-    .pva-g .pva-num { color: #22c55e; }
-
-    .pv-delay-row {
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-      background: #1a0a0a; border-radius: 6px;
-      padding: 4px 10px; margin-bottom: 7px;
-      font-size: 0.68rem; color: #ef4444;
-    }
-    .pv-delay-row span { color: #94a3b8; }
-
-    /* ── DRAWER ─────────────────────────────────────────────────── */
-    .pv-drawer { display: none; margin-top: 10px; border-top: 1px solid #1a2e45; padding-top: 10px; }
-    .pv-drawer.open { display: block; }
-    .drawer-filter { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
-    .df-btn {
-      background: #0b1623; border: 1px solid #1a2e45; color: #94a3b8;
-      padding: 3px 9px; border-radius: 20px; font-size: 0.65rem;
-      cursor: pointer; font-family: inherit; transition: all .15s;
-    }
-    .df-btn:hover, .df-btn.active { background: #1e3a8a; border-color: #3b82f6; color: #93c5fd; }
-    .df-btn.active.fr { background: rgba(239,68,68,.2); border-color: #ef4444; color: #ef4444; }
-    .df-btn.active.fy { background: rgba(245,158,11,.2); border-color: #f59e0b; color: #f59e0b; }
-    .df-btn.active.fg { background: rgba(34,197,94,.2); border-color: #22c55e; color: #22c55e; }
-    .df-count { margin-left: auto; font-size: 0.65rem; color: #475569; }
-
-    .dr-item { background: #060e18; border: 1px solid #1a2e45; border-radius: 8px; padding: 8px 12px; margin-bottom: 5px; font-size: 0.75rem; }
-    .dr-item.hidden { display: none; }
-    .dr-top { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
-    .dr-ids { display: flex; gap: 5px; flex-shrink: 0; }
-    .dr-req { font-size: 0.6rem; color: #38bdf8; font-weight: 700; background: rgba(56,189,248,.1); padding: 1px 6px; border-radius: 4px; }
-    .dr-po  { font-size: 0.6rem; color: #4ade80; font-weight: 700; background: rgba(74,222,128,.1); padding: 1px 6px; border-radius: 4px; }
-    .dr-desc { font-size: 0.78rem; font-weight: 600; color: #cbd5e1; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dr-sup { font-size: 0.65rem; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; flex-shrink: 0; }
-    .dr-date { font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
-    .del-ok   { color: #4ade80; }
-    .del-warn { color: #f59e0b; }
-    .del-late { color: #ef4444; }
-    .del-none { color: #334155; }
-    .dr-pipe { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-    .dr-step { display: flex; align-items: center; gap: 4px; }
-    .dr-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid; flex-shrink: 0; }
-    .d-none   { background: #1e293b; border-color: #334155; }
-    .d-blue   { background: #1e3a8a; border-color: #3b82f6; }
-    .d-green  { background: #14532d; border-color: #22c55e; }
-    .d-yellow { background: #78350f; border-color: #f59e0b; }
-    .d-red    { background: #7f1d1d; border-color: #ef4444; }
-    .d-purple { background: #4c1d95; border-color: #a78bfa; }
-    .d-cyan   { background: #0c4a6e; border-color: #38bdf8; }
-    .dr-lbl { font-size: 0.6rem; color: #475569; white-space: nowrap; }
-    .dr-lbl.on { color: #94a3b8; }
-    .dr-arr { color: #1e293b; font-size: 0.75rem; }
-    .dr-rfq { font-size: 0.6rem; color: #64748b; }
-    .dr-empty { color: #475569; font-size: 0.75rem; padding: 12px; text-align: center; }
-
-    .pv-detail-link {
-      display: block; text-align: center; color: #38bdf8; font-size: 0.7rem;
-      margin-top: 10px; padding: 6px; background: #060e18; border-radius: 6px;
-      text-decoration: none; border: 1px solid #1a2e45;
-    }
-    .pv-detail-link:hover { background: #0b1a2e; border-color: #1d4ed8; }
-
-    /* ── EMAIL DIGEST ───────────────────────────────────────────── */
-    .email-mini-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 14px; }
-    .email-mini-card { border-radius: 14px; padding: 16px; }
-    .email-mini-card.green  { background: #0b1623; border: 1px solid #1a4d2e; }
-    .email-mini-card.yellow { background: #0b1623; border: 1px solid #3d2e00; }
-    .email-mini-card.red    { background: #0b1623; border: 1px solid #3d1a1a; }
-    .email-mini-num { font-size: 2rem; font-weight: 800; }
-    .email-mini-num.green  { color: #2fd06f; }
-    .email-mini-num.yellow { color: #ffbf3c; }
-    .email-mini-num.red    { color: #ff5f63; }
-    .email-mini-lbl { font-size: 0.88rem; margin-top: 4px; }
-    .email-mini-sub { font-size: 0.8rem; color: #6f8aa5; }
-
-    /* ── LAYOUT ─────────────────────────────────────────────────── */
-    .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-    /* ── MOCKUP BADGE ───────────────────────────────────────────── */
-    .mockup-tag {
-      display: inline-block; font-size: 0.58rem; font-weight: 700;
-      background: rgba(255,191,60,0.1); color: #ffbf3c;
-      border: 1px solid rgba(255,191,60,0.25); border-radius: 4px;
-      padding: 1px 5px; margin-left: 5px; vertical-align: middle;
-      letter-spacing: 0.04em;
-    }
-
-    @media (max-width: 900px) { .cards-row { grid-template-columns: 1fr; } }
-    @media (max-width: 600px) { .email-mini-grid { grid-template-columns: 1fr; } }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Maritime Purchasing HQ</title>
+<link rel="stylesheet" href="styles.css"/>
 </head>
-<body data-page="dashboard">
+<body>
 
-<!-- ERROR BANNER — visibile solo se il fetch procurement fallisce -->
-<div id="data-error" style="display:none;background:#3d1a1a;color:#ff5f63;padding:12px 20px;text-align:center;font-size:0.88rem;">
-  ⚠️ Errore caricamento dati procurement — verifica che data-procurement.json sia presente nella root del repo.
-</div>
-
-<!-- ── TOPBAR ────────────────────────────────────────────────────── -->
 <header class="topbar">
-  <div class="topbar-main">
-    <div>
-      <h1 id="title">Maritime Purchasing HQ</h1>
-      <p id="subtitle">Dashboard operativa per flotta e procurement</p>
-    </div>
-    <div class="topbar-right">
-      <span class="status-dot"></span>
-      <span>Live</span>
-      <span>·</span>
-      <span data-i18n="fleet">Fleet</span> <strong>4 navi</strong>
-      <span>·</span>
-      <span data-i18n="alerts">Alerts</span> <strong>3</strong>
-      <span>·</span>
-      <span data-i18n="critical">Critico</span> <strong>2</strong>
-      <span>·</span>
-      <span id="sync-time">Sync —</span>
-    </div>
+  <div class="topbar-brand">
+    <span class="status-dot pulse"></span>
+    <h1 data-i18n="title">Maritime Purchasing HQ</h1>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-time">Last update: 2026-04-27 15:30 UTC</span>
   </div>
 </header>
 
 <main class="dashboard">
 
-  <!-- ── HERO ──────────────────────────────────────────────────── -->
-  <section class="card hero">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="fleetOverview">Fleet Overview</h2>
-        <p class="section-sub" data-i18n="fleetOverviewSub">Mappa + KPI globali</p>
-      </div>
-      <span style="color:#6f8aa5;font-size:0.8rem;">VesselFinder embed · Noon Report</span>
-    </div>
+  <!-- HERO -->
+  <section>
     <div class="hero-grid">
-
       <div class="map-panel">
-        <div class="map-title">⚓ LIVE FLEET TRACKING</div>
+        <div class="section-head"><h2 data-i18n="fleetOverview">Fleet Overview</h2></div>
         <div class="map-body">
-          <div>
-            <div style="font-size:2rem;margin-bottom:8px;">🗺️</div>
-            <div style="color:#8ad9ff;">VesselFinder embed</div>
-            <div style="color:#6f8aa5;font-size:0.82rem;margin-top:4px;">Connessione mappa in attesa</div>
-          </div>
+          <svg class="fleet-map" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+            <rect width="600" height="220" fill="#06111c"/>
+            <path d="M0,80 Q50,60 100,75 Q150,55 200,70 Q250,65 300,72 Q360,58 420,68 Q480,55 540,70 Q570,65 600,70 L600,0 L0,0 Z" fill="#0d1e2e" opacity="0.9"/>
+            <path d="M0,160 Q80,170 160,155 Q240,145 300,158 Q370,148 440,160 Q510,152 570,162 L600,160 L600,220 L0,220 Z" fill="#0d1e2e" opacity="0.8"/>
+            <line x1="0" y1="110" x2="600" y2="110" stroke="#244765" stroke-width="0.5" stroke-dasharray="4,6"/>
+            <line x1="300" y1="0" x2="300" y2="220" stroke="#244765" stroke-width="0.5" stroke-dasharray="4,6"/>
+            <polygon points="138,86 134,98 142,98" fill="#57d4ff"/>
+            <circle cx="138" cy="98" r="4" fill="#57d4ff" opacity="0.4"/>
+            <text x="148" y="95" fill="#8ad9ff" font-size="9" font-family="Arial" font-weight="700">PEPPINO</text>
+            <text x="148" y="106" fill="#86a4c0" font-size="8" font-family="Arial">Genoa</text>
+            <polygon points="192,96 188,108 196,108" fill="#ffbf3c"/>
+            <circle cx="192" cy="108" r="4" fill="#ffbf3c" opacity="0.4"/>
+            <text x="202" y="105" fill="#ffd98a" font-size="9" font-family="Arial" font-weight="700">MED LIGURIA</text>
+            <text x="202" y="116" fill="#86a4c0" font-size="8" font-family="Arial">Livorno</text>
+            <polygon points="252,106 248,118 256,118" fill="#57d4ff"/>
+            <circle cx="252" cy="118" r="4" fill="#57d4ff" opacity="0.4"/>
+            <text x="262" y="115" fill="#8ad9ff" font-size="9" font-family="Arial" font-weight="700">MED TOSCANA</text>
+            <text x="262" y="126" fill="#86a4c0" font-size="8" font-family="Arial">Civitavecchia</text>
+            <circle cx="312" cy="128" r="6" fill="#ff5f63" opacity="0.9"/>
+            <text x="322" y="126" fill="#ffa8aa" font-size="9" font-family="Arial" font-weight="700">NORRBOTTEN</text>
+            <text x="322" y="137" fill="#86a4c0" font-size="8" font-family="Arial">Naples ⚓</text>
+            <circle cx="14" cy="206" r="4" fill="#57d4ff"/>
+            <text x="22" y="210" fill="#86a4c0" font-size="8" font-family="Arial">On time</text>
+            <circle cx="76" cy="206" r="4" fill="#ffbf3c"/>
+            <text x="84" y="210" fill="#86a4c0" font-size="8" font-family="Arial">Delay risk</text>
+            <circle cx="146" cy="206" r="4" fill="#ff5f63"/>
+            <text x="154" y="210" fill="#86a4c0" font-size="8" font-family="Arial">Anchored</text>
+          </svg>
         </div>
-        <div class="map-foot">
-          <span>🟢 <strong>2</strong> On time</span>
-          <span>🟡 <strong>1</strong> Delay risk</span>
-          <span>⚓ <strong>1</strong> Moored</span>
-          <span>🔵 <strong>3</strong> Scali 48h</span>
+        <div class="map-meta">
+          <span class="map-meta-badge">4 vessels</span>
+          <span class="map-meta-badge">2 on time</span>
+          <span class="map-meta-badge">1 delay risk</span>
+          <span class="map-meta-badge">1 anchored</span>
+          <span class="map-meta-badge">3 port calls 48h</span>
         </div>
       </div>
 
       <div class="kpi-panel">
+        <div class="section-head"><h2 data-i18n="subtitle">Fleet Operations KPIs</h2></div>
         <div class="kpi-grid">
-          <div class="kpi-card">
-            <span class="kpi-label">Navi monitorate</span>
-            <strong>4</strong>
-            <small>Fleet attiva</small>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Open RFQ</span>
-            <strong id="kpi-rfq">—</strong>
-            <small>Tutte le navi</small>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Budget medio</span>
-            <strong style="color:#ffbf3c;">73%</strong>
-            <small>Utilizzo flotta</small>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Alerts critici</span>
-            <strong style="color:#ff5f63;">2</strong>
-            <small>Azione richiesta</small>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Delivery pending</span>
-            <strong id="kpi-delivery">—</strong>
-            <small>DN in transito</small>
-          </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Email operative</span>
-            <strong>9</strong>
-            <small>Non gestite</small>
-          </div>
+          <div class="kpi-card"><span class="kpi-label">Vessels monitored</span><div class="kpi-value">4</div><div class="kpi-sub">Fleet active</div></div>
+          <div class="kpi-card"><span class="kpi-label">Open RFQ</span><div class="kpi-value">14</div><div class="kpi-sub">All vessels</div></div>
+          <div class="kpi-card"><span class="kpi-label">Avg. budget used</span><div class="kpi-value">74%</div><div class="kpi-sub">Fleet utilisation</div></div>
+          <div class="kpi-card"><span class="kpi-label">Critical alerts</span><div class="kpi-value text-red">2</div><div class="kpi-sub">Action required</div></div>
+          <div class="kpi-card"><span class="kpi-label">Delivery pending</span><div class="kpi-value text-yellow">6</div><div class="kpi-sub">Within 48h</div></div>
+          <div class="kpi-card"><span class="kpi-label">Operative emails</span><div class="kpi-value">9</div><div class="kpi-sub">Unmanaged</div></div>
         </div>
       </div>
-
     </div>
   </section>
 
-  <!-- ── ALERTS ─────────────────────────────────────────────────── -->
-  <!-- MOCKUP: alert hardcoded con nomi navi reali -->
-  <!-- Da sostituire con fetch data-fleet.json quando disponibile -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="alertsTitle">Alerts &amp; Priorità</h2>
-        <p class="section-sub">Sempre in cima · aggiornati dal digest</p>
-      </div>
-      <span style="color:#6f8aa5;font-size:0.8rem;">Semaforo operativo</span>
-    </div>
-    <div class="alert-list">
-      <div class="alert crit">
-        <div class="alert-title">⚠️ Delivery delay risk — consegna scaduta non ricevuta</div>
-        <div class="alert-sub">MED TOSCANA · scadenza confermata saltata · agire oggi</div>
-      </div>
-      <div class="alert crit">
-        <div class="alert-title">🔴 Budget soglia rossa — 89% utilizzato</div>
-        <div class="alert-sub">MED TOSCANA · €11.000 residui · verifica disponibilità</div>
-      </div>
-      <div class="alert warn">
-        <div class="alert-title">🟡 Captain request pending — richiesta supplies</div>
-        <div class="alert-sub">MED LIGURIA · richiesta capitano in attesa di risposta HQ</div>
-      </div>
+  <!-- ALERTS -->
+  <section class="section-card">
+    <div class="section-head"><h2 data-i18n="alerts">Alerts</h2></div>
+    <div class="alerts-list">
+      <div class="alert crit">PEPPINO — Delivery delay risk on 2026-PEP-HQDN-00005</div>
+      <div class="alert crit">MED LIGURIA — Budget threshold exceeded (92%)</div>
+      <div class="alert warn">MED TOSCANA — Captain request pending review</div>
+      <div class="alert warn">MED LIGURIA — Certificate ISM expiring in 28 days</div>
     </div>
   </section>
 
-  <!-- ── FLEET SUMMARY ──────────────────────────────────────────── -->
-  <!-- MOCKUP: dati nave hardcoded con valori realistici -->
-  <!-- Da sostituire con fetch data-fleet.json quando disponibile -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="fleetSummary">Fleet Summary</h2>
-        <p class="section-sub">4 card sintetiche · click per pagina dedicata</p>
-      </div>
-      <span style="color:#6f8aa5;font-size:0.8rem;">Dati da Noon Report via N8N</span>
-    </div>
+  <!-- FLEET SUMMARY -->
+  <section class="section-card">
+    <div class="section-head"><h2 data-i18n="fleetSummary">Fleet Summary</h2></div>
     <div class="fleet-grid">
-
-      <div class="ship-card">
-        <div class="ship-status-bar green"></div>
+      <article class="ship-card">
         <div class="ship-name">PEPPINO</div>
         <div class="ship-meta">
-          <span class="ship-status green">Moored</span>
-          <span>Genova</span>
+          <span class="ship-status on-time">On time</span>
+          <span class="ship-port">Genoa → Livorno</span>
         </div>
-        <div class="ship-meta">
-          <span>→ Napoli</span>
-          <span>ETA: 28/04</span>
-        </div>
-        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: ABC Shipping</div>
-        <a href="vessel.html?vessel=peppino" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
-      </div>
-
-      <div class="ship-card">
-        <div class="ship-status-bar yellow"></div>
+        <p class="ship-desc">Engine spares, lube oil, provisions</p>
+        <a href="vessel.html?vessel=peppino" class="ghost-btn" data-i18n="viewDetails">View Details</a>
+      </article>
+      <article class="ship-card">
         <div class="ship-name">MED LIGURIA</div>
         <div class="ship-meta">
-          <span class="ship-status yellow">Navigation</span>
-          <span>Palermo</span>
+          <span class="ship-status delay">Delay risk</span>
+          <span class="ship-port">Livorno → Civitavecchia</span>
         </div>
+        <p class="ship-desc">Fuel injectors, hydraulic oil, gaskets</p>
+        <a href="vessel.html?vessel=med-liguria" class="ghost-btn" data-i18n="viewDetails">View Details</a>
+      </article>
+      <article class="ship-card">
+        <div class="ship-name">MED TOSCANA</div>
         <div class="ship-meta">
-          <span>→ Valencia</span>
-          <span>ETA: 27/04</span>
+          <span class="ship-status on-time">On time</span>
+          <span class="ship-port">Civitavecchia → Palermo</span>
         </div>
-        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: Delta Agency</div>
-        <a href="vessel.html?vessel=med-liguria" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
-      </div>
-
-      <div class="ship-card">
-        <div class="ship-status-bar red"></div>
-        <div class="ship-name" style="display:flex;align-items:center;gap:6px;">MED TOSCANA <span style="font-size:0.75rem;">🔴</span></div>
-        <div class="ship-meta">
-          <span class="ship-status red">Delay Risk</span>
-          <span>Port Said</span>
-        </div>
-        <div class="ship-meta">
-          <span>→ Alexandria</span>
-          <span>ETA: 26/04</span>
-        </div>
-        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: Eastern Marine Agency</div>
-        <a href="vessel.html?vessel=med-toscana" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
-      </div>
-
-      <div class="ship-card">
-        <div class="ship-status-bar green"></div>
+        <p class="ship-desc">Navigation lights, safety equipment</p>
+        <a href="vessel.html?vessel=med-toscana" class="ghost-btn" data-i18n="viewDetails">View Details</a>
+      </article>
+      <article class="ship-card">
         <div class="ship-name">NORRBOTTEN</div>
         <div class="ship-meta">
-          <span class="ship-status green">On Time</span>
-          <span>Gulf of Lion</span>
+          <span class="ship-status anchored">Anchored</span>
+          <span class="ship-port">Naples (Anchored)</span>
         </div>
-        <div class="ship-meta">
-          <span>→ Marseille</span>
-          <span>ETA: 29/04</span>
-        </div>
-        <div class="ship-meta" style="margin-top:4px;color:#4a6a85;font-size:0.78rem;">Agent: Nordic Maritime</div>
-        <a href="vessel.html?vessel=norrbotten" class="ghost-btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none;">View Details →</a>
-      </div>
-
+        <p class="ship-desc">Refit spares, electrical cables, steel plates</p>
+        <a href="vessel.html?vessel=norrbotten" class="ghost-btn" data-i18n="viewDetails">View Details</a>
+      </article>
     </div>
   </section>
 
-  <!-- ── PROCUREMENT (REALE) + BUDGET (MOCKUP) ──────────────────── -->
-  <div class="cards-row">
-
-    <!-- PROCUREMENT: dati reali da data-procurement.json -->
-    <div class="card half">
-      <div class="section-head">
-        <div>
-          <h2 data-i18n="procurementStatus">Stato Acquisti</h2>
-          <p class="section-sub" id="proc-sync-label">Caricamento dati Notion…</p>
-        </div>
-        <span style="color:#6f8aa5;font-size:0.8rem;">Pipeline per nave</span>
+  <!-- PROCUREMENT + BUDGET -->
+  <div class="vessel-two-col">
+    <section class="section-card">
+      <div class="section-head"><h2 data-i18n="procurement">Procurement</h2></div>
+      <div class="proc-table">
+        <div class="proc-row head"><span>Vessel</span><span>RFQ</span><span>Orders</span><span>DN</span></div>
+        <div class="proc-row"><span class="proc-vessel">PEPPINO</span><span class="proc-num">4</span><span class="proc-num highlight">12</span><span class="proc-num">3</span></div>
+        <div class="proc-row"><span class="proc-vessel">MED LIGURIA</span><span class="proc-num">3</span><span class="proc-num highlight">10</span><span class="proc-num">2</span></div>
+        <div class="proc-row"><span class="proc-vessel">MED TOSCANA</span><span class="proc-num">5</span><span class="proc-num highlight">11</span><span class="proc-num">4</span></div>
+        <div class="proc-row"><span class="proc-vessel">NORRBOTTEN</span><span class="proc-num">2</span><span class="proc-num highlight">9</span><span class="proc-num">1</span></div>
       </div>
-      <div id="proc-vessels-container">
-        <div style="color:#6f8aa5;font-size:0.82rem;padding:12px;">Caricamento…</div>
-      </div>
-    </div>
-
-    <!-- BUDGET: mockup hardcoded — da sostituire con fetch data-budget.json -->
-    <div class="card half">
-      <div class="section-head">
-        <div>
-          <h2>Budget Monitor <span class="mockup-tag">MOCKUP</span></h2>
-          <p class="section-sub">Semaforo per nave</p>
-        </div>
-        <span style="color:#6f8aa5;font-size:0.8rem;">Input manuale Notion</span>
-      </div>
-      <div class="budget-list">
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">PEPPINO</span>
-            <span class="budget-pct" style="color:#2fd06f;">68%</span>
-          </div>
-          <div class="budget-bar"><div class="fill" style="width:68%;background:#2fd06f;"></div></div>
-          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
-            <span>€68k / €100k</span><span>residuo: €32.000</span>
-          </div>
-        </div>
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">MED LIGURIA</span>
-            <span class="budget-pct" style="color:#ffbf3c;">74%</span>
-          </div>
-          <div class="budget-bar"><div class="fill" style="width:74%;background:#ffbf3c;"></div></div>
-          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
-            <span>€74k / €100k</span><span>residuo: €26.000</span>
-          </div>
-        </div>
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">MED TOSCANA</span>
-            <span class="budget-pct" style="color:#ff5f63;">89%</span>
-          </div>
-          <div class="budget-bar"><div class="fill" style="width:89%;background:#ff5f63;"></div></div>
-          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
-            <span>€89k / €100k</span><span>residuo: €11.000</span>
-          </div>
-        </div>
-
-        <div class="budget-item">
-          <div class="budget-row">
-            <span class="budget-name">NORRBOTTEN</span>
-            <span class="budget-pct" style="color:#2fd06f;">61%</span>
-          </div>
-          <div class="budget-bar"><div class="fill" style="width:61%;background:#2fd06f;"></div></div>
-          <div class="budget-row" style="font-size:0.75rem;color:#4a6a85;margin-top:4px;">
-            <span>€61k / €100k</span><span>residuo: €39.000</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
+    </section>
+    <section class="section-card">
+      <div class="section-head"><h2 data-i18n="budget">Budget Monitor</h2></div>
+      <ul class="budget-list">
+        <li class="budget-item"><span class="budget-label">PEPPINO</span><div class="budget-bar"><div class="fill green" style="width:68%"></div></div><span class="budget-amount">€136K / €200K</span></li>
+        <li class="budget-item"><span class="budget-label">MED LIGURIA</span><div class="budget-bar"><div class="fill red" style="width:92%"></div></div><span class="budget-amount">€184K / €200K</span></li>
+        <li class="budget-item"><span class="budget-label">MED TOSCANA</span><div class="budget-bar"><div class="fill yellow" style="width:82%"></div></div><span class="budget-amount">€164K / €200K</span></li>
+        <li class="budget-item"><span class="budget-label">NORRBOTTEN</span><div class="budget-bar"><div class="fill green" style="width:62%"></div></div><span class="budget-amount">€124K / €200K</span></li>
+      </ul>
+    </section>
   </div>
 
-  <!-- ── EMAIL DIGEST (MOCKUP) ──────────────────────────────────── -->
-  <!-- MOCKUP: valori hardcoded — da sostituire con fetch data-email.json -->
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h2>Email Digest <span class="mockup-tag">MOCKUP</span></h2>
-        <p class="section-sub">Semafori in home · link a Outlook per dettaglio</p>
+  <!-- CERTIFICATIONS + COMPOSER -->
+  <div class="vessel-two-col">
+    <section class="section-card">
+      <div class="section-head"><h2 data-i18n="certifications">Certifications</h2></div>
+      <div class="cert-grid">
+        <div class="cert-box crit"><div class="cert-num">1</div><span data-i18n="expiredLabel">Expired / ≤15d</span></div>
+        <div class="cert-box warn"><div class="cert-num">3</div><span data-i18n="expiringLabel">Expiring 30d</span></div>
+        <div class="cert-box ok"><div class="cert-num">11</div><span data-i18n="validLabel">Valid</span></div>
       </div>
-      <span style="color:#6f8aa5;font-size:0.8rem;">Parsing N8N da Outlook</span>
-    </div>
-    <div class="email-mini-grid">
-      <div class="email-mini-card green">
-        <div class="email-mini-num green">4</div>
-        <div class="email-mini-lbl">Conferme ordine</div>
-        <div class="email-mini-sub">4 conferme ricevute oggi</div>
+    </section>
+    <section class="section-card">
+      <div class="section-head"><h2 data-i18n="composer">Message Composer</h2></div>
+      <div class="composer-select-row">
+        <select id="composer-vessel">
+          <option value="peppino">PEPPINO</option>
+          <option value="med-liguria">MED LIGURIA</option>
+          <option value="med-toscana">MED TOSCANA</option>
+          <option value="norrbotten">NORRBOTTEN</option>
+        </select>
       </div>
-      <div class="email-mini-card yellow">
-        <div class="email-mini-num yellow">2</div>
-        <div class="email-mini-lbl">Richieste capitano</div>
-        <div class="email-mini-sub">1 richiesta con priorità alta</div>
+      <div class="composer-grid">
+        <div class="template-list">
+          <button class="template-box">Request ETA + Agent</button>
+          <button class="template-box">Order confirmation</button>
+          <button class="template-box">Captain request</button>
+        </div>
+        <div class="composer-preview">
+          <textarea class="composer-preview-text" placeholder="Select a template…"></textarea>
+        </div>
       </div>
-      <div class="email-mini-card red">
-        <div class="email-mini-num red">1</div>
-        <div class="email-mini-lbl">Avviso ritardo fornitore</div>
-        <div class="email-mini-sub">MED TOSCANA · ritardo delivery</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="email-digest.html" style="text-decoration:none;">
-        <button class="ghost-btn">📧 Open full email digest</button>
-      </a>
-      <a href="ms-outlook:" style="text-decoration:none;">
-        <button class="ghost-btn">↗ Apri Outlook</button>
-      </a>
-    </div>
-  </section>
+    </section>
+  </div>
 
 </main>
 
 <footer class="footer">
-  <span id="last-sync-label" style="color:#4a6a85;font-size:0.78rem;"></span>
-  <span>·</span>
-  <span>Maritime Purchase HQ · v4 · dark mode · mobile-first</span>
-  <button class="lang-btn" id="lang-it">IT</button>
-  <button class="lang-btn active" id="lang-en">EN</button>
+  <span>Maritime Purchasing HQ © 2026 — Fleet: PEPPINO · MED LIGURIA · MED TOSCANA · NORRBOTTEN</span>
+  <div class="footer-lang">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="it">IT</button>
+  </div>
 </footer>
-
-<script src="app.js?v=20260424-2"></script>
-<script>
-/* ================================================================
-   LOGICA PROCUREMENT — unica sezione con dati reali da JSON.
-   Tutte le altre sezioni (Fleet, Alerts, Budget, Email) sono
-   mockup hardcoded nell'HTML e non richiedono fetch.
-   ================================================================ */
-
-const TODAY = new Date();
-
-/* ── Utilità date ─────────────────────────────────────────────── */
-function fmtDate(ds) {
-  if (!ds) return '—';
-  return new Date(ds).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
-}
-function delClass(ds) {
-  if (!ds) return 'del-none';
-  const d = (new Date(ds) - TODAY) / 86400000;
-  return d < 0 ? 'del-late' : d < 7 ? 'del-warn' : 'del-ok';
-}
-
-/* ── Dot helpers pipeline ─────────────────────────────────────── */
-function reqDot(s) {
-  if (!s) return 'd-none';
-  if (s.includes('Cancelled')) return 'd-red';
-  if (s.includes('Price'))     return 'd-yellow';
-  if (s.includes('Ordered'))   return 'd-green';
-  return 'd-blue';
-}
-function rfqDot(s, p) {
-  if (!s) return 'd-none';
-  if (s.includes('Refused'))      return 'd-red';
-  if (s.includes('Acknowledged')) return p === 100 ? 'd-green' : 'd-blue';
-  if (s.includes('Sent'))         return 'd-yellow';
-  return 'd-blue';
-}
-function poDot(s) {
-  if (!s) return 'd-none';
-  if (s.includes('Cancelled'))                            return 'd-red';
-  if (s.includes('Finalized'))                            return 'd-green';
-  if (s.includes('Published') || s.includes('Approved')) return 'd-yellow';
-  return 'd-blue';
-}
-function dnDot(s) {
-  if (!s) return 'd-none';
-  if (s.includes('Received')) return 'd-green';
-  if (s.includes('Shipped'))  return 'd-cyan';
-  if (s.includes('Ready'))    return 'd-purple';
-  return 'd-blue';
-}
-function short(s, pfx) {
-  if (!s) return '—';
-  return s.replace(pfx + ' ', '');
-}
-function isOn(s) { return !!s && !s.includes('Cancelled'); }
-
-function getFlags(item) {
-  const hasPO   = !!item.poStatus && !item.poStatus.includes('Cancelled');
-  const rfqOpen = (item.rfqIssued || 0) > (item.rfqClosed || 0) && !!item.rfqStatus && !hasPO;
-  return {
-    rfqOpen,
-    overdue    : rfqOpen && (item.rfqDays || 0) > 7 && !hasPO,
-    readyForPO : (item.rfqStatus || '').includes('Acknowledged') && !item.poStatus,
-    poNoDN     : hasPO && !item.dnStatus,
-    dnTransit  : !!(item.dnStatus || '').match(/Shipped|Ready/),
-    cancelled  : !!(item.reqStatus || '').includes('Cancelled') || !!(item.poStatus || '').includes('Cancelled'),
-  };
-}
-
-/* ── DRAWER per singola nave ──────────────────────────────────── */
-function buildDrawer(v, drawerId) {
-  const items = v.items || [];
-  const wrap  = document.getElementById(drawerId);
-  if (!wrap) return;
-
-  const tagged = items.map(item => ({ item, fl: getFlags(item) }));
-
-  const filters = [
-    { key: 'all',        label: 'Tutti',          cls: '' },
-    { key: 'overdue',    label: '⏳ >7gg',         cls: 'fr' },
-    { key: 'rfq-open',   label: '🔴 RFQ aperte',  cls: 'fr' },
-    { key: 'ready-po',   label: '📋 Pronte PO',   cls: 'fy' },
-    { key: 'po-no-dn',   label: '📦 PO senza DN', cls: '' },
-    { key: 'dn-transit', label: '🚢 DN transit',  cls: 'fg' },
-    { key: 'cancelled',  label: '🚫 Cancellati',  cls: '' },
-  ];
-
-  wrap.innerHTML = `
-    <div class="drawer-filter" id="${drawerId}-fbar">
-      ${filters.map((f, i) => `<button class="df-btn ${f.cls} ${i === 0 ? 'active' : ''}" data-f="${f.key}">${f.label}</button>`).join('')}
-      <span class="df-count" id="${drawerId}-cnt">${items.length} items</span>
-    </div>
-    <div id="${drawerId}-list"></div>
-    <a class="pv-detail-link" href="vessel.html?vessel=${v.vesselId}">
-      📋 Apri scheda completa ${v.vesselName} →
-    </a>
-  `;
-
-  const listEl  = document.getElementById(drawerId + '-list');
-  const itemEls = [];
-
-  tagged.forEach(({ item, fl }) => {
-    const pct    = item.rfqPct || 0;
-    const dc     = delClass(item.deliveryDate);
-    const reqNum = item.reqNum || (item.id ? '#' + item.id.split(' ').pop() : '—');
-    const poNum  = item.poNum  || (item.poStatus && !item.poStatus.includes('Cancelled') ? (item.poRef || 'PO') : '—');
-
-    const el = document.createElement('div');
-    el.className = 'dr-item';
-    el.innerHTML = `
-      <div class="dr-top">
-        <div class="dr-ids">
-          <span class="dr-req" title="N° REQ">REQ ${reqNum}</span>
-          <span class="dr-po"  title="N° PO">PO ${poNum}</span>
-        </div>
-        <span class="dr-desc" title="${item.description || ''}">${item.description || '—'}</span>
-        <span class="dr-sup"  title="${item.supplier || '—'}">${item.supplier || '—'}</span>
-        <span class="dr-date ${dc}">${fmtDate(item.deliveryDate)}</span>
-      </div>
-      <div class="dr-pipe">
-        <div class="dr-step">
-          <div class="dr-dot ${reqDot(item.reqStatus)}"></div>
-          <span class="dr-lbl ${isOn(item.reqStatus) ? 'on' : ''}">REQ · ${short(item.reqStatus, 'REQ')}</span>
-        </div>
-        <span class="dr-arr">›</span>
-        <div class="dr-step">
-          <div class="dr-dot ${rfqDot(item.rfqStatus, pct)}"></div>
-          <span class="dr-lbl ${isOn(item.rfqStatus) ? 'on' : ''}">RFQ · ${short(item.rfqStatus, 'RFQ')} <span class="dr-rfq">(${item.rfqClosed || 0}/${item.rfqIssued || 0})</span></span>
-        </div>
-        <span class="dr-arr">›</span>
-        <div class="dr-step">
-          <div class="dr-dot ${poDot(item.poStatus)}"></div>
-          <span class="dr-lbl ${isOn(item.poStatus) ? 'on' : ''}">PO · ${short(item.poStatus, 'PO')}</span>
-        </div>
-        <span class="dr-arr">›</span>
-        <div class="dr-step">
-          <div class="dr-dot ${dnDot(item.dnStatus)}"></div>
-          <span class="dr-lbl ${isOn(item.dnStatus) ? 'on' : ''}">DN · ${short(item.dnStatus, 'DN')}</span>
-        </div>
-      </div>
-    `;
-    listEl.appendChild(el);
-    itemEls.push({ el, fl });
-  });
-
-  function applyDrawerFilter(f) {
-    let n = 0;
-    itemEls.forEach(({ el, fl }) => {
-      const show =
-        f === 'all'        ? true          :
-        f === 'overdue'    ? fl.overdue    :
-        f === 'rfq-open'   ? fl.rfqOpen    :
-        f === 'ready-po'   ? fl.readyForPO :
-        f === 'po-no-dn'   ? fl.poNoDN     :
-        f === 'dn-transit' ? fl.dnTransit  :
-        f === 'cancelled'  ? fl.cancelled  : true;
-      el.classList.toggle('hidden', !show);
-      if (show) n++;
-    });
-    const cntEl = document.getElementById(drawerId + '-cnt');
-    if (cntEl) cntEl.textContent = n + ' items';
-  }
-
-  document.getElementById(drawerId + '-fbar').querySelectorAll('.df-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.getElementById(drawerId + '-fbar').querySelectorAll('.df-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      applyDrawerFilter(b.dataset.f);
-    });
-  });
-}
-
-/* ── PROCUREMENT MAIN ─────────────────────────────────────────── */
-async function loadProcurement() {
-  try {
-    const res = await fetch('data-procurement.json?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-
-    /* Sync timestamp → topbar + sezione + footer */
-    if (data.lastSync) {
-      const formatted = new Date(data.lastSync).toLocaleString('it-IT', {
-        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-      });
-      const syncEl  = document.getElementById('proc-sync-label');
-      const topEl   = document.getElementById('sync-time');
-      const footEl  = document.getElementById('last-sync-label');
-      if (syncEl) syncEl.textContent = 'Sync: ' + formatted;
-      if (topEl)  topEl.textContent  = 'Sync ' + formatted;
-      if (footEl) footEl.textContent = 'Ultimo sync: ' + formatted;
-    }
-
-    /* KPI reali: Open RFQ e Delivery pending */
-    const vessels = data.vessels || [];
-    const totRFQ  = vessels.reduce((acc, v) => acc + (v.rfqOpen   || 0), 0);
-    const totDN   = vessels.reduce((acc, v) => acc + (v.dnPending || 0), 0);
-    const elRFQ = document.getElementById('kpi-rfq');
-    const elDN  = document.getElementById('kpi-delivery');
-    if (elRFQ) elRFQ.textContent = totRFQ;
-    if (elDN)  elDN.textContent  = totDN;
-
-    /* Render card procurement per nave */
-    const container = document.getElementById('proc-vessels-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const FLEET_IDS = ['peppino', 'medliguria', 'medtoscana', 'norrbotten'];
-
-    for (const v of vessels) {
-      if (!FLEET_IDS.includes(v.vesselId)) continue;
-
-      const col   = v.deliveryColor || 'green';
-      const label = col === 'red' ? '🔴 Ritardo' : col === 'yellow' ? '🟡 A rischio' : '🟢 In linea';
-
-      /* Item scaduti */
-      let nScad = 0, nomiScad = [];
-      (v.items || []).forEach(item => {
-        if (!item.deliveryDate) return;
-        const diff = (new Date(item.deliveryDate) - TODAY) / 86400000;
-        const dnOk = (item.dnStatus  || '').includes('Received');
-        const canc = (item.poStatus  || '').includes('Cancelled')
-                  || (item.reqStatus || '').includes('Cancelled');
-        if (diff < 0 && !dnOk && !canc) {
-          nScad++;
-          if (nomiScad.length < 2) nomiScad.push((item.description || '').substring(0, 28) + '…');
-        }
-      });
-
-      /* Overdue RFQ */
-      const rfqOverdueReal = (v.items || []).filter(item => {
-        const hasPO   = !!item.poStatus && !item.poStatus.includes('Cancelled');
-        const rfqOpen = (item.rfqIssued || 0) > (item.rfqClosed || 0) && !!item.rfqStatus && !hasPO;
-        return rfqOpen && !hasPO && (item.rfqDays || 0) > 7;
-      }).length;
-
-      /* Progress bars */
-      const rfqClosedPct = v.totalReq > 0
-        ? Math.min(100, Math.round(((v.totalReq - v.rfqOpen) / v.totalReq) * 100)) : 0;
-      const reqToPO  = v.pctReqToPO || (v.orders > 0 && v.totalReq > 0
-        ? Math.round((v.orders / v.totalReq) * 100) : 0);
-      const poDNrecv = v.orders > 0
-        ? Math.min(100, Math.round(((v.dn - v.dnPending) / v.orders) * 100)) : 0;
-      const barsEmpty = rfqClosedPct === 0 && reqToPO === 0 && poDNrecv === 0;
-
-      /* Alert badges inline */
-      const badges = [
-        rfqOverdueReal > 0
-          ? `<div class="pva pva-r" data-drawer="${v.vesselId}-drawer" data-f="overdue"><span class="pva-num">${rfqOverdueReal}</span><span class="pva-txt">⏳ RFQ &gt;7gg</span></div>` : '',
-        (v.readyForPO  || 0) > 0
-          ? `<div class="pva pva-y" data-drawer="${v.vesselId}-drawer" data-f="ready-po"><span class="pva-num">${v.readyForPO}</span><span class="pva-txt">📋 Pronte PO</span></div>` : '',
-        (v.poReadyForDN || 0) > 0
-          ? `<div class="pva pva-b" data-drawer="${v.vesselId}-drawer" data-f="po-no-dn"><span class="pva-num">${v.poReadyForDN}</span><span class="pva-txt">📦 PO senza DN</span></div>` : '',
-        (v.dnPending   || 0) > 0
-          ? `<div class="pva pva-g" data-drawer="${v.vesselId}-drawer" data-f="dn-transit"><span class="pva-num">${v.dnPending}</span><span class="pva-txt">🚢 DN transit</span></div>` : '',
-      ].join('');
-
-      const delayRow = (col === 'red' && nScad > 0) ? `
-        <div class="pv-delay-row">
-          🔴 <strong>${nScad} item</strong> con consegna scaduta
-          <span>·</span><span>DN non ricevuto a bordo</span>
-          ${nomiScad.length ? `<span>· es: ${nomiScad.join(', ')}</span>` : ''}
-        </div>` : '';
-
-      const drawerId = v.vesselId + '-drawer';
-
-      const card = document.createElement('div');
-      card.className = `pv del-${col}`;
-      card.innerHTML = `
-        <div class="pv-head">
-          <span class="pv-name">🚢 ${v.vesselName}</span>
-          <span class="pv-badge pb-${col}">${label}</span>
-          <button class="pv-toggle" data-target="${drawerId}">▼ dettagli</button>
-        </div>
-        ${delayRow}
-        <div class="pv-bars">
-          ${barsEmpty
-            ? `<div style="font-size:0.7rem;color:#475569;padding:2px 0;">
-                 REQ: ${v.totalReq || '—'} &nbsp;·&nbsp;
-                 RFQ aperte: ${v.rfqOpen || 0} &nbsp;·&nbsp;
-                 Ordini: ${v.orders || 0} &nbsp;·&nbsp;
-                 DN: ${v.dn || 0}
-               </div>`
-            : `
-          <div class="pv-bar-row">
-            <span class="pv-bar-lbl">RFQ chiuse</span>
-            <div class="pv-bar-track"><div class="pv-bar-fill pvbf-blue" style="width:${rfqClosedPct}%"></div></div>
-            <span class="pv-bar-pct">${rfqClosedPct}%</span>
-          </div>
-          <div class="pv-bar-row">
-            <span class="pv-bar-lbl">REQ → PO</span>
-            <div class="pv-bar-track"><div class="pv-bar-fill pvbf-green" style="width:${reqToPO}%"></div></div>
-            <span class="pv-bar-pct">${reqToPO}%</span>
-          </div>
-          <div class="pv-bar-row">
-            <span class="pv-bar-lbl">PO ricevuti</span>
-            <div class="pv-bar-track"><div class="pv-bar-fill pvbf-orange" style="width:${poDNrecv}%"></div></div>
-            <span class="pv-bar-pct">${poDNrecv}%</span>
-          </div>`}
-        </div>
-        ${badges ? `<div class="pv-alerts">${badges}</div>` : ''}
-        <div class="pv-drawer" id="${drawerId}"></div>
-      `;
-      container.appendChild(card);
-
-      buildDrawer(v, drawerId);
-
-      card.querySelector('.pv-toggle').addEventListener('click', function () {
-        const drawer = document.getElementById(this.dataset.target);
-        const open   = drawer.classList.toggle('open');
-        this.textContent = open ? '▲ chiudi' : '▼ dettagli';
-      });
-
-      card.querySelectorAll('.pva[data-drawer]').forEach(badge => {
-        badge.addEventListener('click', () => {
-          const drawer = document.getElementById(badge.dataset.drawer);
-          const fKey   = badge.dataset.f;
-          if (!drawer.classList.contains('open')) {
-            drawer.classList.add('open');
-            card.querySelector('.pv-toggle').textContent = '▲ chiudi';
-          }
-          drawer.querySelectorAll('.df-btn').forEach(b => b.classList.toggle('active', b.dataset.f === fKey));
-          drawer.querySelector(`.df-btn[data-f="${fKey}"]`)?.click();
-          drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        });
-      });
-    }
-
-  } catch (e) {
-    const c = document.getElementById('proc-vessels-container');
-    if (c) c.innerHTML = '<p style="color:#ef4444;font-size:0.82rem;padding:10px;">⚠️ Errore caricamento procurement: ' + e.message + '</p>';
-    document.getElementById('data-error').style.display = 'block';
-  }
-}
-
-/* ── INIT ─────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  loadProcurement();
-  setInterval(loadProcurement, 300000); // auto-refresh ogni 5 minuti
-});
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
