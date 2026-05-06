@@ -1,1232 +1,1999 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maritime Procurement Dashboard</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-
-  <style>
-    :root{
-      --navy:#0a1628;
-      --navy-2:#0f2038;
-      --navy-3:#142945;
-      --panel:#10213a;
-      --panel-2:#132846;
-      --line:rgba(255,255,255,.1);
-      --text:#ffffff;
-      --muted:#aebfd6;
-      --accent:#e67e22;
-      --danger:#e74c3c;
-      --success:#27ae60;
-      --warning:#f1c40f;
-      --info:#4aa3ff;
-      --shadow:0 12px 28px rgba(0,0,0,.22);
-      --radius:18px;
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body{
-      margin:0;
-      font-family:'Inter',system-ui,-apple-system,sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(230,126,34,.12), transparent 18%),
-        linear-gradient(180deg, #08111f 0%, var(--navy) 35%, #08111f 100%);
-      color:var(--text);
-    }
-
-    .skip-link{
-      position:absolute; left:-9999px; top:auto;
-    }
-    .skip-link:focus{
-      left:1rem; top:1rem; z-index:9999;
-      background:#fff; color:#000; padding:.75rem 1rem; border-radius:10px;
-    }
-
-    .navbar{
-      background:rgba(7,16,29,.88);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-
-    .brand-wrap{
-      display:flex; align-items:center; gap:.9rem;
-    }
-
-    .brand-logo{
-      width:48px; height:48px; border-radius:14px;
-      display:grid; place-items:center;
-      background:linear-gradient(135deg, rgba(230,126,34,.18), rgba(74,163,255,.18));
-      border:1px solid rgba(255,255,255,.12);
-      color:#fff;
-      flex:0 0 auto;
-    }
-
-    .brand-title{
-      font-weight:800; letter-spacing:.02em; margin:0; font-size:1rem;
-    }
-
-    .brand-sub{
-      margin:0; color:var(--muted); font-size:.8rem;
-    }
-
-    .hero{
-      padding:2.5rem 0 1.25rem;
-    }
-
-    .hero-card, .panel-card{
-      background:linear-gradient(180deg, rgba(19,40,70,.96), rgba(13,29,51,.96));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-    }
-
-    .hero-card{
-      padding:1.4rem;
-      overflow:hidden;
-      position:relative;
-    }
-
-    .hero-card::after{
-      content:"";
-      position:absolute; inset:auto -60px -60px auto;
-      width:220px; height:220px;
-      background:radial-gradient(circle, rgba(230,126,34,.18), transparent 65%);
-      pointer-events:none;
-    }
-
-    .eyebrow{
-      display:inline-flex; align-items:center; gap:.5rem;
-      font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
-      color:#ffd1a7;
-      background:rgba(230,126,34,.10);
-      border:1px solid rgba(230,126,34,.24);
-      padding:.4rem .7rem;
-      border-radius:999px;
-    }
-
-    .hero h1{
-      font-size:clamp(1.7rem, 1.1rem + 2vw, 2.6rem);
-      margin:.9rem 0 .6rem;
-      font-weight:800;
-    }
-
-    .hero p{
-      color:var(--muted);
-      max-width:65ch;
-      margin-bottom:0;
-    }
-
-    .sync-badge{
-      display:inline-flex; gap:.55rem; align-items:center;
-      border:1px solid var(--line);
-      padding:.7rem .95rem;
-      border-radius:999px;
-      color:var(--muted);
-      background:rgba(255,255,255,.03);
-      font-size:.9rem;
-    }
-
-    .kpi-card{
-      height:100%;
-      padding:1rem;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-    }
-
-    .kpi-label{
-      color:var(--muted);
-      font-size:.85rem;
-      margin-bottom:.45rem;
-    }
-
-    .kpi-value{
-      font-weight:800;
-      font-size:1.9rem;
-      line-height:1;
-      margin-bottom:.35rem;
-    }
-
-    .kpi-trend{
-      font-size:.85rem;
-      color:var(--muted);
-    }
-
-    .section-title{
-      font-size:1.2rem;
-      font-weight:800;
-      margin:0 0 1rem;
-    }
-
-    .subtle{
-      color:var(--muted);
-    }
-
-    .map-wrap{
-      border-radius:16px;
-      overflow:hidden;
-      border:1px solid var(--line);
-    }
-
-    #fleetMap{
-      height:460px;
-      width:100%;
-      background:#091321;
-    }
-
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip{
-      background:#0f2038;
-      color:#fff;
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    .chart-box{
-      min-height:340px;
-      padding:1rem;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.02);
-    }
-
-    .nav-tabs{
-      border-bottom:1px solid var(--line);
-      gap:.5rem;
-      flex-wrap:nowrap;
-      overflow:auto;
-      padding-bottom:.25rem;
-    }
-
-    .nav-tabs .nav-link{
-      border:none;
-      color:var(--muted);
-      background:rgba(255,255,255,.03);
-      border-radius:12px;
-      white-space:nowrap;
-      padding:.75rem 1rem;
-      font-weight:600;
-    }
-
-    .nav-tabs .nav-link.active{
-      background:rgba(230,126,34,.16);
-      color:#fff;
-      border:1px solid rgba(230,126,34,.26);
-    }
-
-    .vessel-hero{
-      display:grid;
-      grid-template-columns:120px 1fr;
-      gap:1rem;
-      align-items:center;
-    }
-
-    .vessel-photo{
-      width:120px;
-      height:120px;
-      object-fit:cover;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#1a2f50;
-    }
-
-    .meta-grid, .mini-kpi-grid{
-      display:grid;
-      gap:.9rem;
-    }
-
-    .meta-grid{
-      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
-    }
-
-    .mini-kpi-grid{
-      grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));
-    }
-
-    .meta-pill, .mini-kpi{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      border-radius:14px;
-      padding:.9rem;
-    }
-
-    .meta-pill .label, .mini-kpi .label{
-      font-size:.75rem;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      color:var(--muted);
-      margin-bottom:.35rem;
-    }
-
-    .meta-pill .value, .mini-kpi .value{
-      font-size:1rem;
-      font-weight:700;
-    }
-
-    .status-badge{
-      display:inline-flex;
-      align-items:center;
-      gap:.45rem;
-      padding:.45rem .75rem;
-      border-radius:999px;
-      font-weight:700;
-      font-size:.8rem;
-      border:1px solid transparent;
-    }
-    .badge-ok{ background:rgba(39,174,96,.14); color:#9bf1ba; border-color:rgba(39,174,96,.28);}
-    .badge-warn{ background:rgba(241,196,15,.12); color:#ffe48b; border-color:rgba(241,196,15,.28);}
-    .badge-danger{ background:rgba(231,76,60,.14); color:#ffb0a7; border-color:rgba(231,76,60,.28);}
-    .badge-info{ background:rgba(74,163,255,.14); color:#b7dcff; border-color:rgba(74,163,255,.28);}
-
-    .alert-list{
-      display:grid;
-      gap:.75rem;
-    }
-
-    .alert-item{
-      display:flex;
-      gap:.85rem;
-      align-items:flex-start;
-      padding:.9rem 1rem;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-    }
-
-    .alert-dot{
-      width:11px; height:11px; border-radius:50%; margin-top:.35rem; flex:0 0 auto;
-    }
-
-    .progress{
-      height:12px;
-      background:rgba(255,255,255,.08);
-    }
-
-    .progress-bar.bg-accent{ background-color:var(--accent)!important; }
-    .progress-bar.bg-danger{ background-color:var(--danger)!important; }
-    .progress-bar.bg-success{ background-color:var(--success)!important; }
-
-    .table-wrap{
-      overflow:auto;
-      border-radius:16px;
-      border:1px solid var(--line);
-    }
-
-    .table{
-      margin:0;
-      min-width:980px;
-      color:#fff;
-      --bs-table-bg: transparent;
-      --bs-table-striped-bg: rgba(255,255,255,.03);
-      --bs-table-striped-color: #fff;
-      --bs-table-hover-bg: rgba(255,255,255,.05);
-      --bs-table-hover-color: #fff;
-      --bs-table-border-color: rgba(255,255,255,.08);
-      font-size:.92rem;
-    }
-
-    .table thead th{
-      font-size:.78rem;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      color:#d7e3f3;
-      background:rgba(255,255,255,.04);
-      position:sticky;
-      top:0;
-      z-index:1;
-    }
-
-    .filter-bar{
-      display:grid;
-      gap:.8rem;
-      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
-    }
-
-    .form-control, .form-select{
-      background:#0e1c31;
-      border:1px solid rgba(255,255,255,.12);
-      color:#fff;
-    }
-
-    .form-control::placeholder{ color:#9cb0ca; }
-    .form-control:focus, .form-select:focus{
-      background:#10213a;
-      border-color:rgba(230,126,34,.4);
-      box-shadow:0 0 0 .25rem rgba(230,126,34,.15);
-      color:#fff;
-    }
-
-    .todo-card{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      border-radius:16px;
-      padding:1rem;
-      height:100%;
-    }
-
-    .priority-high{ border-color:rgba(231,76,60,.32); box-shadow: inset 0 0 0 1px rgba(231,76,60,.08);}
-    .priority-medium{ border-color:rgba(241,196,15,.30); }
-    .priority-low{ border-color:rgba(39,174,96,.28); }
-
-    .todo-priority{
-      display:inline-flex;
-      padding:.38rem .65rem;
-      border-radius:999px;
-      font-size:.75rem;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      margin-bottom:.75rem;
-    }
-
-    .todo-actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:.55rem;
-      margin-top:.9rem;
-    }
-
-    .btn-marine{
-      background:var(--accent);
-      color:#fff;
-      border:none;
-    }
-    .btn-marine:hover{ background:#cf6f1a; color:#fff; }
-
-    .btn-outline-marine{
-      color:#fff;
-      border:1px solid rgba(230,126,34,.4);
-      background:rgba(230,126,34,.08);
-    }
-    .btn-outline-marine:hover{
-      color:#fff;
-      background:rgba(230,126,34,.18);
-      border-color:rgba(230,126,34,.58);
-    }
-
-    .integration-box{
-      padding:1rem;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.03);
-      height:100%;
-    }
-
-    .task-list{
-      display:grid;
-      gap:.75rem;
-    }
-
-    .task-item{
-      padding:.85rem .95rem;
-      border-radius:14px;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.08);
-    }
-
-    .accordion-item{
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--line);
-      color:#fff;
-    }
-
-    .accordion-button{
-      background:#10213a;
-      color:#fff;
-      font-weight:700;
-    }
-
-    .accordion-button:not(.collapsed){
-      background:#132846;
-      color:#fff;
-      box-shadow:none;
-    }
-
-    .accordion-button:focus{
-      box-shadow:0 0 0 .25rem rgba(230,126,34,.15);
-    }
-
-    .accordion-body{
-      background:#0d1c31;
-      color:#d7e3f3;
-    }
-
-    .footer-note{
-      color:var(--muted);
-      font-size:.9rem;
-    }
-
-    .skeleton{
-      min-height:120px;
-      border-radius:16px;
-      background:linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.05) 75%);
-      background-size:200% 100%;
-      animation: shimmer 1.4s infinite linear;
-      border:1px solid rgba(255,255,255,.06);
-    }
-
-    @keyframes shimmer{
-      from{ background-position:200% 0; }
-      to{ background-position:-200% 0; }
-    }
-
-    @media (max-width: 767.98px){
-      .hero{ padding-top:1.4rem; }
-      #fleetMap{ height:340px; }
-      .vessel-hero{
-        grid-template-columns:1fr;
-      }
-      .vessel-photo{
-        width:100%;
-        max-width:220px;
-        height:150px;
-      }
-      .sync-badge{
-        margin-top:1rem;
-        width:100%;
-        justify-content:center;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maritime Fleet Dashboard</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@300;400;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Leaflet.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+/* ─── CSS VARIABLES ──────────────────────────────────────────── */
+:root {
+  --navy:      #0a1628;
+  --navy-2:    #0e1f3a;
+  --navy-3:    #152848;
+  --navy-4:    #1c3460;
+  --orange:    #e67e22;
+  --orange-dim:#b85d0e;
+  --red:       #e74c3c;
+  --green:     #27ae60;
+  --yellow:    #f39c12;
+  --teal:      #1abc9c;
+  --white:     #f0f4ff;
+  --muted:     #7a93b8;
+  --border:    rgba(255,255,255,0.07);
+  --card-bg:   rgba(14,31,58,0.85);
+  --glass:     rgba(21,40,72,0.6);
+  --shadow:    0 8px 32px rgba(0,0,0,0.4);
+  --font-head: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+/* ─── BASE ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(26,188,156,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(230,126,34,0.05) 0%, transparent 60%),
+    linear-gradient(180deg, #0a1628 0%, #080f1e 100%);
+  background-attachment: fixed;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--navy-2); }
+::-webkit-scrollbar-thumb { background: var(--navy-4); border-radius: 3px; }
+
+/* ─── HEADER ─────────────────────────────────────────────────── */
+#main-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(8,15,30,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-box {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dim) 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  box-shadow: 0 4px 16px rgba(230,126,34,0.35);
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: var(--font-head);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  line-height: 1.1;
+}
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sync-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(39,174,96,0.5); }
+  50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(39,174,96,0); }
+}
+
+/* ─── NAV TABS ───────────────────────────────────────────────── */
+#nav-bar {
+  background: rgba(8,15,30,0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 64px;
+  z-index: 999;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+}
+
+#nav-bar::-webkit-scrollbar { height: 0; }
+
+.nav-tab {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 20px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-tab:hover { color: var(--white); background: var(--border); }
+
+.nav-tab.active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+  background: rgba(230,126,34,0.06);
+}
+
+.nav-tab .tab-icon { font-size: 1rem; }
+
+.nav-tab .vessel-alert {
+  font-size: 0.65rem;
+  background: var(--red);
+  color: #fff;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+}
+
+/* ─── SECTIONS / PAGES ───────────────────────────────────────── */
+.page-section { display: none; padding: 2rem 1.5rem; }
+.page-section.active { display: block; animation: fade-in 0.3s ease; }
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ─── CARD ───────────────────────────────────────────────────── */
+.card-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-panel.no-pad { padding: 0; }
+
+.panel-title {
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── KPI GRID ───────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.kpi-card:hover { transform: translateY(-2px); }
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  border-radius: 12px 0 0 12px;
+}
+
+.kpi-card.kpi-ok::before    { background: var(--green); }
+.kpi-card.kpi-warn::before  { background: var(--yellow); }
+.kpi-card.kpi-alert::before { background: var(--red); }
+.kpi-card.kpi-info::before  { background: var(--teal); }
+.kpi-card.kpi-orange::before{ background: var(--orange); }
+
+.kpi-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.kpi-value {
+  font-family: var(--font-head);
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--white);
+}
+
+.kpi-value.kpi-red    { color: var(--red); }
+.kpi-value.kpi-green  { color: var(--green); }
+.kpi-value.kpi-orange { color: var(--orange); }
+.kpi-value.kpi-yellow { color: var(--yellow); }
+
+.kpi-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+/* ─── MAP ────────────────────────────────────────────────────── */
+#fleet-map {
+  height: 440px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--navy-2) !important;
+  color: var(--white) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.leaflet-popup-tip { background: var(--navy-2) !important; }
+
+.ship-popup-title {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 6px;
+}
+
+.ship-popup-row {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.ship-popup-row span:last-child {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.popup-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 0;
+  font-family: var(--font-head);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popup-btn:hover { background: var(--orange-dim); }
+
+/* Custom vessel icon */
+.vessel-icon {
+  background: none;
+  border: none;
+}
+
+/* ─── FLEET OVERVIEW TABLE ───────────────────────────────────── */
+.fleet-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fleet-table th {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.fleet-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.fleet-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fleet-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.vessel-name-cell {
+  font-family: var(--font-head);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.5px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.pill-red    { background: rgba(231,76,60,0.15);  color: var(--red);    border: 1px solid rgba(231,76,60,0.3); }
+.pill-green  { background: rgba(39,174,96,0.15);  color: var(--green);  border: 1px solid rgba(39,174,96,0.3); }
+.pill-yellow { background: rgba(243,156,18,0.15); color: var(--yellow); border: 1px solid rgba(243,156,18,0.3); }
+.pill-muted  { background: rgba(122,147,184,0.1); color: var(--muted);  border: 1px solid rgba(122,147,184,0.2); }
+
+/* ─── PROGRESS BARS ──────────────────────────────────────────── */
+.progress-row {
+  margin-bottom: 1rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.progress-label span:last-child {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.prog-bar {
+  height: 8px;
+  background: var(--navy-4);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease;
+}
+
+.prog-fill.orange { background: linear-gradient(90deg, var(--orange-dim), var(--orange)); }
+.prog-fill.teal   { background: linear-gradient(90deg, #12907c, var(--teal)); }
+.prog-fill.green  { background: linear-gradient(90deg, #1a7d45, var(--green)); }
+.prog-fill.red    { background: linear-gradient(90deg, #b0261e, var(--red)); }
+
+/* ─── VESSEL INFO HEADER ─────────────────────────────────────── */
+.vessel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.vessel-photo {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--navy-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 2.5rem;
+}
+
+.vessel-details { flex: 1; }
+
+.vessel-title {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.vessel-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.vessel-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.vtag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.8px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--navy-3);
+}
+
+/* ─── AIS INFO STRIP ─────────────────────────────────────────── */
+.ais-strip {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.9rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.ais-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ais-item-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.ais-item-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.ais-item-value.placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ─── ITEMS TABLE ────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filter-bar input,
+.filter-bar select {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-bar input::placeholder { color: var(--muted); }
+.filter-bar input:focus,
+.filter-bar select:focus { border-color: var(--orange); }
+.filter-bar select option { background: var(--navy-2); color: var(--white); }
+
+.items-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.items-table th {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 12px;
+  background: var(--navy-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.items-table th:hover { color: var(--white); }
+
+.items-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.78rem;
+  vertical-align: middle;
+}
+
+.items-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+.items-table tbody tr.row-alert-red td:first-child {
+  border-left: 3px solid var(--red);
+}
+
+.items-table tbody tr.row-alert-yellow td:first-child {
+  border-left: 3px solid var(--yellow);
+}
+
+.desc-cell {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.date-cell { font-family: var(--font-mono); font-size: 0.72rem; }
+.date-cell.overdue { color: var(--red); font-weight: 700; }
+
+.table-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.pag-info {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.pag-btns { display: flex; gap: 6px; }
+
+.pag-btn {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pag-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+.pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ─── CERTIFICATES TABLE ─────────────────────────────────────── */
+.cert-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cert-table th {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.cert-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.82rem;
+}
+
+.cert-placeholder-row td {
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+/* ─── TODO SECTION ───────────────────────────────────────────── */
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.todo-item:hover { border-color: rgba(255,255,255,0.15); transform: translateX(3px); }
+
+.todo-item.prio-high   { border-left: 4px solid var(--red); }
+.todo-item.prio-medium { border-left: 4px solid var(--yellow); }
+.todo-item.prio-low    { border-left: 4px solid var(--teal); }
+
+.prio-badge {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.prio-high-badge   { background: rgba(231,76,60,0.2);  color: var(--red);    border: 1px solid rgba(231,76,60,0.4); }
+.prio-medium-badge { background: rgba(243,156,18,0.2); color: var(--yellow); border: 1px solid rgba(243,156,18,0.4); }
+.prio-low-badge    { background: rgba(26,188,156,0.15);color: var(--teal);   border: 1px solid rgba(26,188,156,0.3); }
+
+.todo-body { flex: 1; }
+
+.todo-vessel {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--orange);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.todo-desc {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.todo-action {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.todo-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-outlook-mail,
+.btn-outlook-task {
+  font-family: var(--font-mono);
+  font-size: 0.63rem;
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.btn-outlook-mail {
+  background: rgba(0,114,198,0.15);
+  border-color: rgba(0,114,198,0.4);
+  color: #5eb3f9;
+}
+.btn-outlook-mail:hover { background: rgba(0,114,198,0.3); border-color: #5eb3f9; }
+
+.btn-outlook-task {
+  background: rgba(16,124,16,0.1);
+  border-color: rgba(16,124,16,0.3);
+  color: #6bcb6b;
+}
+.btn-outlook-task:hover { background: rgba(16,124,16,0.25); border-color: #6bcb6b; }
+
+/* ─── AZURE GUIDE ────────────────────────────────────────────── */
+.guide-step {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.step-num {
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--orange);
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 2rem;
+}
+
+.step-body h6 {
+  font-family: var(--font-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+}
+
+.step-body p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.code-inline {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: var(--navy-4);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 5px;
+  color: var(--teal);
+}
+
+.perm-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: rgba(26,188,156,0.12);
+  border: 1px solid rgba(26,188,156,0.3);
+  color: var(--teal);
+  padding: 2px 8px;
+  border-radius: 5px;
+  margin: 2px;
+}
+
+/* ─── ALERT BANNERS ──────────────────────────────────────────── */
+.alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(231,76,60,0.08);
+  border: 1px solid rgba(231,76,60,0.25);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.alert-banner.warn {
+  background: rgba(243,156,18,0.08);
+  border-color: rgba(243,156,18,0.25);
+}
+
+.alert-banner i { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.alert-banner.alert-danger i { color: var(--red); }
+.alert-banner.warn i { color: var(--yellow); }
+
+.alert-banner-text { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.alert-banner-text strong { color: var(--white); }
+
+/* ─── SECTION HEADER ─────────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--white);
+}
+
+.section-title span { color: var(--orange); }
+
+.section-count {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* ─── LOADING ────────────────────────────────────────────────── */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--navy);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  transition: opacity 0.5s;
+}
+
+.loading-logo {
+  font-family: var(--font-head);
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--orange);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.loading-bar {
+  width: 200px;
+  height: 3px;
+  background: var(--navy-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.loading-fill {
+  height: 100%;
+  background: var(--orange);
+  animation: loading-anim 1.8s ease-in-out infinite;
+}
+
+@keyframes loading-anim {
+  0%   { width: 0%; margin-left: 0%; }
+  50%  { width: 60%; margin-left: 20%; }
+  100% { width: 0%; margin-left: 100%; }
+}
+
+.loading-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #main-header { padding: 0 1rem; height: 56px; }
+  #nav-bar { top: 56px; padding: 0 0.5rem; }
+  .nav-tab { padding: 0 14px; font-size: 0.75rem; }
+  .page-section { padding: 1rem; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  #fleet-map { height: 300px; }
+  .vessel-header { flex-direction: column; }
+  .todo-item { flex-direction: column; }
+  .todo-buttons { flex-direction: row; }
+  .fleet-table td, .fleet-table th { padding: 8px; }
+  .brand-name { font-size: 1.1rem; }
+}
+
+/* ─── MISC ───────────────────────────────────────────────────── */
+.text-orange { color: var(--orange); }
+.text-red    { color: var(--red); }
+.text-green  { color: var(--green); }
+.text-yellow { color: var(--yellow); }
+.text-teal   { color: var(--teal); }
+.text-muted-custom  { color: var(--muted); }
+.font-mono   { font-family: var(--font-mono); }
+.font-head   { font-family: var(--font-head); }
+
+.divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+/* OAuth status */
+.oauth-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(231,76,60,0.12);
+  border: 1px solid rgba(231,76,60,0.3);
+  color: #e74c3c;
+}
+
+.oauth-status.connected {
+  background: rgba(39,174,96,0.12);
+  border-color: rgba(39,174,96,0.3);
+  color: var(--green);
+}
+
+.btn-connect {
+  font-family: var(--font-head);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #0078D4, #005aad);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-connect:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,120,212,0.4); }
+</style>
 </head>
 <body>
-  <a href="#mainContent" class="skip-link">Salta al contenuto</a>
 
-  <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container py-2">
-      <div class="brand-wrap">
-        <div class="brand-logo" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 40L32 16L54 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 44H48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-            <path d="M22 50H42" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-          </svg>
+<!-- ══════════════════════════════════════════════════════════════
+     LOADING OVERLAY
+═══════════════════════════════════════════════════════════════ -->
+<div id="loading-overlay">
+  <div class="loading-logo">⚓ FLEET</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+  <div class="loading-text">Loading procurement data...</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════════ -->
+<header id="main-header">
+  <div class="header-brand">
+    <div class="logo-box">MS</div>
+    <div>
+      <div class="brand-name">Maritime Solutions</div>
+      <div class="brand-sub">Fleet Procurement Dashboard</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="sync-badge">
+      <span class="sync-dot"></span>
+      <span id="sync-time">Syncing...</span>
+    </div>
+    <div class="oauth-status" id="ms-status" title="Microsoft 365 not connected">
+      <i class="bi bi-microsoft"></i>
+      <span>Not connected</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NAVIGATION BAR
+═══════════════════════════════════════════════════════════════ -->
+<nav id="nav-bar">
+  <button class="nav-tab active" onclick="showPage('home')" id="tab-home">
+    <i class="bi bi-globe2 tab-icon"></i> Fleet Home
+  </button>
+  <button class="nav-tab" onclick="showPage('todo')" id="tab-todo">
+    <i class="bi bi-check2-square tab-icon"></i> To Do
+    <span class="vessel-alert" id="todo-count-badge">0</span>
+  </button>
+  <!-- Vessel tabs dynamically added here -->
+  <div id="vessel-tabs"></div>
+  <button class="nav-tab" onclick="showPage('azure-guide')" id="tab-azure">
+    <i class="bi bi-shield-lock tab-icon"></i> Azure AD Guide
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════════════════════════ -->
+<section class="page-section active" id="page-home">
+
+  <!-- Global KPIs -->
+  <div class="section-header">
+    <div class="section-title"><span>Fleet</span> Overview</div>
+    <div class="section-count" id="fleet-vessel-count">Loading...</div>
+  </div>
+
+  <div class="kpi-grid" id="global-kpis" style="margin-bottom:1.5rem">
+    <!-- dynamically filled -->
+  </div>
+
+  <!-- Map -->
+  <div class="card-panel no-pad" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div class="panel-title"><i class="bi bi-pin-map text-orange"></i> Live Fleet Positions <span style="font-size:0.6rem;color:var(--red);margin-left:auto;font-weight:400">⚠ Coordinates placeholder — integrate MMSI/AIS in Step 2</span></div>
+    <div id="fleet-map"></div>
+  </div>
+
+  <!-- Fleet Table -->
+  <div class="card-panel">
+    <div class="panel-title"><i class="bi bi-table text-orange"></i> Fleet Status</div>
+    <div class="items-table-wrap">
+      <table class="fleet-table" id="fleet-table">
+        <thead>
+          <tr>
+            <th>Vessel</th>
+            <th>RFQ Open</th>
+            <th>Overdue 7d</th>
+            <th>Overdue 15d</th>
+            <th>Ready for PO</th>
+            <th>Orders</th>
+            <th>DN Pending</th>
+            <th>Delivery Status</th>
+            <th>REQ→PO</th>
+            <th>PO→DN</th>
+          </tr>
+        </thead>
+        <tbody id="fleet-table-body">
+          <!-- dynamically filled -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE: TO DO / ACTIONS
+═══════════════════════════════════════════════════════════════ -->
+<section class="page-section" id="page-todo">
+
+  <div class="section-header">
+    <div class="section-title"><span>To Do</span> — Daily Actions</div>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <div class="oauth-status" id="ms-status-todo">
+        <i class="bi bi-microsoft"></i> Microsoft 365 not connected
+      </div>
+      <button class="btn-connect" onclick="connectMicrosoft()">
+        <i class="bi bi-microsoft"></i> Connect Outlook
+      </button>
+    </div>
+  </div>
+
+  <!-- Outlook Tasks panel (hidden until connected) -->
+  <div id="outlook-tasks-panel" style="display:none;" class="card-panel">
+    <div class="panel-title"><i class="bi bi-check2-all text-teal"></i> Open Outlook Tasks</div>
+    <div id="outlook-tasks-list">Loading tasks...</div>
+  </div>
+
+  <!-- Generated Priority Actions -->
+  <div class="card-panel">
+    <div class="panel-title"><i class="bi bi-lightning-charge-fill text-orange"></i> Priority Actions — Generated from Data</div>
+    <div id="todo-list">
+      <div class="table-empty">Loading procurement data...</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE: VESSEL PAGES  (dynamically generated)
+═══════════════════════════════════════════════════════════════ -->
+<div id="vessel-pages"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE: AZURE AD GUIDE
+═══════════════════════════════════════════════════════════════ -->
+<section class="page-section" id="page-azure-guide">
+
+  <div class="section-header">
+    <div class="section-title"><span>Azure AD</span> Setup Guide</div>
+    <div class="section-count">Microsoft Entra ID · App Registration</div>
+  </div>
+
+  <div class="card-panel">
+    <div class="panel-title"><i class="bi bi-info-circle text-teal"></i> Obiettivo</div>
+    <p style="font-size:0.85rem;color:var(--muted);line-height:1.7">
+      Questa guida spiega come registrare un'applicazione su <strong style="color:var(--white)">Azure Active Directory (Microsoft Entra ID)</strong>
+      per abilitare l'integrazione Outlook nella dashboard: invio email, creazione task, lettura bidirezionale dei task di flotta.
+      Le permission OAuth2 richieste sono <span class="code-inline">Mail.Send</span>, <span class="code-inline">Tasks.ReadWrite</span>, 
+      <span class="code-inline">User.Read</span>.
+    </p>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h6>Accedi al portale Azure</h6>
+      <p>Vai su <span class="code-inline">portal.azure.com</span> con un account amministratore del tuo tenant Microsoft 365 aziendale.
+        Dal menu laterale seleziona <strong style="color:var(--white)">Microsoft Entra ID</strong> (ex Azure Active Directory).</p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h6>Registra una nuova applicazione</h6>
+      <p>Vai su <strong style="color:var(--white)">App registrations → New registration</strong>.<br>
+        — Name: <span class="code-inline">Maritime Fleet Dashboard</span><br>
+        — Supported account types: <strong style="color:var(--white)">Accounts in this organizational directory only (Single tenant)</strong><br>
+        — Redirect URI: <span class="code-inline">https://micheledv74.github.io/maritime-dashboard/</span> (tipo: <em>Single-page application</em>)<br>
+        Clicca <strong style="color:var(--white)">Register</strong>.
+      </p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h6>Copia il Client ID e Tenant ID</h6>
+      <p>Nella pagina Overview dell'app trovi:<br>
+        — <strong style="color:var(--white)">Application (client) ID</strong>: incollalo nella variabile <span class="code-inline">AZURE_CLIENT_ID</span><br>
+        — <strong style="color:var(--white)">Directory (tenant) ID</strong>: incollalo nella variabile <span class="code-inline">AZURE_TENANT_ID</span><br>
+        del file <span class="code-inline">index.html</span> nella sezione <code style="color:var(--teal)">const AZURE_CONFIG</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h6>Aggiungi le API Permissions</h6>
+      <p>Vai su <strong style="color:var(--white)">API permissions → Add a permission → Microsoft Graph → Delegated permissions</strong>.<br>
+        Aggiungi le seguenti permission:
+      </p>
+      <div style="margin-top:0.5rem;">
+        <span class="perm-tag">User.Read</span>
+        <span class="perm-tag">Mail.Send</span>
+        <span class="perm-tag">Tasks.ReadWrite</span>
+        <span class="perm-tag">MailboxSettings.Read</span>
+      </div>
+      <p style="margin-top:0.5rem;">Clicca <strong style="color:var(--white)">Grant admin consent</strong> per il tuo tenant.</p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h6>Configura Authentication (PKCE per SPA)</h6>
+      <p>Vai su <strong style="color:var(--white)">Authentication</strong> e verifica che sia abilitato:<br>
+        — <span class="code-inline">Access tokens</span> ✓<br>
+        — <span class="code-inline">ID tokens</span> ✓<br>
+        Poiché è una SPA su GitHub Pages, usare il <strong style="color:var(--white)">Authorization Code Flow con PKCE</strong> 
+        tramite la libreria <span class="code-inline">@azure/msal-browser</span> (inclusa via CDN al prossimo step).<br>
+        <strong style="color:var(--yellow)">Non creare mai un Client Secret</strong> per app pubbliche su browser.
+      </p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h6>Aggiorna index.html con le credenziali</h6>
+      <p>Cerca nel file la sezione <span class="code-inline">const AZURE_CONFIG</span> e inserisci:<br>
+        <span class="code-inline">clientId: "IL_TUO_CLIENT_ID"</span><br>
+        <span class="code-inline">tenantId: "IL_TUO_TENANT_ID"</span><br>
+        Il flusso OAuth2/MSAL sarà attivato al prossimo step di sviluppo. 
+        L'integrazione Outlook sarà operativa dopo il push su GitHub Pages.
+      </p>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <h6>Test dell'integrazione</h6>
+      <p>Apri la dashboard su GitHub Pages → clicca <strong style="color:var(--white)">"Connect Outlook"</strong> nella sezione To Do.<br>
+        Effettua il login con il tuo account Microsoft 365 aziendale.<br>
+        Verifica che appaia il nome utente nel badge in alto a destra e che i task di Outlook siano visibili nel pannello.<br>
+        Se ricevi un errore <span class="code-inline">AADSTS700054</span>: verifica i Redirect URI nell'app Azure.<br>
+        Se ricevi <span class="code-inline">AADSTS65001</span>: rifare il Grant Admin Consent al punto 4.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-panel" style="background:rgba(230,126,34,0.05);border-color:rgba(230,126,34,0.2);margin-top:0.5rem;">
+    <div class="panel-title"><i class="bi bi-rocket-takeoff text-orange"></i> Prossimo Step</div>
+    <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">
+      Al prossimo step integriamo MSAL.js (libreria Microsoft Authentication Library) direttamente nel file per abilitare il login OAuth2, 
+      la lettura bidirezionale dei task Outlook e l'invio email via Microsoft Graph API. Forniscimi il tuo <strong style="color:var(--white)">Client ID</strong> e 
+      <strong style="color:var(--white)">Tenant ID</strong> dopo la registrazione e aggiungiamo il codice.
+    </p>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════════════
+   CONFIGURATION
+════════════════════════════════════════════════════════════════ */
+const DATA_URL = 'https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json';
+
+// Azure AD — fill after app registration (Step 3 of guide)
+const AZURE_CONFIG = {
+  clientId: 'YOUR_CLIENT_ID_HERE',
+  tenantId: 'YOUR_TENANT_ID_HERE',
+  redirectUri: 'https://micheledv74.github.io/maritime-dashboard/',
+  scopes: ['User.Read', 'Mail.Send', 'Tasks.ReadWrite']
+};
+
+// Placeholder vessel positions (replace with real AIS in Step 2)
+const VESSEL_POSITIONS = {
+  medtoscana: { lat: 38.10, lng: 15.65,  flag: '🇮🇹', type: 'Bulk Carrier', photo: null },
+  medliguria:  { lat: 43.80, lng:  8.30,  flag: '🇮🇹', type: 'Bulk Carrier', photo: null },
+  // Add more vessels below as you expand the fleet
+  // examplevessel: { lat: 35.00, lng: 25.00, flag: '🇬🇷', type: 'General Cargo', photo: null },
+};
+
+/* ════════════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════════════ */
+let fleetData = null;
+let fleetMap  = null;
+let vesselTableState = {}; // per-vessel: { page, filters, sort }
+const PAGE_SIZE = 15;
+
+/* ════════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════════ */
+async function init() {
+  try {
+    const res  = await fetch(DATA_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    fleetData  = await res.json();
+    renderAll();
+  } catch (err) {
+    console.error('Data load error:', err);
+    document.getElementById('loading-overlay').innerHTML =
+      `<div style="text-align:center;color:var(--red);font-family:var(--font-mono);font-size:0.8rem;">
+        <i class="bi bi-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:1rem;"></i>
+        Failed to load data.<br><small style="color:var(--muted)">${err.message}</small>
+      </div>`;
+    return;
+  }
+}
+
+function renderAll() {
+  renderSyncTime();
+  renderGlobalKPIs();
+  renderFleetTable();
+  renderVesselTabs();
+  renderVesselPages();
+  renderTodoList();
+  initMap();
+  // Hide loading
+  const ov = document.getElementById('loading-overlay');
+  ov.style.opacity = '0';
+  setTimeout(() => ov.style.display = 'none', 500);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SYNC TIME
+════════════════════════════════════════════════════════════════ */
+function renderSyncTime() {
+  const d = new Date(fleetData.lastSync);
+  const fmt = d.toLocaleString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  document.getElementById('sync-time').textContent = `Sync: ${fmt}`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GLOBAL KPIs
+════════════════════════════════════════════════════════════════ */
+function renderGlobalKPIs() {
+  const vessels = fleetData.vessels;
+  const totRFQ      = vessels.reduce((s,v) => s + (v.rfqOpen || 0), 0);
+  const totOverdue7 = vessels.reduce((s,v) => s + (v.rfqOverdue7 || 0), 0);
+  const totOverdue15= vessels.reduce((s,v) => s + (v.rfqOverdue15 || 0), 0);
+  const totDNPend   = vessels.reduce((s,v) => s + (v.dnPending || 0), 0);
+  const totOrders   = vessels.reduce((s,v) => s + (v.orders || 0), 0);
+  const totReadyPO  = vessels.reduce((s,v) => s + (v.readyForPO || 0), 0);
+  const delayed     = vessels.filter(v => v.deliveryColor === 'red').length;
+
+  document.getElementById('fleet-vessel-count').textContent = `${vessels.length} navi in flotta`;
+
+  const kpiEl = document.getElementById('global-kpis');
+  kpiEl.innerHTML = [
+    kpiCard('RFQ Aperti',    totRFQ,      'kpi-info',   '',        'bi-file-earmark-text',  ''),
+    kpiCard('Scaduti >7gg',  totOverdue7, totOverdue7 > 0 ? 'kpi-warn' : 'kpi-ok', totOverdue7 > 0 ? 'kpi-yellow' : 'kpi-green', 'bi-clock-history', ''),
+    kpiCard('Scaduti >15gg', totOverdue15,totOverdue15 > 0 ? 'kpi-alert':'kpi-ok',  totOverdue15 > 0?'kpi-red':'kpi-green','bi-exclamation-triangle',''),
+    kpiCard('Pronti per PO', totReadyPO,  'kpi-orange', 'kpi-orange','bi-bag-check',''),
+    kpiCard('Ordini Totali', totOrders,   'kpi-info',   '',          'bi-cart3',''),
+    kpiCard('DN Pendenti',   totDNPend,   totDNPend > 50 ? 'kpi-warn':'kpi-ok', totDNPend>50?'kpi-yellow':'kpi-green','bi-box-seam',''),
+    kpiCard('Consegne Ritardo', delayed,  delayed > 0 ? 'kpi-alert':'kpi-ok', delayed>0?'kpi-red':'kpi-green','bi-truck','navi'),
+    kpiCard('Flotta Attiva', vessels.length, 'kpi-ok', 'kpi-green', 'bi-send','navi'),
+  ].join('');
+}
+
+function kpiCard(label, value, cls, valCls, icon, sub) {
+  return `<div class="kpi-card ${cls}">
+    <div class="kpi-label"><i class="bi ${icon}"></i> ${label}</div>
+    <div class="kpi-value ${valCls}">${value}</div>
+    ${sub ? `<div class="kpi-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FLEET TABLE
+════════════════════════════════════════════════════════════════ */
+function renderFleetTable() {
+  const tbody = document.getElementById('fleet-table-body');
+  tbody.innerHTML = fleetData.vessels.map(v => {
+    const pct1 = (v.pctReqToPO || 0);
+    const pct2 = (v.pctPOToDN  || 0);
+    const pillClass = v.deliveryColor === 'red' ? 'pill-red' : v.deliveryColor === 'green' ? 'pill-green' : 'pill-yellow';
+    const delivText = v.deliveryColor === 'red' ? '⚠ Ritardo' : v.deliveryColor === 'green' ? '✓ OK' : '~ In corso';
+    return `<tr onclick="showVessel('${v.vesselId}')">
+      <td><div class="vessel-name-cell">${v.vesselName}</div></td>
+      <td><span class="${v.rfqOpen > 0 ? 'text-orange font-mono' : ''}" style="font-weight:600">${v.rfqOpen}</span></td>
+      <td><span class="${v.rfqOverdue7 > 0 ? 'text-yellow font-mono' : 'text-muted-custom font-mono'}">${v.rfqOverdue7}</span></td>
+      <td><span class="${v.rfqOverdue15 > 0 ? 'text-red font-mono' : 'text-muted-custom font-mono'}">${v.rfqOverdue15}</span></td>
+      <td><span class="${v.readyForPO > 0 ? 'text-orange font-mono' : 'text-muted-custom font-mono'}">${v.readyForPO}</span></td>
+      <td class="font-mono">${v.orders}</td>
+      <td><span class="${v.dnPending > 30 ? 'text-yellow font-mono' : 'font-mono'}">${v.dnPending}</span></td>
+      <td><span class="status-pill ${pillClass}">${delivText}</span></td>
+      <td>
+        <div class="prog-bar" style="width:80px">
+          <div class="prog-fill orange" style="width:${pct1}%"></div>
         </div>
-        <div>
-          <p class="brand-title">Company Name Placeholder</p>
-          <p class="brand-sub">Maritime Procurement Dashboard</p>
+        <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-top:2px">${pct1}%</div>
+      </td>
+      <td>
+        <div class="prog-bar" style="width:80px">
+          <div class="prog-fill teal" style="width:${pct2}%"></div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-top:2px">${pct2}%</div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   MAP
+════════════════════════════════════════════════════════════════ */
+function initMap() {
+  fleetMap = L.map('fleet-map', { zoomControl: true, scrollWheelZoom: false }).setView([38, 20], 4);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright" style="color:#7a93b8">OpenStreetMap</a>',
+    maxZoom: 18
+  }).addTo(fleetMap);
+
+  fleetData.vessels.forEach(v => {
+    const pos = VESSEL_POSITIONS[v.vesselId] || { lat: 35 + Math.random()*10, lng: 10 + Math.random()*20, flag: '🚢', type: 'Vessel' };
+    const alertColor = v.deliveryColor === 'red' ? '#e74c3c' : v.deliveryColor === 'green' ? '#27ae60' : '#f39c12';
+
+    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+      <circle cx="16" cy="16" r="14" fill="${alertColor}" fill-opacity="0.2" stroke="${alertColor}" stroke-width="2"/>
+      <text x="16" y="20" font-size="14" text-anchor="middle" fill="white">⛵</text>
+    </svg>`;
+
+    const icon = L.divIcon({
+      className: 'vessel-icon',
+      html: svgIcon,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16]
+    });
+
+    const popupContent = `
+      <div class="ship-popup-title">⚓ ${v.vesselName}</div>
+      <div class="ship-popup-row"><span>Tipo</span><span>${pos.type}</span></div>
+      <div class="ship-popup-row"><span>Bandiera</span><span>${pos.flag}</span></div>
+      <div class="ship-popup-row"><span>RFQ Aperti</span><span>${v.rfqOpen}</span></div>
+      <div class="ship-popup-row"><span>DN Pendenti</span><span>${v.dnPending}</span></div>
+      <div class="ship-popup-row"><span>Stato</span><span style="color:${alertColor}">${v.deliveryColor === 'red' ? 'Ritardo consegne' : 'Regolare'}</span></div>
+      <div class="ship-popup-row" style="color:rgba(122,147,184,0.6);font-size:0.58rem"><span>📍 Posizione AIS</span><span>Placeholder</span></div>
+      <button class="popup-btn" onclick="showVessel('${v.vesselId}')">→ Apri Scheda Nave</button>
+    `;
+
+    L.marker([pos.lat, pos.lng], { icon })
+      .addTo(fleetMap)
+      .bindPopup(popupContent, { maxWidth: 240 });
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   VESSEL TABS + PAGES
+════════════════════════════════════════════════════════════════ */
+function renderVesselTabs() {
+  const container = document.getElementById('vessel-tabs');
+  container.innerHTML = fleetData.vessels.map(v => {
+    const hasAlert = v.deliveryColor === 'red' || v.rfqOverdue7 > 0;
+    return `<button class="nav-tab" onclick="showVessel('${v.vesselId}')" id="tab-vessel-${v.vesselId}">
+      <i class="bi bi-ship tab-icon"></i> ${v.vesselName}
+      ${hasAlert ? `<span class="vessel-alert">${(v.rfqOverdue7||0) + (v.rfqOverdue15||0)}</span>` : ''}
+    </button>`;
+  }).join('');
+}
+
+function renderVesselPages() {
+  const container = document.getElementById('vessel-pages');
+  container.innerHTML = fleetData.vessels.map(v => buildVesselPage(v)).join('');
+  // Init table state
+  fleetData.vessels.forEach(v => {
+    vesselTableState[v.vesselId] = { page: 1, search: '', filterRFQ: '', filterPO: '', filterDN: '', sort: { col: 'deliveryDate', dir: 1 } };
+    renderItemsTable(v.vesselId);
+  });
+}
+
+function buildVesselPage(v) {
+  const pos      = VESSEL_POSITIONS[v.vesselId] || { flag: '🚢', type: 'Vessel', photo: null };
+  const alertCls = v.deliveryColor === 'red' ? 'kpi-alert' : v.deliveryColor === 'green' ? 'kpi-ok' : 'kpi-warn';
+
+  return `
+  <section class="page-section" id="page-vessel-${v.vesselId}">
+
+    <!-- Vessel Header -->
+    <div class="card-panel">
+      <div class="vessel-header">
+        <div class="vessel-photo"><i class="bi bi-ship"></i></div>
+        <div class="vessel-details">
+          <div class="vessel-title">${v.vesselName}</div>
+          <div class="vessel-subtitle">${pos.flag} ${pos.type} · Procurement Overview</div>
+          <div class="vessel-tags">
+            <span class="vtag"><i class="bi bi-flag"></i> ${pos.flag} Flag</span>
+            <span class="vtag"><i class="bi bi-hash"></i> MMSI: <em style="color:var(--red)">TBD</em></span>
+            <span class="vtag"><i class="bi bi-calendar3"></i> IMO: Placeholder</span>
+          </div>
         </div>
       </div>
 
-      <div class="d-flex gap-2 flex-wrap ms-auto">
-        <a href="#home" class="btn btn-sm btn-outline-light">Home</a>
-        <a href="#fleetSection" class="btn btn-sm btn-outline-light">Flotta</a>
-        <a href="#todoSection" class="btn btn-sm btn-outline-light">Azioni richieste</a>
-        <a href="#outlookSection" class="btn btn-sm btn-outline-light">Outlook</a>
+      <!-- AIS Strip -->
+      <div class="ais-strip">
+        <div class="ais-item">
+          <div class="ais-item-label">Posizione</div>
+          <div class="ais-item-value placeholder">In attesa AIS</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">Speed (SOG)</div>
+          <div class="ais-item-value placeholder">— kn</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">Course (COG)</div>
+          <div class="ais-item-value placeholder">—°</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">Destinazione</div>
+          <div class="ais-item-value placeholder">Placeholder</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">ETA</div>
+          <div class="ais-item-value placeholder">—</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">ETB</div>
+          <div class="ais-item-value placeholder">—</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">ETD</div>
+          <div class="ais-item-value placeholder">—</div>
+        </div>
+        <div style="margin-left:auto;font-family:var(--font-mono);font-size:0.6rem;color:var(--red);align-self:center">
+          ⚠ AIS: integrate MMSI → Step 2
+        </div>
       </div>
     </div>
-  </nav>
 
-  <main id="mainContent" class="container py-4">
-    <section id="home" class="hero">
-      <div class="hero-card">
-        <div class="row g-4 align-items-center">
-          <div class="col-lg-8">
-            <span class="eyebrow">Fleet overview</span>
-            <h1>Vista globale flotta e procurement</h1>
-            <p>
-              Dashboard unica per monitorare RFQ, ordini, DN, consegne, priorità operative e stato nave,
-              con struttura già pronta per AIS live e integrazione Microsoft Graph.
-            </p>
-          </div>
-          <div class="col-lg-4 text-lg-end">
-            <div class="sync-badge">
-              <span>●</span>
-              <span id="lastSyncText">Sincronizzazione in corso…</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- KPIs -->
+    <div class="kpi-grid" style="margin-bottom:1.5rem">
+      ${kpiCard('RFQ Aperti',    v.rfqOpen,      v.rfqOpen > 0 ? 'kpi-info':'kpi-ok',   v.rfqOpen > 0 ? 'kpi-orange':'kpi-green', 'bi-file-earmark-text','')}
+      ${kpiCard('Scaduti >7gg',  v.rfqOverdue7,  v.rfqOverdue7 > 0 ? 'kpi-warn':'kpi-ok',  v.rfqOverdue7>0?'kpi-yellow':'kpi-green','bi-clock-history','')}
+      ${kpiCard('Scaduti >15gg', v.rfqOverdue15, v.rfqOverdue15 > 0 ? 'kpi-alert':'kpi-ok', v.rfqOverdue15>0?'kpi-red':'kpi-green','bi-exclamation-triangle','')}
+      ${kpiCard('Ready for PO',  v.readyForPO,   v.readyForPO > 0 ? 'kpi-orange':'kpi-ok', v.readyForPO>0?'kpi-orange':'kpi-green','bi-bag-check','')}
+      ${kpiCard('Ordini',        v.orders,        'kpi-info',    '',          'bi-cart3','')}
+      ${kpiCard('DN Pendenti',   v.dnPending,    v.dnPending > 30 ? 'kpi-warn':'kpi-ok',  v.dnPending>30?'kpi-yellow':'kpi-green','bi-box-seam','')}
+      ${kpiCard('Delivery',      v.delivery,     alertCls, v.deliveryColor === 'red' ? 'kpi-red' : 'kpi-green','bi-truck','')}
+    </div>
 
-    <section class="mb-4">
-      <div id="globalKpis" class="row g-3">
-        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
-        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
-        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
-        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
+    <!-- Progress Bars -->
+    <div class="card-panel">
+      <div class="panel-title"><i class="bi bi-graph-up-arrow text-orange"></i> Avanzamento Procurement</div>
+      <div class="progress-row">
+        <div class="progress-label"><span>REQ → PO</span><span>${v.pctReqToPO || 0}%</span></div>
+        <div class="prog-bar"><div class="prog-fill orange" style="width:${v.pctReqToPO || 0}%"></div></div>
       </div>
-    </section>
+      <div class="progress-row">
+        <div class="progress-label"><span>PO → DN</span><span>${v.pctPOToDN || 0}%</span></div>
+        <div class="prog-bar"><div class="prog-fill teal" style="width:${v.pctPOToDN || 0}%"></div></div>
+      </div>
+    </div>
 
-    <section class="panel-card p-3 p-lg-4 mb-4">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h2 class="section-title mb-1">Planisfero flotta</h2>
-          <p class="subtle mb-0">Marker nave con coordinate placeholder aggiornabili quando mi fornirai gli MMSI.</p>
-        </div>
-        <span class="status-badge badge-info">Leaflet + OpenStreetMap</span>
-      </div>
+    <!-- Alerts -->
+    ${buildVesselAlerts(v)}
 
-      <div class="map-wrap">
-        <div id="fleetMap" aria-label="Mappa flotta"></div>
-      </div>
-    </section>
+    <!-- Items Table -->
+    <div class="card-panel">
+      <div class="panel-title"><i class="bi bi-table text-orange"></i> Ordini &amp; Requisizioni</div>
 
-    <section class="row g-4 mb-4">
-      <div class="col-xl-7">
-        <div class="panel-card p-3 p-lg-4 h-100">
-          <h2 class="section-title">Distribuzione KPI per nave</h2>
-          <div class="chart-box">
-            <canvas id="fleetBarChart" aria-label="Grafico KPI flotta"></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-5">
-        <div class="panel-card p-3 p-lg-4 h-100">
-          <h2 class="section-title">Stato consegne</h2>
-          <div class="chart-box">
-            <canvas id="deliveryChart" aria-label="Grafico stato consegne"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="fleetSection" class="panel-card p-3 p-lg-4 mb-4">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h2 class="section-title mb-1">Schede nave</h2>
-          <p class="subtle mb-0">Una tab per ogni nave, con KPI, alert, ordini, avanzamento e certificati.</p>
-        </div>
+      <div class="filter-bar">
+        <input type="text" placeholder="🔍 Cerca descrizione / fornitore…" style="flex:1;min-width:200px"
+          oninput="filterTable('${v.vesselId}', 'search', this.value)">
+        <select onchange="filterTable('${v.vesselId}', 'filterRFQ', this.value)">
+          <option value="">Tutti RFQ Status</option>
+          <option>RFQ Sent to Vendor</option>
+          <option>RFQ Offer Acknowledged</option>
+          <option>RFQ Refused</option>
+        </select>
+        <select onchange="filterTable('${v.vesselId}', 'filterPO', this.value)">
+          <option value="">Tutti PO Status</option>
+          <option>PO Published</option>
+          <option>PO Finalized</option>
+          <option>PO Cancelled</option>
+        </select>
+        <select onchange="filterTable('${v.vesselId}', 'filterDN', this.value)">
+          <option value="">Tutti DN Status</option>
+          <option>DN Shipped to Vessel</option>
+          <option>DN Received on Board</option>
+          <option>DN Ready for Shipment</option>
+          <option>DN Delivery Tracking Open</option>
+        </select>
       </div>
 
-      <ul class="nav nav-tabs mb-4" id="vesselTabs" role="tablist"></ul>
-      <div class="tab-content" id="vesselTabContent"></div>
-    </section>
-
-    <section id="todoSection" class="panel-card p-3 p-lg-4 mb-4">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h2 class="section-title mb-1">To do / Azioni richieste</h2>
-          <p class="subtle mb-0">Priorità giornaliere generate automaticamente dal JSON.</p>
-        </div>
-        <span id="todoCounter" class="status-badge badge-warn">0 azioni</span>
-      </div>
-
-      <div id="todoList" class="row g-3"></div>
-    </section>
-
-    <section id="outlookSection" class="row g-4 mb-4">
-      <div class="col-xl-6">
-        <div class="panel-card p-3 p-lg-4 h-100">
-          <h2 class="section-title">Integrazione Outlook / Microsoft 365</h2>
-          <div class="integration-box mb-3">
-            <div class="d-flex flex-wrap gap-2 mb-3">
-              <button class="btn btn-marine" id="btnConnectMicrosoft">Connetti Microsoft 365</button>
-              <button class="btn btn-outline-marine" id="btnSyncTasks">Sincronizza task Outlook</button>
-              <button class="btn btn-outline-light" id="btnDisconnectMicrosoft">Disconnetti</button>
-            </div>
-            <p class="mb-2 subtle" id="msStatus">
-              Configurazione OAuth2 predisposta. Inserisci tenantId e clientId nei placeholder JS per attivare il login reale via Microsoft Graph.
-            </p>
-            <div class="small subtle">
-              Scope previsti: Mail.Send, Tasks.ReadWrite, User.Read
-            </div>
-          </div>
-
-          <div class="integration-box">
-            <h3 class="h6 fw-bold mb-3">Task aperti da Outlook</h3>
-            <div id="outlookTasks" class="task-list">
-              <div class="task-item">
-                <div class="fw-semibold">Placeholder task</div>
-                <div class="subtle small">I task Microsoft To Do / Outlook compariranno qui dopo l’autenticazione.</div>
-              </div>
-            </div>
+      <div class="items-table-wrap" id="items-wrap-${v.vesselId}">
+        <table class="items-table" id="items-table-${v.vesselId}">
+          <thead>
+            <tr>
+              <th onclick="sortTable('${v.vesselId}','description')">Descrizione ↕</th>
+              <th onclick="sortTable('${v.vesselId}','supplier')">Fornitore ↕</th>
+              <th onclick="sortTable('${v.vesselId}','rfqStatus')">RFQ Status ↕</th>
+              <th onclick="sortTable('${v.vesselId}','rfqPct')">RFQ % ↕</th>
+              <th onclick="sortTable('${v.vesselId}','rfqDays')">RFQ Giorni ↕</th>
+              <th onclick="sortTable('${v.vesselId}','poStatus')">PO Status ↕</th>
+              <th onclick="sortTable('${v.vesselId}','dnStatus')">DN Status ↕</th>
+              <th onclick="sortTable('${v.vesselId}','deliveryDate')">Consegna ↕</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody-${v.vesselId}">
+          </tbody>
+        </table>
+        <div class="pagination-bar">
+          <div class="pag-info" id="pag-info-${v.vesselId}"></div>
+          <div class="pag-btns">
+            <button class="pag-btn" id="pag-prev-${v.vesselId}" onclick="changePage('${v.vesselId}',-1)">← Prec</button>
+            <button class="pag-btn" id="pag-next-${v.vesselId}" onclick="changePage('${v.vesselId}',1)">Succ →</button>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="col-xl-6">
-        <div class="panel-card p-3 p-lg-4 h-100">
-          <h2 class="section-title">Guida Entra ID / Azure AD</h2>
-
-          <div class="accordion" id="azureGuide">
-            <div class="accordion-item mb-2 rounded-3 overflow-hidden">
-              <h2 class="accordion-header">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#stepOne">
-                  1. Registra l’app
-                </button>
-              </h2>
-              <div id="stepOne" class="accordion-collapse collapse show" data-bs-parent="#azureGuide">
-                <div class="accordion-body">
-                  Vai su Microsoft Entra admin center → App registrations → New registration. Imposta un nome tipo
-                  <strong>Maritime Dashboard</strong> e come redirect URI usa l’URL pubblico della tua GitHub Pages.
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion-item mb-2 rounded-3 overflow-hidden">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepTwo">
-                  2. Authentication
-                </button>
-              </h2>
-              <div id="stepTwo" class="accordion-collapse collapse" data-bs-parent="#azureGuide">
-                <div class="accordion-body">
-                  Abilita la piattaforma <strong>Single-page application</strong> e aggiungi il redirect URI della dashboard.
-                  Se usi un dominio GitHub Pages, esempio: https://tuoutente.github.io/tuorepo/.
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion-item mb-2 rounded-3 overflow-hidden">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepThree">
-                  3. API permissions
-                </button>
-              </h2>
-              <div id="stepThree" class="accordion-collapse collapse" data-bs-parent="#azureGuide">
-                <div class="accordion-body">
-                  In Microsoft Graph aggiungi almeno: <strong>User.Read</strong>, <strong>Mail.Send</strong>,
-                  <strong>Tasks.ReadWrite</strong>. Poi concedi <strong>admin consent</strong> se richiesto dalla policy aziendale.
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion-item rounded-3 overflow-hidden">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepFour">
-                  4. Copia gli identificativi nel file
-                </button>
-              </h2>
-              <div id="stepFour" class="accordion-collapse collapse" data-bs-parent="#azureGuide">
-                <div class="accordion-body">
-                  Copia <strong>Application (client) ID</strong> e <strong>Directory (tenant) ID</strong> nei placeholder
-                  della costante <code>MS_CONFIG</code> nello script in fondo a questo file.
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
+    <!-- Certificates -->
+    <div class="card-panel">
+      <div class="panel-title"><i class="bi bi-award text-orange"></i> Certificati Nave</div>
+      <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--yellow);margin-bottom:0.75rem;">
+        ⚠ Sezione predisposta — dati da collegare nella fase successiva
       </div>
-    </section>
-
-    <footer class="pb-4">
-      <div class="panel-card p-3 p-lg-4">
-        <p class="footer-note mb-0">
-          Bozza completa pronta per GitHub Pages: dati procurement live da JSON raw GitHub, blocchi AIS/Outlook già predisposti,
-          struttura modulare per aggiungere altre navi senza riscrivere il layout.
-        </p>
+      <div class="items-table-wrap">
+        <table class="cert-table">
+          <thead>
+            <tr>
+              <th>Certificato</th>
+              <th>Ente Rilasciante</th>
+              <th>Data Emissione</th>
+              <th>Scadenza</th>
+              <th>Stato</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="cert-placeholder-row">
+              <td colspan="6">
+                <i class="bi bi-folder2-open" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+                Nessun certificato caricato — i dati saranno integrati nel prossimo step di sviluppo.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </footer>
-  </main>
+    </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+  </section>`;
+}
 
-  <script>
-    const PROCUREMENT_URL = "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json";
+function buildVesselAlerts(v) {
+  const alerts = [];
+  if (v.rfqOverdue15 > 0)
+    alerts.push(`<div class="alert-banner alert-danger"><i class="bi bi-exclamation-octagon-fill"></i><div class="alert-banner-text"><strong>${v.rfqOverdue15} RFQ scaduti da oltre 15 giorni</strong> — Azione immediata richiesta: contattare il fornitore o chiudere l'RFQ.</div></div>`);
+  if (v.rfqOverdue7 > 0)
+    alerts.push(`<div class="alert-banner warn"><i class="bi bi-exclamation-triangle-fill"></i><div class="alert-banner-text"><strong>${v.rfqOverdue7} RFQ scaduti da 7+ giorni</strong> — Verificare lo stato delle offerte e sollecitare i fornitori.</div></div>`);
+  if (v.readyForPO > 0)
+    alerts.push(`<div class="alert-banner warn" style="background:rgba(230,126,34,0.08);border-color:rgba(230,126,34,0.25)"><i class="bi bi-bag-check" style="color:var(--orange)"></i><div class="alert-banner-text"><strong>${v.readyForPO} ordini pronti per PO</strong> — Approvare e finalizzare i Purchase Order in attesa.</div></div>`);
+  if (v.deliveryColor === 'red')
+    alerts.push(`<div class="alert-banner alert-danger"><i class="bi bi-truck"></i><div class="alert-banner-text"><strong>Consegne in ritardo</strong> — Alcune consegne sono scadute o fuori dai termini. Verificare il tracking DN.</div></div>`);
+  return alerts.length ? `<div style="margin-bottom:1.5rem">${alerts.join('')}</div>` : '';
+}
 
-    const vesselStaticMeta = {
-      medtoscana: {
-        flag: "Italy",
-        type: "Ro-Ro Cargo",
-        image: "https://picsum.photos/seed/medtoscana/640/360",
-        coords: [40.8518, 14.2681],
-        port: "Naples",
-        eta: "Placeholder ETA",
-        etb: "Placeholder ETB",
-        etd: "Placeholder ETD"
-      },
-      medliguria: {
-        flag: "Italy",
-        type: "Ro-Ro Cargo",
-        image: "https://picsum.photos/seed/medliguria/640/360",
-        coords: [44.4056, 8.9463],
-        port: "Genoa",
-        eta: "Placeholder ETA",
-        etb: "Placeholder ETB",
-        etd: "Placeholder ETD"
-      },
-      peppino: {
-        flag: "Italy",
-        type: "Utility Vessel",
-        image: "https://picsum.photos/seed/peppino/640/360",
-        coords: [38.1157, 13.3615],
-        port: "Palermo",
-        eta: "Placeholder ETA",
-        etb: "Placeholder ETB",
-        etd: "Placeholder ETD"
-      },
-      hqs: {
-        flag: "Italy",
-        type: "Shore / HQ Support",
-        image: "https://picsum.photos/seed/hqs/640/360",
-        coords: [41.9028, 12.4964],
-        port: "Rome",
-        eta: "Placeholder ETA",
-        etb: "Placeholder ETB",
-        etd: "Placeholder ETD"
-      }
-    };
+/* ════════════════════════════════════════════════════════════════
+   ITEMS TABLE — FILTER / SORT / PAGINATE
+════════════════════════════════════════════════════════════════ */
+function filterTable(vesselId, key, value) {
+  vesselTableState[vesselId][key] = value;
+  vesselTableState[vesselId].page = 1;
+  renderItemsTable(vesselId);
+}
 
-    const MS_CONFIG = {
-      clientId: "PASTE_YOUR_CLIENT_ID",
-      tenantId: "PASTE_YOUR_TENANT_ID",
-      redirectUri: window.location.origin + window.location.pathname,
-      scopes: ["User.Read", "Mail.Send", "Tasks.ReadWrite"]
-    };
+function sortTable(vesselId, col) {
+  const s = vesselTableState[vesselId].sort;
+  if (s.col === col) s.dir *= -1;
+  else { s.col = col; s.dir = 1; }
+  renderItemsTable(vesselId);
+}
 
-    const appState = {
-      raw: null,
-      vessels: [],
-      actions: [],
-      map: null,
-      markers: [],
-      charts: {},
-      msalInstance: null,
-      account: null,
-      accessToken: null,
-      outlookTasks: []
-    };
+function changePage(vesselId, delta) {
+  vesselTableState[vesselId].page += delta;
+  renderItemsTable(vesselId);
+}
 
-    const currencyFmt = new Intl.NumberFormat("it-IT");
-    const dateFmt = new Intl.DateTimeFormat("it-IT", { dateStyle: "medium", timeStyle: "short" });
-    const shortDateFmt = new Intl.DateTimeFormat("it-IT", { dateStyle: "medium" });
+function renderItemsTable(vesselId) {
+  const vessel = fleetData.vessels.find(v => v.vesselId === vesselId);
+  if (!vessel) return;
+  const st = vesselTableState[vesselId];
+  let items = [...(vessel.items || [])];
 
-    function safeText(value, fallback = "—") {
-      return value === null || value === undefined || value === "" ? fallback : value;
-    }
+  // Filter
+  if (st.search) {
+    const q = st.search.toLowerCase();
+    items = items.filter(i => (i.description||'').toLowerCase().includes(q) || (i.supplier||'').toLowerCase().includes(q));
+  }
+  if (st.filterRFQ) items = items.filter(i => i.rfqStatus === st.filterRFQ);
+  if (st.filterPO)  items = items.filter(i => i.poStatus  === st.filterPO);
+  if (st.filterDN)  items = items.filter(i => i.dnStatus  === st.filterDN);
 
-    function formatDate(dateString) {
-      if (!dateString) return "—";
-      const d = new Date(dateString);
-      return isNaN(d) ? dateString : shortDateFmt.format(d);
-    }
+  // Sort
+  const { col, dir } = st.sort;
+  items.sort((a,b) => {
+    let av = a[col] ?? '', bv = b[col] ?? '';
+    if (col === 'deliveryDate') { av = av === '—' ? '9999' : av; bv = bv === '—' ? '9999' : bv; }
+    if (typeof av === 'number') return (av - bv) * dir;
+    return String(av).localeCompare(String(bv)) * dir;
+  });
 
-    function formatDateTime(dateString) {
-      if (!dateString) return "—";
-      const d = new Date(dateString);
-      return isNaN(d) ? dateString : dateFmt.format(d);
-    }
+  // Paginate
+  const total = items.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  st.page = Math.min(Math.max(1, st.page), pages);
+  const start = (st.page - 1) * PAGE_SIZE;
+  const page  = items.slice(start, start + PAGE_SIZE);
 
-    function escapeHtml(str = "") {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+  const tbody = document.getElementById(`items-tbody-${vesselId}`);
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="table-empty">Nessun risultato per i filtri applicati.</td></tr>`;
+  } else {
+    const today = new Date();
+    tbody.innerHTML = page.map(i => {
+      const isOverdue = i.deliveryDate && i.deliveryDate !== '—' && new Date(i.deliveryDate) < today;
+      const isNear    = !isOverdue && i.deliveryDate && i.deliveryDate !== '—' && (new Date(i.deliveryDate) - today) < 7*24*3600*1000;
+      const rowCls    = isOverdue ? 'row-alert-red' : isNear ? 'row-alert-yellow' : '';
+      const dateCls   = isOverdue ? 'date-cell overdue' : 'date-cell';
+      return `<tr class="${rowCls}">
+        <td><div class="desc-cell" title="${escHtml(i.description)}">${escHtml(i.description)}</div></td>
+        <td style="color:var(--muted);font-size:0.75rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(i.supplier||'—')}</td>
+        <td>${statusPill(i.rfqStatus, 'rfq')}</td>
+        <td class="font-mono" style="font-size:0.72rem">${i.rfqPct != null ? i.rfqPct+'%' : '—'}</td>
+        <td class="font-mono" style="font-size:0.72rem">${i.rfqDays != null ? i.rfqDays+'d' : '—'}</td>
+        <td>${statusPill(i.poStatus, 'po')}</td>
+        <td>${statusPill(i.dnStatus, 'dn')}</td>
+        <td class="${dateCls}">${formatDate(i.deliveryDate)}</td>
+      </tr>`;
+    }).join('');
+  }
 
-    function statusBadgeClass(color) {
-      if (color === "red") return "badge-danger";
-      if (color === "green") return "badge-ok";
-      return "badge-warn";
-    }
+  // Pagination info
+  document.getElementById(`pag-info-${vesselId}`).textContent =
+    `${start+1}–${Math.min(start+PAGE_SIZE, total)} di ${total} record`;
+  document.getElementById(`pag-prev-${vesselId}`).disabled = st.page <= 1;
+  document.getElementById(`pag-next-${vesselId}`).disabled = st.page >= pages;
+}
 
-    function deliveryLabel(vessel) {
-      return vessel.deliveryColor === "red" ? "Consegne in ritardo" : "Consegne sotto controllo";
-    }
+function statusPill(val, type) {
+  if (!val) return '<span style="color:var(--muted);font-size:0.7rem;">—</span>';
+  let cls = 'pill-muted';
+  if (val.includes('Finalized') || val.includes('Acknowledged') || val.includes('Received'))  cls = 'pill-green';
+  if (val.includes('Published') || val.includes('Sent') || val.includes('Shipped'))            cls = 'pill-yellow';
+  if (val.includes('Cancelled') || val.includes('Refused'))                                     cls = 'pill-red';
+  return `<span class="status-pill ${cls}" style="font-size:0.58rem;padding:2px 7px;">${escHtml(val)}</span>`;
+}
 
-    function isDnClosed(item) {
-      const dn = (item.dnStatus || "").toLowerCase();
-      return dn.includes("received");
-    }
+function formatDate(d) {
+  if (!d || d === '—') return '<span style="color:var(--muted)">—</span>';
+  try {
+    const dt = new Date(d);
+    const today = new Date();
+    if (dt < today) return `<span style="color:var(--red)">${d} ⚠</span>`;
+    return d;
+  } catch { return d; }
+}
 
-    function isOverdueDelivery(item) {
-      if (!item.deliveryDate) return false;
-      const delivery = new Date(item.deliveryDate);
-      const today = new Date();
-      return delivery < today && !isDnClosed(item);
-    }
+/* ════════════════════════════════════════════════════════════════
+   TODO LIST
+════════════════════════════════════════════════════════════════ */
+function renderTodoList() {
+  const actions = [];
 
-    function computeGlobalKpis(vessels) {
-      const allItems = vessels.flatMap(v => v.items || []);
-      return {
-        rfqOpen: vessels.reduce((sum, v) => sum + (v.rfqOpen || 0), 0),
-        dnPending: vessels.reduce((sum, v) => sum + (v.dnPending || 0), 0),
-        ordersOverdue: allItems.filter(isOverdueDelivery).length,
-        criticalAlerts:
-          vessels.filter(v => v.deliveryColor === "red").length +
-          vessels.reduce((sum, v) => sum + (v.rfqOverdue15 || 0), 0) +
-          vessels.filter(v => (v.dnPending || 0) >= 15).length
-      };
-    }
-
-    function generateActions(vessels) {
-      const actions = [];
-
-      vessels.forEach(v => {
-        if ((v.rfqOverdue15 || 0) > 0) {
+  fleetData.vessels.forEach(v => {
+    // RFQ overdue >15
+    if (v.rfqOverdue15 > 0) actions.push({
+      prio: 'high', vessel: v.vesselName,
+      desc: `${v.rfqOverdue15} RFQ scaduti da oltre 15 giorni`,
+      action: 'Contattare il fornitore o annullare l\'RFQ e aprirne uno nuovo',
+      emailSubject: `[URGENTE] RFQ Scaduti – ${v.vesselName}`,
+      emailBody: `Gentile team,\n\nSi segnala che ${v.rfqOverdue15} RFQ sono scaduti da oltre 15 giorni per la nave ${v.vesselName}.\nSi richiede azione immediata.\n\nCoriali saluti`
+    });
+    // RFQ overdue >7
+    if (v.rfqOverdue7 > 0) actions.push({
+      prio: 'high', vessel: v.vesselName,
+      desc: `${v.rfqOverdue7} RFQ in scadenza da 7+ giorni`,
+      action: 'Sollecitare le offerte ai fornitori e verificare lo stato',
+      emailSubject: `[FOLLOW-UP] RFQ in Scadenza – ${v.vesselName}`,
+      emailBody: `Gentile team,\n\n${v.rfqOverdue7} RFQ risultano in scadenza per la nave ${v.vesselName}.\nSi chiede di verificare lo stato delle offerte.\n\nCordiali saluti`
+    });
+    // Ready for PO
+    if (v.readyForPO > 0) actions.push({
+      prio: 'medium', vessel: v.vesselName,
+      desc: `${v.readyForPO} ordini pronti per finalizzare PO`,
+      action: 'Approvare e pubblicare i Purchase Order in attesa di firma',
+      emailSubject: `[AZIONE] Approvazione PO – ${v.vesselName}`,
+      emailBody: `Gentile responsabile acquisti,\n\n${v.readyForPO} ordini per ${v.vesselName} sono pronti per essere finalizzati come PO.\nSi chiede la vostra approvazione.\n\nCordiali saluti`
+    });
+    // High DN pending
+    if (v.dnPending > 30) actions.push({
+      prio: 'medium', vessel: v.vesselName,
+      desc: `${v.dnPending} DN pendenti — verifica tracking consegne`,
+      action: 'Monitorare il tracking delle delivery note e aggiornare lo stato',
+      emailSubject: `[TRACKING] DN Pendenti – ${v.vesselName}`,
+      emailBody: `Gentile team logistica,\n\nResultano ${v.dnPending} DN pendenti per ${v.vesselName}.\nSi chiede aggiornamento sul tracking delle spedizioni.\n\nCordiali saluti`
+    });
+    // Check items with overdue delivery
+    const today = new Date();
+    (v.items||[]).forEach(i => {
+      if (i.deliveryDate && i.deliveryDate !== '—' && new Date(i.deliveryDate) < today && i.poStatus && !i.poStatus.includes('Cancelled')) {
+        // Only add first few per vessel to avoid spam
+        if (actions.filter(a => a.vessel === v.vesselName && a.prio === 'high' && a.desc.includes('scaduta')).length < 2) {
           actions.push({
-            priority: "alta",
-            vesselId: v.vesselId,
-            vesselName: v.vesselName,
-            description: `${v.rfqOverdue15} RFQ oltre 15 giorni.`,
-            suggestion: "Escalation immediata verso buyer e supplier.",
-            type: "rfq15"
+            prio: 'high', vessel: v.vesselName,
+            desc: `Consegna scaduta: ${i.description.slice(0,60)}${i.description.length>60?'...':''}`,
+            action: `Contattare ${i.supplier || 'fornitore'} per aggiornamento stato spedizione`,
+            emailSubject: `[RITARDO] Consegna Scaduta – ${v.vesselName}`,
+            emailBody: `Gentile ${i.supplier || 'fornitore'},\n\nLa consegna di "${i.description}" prevista per ${i.deliveryDate} non risulta ancora pervenuta.\nSi chiede urgente aggiornamento sullo stato della spedizione.\n\nCordiali saluti`
           });
         }
-
-        if ((v.rfqOverdue7 || 0) > 0) {
-          actions.push({
-            priority: "alta",
-            vesselId: v.vesselId,
-            vesselName: v.vesselName,
-            description: `${v.rfqOverdue7} RFQ oltre 7 giorni.`,
-            suggestion: "Verificare follow-up fornitori e deadline offerte.",
-            type: "rfq7"
-          });
-        }
-
-        if ((v.readyForPO || 0) > 0) {
-          actions.push({
-            priority: "media",
-            vesselId: v.vesselId,
-            vesselName: v.vesselName,
-            description: `${v.readyForPO} richieste pronte per emissione PO.`,
-            suggestion: "Validare approvazioni e finalizzare i PO.",
-            type: "po"
-          });
-        }
-
-        if ((v.dnPending || 0) >= 15) {
-          actions.push({
-            priority: "alta",
-            vesselId: v.vesselId,
-            vesselName: v.vesselName,
-            description: `${v.dnPending} DN pendenti.`,
-            suggestion: "Controllare documentazione di consegna e ricezione a bordo.",
-            type: "dn"
-          });
-        }
-
-        if (v.deliveryColor === "red") {
-          actions.push({
-            priority: "alta",
-            vesselId: v.vesselId,
-            vesselName: v.vesselName,
-            description: "Consegne in ritardo rilevate.",
-            suggestion: "Contattare supplier e aggiornare ETA operativa.",
-            type: "delivery"
-          });
-        }
-
-        const overdueItems = (v.items || []).filter(isOverdueDelivery).slice(0, 2);
-        overdueItems.forEach(item => {
-          actions.push({
-            priority: "media",
-            vesselId: v.vesselId,
-            vesselName: v.vesselName,
-            description: `Item in ritardo: ${item.description}`,
-            suggestion: `Verificare supplier ${item.supplier || "N/D"} e stato DN.`,
-            type: "item"
-          });
-        });
-      });
-
-      return actions.sort((a, b) => {
-        const weight = { alta: 3, media: 2, bassa: 1 };
-        return weight[b.priority] - weight[a.priority];
-      });
-    }
-
-    function renderGlobalKpis(vessels) {
-      const kpi = computeGlobalKpis(vessels);
-      const html = [
-        {
-          label: "RFQ aperti",
-          value: kpi.rfqOpen,
-          note: "Somma dinamica flotta",
-          color: "var(--accent)"
-        },
-        {
-          label: "Ordini in ritardo",
-          value: kpi.ordersOverdue,
-          note: "Delivery date scaduta + DN non chiuso",
-          color: "var(--danger)"
-        },
-        {
-          label: "DN pendenti",
-          value: kpi.dnPending,
-          note: "Da confermare o ricevere",
-          color: "var(--warning)"
-        },
-        {
-          label: "Alert critici",
-          value: kpi.criticalAlerts,
-          note: "RFQ, delivery e backlog",
-          color: "var(--danger)"
-        }
-      ].map(card => `
-        <div class="col-md-6 col-xl-3">
-          <div class="kpi-card">
-            <div class="kpi-label">${card.label}</div>
-            <div class="kpi-value" style="color:${card.color}">${currencyFmt.format(card.value)}</div>
-            <div class="kpi-trend">${card.note}</div>
-          </div>
-        </div>
-      `).join("");
-
-      document.getElementById("globalKpis").innerHTML = html;
-    }
-
-    function initMap(vessels) {
-      if (!appState.map) {
-        appState.map = L.map("fleetMap", { zoomControl: true }).setView([39.5, 13.5], 5);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 18,
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(appState.map);
       }
+    });
+  });
 
-      appState.markers.forEach(m => m.remove());
-      appState.markers = [];
+  // Low priority: open RFQs with no issues
+  fleetData.vessels.forEach(v => {
+    if (v.rfqOpen > 0 && v.rfqOverdue7 === 0) actions.push({
+      prio: 'low', vessel: v.vesselName,
+      desc: `${v.rfqOpen} RFQ aperti in corso — monitoraggio regolare`,
+      action: 'Nessuna azione urgente — continuare il monitoraggio',
+      emailSubject: `[INFO] RFQ Aperti – ${v.vesselName}`,
+      emailBody: `Aggiornamento settimanale RFQ per ${v.vesselName}: ${v.rfqOpen} RFQ aperti in corso.`
+    });
+  });
 
-      vessels.forEach(v => {
-        const meta = vesselStaticMeta[v.vesselId] || {};
-        const coords = meta.coords || [41, 12];
-        const marker = L.marker(coords).addTo(appState.map);
+  const totalHigh = actions.filter(a => a.prio === 'high').length;
+  document.getElementById('todo-count-badge').textContent = totalHigh;
 
-        marker.bindPopup(`
-          <div style="min-width:220px">
-            <div style="font-weight:800; margin-bottom:.35rem;">${escapeHtml(v.vesselName)}</div>
-            <div style="font-size:.9rem; color:#d7e3f3">Porto placeholder: ${escapeHtml(meta.port || "N/D")}</div>
-            <div style="font-size:.9rem; color:#d7e3f3">RFQ aperti: ${v.rfqOpen || 0} · DN pendenti: ${v.dnPending || 0}</div>
-            <button
-              class="btn btn-sm btn-warning mt-2"
-              onclick="goToVessel('${v.vesselId}')"
-              style="background:#e67e22;border:none;color:#fff"
-            >Apri scheda nave</button>
-          </div>
-        `);
+  const el = document.getElementById('todo-list');
+  if (!actions.length) {
+    el.innerHTML = '<div class="table-empty">✓ Nessuna azione richiesta al momento</div>';
+    return;
+  }
 
-        marker.on("click", () => {
-          setTimeout(() => goToVessel(v.vesselId), 250);
-        });
+  // Sort: high > medium > low
+  const prioOrder = { high: 0, medium: 1, low: 2 };
+  actions.sort((a,b) => prioOrder[a.prio] - prioOrder[b.prio]);
 
-        appState.markers.push(marker);
-      });
-    }
+  el.innerHTML = actions.map((a, idx) => {
+    const prioCls = { high: 'prio-high', medium: 'prio-medium', low: 'prio-low' }[a.prio];
+    const prioBadge = { high: 'prio-high-badge', medium: 'prio-medium-badge', low: 'prio-low-badge' }[a.prio];
+    const prioLabel = { high: '⚡ ALTA', medium: '▲ MEDIA', low: '▽ BASSA' }[a.prio];
+    return `
+    <div class="todo-item ${prioCls}">
+      <div class="prio-badge ${prioBadge}">${prioLabel}</div>
+      <div class="todo-body">
+        <div class="todo-vessel">⚓ ${a.vessel}</div>
+        <div class="todo-desc">${a.desc}</div>
+        <div class="todo-action">→ ${a.action}</div>
+      </div>
+      <div class="todo-buttons">
+        <button class="btn-outlook-mail" onclick="sendOutlookMail(${idx})" title="Invia email in Outlook">
+          <i class="bi bi-envelope"></i> Email
+        </button>
+        <button class="btn-outlook-task" onclick="createOutlookTask(${idx})" title="Crea Task in Outlook">
+          <i class="bi bi-check2-square"></i> Task
+        </button>
+      </div>
+    </div>`;
+  }).join('');
 
-    function getVesselAlerts(vessel) {
-      const alerts = [];
+  // Store actions globally for Outlook integration
+  window._todoActions = actions;
+}
 
-      if ((vessel.rfqOverdue15 || 0) > 0) {
-        alerts.push({ color: "var(--danger)", text: `RFQ oltre 15 giorni: ${vessel.rfqOverdue15}` });
-      }
-      if ((vessel.rfqOverdue7 || 0) > 0) {
-        alerts.push({ color: "var(--warning)", text: `RFQ oltre 7 giorni: ${vessel.rfqOverdue7}` });
-      }
-      if (vessel.deliveryColor === "red") {
-        alerts.push({ color: "var(--danger)", text: "Consegne in ritardo rilevate." });
-      }
-      if ((vessel.dnPending || 0) >= 15) {
-        alerts.push({ color: "var(--warning)", text: `DN pendenti elevati: ${vessel.dnPending}` });
-      }
-      if (alerts.length === 0) {
-        alerts.push({ color: "var(--success)", text: "Nessun alert critico attivo." });
-      }
+/* ════════════════════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════════════════════ */
+function showPage(pageId) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById(`page-${pageId}`);
+  const tab  = document.getElementById(`tab-${pageId}`);
+  if (page) page.classList.add('active');
+  if (tab)  tab.classList.add('active');
+  // Refresh map size when switching to home
+  if (pageId === 'home' && fleetMap) setTimeout(() => fleetMap.invalidateSize(), 200);
+}
 
-      return alerts;
-    }
+function showVessel(vesselId) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const page = document.getElementById(`page-vessel-${vesselId}`);
+  const tab  = document.getElementById(`tab-vessel-${vesselId}`);
+  if (page) page.classList.add('active');
+  if (tab)  tab.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-    function renderVesselTabs(vessels) {
-      const tabs = document.getElementById("vesselTabs");
-      const content = document.getElementById("vesselTabContent");
+/* ════════════════════════════════════════════════════════════════
+   MICROSOFT / OUTLOOK INTEGRATION
+   (Placeholder — MSAL integration added at next step)
+════════════════════════════════════════════════════════════════ */
+let msalInstance = null;
+let msAccount   = null;
 
-      tabs.innerHTML = vessels.map((v, index) => `
-        <li class="nav-item" role="presentation">
-          <button
-            class="nav-link ${index === 0 ? "active" : ""}"
-            id="tab-${v.vesselId}"
-            data-bs-toggle="tab"
-            data-bs-target="#pane-${v.vesselId}"
-            type="button"
-            role="tab"
-            aria-controls="pane-${v.vesselId}"
-            aria-selected="${index === 0 ? "true" : "false"}"
-          >
-            ${escapeHtml(v.vesselName)}
-          </button>
-        </li>
-      `).join("");
+function connectMicrosoft() {
+  if (AZURE_CONFIG.clientId === 'YOUR_CLIENT_ID_HERE') {
+    alert('⚠ Per collegare Microsoft 365:\n\n1. Segui la guida "Azure AD Setup" nella barra di navigazione\n2. Registra l\'app su portal.azure.com\n3. Sostituisci YOUR_CLIENT_ID_HERE e YOUR_TENANT_ID_HERE nel codice\n4. Ricarica la pagina e clicca nuovamente "Connect Outlook"');
+    showPage('azure-guide');
+    return;
+  }
+  // MSAL integration will be added in Step 3 (Outlook module)
+  alert('MSAL.js integration will be enabled in the next step. Please register the app on Azure AD first.');
+}
 
-      content.innerHTML = vessels.map((v, index) => {
-        const meta = vesselStaticMeta[v.vesselId] || {};
-        const alerts = getVesselAlerts(v);
-        const suppliers = [...new Set((v.items || []).map(i => i.supplier).filter(Boolean))].sort();
+async function sendOutlookMail(idx) {
+  const a = window._todoActions?.[idx];
+  if (!a) return;
+  if (!msAccount) {
+    // Fallback: open mailto
+    const body = encodeURIComponent(a.emailBody);
+    const subj = encodeURIComponent(a.emailSubject);
+    window.open(`mailto:?subject=${subj}&body=${body}`);
+    return;
+  }
+  // Microsoft Graph API call (enabled after MSAL step)
+  alert('Outlook mail integration requires Microsoft 365 connection. Use the "Connect Outlook" button first.');
+}
 
-        return `
-          <div class="tab-pane fade ${index === 0 ? "show active" : ""}" id="pane-${v.vesselId}" role="tabpanel" tabindex="0">
-            <div id="card-${v.vesselId}" class="row g-4">
-              <div class="col-12">
-                <div class="panel-card p-3">
-                  <div class="vessel-hero">
-                    <img
-                      class="vessel-photo"
-                      src="${meta.image || "https://picsum.photos/seed/defaultvessel/640/360"}"
-                      alt="Foto placeholder ${escapeHtml(v.vesselName)}"
-                      width="640"
-                      height="360"
-                      loading="lazy"
-                    />
-                    <div>
-                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                        <div>
-                          <h3 class="h4 fw-bold mb-2">${escapeHtml(v.vesselName)}</h3>
-                          <div class="d-flex flex-wrap gap-2">
-                            <span class="status-badge badge-info">${escapeHtml(meta.flag || "Placeholder flag")}</span>
-                            <span class="status-badge badge-info">${escapeHtml(meta.type || "Placeholder type")}</span>
-                            <span class="status-badge ${statusBadgeClass(v.deliveryColor)}">${deliveryLabel(v)}</span>
-                          </div>
-                        </div>
-                      </div>
+async function createOutlookTask(idx) {
+  const a = window._todoActions?.[idx];
+  if (!a) return;
+  if (!msAccount) {
+    alert('Per creare task in Outlook, collega prima il tuo account Microsoft 365 con il pulsante "Connect Outlook".');
+    return;
+  }
+  // Microsoft Graph API call (enabled after MSAL step)
+  alert('Task creation requires Microsoft 365 connection.');
+}
 
-                      <div class="meta-grid mt-3">
-                        <div class="meta-pill">
-                          <div class="label">Posizione attuale</div>
-                          <div class="value">${safeText(meta.port)} · ${meta.coords ? meta.coords.join(", ") : "—"}</div>
-                        </div>
-                        <div class="meta-pill">
-                          <div class="label">ETA</div>
-                          <div class="value">${safeText(meta.eta)}</div>
-                        </div>
-                        <div class="meta-pill">
-                          <div class="label">ETB</div>
-                          <div class="value">${safeText(meta.etb)}</div>
-                        </div>
-                        <div class="meta-pill">
-                          <div class="label">ETD</div>
-                          <div class="value">${safeText(meta.etd)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+/* ════════════════════════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════════════════════════ */
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-              <div class="col-12">
-                <div class="panel-card p-3">
-                  <h4 class="h6 fw-bold mb-3">KPI procurement</h4>
-                  <div class="mini-kpi-grid">
-                    <div class="mini-kpi"><div class="label">RFQ Open</div><div class="value">${v.rfqOpen || 0}</div></div>
-                    <div class="mini-kpi"><div class="label">RFQ > 7 gg</div><div class="value">${v.rfqOverdue7 || 0}</div></div>
-                    <div class="mini-kpi"><div class="label">RFQ > 15 gg</div><div class="value">${v.rfqOverdue15 || 0}</div></div>
-                    <div class="mini-kpi"><div class="label">Ready for PO</div><div class="value">${v.readyForPO || 0}</div></div>
-                    <div class="mini-kpi"><div class="label">Orders</div><div class="value">${v.orders || 0}</div></div>
-                    <div class="mini-kpi"><div class="label">DN Pending</div><div class="value">${v.dnPending || 0}</div></div>
-                    <div class="mini-kpi"><div class="label">Delivery</div><div class="value">${escapeHtml(v.delivery || "—")}</div></div>
-                    <div class="mini-kpi"><div class="label">Delivery Color</div><div class="value">${escapeHtml(v.deliveryColor || "—")}</div></div>
-                  </div>
-                </div>
-              </div>
+/* ════════════════════════════════════════════════════════════════
+   BOOTSTRAP
+════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', init);
+</script>
 
-              <div class="col-xl-6">
-                <div class="panel-card p-3 h-100">
-                  <h4 class="h6 fw-bold mb-3">Alert automatici</h4>
-                  <div class="alert-list">
-                    ${alerts.map(a => `
-                      <div class="alert-item">
-                        <span class="alert-dot" style="background:${a.color}"></span>
-                        <div>${escapeHtml(a.text)}</div>
-                      </div>
-                    `).join("")}
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-xl-6">
-                <div class="panel-card p-3 h-100">
-                  <h4 class="h6 fw-bold mb-3">Avanzamento processo</h4>
-
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-2">
-                      <span class="subtle">REQ → PO</span>
-                      <strong>${v.pctReqToPO || 0}%</strong>
-                    </div>
-                    <div class="progress">
-                      <div class="progress-bar bg-accent" style="width:${v.pctReqToPO || 0}%"></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="d-flex justify-content-between mb-2">
-                      <span class="subtle">PO → DN</span>
-                      <strong>${v.pctPOToDN || 0}%</strong>
-                    </div>
-                    <div class="progress">
-                      <div class="progress-bar ${v.deliveryColor === "red" ? "bg-danger" : "bg-success"}" style="width:${v.pctPOToDN || 0}%"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <div class="panel-card p-3">
-                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                    <h4 class="h6 fw-bold mb-0">Ordini / items</h4>
-                    <span class="subtle small">${(v.items || []).length} righe</span>
-                  </div>
-
-                  <div class="filter-bar mb-3">
-                    <div>
-                      <label class="form-label small subtle">Filtro stato</label>
-                      <select class="form-select form-select-sm" data-filter-status="${v.vesselId}">
-                        <option value="all">Tutti</option>
-                        <option value="open">Aperti / non chiusi</option>
-                        <option value="overdue">Consegna in ritardo</option>
-                        <option value="dnpending">DN pending</option>
-                        <option value="rfq">RFQ issues</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="form-label small subtle">Fornitore</label>
-                      <select class="form-select form-select-sm" data-filter-supplier="${v.vesselId}">
-                        <option value="all">Tutti i fornitori</option>
-                        ${suppliers.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")}
-                      </select>
-                    </div>
-                    <div>
-                      <label class="form-label small subtle">Consegna entro</label>
-                      <input class="form-control form-control-sm" type="date" data-filter-date="${v.vesselId}">
-                    </div>
-                    <div>
-                      <label class="form-label small subtle">Ricerca testo</label>
-                      <input class="form-control form-control-sm" type="text" placeholder="Descrizione o stato" data-filter-text="${v.vesselId}">
-                    </div>
-                  </div>
-
-                  <div class="table-wrap">
-                    <table class="table table-striped table-hover align-middle">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Descrizione</th>
-                          <th>Supplier</th>
-                          <th>RFQ Status</th>
-                          <th>PO Status</th>
-                          <th>DN Status</th>
-                          <th>RFQ Days</th>
-                          <th>Delivery Date</th>
-                        </tr>
-                      </thead>
-                      <tbody id="table-${v.vesselId}">
-                        ${renderTableRows(v.items || [])}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <div class="panel-card p-3">
-                 
+</body>
+</html>
