@@ -1106,7 +1106,7 @@ body {
 
   <!-- Map -->
   <div class="card-panel no-pad" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-    <div class="panel-title"><i class="bi bi-pin-map text-orange"></i> Live Fleet Positions <span style="font-size:0.6rem;color:var(--red);margin-left:auto;font-weight:400">⚠ Coordinates placeholder — integrate MMSI/AIS in Step 2</span></div>
+    <div class="panel-title"><i class="bi bi-pin-map text-orange"></i> Live Fleet Positions <span id="ais-status-badge" style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-left:0.5rem;font-weight:400">AIS: Connessione…</span><span style="flex:1"></span></div>
     <div id="fleet-map"></div>
   </div>
 
@@ -1321,13 +1321,23 @@ const AZURE_CONFIG = {
   scopes: ['User.Read', 'Mail.Send', 'Tasks.ReadWrite']
 };
 
-// Placeholder vessel positions (replace with real AIS in Step 2)
-const VESSEL_POSITIONS = {
-  medtoscana: { lat: 38.10, lng: 15.65,  flag: '🇮🇹', type: 'Bulk Carrier', photo: null },
-  medliguria:  { lat: 43.80, lng:  8.30,  flag: '🇮🇹', type: 'Bulk Carrier', photo: null },
-  // Add more vessels below as you expand the fleet
-  // examplevessel: { lat: 35.00, lng: 25.00, flag: '🇬🇷', type: 'General Cargo', photo: null },
+// ── AIS Configuration ──────────────────────────────────────────
+const AIS_API_KEY = 'c136d51b737b3c8ecd1f4e9d62c97fb2351d5e71';
+const AIS_WS_URL  = 'wss://stream.aisstream.io/v0/stream';
+
+// Vessel registry — add new vessels here as fleet expands
+const VESSEL_REGISTRY = {
+  medtoscana:  { mmsi: '249090000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9490741', callsign: '9HA6104' },
+  medliguria:  { mmsi: '636024824', flag: '🇱🇷', flagName: 'Liberia', type: 'Bulk Carrier', imo: '9604811', callsign: '5LUL8'   },
+  norrbotten:  { mmsi: '255624000', flag: '🇵🇹', flagName: 'Portugal',type: 'Bulk Carrier', imo: '9191931', callsign: ''        },
+  peppino:     { mmsi: '256957000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9586708', callsign: '9HA6039' },
 };
+
+// Last-known AIS state per vessel (updated by WebSocket)
+const aisState = {};       // { [vesselId]: { lat, lng, sog, cog, heading, destination, eta, navStatus, lastSeen, online } }
+const mapMarkers = {};     // { [vesselId]: L.marker }
+let   aisSocket  = null;
+let   aisReconnectTimer = null;
 
 /* ════════════════════════════════════════════════════════════════
    STATE
@@ -1365,6 +1375,7 @@ function renderAll() {
   renderVesselPages();
   renderTodoList();
   initMap();
+  initAIS();
   // Hide loading
   const ov = document.getElementById('loading-overlay');
   ov.style.opacity = '0';
@@ -1452,48 +1463,235 @@ function renderFleetTable() {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   MAP
+   MAP — init with placeholder pins, AIS will move them live
 ════════════════════════════════════════════════════════════════ */
 function initMap() {
-  fleetMap = L.map('fleet-map', { zoomControl: true, scrollWheelZoom: false }).setView([38, 20], 4);
+  fleetMap = L.map('fleet-map', { zoomControl: true, scrollWheelZoom: false }).setView([35, 18], 4);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright" style="color:#7a93b8">OpenStreetMap</a>',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://carto.com/" style="color:#7a93b8">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" style="color:#7a93b8">OSM</a>',
     maxZoom: 18
   }).addTo(fleetMap);
 
+  // Create placeholder markers for every vessel in JSON
   fleetData.vessels.forEach(v => {
-    const pos = VESSEL_POSITIONS[v.vesselId] || { lat: 35 + Math.random()*10, lng: 10 + Math.random()*20, flag: '🚢', type: 'Vessel' };
-    const alertColor = v.deliveryColor === 'red' ? '#e74c3c' : v.deliveryColor === 'green' ? '#27ae60' : '#f39c12';
+    const reg = VESSEL_REGISTRY[v.vesselId] || { flag: '🚢', flagName: '—', type: 'Vessel', imo: '—', callsign: '—', mmsi: '—' };
+    // Default scatter so they're not stacked at [0,0]
+    const defaultPos = { medtoscana:[37.5,15.1], medliguria:[43.5,8.0], norrbotten:[38.0,25.0], peppino:[36.5,22.0] };
+    const [lat, lng] = defaultPos[v.vesselId] || [35 + Math.random()*10, 10 + Math.random()*20];
 
-    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-      <circle cx="16" cy="16" r="14" fill="${alertColor}" fill-opacity="0.2" stroke="${alertColor}" stroke-width="2"/>
-      <text x="16" y="20" font-size="14" text-anchor="middle" fill="white">⛵</text>
-    </svg>`;
-
-    const icon = L.divIcon({
-      className: 'vessel-icon',
-      html: svgIcon,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-      popupAnchor: [0, -16]
-    });
-
-    const popupContent = `
-      <div class="ship-popup-title">⚓ ${v.vesselName}</div>
-      <div class="ship-popup-row"><span>Tipo</span><span>${pos.type}</span></div>
-      <div class="ship-popup-row"><span>Bandiera</span><span>${pos.flag}</span></div>
-      <div class="ship-popup-row"><span>RFQ Aperti</span><span>${v.rfqOpen}</span></div>
-      <div class="ship-popup-row"><span>DN Pendenti</span><span>${v.dnPending}</span></div>
-      <div class="ship-popup-row"><span>Stato</span><span style="color:${alertColor}">${v.deliveryColor === 'red' ? 'Ritardo consegne' : 'Regolare'}</span></div>
-      <div class="ship-popup-row" style="color:rgba(122,147,184,0.6);font-size:0.58rem"><span>📍 Posizione AIS</span><span>Placeholder</span></div>
-      <button class="popup-btn" onclick="showVessel('${v.vesselId}')">→ Apri Scheda Nave</button>
-    `;
-
-    L.marker([pos.lat, pos.lng], { icon })
-      .addTo(fleetMap)
-      .bindPopup(popupContent, { maxWidth: 240 });
+    const marker = buildMarker(v, reg, lat, lng, false);
+    marker.addTo(fleetMap);
+    mapMarkers[v.vesselId] = marker;
   });
+}
+
+function buildMarker(v, reg, lat, lng, online) {
+  const alertColor = v.deliveryColor === 'red' ? '#e74c3c' : v.deliveryColor === 'green' ? '#27ae60' : '#f39c12';
+  const pulseRing  = online ? `<circle cx="16" cy="16" r="13" fill="none" stroke="${alertColor}" stroke-width="1.5" opacity="0.4"><animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.5" to="0" dur="2s" repeatCount="indefinite"/></circle>` : '';
+  const opacity    = online ? '1' : '0.5';
+
+  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 32 32" opacity="${opacity}">
+    ${pulseRing}
+    <circle cx="16" cy="16" r="11" fill="${alertColor}" fill-opacity="0.18" stroke="${alertColor}" stroke-width="2"/>
+    <text x="16" y="21" font-size="13" text-anchor="middle" fill="white">⛵</text>
+  </svg>`;
+
+  const icon = L.divIcon({ className: 'vessel-icon', html: svgIcon, iconSize:[36,36], iconAnchor:[18,18], popupAnchor:[0,-18] });
+
+  const st = aisState[v.vesselId];
+  const posLine = st
+    ? `<div class="ship-popup-row"><span>Pos</span><span>${st.lat.toFixed(4)}° / ${st.lng.toFixed(4)}°</span></div>`
+    : `<div class="ship-popup-row"><span>Pos</span><span style="color:var(--muted)">In attesa AIS…</span></div>`;
+  const sogLine = st ? `<div class="ship-popup-row"><span>Speed (SOG)</span><span>${st.sog} kn</span></div>` : '';
+  const cogLine = st ? `<div class="ship-popup-row"><span>Course (COG)</span><span>${st.cog}°</span></div>` : '';
+  const destLine= st?.destination ? `<div class="ship-popup-row"><span>Destinazione</span><span>${st.destination}</span></div>` : '';
+  const etaLine = st?.eta ? `<div class="ship-popup-row"><span>ETA</span><span>${st.eta}</span></div>` : '';
+  const lastSeen= st ? `<div class="ship-popup-row"><span>Ultimo segnale</span><span style="color:${online?'var(--green)':'var(--yellow)'}">${timeSince(st.lastSeen)}</span></div>` : '';
+  const offlineBadge = !online && st ? `<div style="text-align:center;font-family:var(--font-mono);font-size:0.6rem;color:var(--yellow);margin-bottom:6px;">⚠ Offline — ultima posizione nota</div>` : '';
+
+  const popupContent = `
+    <div class="ship-popup-title">⚓ ${v.vesselName}</div>
+    ${offlineBadge}
+    <div class="ship-popup-row"><span>Tipo</span><span>${reg.type}</span></div>
+    <div class="ship-popup-row"><span>Bandiera</span><span>${reg.flag} ${reg.flagName}</span></div>
+    <div class="ship-popup-row"><span>MMSI</span><span>${reg.mmsi}</span></div>
+    <div class="ship-popup-row"><span>IMO</span><span>${reg.imo}</span></div>
+    ${posLine}${sogLine}${cogLine}${destLine}${etaLine}${lastSeen}
+    <div class="ship-popup-row"><span>RFQ Aperti</span><span>${v.rfqOpen}</span></div>
+    <div class="ship-popup-row"><span>DN Pendenti</span><span>${v.dnPending}</span></div>
+    <button class="popup-btn" onclick="showVessel('${v.vesselId}')">→ Apri Scheda Nave</button>
+  `;
+
+  const marker = L.marker([lat, lng], { icon });
+  marker.bindPopup(popupContent, { maxWidth: 260 });
+  return marker;
+}
+
+function refreshMarker(vesselId) {
+  const v   = fleetData.vessels.find(x => x.vesselId === vesselId);
+  const reg = VESSEL_REGISTRY[vesselId] || {};
+  const st  = aisState[vesselId];
+  if (!v || !st || !mapMarkers[vesselId]) return;
+
+  const online = (Date.now() - st.lastSeen) < 30 * 60 * 1000; // within 30 min
+  const newMarker = buildMarker(v, reg, st.lat, st.lng, online);
+  const oldMarker = mapMarkers[vesselId];
+  newMarker.addTo(fleetMap);
+  fleetMap.removeLayer(oldMarker);
+  mapMarkers[vesselId] = newMarker;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AIS — WebSocket connection to aisstream.io
+════════════════════════════════════════════════════════════════ */
+function initAIS() {
+  updateAisStatusBadge('connecting');
+  connectAIS();
+}
+
+function connectAIS() {
+  if (aisSocket) { try { aisSocket.close(); } catch(_){} }
+
+  aisSocket = new WebSocket(AIS_WS_URL);
+
+  aisSocket.onopen = () => {
+    updateAisStatusBadge('connected');
+    // Subscribe to all 4 vessels by MMSI
+    const mmsiList = Object.values(VESSEL_REGISTRY).map(r => r.mmsi);
+    aisSocket.send(JSON.stringify({
+      APIKey: AIS_API_KEY,
+      BoundingBoxes: [[[-90, -180], [90, 180]]],  // global
+      FilterMMSI: mmsiList
+    }));
+    console.log('[AIS] Subscribed to MMSI:', mmsiList);
+  };
+
+  aisSocket.onmessage = (evt) => {
+    try {
+      const msg = JSON.parse(evt.data);
+      handleAisMessage(msg);
+    } catch(e) { console.warn('[AIS] Parse error', e); }
+  };
+
+  aisSocket.onerror = (e) => {
+    console.warn('[AIS] WebSocket error', e);
+    updateAisStatusBadge('error');
+  };
+
+  aisSocket.onclose = () => {
+    updateAisStatusBadge('reconnecting');
+    console.log('[AIS] Connection closed — reconnecting in 15s…');
+    clearTimeout(aisReconnectTimer);
+    aisReconnectTimer = setTimeout(connectAIS, 15000);
+  };
+}
+
+function handleAisMessage(msg) {
+  const meta = msg.MetaData || {};
+  const mmsi = String(meta.MMSI || '');
+  const vesselId = mmsiToVesselId(mmsi);
+  if (!vesselId) return;
+
+  const now = Date.now();
+
+  if (msg.MessageType === 'PositionReport' || msg.MessageType === 'StandardClassBPositionReport') {
+    const pr = msg.Message?.PositionReport || msg.Message?.StandardClassBPositionReport || {};
+    const lat = meta.latitude  ?? pr.Latitude;
+    const lng = meta.longitude ?? pr.Longitude;
+    if (lat == null || lng == null || lat === 0 && lng === 0) return;
+
+    aisState[vesselId] = {
+      ...(aisState[vesselId] || {}),
+      lat: parseFloat(lat.toFixed(5)),
+      lng: parseFloat(lng.toFixed(5)),
+      sog: (pr.Sog ?? 0).toFixed(1),
+      cog: Math.round(pr.Cog ?? 0),
+      heading: pr.TrueHeading ?? pr.Cog ?? 0,
+      navStatus: navStatusLabel(pr.NavigationalStatus),
+      lastSeen: now,
+      online: true
+    };
+
+    refreshMarker(vesselId);
+    updateAisStrip(vesselId);
+    console.log(`[AIS] Position update: ${vesselId} → ${lat.toFixed(3)}, ${lng.toFixed(3)} @ ${aisState[vesselId].sog}kn`);
+  }
+
+  if (msg.MessageType === 'ShipStaticData') {
+    const sd = msg.Message?.ShipStaticData || {};
+    const eta = sd.Eta;
+    let etaStr = '—';
+    if (eta && eta.Month && eta.Day) {
+      etaStr = `${String(eta.Day).padStart(2,'0')}/${String(eta.Month).padStart(2,'0')} ${String(eta.Hour||0).padStart(2,'0')}:${String(eta.Minute||0).padStart(2,'0')} UTC`;
+    }
+    aisState[vesselId] = {
+      ...(aisState[vesselId] || {}),
+      destination: (sd.Destination || '').trim() || null,
+      eta: etaStr !== '—' ? etaStr : null,
+      shipType: sd.Type,
+      lastSeen: aisState[vesselId]?.lastSeen || now
+    };
+    updateAisStrip(vesselId);
+    refreshMarker(vesselId);
+  }
+}
+
+function mmsiToVesselId(mmsi) {
+  return Object.entries(VESSEL_REGISTRY).find(([,r]) => r.mmsi === mmsi)?.[0] || null;
+}
+
+function navStatusLabel(code) {
+  const labels = {
+    0:'Under Way Engine',1:'At Anchor',2:'Not Under Command',3:'Restricted Manoeuvrability',
+    4:'Constrained by Draught',5:'Moored',6:'Aground',7:'Engaged in Fishing',8:'Under Way Sailing',15:'Undefined'
+  };
+  return labels[code] ?? 'Unknown';
+}
+
+function timeSince(ts) {
+  if (!ts) return '—';
+  const sec = Math.floor((Date.now() - ts) / 1000);
+  if (sec < 60)   return `${sec}s fa`;
+  if (sec < 3600) return `${Math.floor(sec/60)}min fa`;
+  return `${Math.floor(sec/3600)}h fa`;
+}
+
+function updateAisStrip(vesselId) {
+  const st = aisState[vesselId];
+  if (!st) return;
+  const online = (Date.now() - st.lastSeen) < 30 * 60 * 1000;
+  const setVal = (id, val, cls) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = val;
+    el.className = 'ais-item-value' + (cls ? ` ${cls}` : '');
+  };
+  setVal(`ais-pos-${vesselId}`,   st.lat && st.lng ? `${st.lat.toFixed(3)}° N / ${st.lng.toFixed(3)}° E` : '—');
+  setVal(`ais-sog-${vesselId}`,   st.sog ? `${st.sog} kn` : '—');
+  setVal(`ais-cog-${vesselId}`,   st.cog != null ? `${st.cog}°` : '—');
+  setVal(`ais-nav-${vesselId}`,   st.navStatus || '—');
+  setVal(`ais-dest-${vesselId}`,  st.destination || '—');
+  setVal(`ais-eta-${vesselId}`,   st.eta || '—');
+  setVal(`ais-last-${vesselId}`,  timeSince(st.lastSeen), online ? 'ais-item-value text-green' : 'ais-item-value text-yellow');
+
+  // Refresh "last seen" labels every minute
+  clearInterval(window[`_aisTimer_${vesselId}`]);
+  window[`_aisTimer_${vesselId}`] = setInterval(() => {
+    setVal(`ais-last-${vesselId}`, timeSince(st.lastSeen), (Date.now()-st.lastSeen)<1800000?'ais-item-value text-green':'ais-item-value text-yellow');
+  }, 60000);
+}
+
+function updateAisStatusBadge(status) {
+  const map = {
+    connecting:   { text:'AIS: Connessione…', cls:'', color:'var(--muted)' },
+    connected:    { text:'AIS: Live ●',       cls:'', color:'var(--green)' },
+    error:        { text:'AIS: Errore',        cls:'', color:'var(--red)'   },
+    reconnecting: { text:'AIS: Riconnessione…',cls:'', color:'var(--yellow)'}
+  };
+  const s = map[status] || map.error;
+  const el = document.getElementById('ais-status-badge');
+  if (el) { el.textContent = s.text; el.style.color = s.color; }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -1521,7 +1719,7 @@ function renderVesselPages() {
 }
 
 function buildVesselPage(v) {
-  const pos      = VESSEL_POSITIONS[v.vesselId] || { flag: '🚢', type: 'Vessel', photo: null };
+  const reg      = VESSEL_REGISTRY[v.vesselId] || { flag: '🚢', flagName: '—', type: 'Vessel', imo: '—', callsign: '—', mmsi: '—' };
   const alertCls = v.deliveryColor === 'red' ? 'kpi-alert' : v.deliveryColor === 'green' ? 'kpi-ok' : 'kpi-warn';
 
   return `
@@ -1533,47 +1731,45 @@ function buildVesselPage(v) {
         <div class="vessel-photo"><i class="bi bi-ship"></i></div>
         <div class="vessel-details">
           <div class="vessel-title">${v.vesselName}</div>
-          <div class="vessel-subtitle">${pos.flag} ${pos.type} · Procurement Overview</div>
+          <div class="vessel-subtitle">${reg.flag} ${reg.type} · IMO ${reg.imo}</div>
           <div class="vessel-tags">
-            <span class="vtag"><i class="bi bi-flag"></i> ${pos.flag} Flag</span>
-            <span class="vtag"><i class="bi bi-hash"></i> MMSI: <em style="color:var(--red)">TBD</em></span>
-            <span class="vtag"><i class="bi bi-calendar3"></i> IMO: Placeholder</span>
+            <span class="vtag"><i class="bi bi-flag"></i> ${reg.flagName}</span>
+            <span class="vtag"><i class="bi bi-broadcast"></i> MMSI: <strong style="color:var(--teal)">${reg.mmsi}</strong></span>
+            <span class="vtag"><i class="bi bi-hash"></i> IMO: ${reg.imo}</span>
+            ${reg.callsign ? `<span class="vtag"><i class="bi bi-radio"></i> ${reg.callsign}</span>` : ''}
           </div>
         </div>
       </div>
 
-      <!-- AIS Strip -->
+      <!-- AIS Strip — values updated live by WebSocket -->
       <div class="ais-strip">
         <div class="ais-item">
-          <div class="ais-item-label">Posizione</div>
-          <div class="ais-item-value placeholder">In attesa AIS</div>
+          <div class="ais-item-label">📍 Posizione</div>
+          <div class="ais-item-value placeholder" id="ais-pos-${v.vesselId}">In attesa AIS…</div>
         </div>
         <div class="ais-item">
           <div class="ais-item-label">Speed (SOG)</div>
-          <div class="ais-item-value placeholder">— kn</div>
+          <div class="ais-item-value placeholder" id="ais-sog-${v.vesselId}">— kn</div>
         </div>
         <div class="ais-item">
           <div class="ais-item-label">Course (COG)</div>
-          <div class="ais-item-value placeholder">—°</div>
+          <div class="ais-item-value placeholder" id="ais-cog-${v.vesselId}">—°</div>
+        </div>
+        <div class="ais-item">
+          <div class="ais-item-label">Nav Status</div>
+          <div class="ais-item-value placeholder" id="ais-nav-${v.vesselId}">—</div>
         </div>
         <div class="ais-item">
           <div class="ais-item-label">Destinazione</div>
-          <div class="ais-item-value placeholder">Placeholder</div>
+          <div class="ais-item-value placeholder" id="ais-dest-${v.vesselId}">—</div>
         </div>
         <div class="ais-item">
           <div class="ais-item-label">ETA</div>
-          <div class="ais-item-value placeholder">—</div>
+          <div class="ais-item-value placeholder" id="ais-eta-${v.vesselId}">—</div>
         </div>
         <div class="ais-item">
-          <div class="ais-item-label">ETB</div>
-          <div class="ais-item-value placeholder">—</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">ETD</div>
-          <div class="ais-item-value placeholder">—</div>
-        </div>
-        <div style="margin-left:auto;font-family:var(--font-mono);font-size:0.6rem;color:var(--red);align-self:center">
-          ⚠ AIS: integrate MMSI → Step 2
+          <div class="ais-item-label">Ultimo segnale</div>
+          <div class="ais-item-value placeholder" id="ais-last-${v.vesselId}">—</div>
         </div>
       </div>
     </div>
