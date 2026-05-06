@@ -1108,6 +1108,10 @@ body {
   <div class="card-panel no-pad" style="padding: 1.5rem; margin-bottom: 1.5rem;">
     <div class="panel-title"><i class="bi bi-pin-map text-orange"></i> Live Fleet Positions <span id="ais-status-badge" style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-left:0.5rem;font-weight:400">AIS: Connessione…</span><span style="flex:1"></span></div>
     <div id="fleet-map"></div>
+    <!-- AIS debug strip -->
+    <div id="ais-debug-strip" style="display:flex;gap:1.5rem;flex-wrap:wrap;padding:0.75rem 0 0;font-family:var(--font-mono);font-size:0.65rem;color:var(--muted);">
+      <span>💡 Le posizioni AIS si aggiornano automaticamente quando le navi trasmettono (ogni 10–180 sec in navigazione, meno frequente in porto).</span>
+    </div>
   </div>
 
   <!-- Fleet Table -->
@@ -1547,93 +1551,145 @@ function refreshMarker(vesselId) {
 ════════════════════════════════════════════════════════════════ */
 function initAIS() {
   updateAisStatusBadge('connecting');
-  connectAIS();
+  fetchLastPositionsREST().then(() => connectAIS());
+}
+
+/* ── REST pre-fetch: last known position for each vessel ────────
+   Uses aisstream.io /v2/position/latest (available on free tier).
+   Falls back silently if the endpoint is unavailable.            */
+async function fetchLastPositionsREST() {
+  const entries = Object.entries(VESSEL_REGISTRY);
+  const results = await Promise.allSettled(entries.map(async ([vesselId, reg]) => {
+    const url = `https://api.aisstream.io/v2/position/latest?mmsi=${reg.mmsi}`;
+    const res  = await fetch(url, { headers: { 'X-API-Key': AIS_API_KEY } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    // aisstream REST returns array or single object depending on plan
+    const item = Array.isArray(data) ? data[0] : data;
+    if (!item) throw new Error('empty');
+    const lat = item.Latitude  ?? item.latitude;
+    const lng = item.Longitude ?? item.longitude;
+    if (lat == null || lng == null) throw new Error('no coords');
+
+    const now = Date.now();
+    aisState[vesselId] = {
+      ...(aisState[vesselId] || {}),
+      lat: parseFloat(parseFloat(lat).toFixed(5)),
+      lng: parseFloat(parseFloat(lng).toFixed(5)),
+      sog: item.Sog  != null ? parseFloat(item.Sog).toFixed(1)  : '—',
+      cog: item.Cog  != null ? Math.round(item.Cog)             : null,
+      heading:     item.TrueHeading ?? item.Cog ?? 0,
+      navStatus:   navStatusLabel(item.NavigationalStatus),
+      destination: (item.Destination || '').trim() || null,
+      eta:         null,
+      lastSeen:    item.TimeUtc ? new Date(item.TimeUtc).getTime() : now,
+      online:      true
+    };
+    refreshMarker(vesselId);
+    updateAisStrip(vesselId);
+    console.log(`[AIS REST] ${vesselId}: ${lat.toFixed(3)}, ${lng.toFixed(3)}`);
+  }));
+
+  // Log any failures (silently — WebSocket will still deliver live data)
+  results.forEach(({ status, reason }, i) => {
+    if (status === 'rejected')
+      console.warn(`[AIS REST] ${entries[i][0]}: ${reason?.message || reason}`);
+  });
 }
 
 function connectAIS() {
   if (aisSocket) { try { aisSocket.close(); } catch(_){} }
-
   aisSocket = new WebSocket(AIS_WS_URL);
 
   aisSocket.onopen = () => {
     updateAisStatusBadge('connected');
-    // Subscribe to all 4 vessels by MMSI
-    const mmsiList = Object.values(VESSEL_REGISTRY).map(r => r.mmsi);
+    // ⚠ FilterMMSI MUST be integers, not strings
+    const mmsiInts = Object.values(VESSEL_REGISTRY).map(r => parseInt(r.mmsi, 10));
     aisSocket.send(JSON.stringify({
-      APIKey: AIS_API_KEY,
-      BoundingBoxes: [[[-90, -180], [90, 180]]],  // global
-      FilterMMSI: mmsiList
+      APIKey:       AIS_API_KEY,
+      BoundingBoxes: [[[-90, -180], [90, 180]]],
+      FilterMMSI:   mmsiInts
     }));
-    console.log('[AIS] Subscribed to MMSI:', mmsiList);
+    console.log('[AIS WS] Connected — subscribed to MMSI:', mmsiInts);
   };
 
   aisSocket.onmessage = (evt) => {
-    try {
-      const msg = JSON.parse(evt.data);
-      handleAisMessage(msg);
-    } catch(e) { console.warn('[AIS] Parse error', e); }
+    try { handleAisMessage(JSON.parse(evt.data)); }
+    catch(e) { console.warn('[AIS WS] Parse error', e); }
   };
 
   aisSocket.onerror = (e) => {
-    console.warn('[AIS] WebSocket error', e);
+    console.warn('[AIS WS] Error', e);
     updateAisStatusBadge('error');
   };
 
-  aisSocket.onclose = () => {
+  aisSocket.onclose = (e) => {
     updateAisStatusBadge('reconnecting');
-    console.log('[AIS] Connection closed — reconnecting in 15s…');
+    console.log(`[AIS WS] Closed (code ${e.code}) — reconnecting in 20s…`);
     clearTimeout(aisReconnectTimer);
-    aisReconnectTimer = setTimeout(connectAIS, 15000);
+    aisReconnectTimer = setTimeout(connectAIS, 20000);
   };
 }
 
 function handleAisMessage(msg) {
-  const meta = msg.MetaData || {};
-  const mmsi = String(meta.MMSI || '');
+  const meta     = msg.MetaData || {};
+  const mmsi     = String(meta.MMSI || meta.mmsi || '');
   const vesselId = mmsiToVesselId(mmsi);
   if (!vesselId) return;
 
   const now = Date.now();
 
-  if (msg.MessageType === 'PositionReport' || msg.MessageType === 'StandardClassBPositionReport') {
-    const pr = msg.Message?.PositionReport || msg.Message?.StandardClassBPositionReport || {};
-    const lat = meta.latitude  ?? pr.Latitude;
-    const lng = meta.longitude ?? pr.Longitude;
-    if (lat == null || lng == null || lat === 0 && lng === 0) return;
+  if (msg.MessageType === 'PositionReport' ||
+      msg.MessageType === 'StandardClassBPositionReport' ||
+      msg.MessageType === 'ExtendedClassBPositionReport') {
+
+    const pr  = msg.Message?.PositionReport
+             || msg.Message?.StandardClassBPositionReport
+             || msg.Message?.ExtendedClassBPositionReport
+             || {};
+
+    // lat/lng can be in MetaData (lowercase) or in the Message object (TitleCase)
+    const lat = meta.latitude  ?? meta.Latitude  ?? pr.Latitude;
+    const lng = meta.longitude ?? meta.Longitude ?? pr.Longitude;
+    if (lat == null || lng == null) return;
+    if (lat === 0 && lng === 0)     return;        // invalid AIS fix
+    if (lat > 90 || lat < -90)      return;
+    if (lng > 180 || lng < -180)    return;
 
     aisState[vesselId] = {
       ...(aisState[vesselId] || {}),
-      lat: parseFloat(lat.toFixed(5)),
-      lng: parseFloat(lng.toFixed(5)),
-      sog: (pr.Sog ?? 0).toFixed(1),
-      cog: Math.round(pr.Cog ?? 0),
-      heading: pr.TrueHeading ?? pr.Cog ?? 0,
+      lat:       parseFloat(parseFloat(lat).toFixed(5)),
+      lng:       parseFloat(parseFloat(lng).toFixed(5)),
+      sog:       (pr.Sog ?? 0).toFixed(1),
+      cog:       Math.round(pr.Cog ?? 0),
+      heading:   pr.TrueHeading ?? pr.Cog ?? 0,
       navStatus: navStatusLabel(pr.NavigationalStatus),
-      lastSeen: now,
-      online: true
+      lastSeen:  now,
+      online:    true
     };
 
     refreshMarker(vesselId);
     updateAisStrip(vesselId);
-    console.log(`[AIS] Position update: ${vesselId} → ${lat.toFixed(3)}, ${lng.toFixed(3)} @ ${aisState[vesselId].sog}kn`);
+    console.log(`[AIS WS] ${vesselId} → ${lat.toFixed(3)}°, ${lng.toFixed(3)}° @ ${aisState[vesselId].sog}kn`);
   }
 
   if (msg.MessageType === 'ShipStaticData') {
-    const sd = msg.Message?.ShipStaticData || {};
+    const sd  = msg.Message?.ShipStaticData || {};
     const eta = sd.Eta;
-    let etaStr = '—';
-    if (eta && eta.Month && eta.Day) {
-      etaStr = `${String(eta.Day).padStart(2,'0')}/${String(eta.Month).padStart(2,'0')} ${String(eta.Hour||0).padStart(2,'0')}:${String(eta.Minute||0).padStart(2,'0')} UTC`;
+    let etaStr = null;
+    if (eta && eta.Month && eta.Day && eta.Hour != null) {
+      etaStr = `${String(eta.Day).padStart(2,'0')}/${String(eta.Month).padStart(2,'0')} `
+             + `${String(eta.Hour).padStart(2,'0')}:${String(eta.Minute||0).padStart(2,'0')} UTC`;
     }
     aisState[vesselId] = {
       ...(aisState[vesselId] || {}),
-      destination: (sd.Destination || '').trim() || null,
-      eta: etaStr !== '—' ? etaStr : null,
-      shipType: sd.Type,
-      lastSeen: aisState[vesselId]?.lastSeen || now
+      destination: (sd.Destination || '').trim().replace(/[\x00-\x1f]/g,'') || null,
+      eta:         etaStr,
+      lastSeen:    aisState[vesselId]?.lastSeen || now
     };
     updateAisStrip(vesselId);
     refreshMarker(vesselId);
+    console.log(`[AIS WS] Static ${vesselId} → dest: ${aisState[vesselId].destination}, ETA: ${etaStr}`);
   }
 }
 
