@@ -1,202 +1,1232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Maritime Purchasing HQ</title>
-<link rel="stylesheet" href="styles.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maritime Procurement Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    :root{
+      --navy:#0a1628;
+      --navy-2:#0f2038;
+      --navy-3:#142945;
+      --panel:#10213a;
+      --panel-2:#132846;
+      --line:rgba(255,255,255,.1);
+      --text:#ffffff;
+      --muted:#aebfd6;
+      --accent:#e67e22;
+      --danger:#e74c3c;
+      --success:#27ae60;
+      --warning:#f1c40f;
+      --info:#4aa3ff;
+      --shadow:0 12px 28px rgba(0,0,0,.22);
+      --radius:18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body{
+      margin:0;
+      font-family:'Inter',system-ui,-apple-system,sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(230,126,34,.12), transparent 18%),
+        linear-gradient(180deg, #08111f 0%, var(--navy) 35%, #08111f 100%);
+      color:var(--text);
+    }
+
+    .skip-link{
+      position:absolute; left:-9999px; top:auto;
+    }
+    .skip-link:focus{
+      left:1rem; top:1rem; z-index:9999;
+      background:#fff; color:#000; padding:.75rem 1rem; border-radius:10px;
+    }
+
+    .navbar{
+      background:rgba(7,16,29,.88);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+
+    .brand-wrap{
+      display:flex; align-items:center; gap:.9rem;
+    }
+
+    .brand-logo{
+      width:48px; height:48px; border-radius:14px;
+      display:grid; place-items:center;
+      background:linear-gradient(135deg, rgba(230,126,34,.18), rgba(74,163,255,.18));
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      flex:0 0 auto;
+    }
+
+    .brand-title{
+      font-weight:800; letter-spacing:.02em; margin:0; font-size:1rem;
+    }
+
+    .brand-sub{
+      margin:0; color:var(--muted); font-size:.8rem;
+    }
+
+    .hero{
+      padding:2.5rem 0 1.25rem;
+    }
+
+    .hero-card, .panel-card{
+      background:linear-gradient(180deg, rgba(19,40,70,.96), rgba(13,29,51,.96));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .hero-card{
+      padding:1.4rem;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero-card::after{
+      content:"";
+      position:absolute; inset:auto -60px -60px auto;
+      width:220px; height:220px;
+      background:radial-gradient(circle, rgba(230,126,34,.18), transparent 65%);
+      pointer-events:none;
+    }
+
+    .eyebrow{
+      display:inline-flex; align-items:center; gap:.5rem;
+      font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+      color:#ffd1a7;
+      background:rgba(230,126,34,.10);
+      border:1px solid rgba(230,126,34,.24);
+      padding:.4rem .7rem;
+      border-radius:999px;
+    }
+
+    .hero h1{
+      font-size:clamp(1.7rem, 1.1rem + 2vw, 2.6rem);
+      margin:.9rem 0 .6rem;
+      font-weight:800;
+    }
+
+    .hero p{
+      color:var(--muted);
+      max-width:65ch;
+      margin-bottom:0;
+    }
+
+    .sync-badge{
+      display:inline-flex; gap:.55rem; align-items:center;
+      border:1px solid var(--line);
+      padding:.7rem .95rem;
+      border-radius:999px;
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+      font-size:.9rem;
+    }
+
+    .kpi-card{
+      height:100%;
+      padding:1rem;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    }
+
+    .kpi-label{
+      color:var(--muted);
+      font-size:.85rem;
+      margin-bottom:.45rem;
+    }
+
+    .kpi-value{
+      font-weight:800;
+      font-size:1.9rem;
+      line-height:1;
+      margin-bottom:.35rem;
+    }
+
+    .kpi-trend{
+      font-size:.85rem;
+      color:var(--muted);
+    }
+
+    .section-title{
+      font-size:1.2rem;
+      font-weight:800;
+      margin:0 0 1rem;
+    }
+
+    .subtle{
+      color:var(--muted);
+    }
+
+    .map-wrap{
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid var(--line);
+    }
+
+    #fleetMap{
+      height:460px;
+      width:100%;
+      background:#091321;
+    }
+
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip{
+      background:#0f2038;
+      color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .chart-box{
+      min-height:340px;
+      padding:1rem;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+    }
+
+    .nav-tabs{
+      border-bottom:1px solid var(--line);
+      gap:.5rem;
+      flex-wrap:nowrap;
+      overflow:auto;
+      padding-bottom:.25rem;
+    }
+
+    .nav-tabs .nav-link{
+      border:none;
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+      border-radius:12px;
+      white-space:nowrap;
+      padding:.75rem 1rem;
+      font-weight:600;
+    }
+
+    .nav-tabs .nav-link.active{
+      background:rgba(230,126,34,.16);
+      color:#fff;
+      border:1px solid rgba(230,126,34,.26);
+    }
+
+    .vessel-hero{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:1rem;
+      align-items:center;
+    }
+
+    .vessel-photo{
+      width:120px;
+      height:120px;
+      object-fit:cover;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#1a2f50;
+    }
+
+    .meta-grid, .mini-kpi-grid{
+      display:grid;
+      gap:.9rem;
+    }
+
+    .meta-grid{
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .mini-kpi-grid{
+      grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));
+    }
+
+    .meta-pill, .mini-kpi{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:14px;
+      padding:.9rem;
+    }
+
+    .meta-pill .label, .mini-kpi .label{
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      margin-bottom:.35rem;
+    }
+
+    .meta-pill .value, .mini-kpi .value{
+      font-size:1rem;
+      font-weight:700;
+    }
+
+    .status-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.45rem .75rem;
+      border-radius:999px;
+      font-weight:700;
+      font-size:.8rem;
+      border:1px solid transparent;
+    }
+    .badge-ok{ background:rgba(39,174,96,.14); color:#9bf1ba; border-color:rgba(39,174,96,.28);}
+    .badge-warn{ background:rgba(241,196,15,.12); color:#ffe48b; border-color:rgba(241,196,15,.28);}
+    .badge-danger{ background:rgba(231,76,60,.14); color:#ffb0a7; border-color:rgba(231,76,60,.28);}
+    .badge-info{ background:rgba(74,163,255,.14); color:#b7dcff; border-color:rgba(74,163,255,.28);}
+
+    .alert-list{
+      display:grid;
+      gap:.75rem;
+    }
+
+    .alert-item{
+      display:flex;
+      gap:.85rem;
+      align-items:flex-start;
+      padding:.9rem 1rem;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+
+    .alert-dot{
+      width:11px; height:11px; border-radius:50%; margin-top:.35rem; flex:0 0 auto;
+    }
+
+    .progress{
+      height:12px;
+      background:rgba(255,255,255,.08);
+    }
+
+    .progress-bar.bg-accent{ background-color:var(--accent)!important; }
+    .progress-bar.bg-danger{ background-color:var(--danger)!important; }
+    .progress-bar.bg-success{ background-color:var(--success)!important; }
+
+    .table-wrap{
+      overflow:auto;
+      border-radius:16px;
+      border:1px solid var(--line);
+    }
+
+    .table{
+      margin:0;
+      min-width:980px;
+      color:#fff;
+      --bs-table-bg: transparent;
+      --bs-table-striped-bg: rgba(255,255,255,.03);
+      --bs-table-striped-color: #fff;
+      --bs-table-hover-bg: rgba(255,255,255,.05);
+      --bs-table-hover-color: #fff;
+      --bs-table-border-color: rgba(255,255,255,.08);
+      font-size:.92rem;
+    }
+
+    .table thead th{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#d7e3f3;
+      background:rgba(255,255,255,.04);
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+
+    .filter-bar{
+      display:grid;
+      gap:.8rem;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .form-control, .form-select{
+      background:#0e1c31;
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+    }
+
+    .form-control::placeholder{ color:#9cb0ca; }
+    .form-control:focus, .form-select:focus{
+      background:#10213a;
+      border-color:rgba(230,126,34,.4);
+      box-shadow:0 0 0 .25rem rgba(230,126,34,.15);
+      color:#fff;
+    }
+
+    .todo-card{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      border-radius:16px;
+      padding:1rem;
+      height:100%;
+    }
+
+    .priority-high{ border-color:rgba(231,76,60,.32); box-shadow: inset 0 0 0 1px rgba(231,76,60,.08);}
+    .priority-medium{ border-color:rgba(241,196,15,.30); }
+    .priority-low{ border-color:rgba(39,174,96,.28); }
+
+    .todo-priority{
+      display:inline-flex;
+      padding:.38rem .65rem;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      margin-bottom:.75rem;
+    }
+
+    .todo-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.55rem;
+      margin-top:.9rem;
+    }
+
+    .btn-marine{
+      background:var(--accent);
+      color:#fff;
+      border:none;
+    }
+    .btn-marine:hover{ background:#cf6f1a; color:#fff; }
+
+    .btn-outline-marine{
+      color:#fff;
+      border:1px solid rgba(230,126,34,.4);
+      background:rgba(230,126,34,.08);
+    }
+    .btn-outline-marine:hover{
+      color:#fff;
+      background:rgba(230,126,34,.18);
+      border-color:rgba(230,126,34,.58);
+    }
+
+    .integration-box{
+      padding:1rem;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      height:100%;
+    }
+
+    .task-list{
+      display:grid;
+      gap:.75rem;
+    }
+
+    .task-item{
+      padding:.85rem .95rem;
+      border-radius:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .accordion-item{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      color:#fff;
+    }
+
+    .accordion-button{
+      background:#10213a;
+      color:#fff;
+      font-weight:700;
+    }
+
+    .accordion-button:not(.collapsed){
+      background:#132846;
+      color:#fff;
+      box-shadow:none;
+    }
+
+    .accordion-button:focus{
+      box-shadow:0 0 0 .25rem rgba(230,126,34,.15);
+    }
+
+    .accordion-body{
+      background:#0d1c31;
+      color:#d7e3f3;
+    }
+
+    .footer-note{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    .skeleton{
+      min-height:120px;
+      border-radius:16px;
+      background:linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.05) 75%);
+      background-size:200% 100%;
+      animation: shimmer 1.4s infinite linear;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    @keyframes shimmer{
+      from{ background-position:200% 0; }
+      to{ background-position:-200% 0; }
+    }
+
+    @media (max-width: 767.98px){
+      .hero{ padding-top:1.4rem; }
+      #fleetMap{ height:340px; }
+      .vessel-hero{
+        grid-template-columns:1fr;
+      }
+      .vessel-photo{
+        width:100%;
+        max-width:220px;
+        height:150px;
+      }
+      .sync-badge{
+        margin-top:1rem;
+        width:100%;
+        justify-content:center;
+      }
+    }
+  </style>
 </head>
 <body>
+  <a href="#mainContent" class="skip-link">Salta al contenuto</a>
 
-<header class="topbar">
-  <div class="topbar-brand">
-    <span class="status-dot pulse"></span>
-    <h1 data-i18n="title">Maritime Purchasing HQ</h1>
-  </div>
-  <div class="topbar-right">
-    <span class="topbar-time">Last update: 2026-04-27 15:30 UTC</span>
-  </div>
-</header>
-
-<main class="dashboard">
-
-  <!-- HERO -->
-  <section>
-    <div class="hero-grid">
-      <div class="map-panel">
-        <div class="section-head"><h2 data-i18n="fleetOverview">Fleet Overview</h2></div>
-        <div class="map-body">
-          <svg class="fleet-map" viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
-            <rect width="600" height="220" fill="#06111c"/>
-            <path d="M0,80 Q50,60 100,75 Q150,55 200,70 Q250,65 300,72 Q360,58 420,68 Q480,55 540,70 Q570,65 600,70 L600,0 L0,0 Z" fill="#0d1e2e" opacity="0.9"/>
-            <path d="M0,160 Q80,170 160,155 Q240,145 300,158 Q370,148 440,160 Q510,152 570,162 L600,160 L600,220 L0,220 Z" fill="#0d1e2e" opacity="0.8"/>
-            <line x1="0" y1="110" x2="600" y2="110" stroke="#244765" stroke-width="0.5" stroke-dasharray="4,6"/>
-            <line x1="300" y1="0" x2="300" y2="220" stroke="#244765" stroke-width="0.5" stroke-dasharray="4,6"/>
-            <polygon points="138,86 134,98 142,98" fill="#57d4ff"/>
-            <circle cx="138" cy="98" r="4" fill="#57d4ff" opacity="0.4"/>
-            <text x="148" y="95" fill="#8ad9ff" font-size="9" font-family="Arial" font-weight="700">PEPPINO</text>
-            <text x="148" y="106" fill="#86a4c0" font-size="8" font-family="Arial">Genoa</text>
-            <polygon points="192,96 188,108 196,108" fill="#ffbf3c"/>
-            <circle cx="192" cy="108" r="4" fill="#ffbf3c" opacity="0.4"/>
-            <text x="202" y="105" fill="#ffd98a" font-size="9" font-family="Arial" font-weight="700">MED LIGURIA</text>
-            <text x="202" y="116" fill="#86a4c0" font-size="8" font-family="Arial">Livorno</text>
-            <polygon points="252,106 248,118 256,118" fill="#57d4ff"/>
-            <circle cx="252" cy="118" r="4" fill="#57d4ff" opacity="0.4"/>
-            <text x="262" y="115" fill="#8ad9ff" font-size="9" font-family="Arial" font-weight="700">MED TOSCANA</text>
-            <text x="262" y="126" fill="#86a4c0" font-size="8" font-family="Arial">Civitavecchia</text>
-            <circle cx="312" cy="128" r="6" fill="#ff5f63" opacity="0.9"/>
-            <text x="322" y="126" fill="#ffa8aa" font-size="9" font-family="Arial" font-weight="700">NORRBOTTEN</text>
-            <text x="322" y="137" fill="#86a4c0" font-size="8" font-family="Arial">Naples ⚓</text>
-            <circle cx="14" cy="206" r="4" fill="#57d4ff"/>
-            <text x="22" y="210" fill="#86a4c0" font-size="8" font-family="Arial">On time</text>
-            <circle cx="76" cy="206" r="4" fill="#ffbf3c"/>
-            <text x="84" y="210" fill="#86a4c0" font-size="8" font-family="Arial">Delay risk</text>
-            <circle cx="146" cy="206" r="4" fill="#ff5f63"/>
-            <text x="154" y="210" fill="#86a4c0" font-size="8" font-family="Arial">Anchored</text>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container py-2">
+      <div class="brand-wrap">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 40L32 16L54 40" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 44H48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+            <path d="M22 50H42" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="map-meta">
-          <span class="map-meta-badge">4 vessels</span>
-          <span class="map-meta-badge">2 on time</span>
-          <span class="map-meta-badge">1 delay risk</span>
-          <span class="map-meta-badge">1 anchored</span>
-          <span class="map-meta-badge">3 port calls 48h</span>
+        <div>
+          <p class="brand-title">Company Name Placeholder</p>
+          <p class="brand-sub">Maritime Procurement Dashboard</p>
         </div>
       </div>
 
-      <div class="kpi-panel">
-        <div class="section-head"><h2 data-i18n="subtitle">Fleet Operations KPIs</h2></div>
-        <div class="kpi-grid">
-          <div class="kpi-card"><span class="kpi-label">Vessels monitored</span><div class="kpi-value">4</div><div class="kpi-sub">Fleet active</div></div>
-          <div class="kpi-card"><span class="kpi-label">Open RFQ</span><div class="kpi-value">14</div><div class="kpi-sub">All vessels</div></div>
-          <div class="kpi-card"><span class="kpi-label">Avg. budget used</span><div class="kpi-value">74%</div><div class="kpi-sub">Fleet utilisation</div></div>
-          <div class="kpi-card"><span class="kpi-label">Critical alerts</span><div class="kpi-value text-red">2</div><div class="kpi-sub">Action required</div></div>
-          <div class="kpi-card"><span class="kpi-label">Delivery pending</span><div class="kpi-value text-yellow">6</div><div class="kpi-sub">Within 48h</div></div>
-          <div class="kpi-card"><span class="kpi-label">Operative emails</span><div class="kpi-value">9</div><div class="kpi-sub">Unmanaged</div></div>
-        </div>
+      <div class="d-flex gap-2 flex-wrap ms-auto">
+        <a href="#home" class="btn btn-sm btn-outline-light">Home</a>
+        <a href="#fleetSection" class="btn btn-sm btn-outline-light">Flotta</a>
+        <a href="#todoSection" class="btn btn-sm btn-outline-light">Azioni richieste</a>
+        <a href="#outlookSection" class="btn btn-sm btn-outline-light">Outlook</a>
       </div>
     </div>
-  </section>
+  </nav>
 
-  <!-- ALERTS -->
-  <section class="section-card">
-    <div class="section-head"><h2 data-i18n="alerts">Alerts</h2></div>
-    <div class="alerts-list">
-      <div class="alert crit">PEPPINO — Delivery delay risk on 2026-PEP-HQDN-00005</div>
-      <div class="alert crit">MED LIGURIA — Budget threshold exceeded (92%)</div>
-      <div class="alert warn">MED TOSCANA — Captain request pending review</div>
-      <div class="alert warn">MED LIGURIA — Certificate ISM expiring in 28 days</div>
-    </div>
-  </section>
-
-  <!-- FLEET SUMMARY -->
-  <section class="section-card">
-    <div class="section-head"><h2 data-i18n="fleetSummary">Fleet Summary</h2></div>
-    <div class="fleet-grid">
-      <article class="ship-card">
-        <div class="ship-name">PEPPINO</div>
-        <div class="ship-meta">
-          <span class="ship-status on-time">On time</span>
-          <span class="ship-port">Genoa → Livorno</span>
-        </div>
-        <p class="ship-desc">Engine spares, lube oil, provisions</p>
-        <a href="vessel.html?vessel=peppino" class="ghost-btn" data-i18n="viewDetails">View Details</a>
-      </article>
-      <article class="ship-card">
-        <div class="ship-name">MED LIGURIA</div>
-        <div class="ship-meta">
-          <span class="ship-status delay">Delay risk</span>
-          <span class="ship-port">Livorno → Civitavecchia</span>
-        </div>
-        <p class="ship-desc">Fuel injectors, hydraulic oil, gaskets</p>
-        <a href="vessel.html?vessel=med-liguria" class="ghost-btn" data-i18n="viewDetails">View Details</a>
-      </article>
-      <article class="ship-card">
-        <div class="ship-name">MED TOSCANA</div>
-        <div class="ship-meta">
-          <span class="ship-status on-time">On time</span>
-          <span class="ship-port">Civitavecchia → Palermo</span>
-        </div>
-        <p class="ship-desc">Navigation lights, safety equipment</p>
-        <a href="vessel.html?vessel=med-toscana" class="ghost-btn" data-i18n="viewDetails">View Details</a>
-      </article>
-      <article class="ship-card">
-        <div class="ship-name">NORRBOTTEN</div>
-        <div class="ship-meta">
-          <span class="ship-status anchored">Anchored</span>
-          <span class="ship-port">Naples (Anchored)</span>
-        </div>
-        <p class="ship-desc">Refit spares, electrical cables, steel plates</p>
-        <a href="vessel.html?vessel=norrbotten" class="ghost-btn" data-i18n="viewDetails">View Details</a>
-      </article>
-    </div>
-  </section>
-
-  <!-- PROCUREMENT + BUDGET -->
-  <div class="vessel-two-col">
-    <section class="section-card">
-      <div class="section-head"><h2 data-i18n="procurement">Procurement</h2></div>
-      <div class="proc-table">
-        <div class="proc-row head"><span>Vessel</span><span>RFQ</span><span>Orders</span><span>DN</span></div>
-        <div class="proc-row"><span class="proc-vessel">PEPPINO</span><span class="proc-num">4</span><span class="proc-num highlight">12</span><span class="proc-num">3</span></div>
-        <div class="proc-row"><span class="proc-vessel">MED LIGURIA</span><span class="proc-num">3</span><span class="proc-num highlight">10</span><span class="proc-num">2</span></div>
-        <div class="proc-row"><span class="proc-vessel">MED TOSCANA</span><span class="proc-num">5</span><span class="proc-num highlight">11</span><span class="proc-num">4</span></div>
-        <div class="proc-row"><span class="proc-vessel">NORRBOTTEN</span><span class="proc-num">2</span><span class="proc-num highlight">9</span><span class="proc-num">1</span></div>
-      </div>
-    </section>
-    <section class="section-card">
-      <div class="section-head"><h2 data-i18n="budget">Budget Monitor</h2></div>
-      <ul class="budget-list">
-        <li class="budget-item"><span class="budget-label">PEPPINO</span><div class="budget-bar"><div class="fill green" style="width:68%"></div></div><span class="budget-amount">€136K / €200K</span></li>
-        <li class="budget-item"><span class="budget-label">MED LIGURIA</span><div class="budget-bar"><div class="fill red" style="width:92%"></div></div><span class="budget-amount">€184K / €200K</span></li>
-        <li class="budget-item"><span class="budget-label">MED TOSCANA</span><div class="budget-bar"><div class="fill yellow" style="width:82%"></div></div><span class="budget-amount">€164K / €200K</span></li>
-        <li class="budget-item"><span class="budget-label">NORRBOTTEN</span><div class="budget-bar"><div class="fill green" style="width:62%"></div></div><span class="budget-amount">€124K / €200K</span></li>
-      </ul>
-    </section>
-  </div>
-
-  <!-- CERTIFICATIONS + COMPOSER -->
-  <div class="vessel-two-col">
-    <section class="section-card">
-      <div class="section-head"><h2 data-i18n="certifications">Certifications</h2></div>
-      <div class="cert-grid">
-        <div class="cert-box crit"><div class="cert-num">1</div><span data-i18n="expiredLabel">Expired / ≤15d</span></div>
-        <div class="cert-box warn"><div class="cert-num">3</div><span data-i18n="expiringLabel">Expiring 30d</span></div>
-        <div class="cert-box ok"><div class="cert-num">11</div><span data-i18n="validLabel">Valid</span></div>
-      </div>
-    </section>
-    <section class="section-card">
-      <div class="section-head"><h2 data-i18n="composer">Message Composer</h2></div>
-      <div class="composer-select-row">
-        <select id="composer-vessel">
-          <option value="peppino">PEPPINO</option>
-          <option value="med-liguria">MED LIGURIA</option>
-          <option value="med-toscana">MED TOSCANA</option>
-          <option value="norrbotten">NORRBOTTEN</option>
-        </select>
-      </div>
-      <div class="composer-grid">
-        <div class="template-list">
-          <button class="template-box">Request ETA + Agent</button>
-          <button class="template-box">Order confirmation</button>
-          <button class="template-box">Captain request</button>
-        </div>
-        <div class="composer-preview">
-          <textarea class="composer-preview-text" placeholder="Select a template…"></textarea>
+  <main id="mainContent" class="container py-4">
+    <section id="home" class="hero">
+      <div class="hero-card">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-8">
+            <span class="eyebrow">Fleet overview</span>
+            <h1>Vista globale flotta e procurement</h1>
+            <p>
+              Dashboard unica per monitorare RFQ, ordini, DN, consegne, priorità operative e stato nave,
+              con struttura già pronta per AIS live e integrazione Microsoft Graph.
+            </p>
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <div class="sync-badge">
+              <span>●</span>
+              <span id="lastSyncText">Sincronizzazione in corso…</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
-  </div>
 
-</main>
+    <section class="mb-4">
+      <div id="globalKpis" class="row g-3">
+        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
+        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
+        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
+        <div class="col-md-6 col-xl-3"><div class="skeleton"></div></div>
+      </div>
+    </section>
 
-<footer class="footer">
-  <span>Maritime Purchasing HQ © 2026 — Fleet: PEPPINO · MED LIGURIA · MED TOSCANA · NORRBOTTEN</span>
-  <div class="footer-lang">
-    <button class="lang-btn active" data-lang="en">EN</button>
-    <button class="lang-btn" data-lang="it">IT</button>
-  </div>
-</footer>
-<script src="app.js"></script>
-</body>
-</html>
+    <section class="panel-card p-3 p-lg-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h2 class="section-title mb-1">Planisfero flotta</h2>
+          <p class="subtle mb-0">Marker nave con coordinate placeholder aggiornabili quando mi fornirai gli MMSI.</p>
+        </div>
+        <span class="status-badge badge-info">Leaflet + OpenStreetMap</span>
+      </div>
+
+      <div class="map-wrap">
+        <div id="fleetMap" aria-label="Mappa flotta"></div>
+      </div>
+    </section>
+
+    <section class="row g-4 mb-4">
+      <div class="col-xl-7">
+        <div class="panel-card p-3 p-lg-4 h-100">
+          <h2 class="section-title">Distribuzione KPI per nave</h2>
+          <div class="chart-box">
+            <canvas id="fleetBarChart" aria-label="Grafico KPI flotta"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-5">
+        <div class="panel-card p-3 p-lg-4 h-100">
+          <h2 class="section-title">Stato consegne</h2>
+          <div class="chart-box">
+            <canvas id="deliveryChart" aria-label="Grafico stato consegne"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fleetSection" class="panel-card p-3 p-lg-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h2 class="section-title mb-1">Schede nave</h2>
+          <p class="subtle mb-0">Una tab per ogni nave, con KPI, alert, ordini, avanzamento e certificati.</p>
+        </div>
+      </div>
+
+      <ul class="nav nav-tabs mb-4" id="vesselTabs" role="tablist"></ul>
+      <div class="tab-content" id="vesselTabContent"></div>
+    </section>
+
+    <section id="todoSection" class="panel-card p-3 p-lg-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+          <h2 class="section-title mb-1">To do / Azioni richieste</h2>
+          <p class="subtle mb-0">Priorità giornaliere generate automaticamente dal JSON.</p>
+        </div>
+        <span id="todoCounter" class="status-badge badge-warn">0 azioni</span>
+      </div>
+
+      <div id="todoList" class="row g-3"></div>
+    </section>
+
+    <section id="outlookSection" class="row g-4 mb-4">
+      <div class="col-xl-6">
+        <div class="panel-card p-3 p-lg-4 h-100">
+          <h2 class="section-title">Integrazione Outlook / Microsoft 365</h2>
+          <div class="integration-box mb-3">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <button class="btn btn-marine" id="btnConnectMicrosoft">Connetti Microsoft 365</button>
+              <button class="btn btn-outline-marine" id="btnSyncTasks">Sincronizza task Outlook</button>
+              <button class="btn btn-outline-light" id="btnDisconnectMicrosoft">Disconnetti</button>
+            </div>
+            <p class="mb-2 subtle" id="msStatus">
+              Configurazione OAuth2 predisposta. Inserisci tenantId e clientId nei placeholder JS per attivare il login reale via Microsoft Graph.
+            </p>
+            <div class="small subtle">
+              Scope previsti: Mail.Send, Tasks.ReadWrite, User.Read
+            </div>
+          </div>
+
+          <div class="integration-box">
+            <h3 class="h6 fw-bold mb-3">Task aperti da Outlook</h3>
+            <div id="outlookTasks" class="task-list">
+              <div class="task-item">
+                <div class="fw-semibold">Placeholder task</div>
+                <div class="subtle small">I task Microsoft To Do / Outlook compariranno qui dopo l’autenticazione.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-6">
+        <div class="panel-card p-3 p-lg-4 h-100">
+          <h2 class="section-title">Guida Entra ID / Azure AD</h2>
+
+          <div class="accordion" id="azureGuide">
+            <div class="accordion-item mb-2 rounded-3 overflow-hidden">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#stepOne">
+                  1. Registra l’app
+                </button>
+              </h2>
+              <div id="stepOne" class="accordion-collapse collapse show" data-bs-parent="#azureGuide">
+                <div class="accordion-body">
+                  Vai su Microsoft Entra admin center → App registrations → New registration. Imposta un nome tipo
+                  <strong>Maritime Dashboard</strong> e come redirect URI usa l’URL pubblico della tua GitHub Pages.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item mb-2 rounded-3 overflow-hidden">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepTwo">
+                  2. Authentication
+                </button>
+              </h2>
+              <div id="stepTwo" class="accordion-collapse collapse" data-bs-parent="#azureGuide">
+                <div class="accordion-body">
+                  Abilita la piattaforma <strong>Single-page application</strong> e aggiungi il redirect URI della dashboard.
+                  Se usi un dominio GitHub Pages, esempio: https://tuoutente.github.io/tuorepo/.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item mb-2 rounded-3 overflow-hidden">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepThree">
+                  3. API permissions
+                </button>
+              </h2>
+              <div id="stepThree" class="accordion-collapse collapse" data-bs-parent="#azureGuide">
+                <div class="accordion-body">
+                  In Microsoft Graph aggiungi almeno: <strong>User.Read</strong>, <strong>Mail.Send</strong>,
+                  <strong>Tasks.ReadWrite</strong>. Poi concedi <strong>admin consent</strong> se richiesto dalla policy aziendale.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item rounded-3 overflow-hidden">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stepFour">
+                  4. Copia gli identificativi nel file
+                </button>
+              </h2>
+              <div id="stepFour" class="accordion-collapse collapse" data-bs-parent="#azureGuide">
+                <div class="accordion-body">
+                  Copia <strong>Application (client) ID</strong> e <strong>Directory (tenant) ID</strong> nei placeholder
+                  della costante <code>MS_CONFIG</code> nello script in fondo a questo file.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <footer class="pb-4">
+      <div class="panel-card p-3 p-lg-4">
+        <p class="footer-note mb-0">
+          Bozza completa pronta per GitHub Pages: dati procurement live da JSON raw GitHub, blocchi AIS/Outlook già predisposti,
+          struttura modulare per aggiungere altre navi senza riscrivere il layout.
+        </p>
+      </div>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+
+  <script>
+    const PROCUREMENT_URL = "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json";
+
+    const vesselStaticMeta = {
+      medtoscana: {
+        flag: "Italy",
+        type: "Ro-Ro Cargo",
+        image: "https://picsum.photos/seed/medtoscana/640/360",
+        coords: [40.8518, 14.2681],
+        port: "Naples",
+        eta: "Placeholder ETA",
+        etb: "Placeholder ETB",
+        etd: "Placeholder ETD"
+      },
+      medliguria: {
+        flag: "Italy",
+        type: "Ro-Ro Cargo",
+        image: "https://picsum.photos/seed/medliguria/640/360",
+        coords: [44.4056, 8.9463],
+        port: "Genoa",
+        eta: "Placeholder ETA",
+        etb: "Placeholder ETB",
+        etd: "Placeholder ETD"
+      },
+      peppino: {
+        flag: "Italy",
+        type: "Utility Vessel",
+        image: "https://picsum.photos/seed/peppino/640/360",
+        coords: [38.1157, 13.3615],
+        port: "Palermo",
+        eta: "Placeholder ETA",
+        etb: "Placeholder ETB",
+        etd: "Placeholder ETD"
+      },
+      hqs: {
+        flag: "Italy",
+        type: "Shore / HQ Support",
+        image: "https://picsum.photos/seed/hqs/640/360",
+        coords: [41.9028, 12.4964],
+        port: "Rome",
+        eta: "Placeholder ETA",
+        etb: "Placeholder ETB",
+        etd: "Placeholder ETD"
+      }
+    };
+
+    const MS_CONFIG = {
+      clientId: "PASTE_YOUR_CLIENT_ID",
+      tenantId: "PASTE_YOUR_TENANT_ID",
+      redirectUri: window.location.origin + window.location.pathname,
+      scopes: ["User.Read", "Mail.Send", "Tasks.ReadWrite"]
+    };
+
+    const appState = {
+      raw: null,
+      vessels: [],
+      actions: [],
+      map: null,
+      markers: [],
+      charts: {},
+      msalInstance: null,
+      account: null,
+      accessToken: null,
+      outlookTasks: []
+    };
+
+    const currencyFmt = new Intl.NumberFormat("it-IT");
+    const dateFmt = new Intl.DateTimeFormat("it-IT", { dateStyle: "medium", timeStyle: "short" });
+    const shortDateFmt = new Intl.DateTimeFormat("it-IT", { dateStyle: "medium" });
+
+    function safeText(value, fallback = "—") {
+      return value === null || value === undefined || value === "" ? fallback : value;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return "—";
+      const d = new Date(dateString);
+      return isNaN(d) ? dateString : shortDateFmt.format(d);
+    }
+
+    function formatDateTime(dateString) {
+      if (!dateString) return "—";
+      const d = new Date(dateString);
+      return isNaN(d) ? dateString : dateFmt.format(d);
+    }
+
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function statusBadgeClass(color) {
+      if (color === "red") return "badge-danger";
+      if (color === "green") return "badge-ok";
+      return "badge-warn";
+    }
+
+    function deliveryLabel(vessel) {
+      return vessel.deliveryColor === "red" ? "Consegne in ritardo" : "Consegne sotto controllo";
+    }
+
+    function isDnClosed(item) {
+      const dn = (item.dnStatus || "").toLowerCase();
+      return dn.includes("received");
+    }
+
+    function isOverdueDelivery(item) {
+      if (!item.deliveryDate) return false;
+      const delivery = new Date(item.deliveryDate);
+      const today = new Date();
+      return delivery < today && !isDnClosed(item);
+    }
+
+    function computeGlobalKpis(vessels) {
+      const allItems = vessels.flatMap(v => v.items || []);
+      return {
+        rfqOpen: vessels.reduce((sum, v) => sum + (v.rfqOpen || 0), 0),
+        dnPending: vessels.reduce((sum, v) => sum + (v.dnPending || 0), 0),
+        ordersOverdue: allItems.filter(isOverdueDelivery).length,
+        criticalAlerts:
+          vessels.filter(v => v.deliveryColor === "red").length +
+          vessels.reduce((sum, v) => sum + (v.rfqOverdue15 || 0), 0) +
+          vessels.filter(v => (v.dnPending || 0) >= 15).length
+      };
+    }
+
+    function generateActions(vessels) {
+      const actions = [];
+
+      vessels.forEach(v => {
+        if ((v.rfqOverdue15 || 0) > 0) {
+          actions.push({
+            priority: "alta",
+            vesselId: v.vesselId,
+            vesselName: v.vesselName,
+            description: `${v.rfqOverdue15} RFQ oltre 15 giorni.`,
+            suggestion: "Escalation immediata verso buyer e supplier.",
+            type: "rfq15"
+          });
+        }
+
+        if ((v.rfqOverdue7 || 0) > 0) {
+          actions.push({
+            priority: "alta",
+            vesselId: v.vesselId,
+            vesselName: v.vesselName,
+            description: `${v.rfqOverdue7} RFQ oltre 7 giorni.`,
+            suggestion: "Verificare follow-up fornitori e deadline offerte.",
+            type: "rfq7"
+          });
+        }
+
+        if ((v.readyForPO || 0) > 0) {
+          actions.push({
+            priority: "media",
+            vesselId: v.vesselId,
+            vesselName: v.vesselName,
+            description: `${v.readyForPO} richieste pronte per emissione PO.`,
+            suggestion: "Validare approvazioni e finalizzare i PO.",
+            type: "po"
+          });
+        }
+
+        if ((v.dnPending || 0) >= 15) {
+          actions.push({
+            priority: "alta",
+            vesselId: v.vesselId,
+            vesselName: v.vesselName,
+            description: `${v.dnPending} DN pendenti.`,
+            suggestion: "Controllare documentazione di consegna e ricezione a bordo.",
+            type: "dn"
+          });
+        }
+
+        if (v.deliveryColor === "red") {
+          actions.push({
+            priority: "alta",
+            vesselId: v.vesselId,
+            vesselName: v.vesselName,
+            description: "Consegne in ritardo rilevate.",
+            suggestion: "Contattare supplier e aggiornare ETA operativa.",
+            type: "delivery"
+          });
+        }
+
+        const overdueItems = (v.items || []).filter(isOverdueDelivery).slice(0, 2);
+        overdueItems.forEach(item => {
+          actions.push({
+            priority: "media",
+            vesselId: v.vesselId,
+            vesselName: v.vesselName,
+            description: `Item in ritardo: ${item.description}`,
+            suggestion: `Verificare supplier ${item.supplier || "N/D"} e stato DN.`,
+            type: "item"
+          });
+        });
+      });
+
+      return actions.sort((a, b) => {
+        const weight = { alta: 3, media: 2, bassa: 1 };
+        return weight[b.priority] - weight[a.priority];
+      });
+    }
+
+    function renderGlobalKpis(vessels) {
+      const kpi = computeGlobalKpis(vessels);
+      const html = [
+        {
+          label: "RFQ aperti",
+          value: kpi.rfqOpen,
+          note: "Somma dinamica flotta",
+          color: "var(--accent)"
+        },
+        {
+          label: "Ordini in ritardo",
+          value: kpi.ordersOverdue,
+          note: "Delivery date scaduta + DN non chiuso",
+          color: "var(--danger)"
+        },
+        {
+          label: "DN pendenti",
+          value: kpi.dnPending,
+          note: "Da confermare o ricevere",
+          color: "var(--warning)"
+        },
+        {
+          label: "Alert critici",
+          value: kpi.criticalAlerts,
+          note: "RFQ, delivery e backlog",
+          color: "var(--danger)"
+        }
+      ].map(card => `
+        <div class="col-md-6 col-xl-3">
+          <div class="kpi-card">
+            <div class="kpi-label">${card.label}</div>
+            <div class="kpi-value" style="color:${card.color}">${currencyFmt.format(card.value)}</div>
+            <div class="kpi-trend">${card.note}</div>
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("globalKpis").innerHTML = html;
+    }
+
+    function initMap(vessels) {
+      if (!appState.map) {
+        appState.map = L.map("fleetMap", { zoomControl: true }).setView([39.5, 13.5], 5);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 18,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(appState.map);
+      }
+
+      appState.markers.forEach(m => m.remove());
+      appState.markers = [];
+
+      vessels.forEach(v => {
+        const meta = vesselStaticMeta[v.vesselId] || {};
+        const coords = meta.coords || [41, 12];
+        const marker = L.marker(coords).addTo(appState.map);
+
+        marker.bindPopup(`
+          <div style="min-width:220px">
+            <div style="font-weight:800; margin-bottom:.35rem;">${escapeHtml(v.vesselName)}</div>
+            <div style="font-size:.9rem; color:#d7e3f3">Porto placeholder: ${escapeHtml(meta.port || "N/D")}</div>
+            <div style="font-size:.9rem; color:#d7e3f3">RFQ aperti: ${v.rfqOpen || 0} · DN pendenti: ${v.dnPending || 0}</div>
+            <button
+              class="btn btn-sm btn-warning mt-2"
+              onclick="goToVessel('${v.vesselId}')"
+              style="background:#e67e22;border:none;color:#fff"
+            >Apri scheda nave</button>
+          </div>
+        `);
+
+        marker.on("click", () => {
+          setTimeout(() => goToVessel(v.vesselId), 250);
+        });
+
+        appState.markers.push(marker);
+      });
+    }
+
+    function getVesselAlerts(vessel) {
+      const alerts = [];
+
+      if ((vessel.rfqOverdue15 || 0) > 0) {
+        alerts.push({ color: "var(--danger)", text: `RFQ oltre 15 giorni: ${vessel.rfqOverdue15}` });
+      }
+      if ((vessel.rfqOverdue7 || 0) > 0) {
+        alerts.push({ color: "var(--warning)", text: `RFQ oltre 7 giorni: ${vessel.rfqOverdue7}` });
+      }
+      if (vessel.deliveryColor === "red") {
+        alerts.push({ color: "var(--danger)", text: "Consegne in ritardo rilevate." });
+      }
+      if ((vessel.dnPending || 0) >= 15) {
+        alerts.push({ color: "var(--warning)", text: `DN pendenti elevati: ${vessel.dnPending}` });
+      }
+      if (alerts.length === 0) {
+        alerts.push({ color: "var(--success)", text: "Nessun alert critico attivo." });
+      }
+
+      return alerts;
+    }
+
+    function renderVesselTabs(vessels) {
+      const tabs = document.getElementById("vesselTabs");
+      const content = document.getElementById("vesselTabContent");
+
+      tabs.innerHTML = vessels.map((v, index) => `
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link ${index === 0 ? "active" : ""}"
+            id="tab-${v.vesselId}"
+            data-bs-toggle="tab"
+            data-bs-target="#pane-${v.vesselId}"
+            type="button"
+            role="tab"
+            aria-controls="pane-${v.vesselId}"
+            aria-selected="${index === 0 ? "true" : "false"}"
+          >
+            ${escapeHtml(v.vesselName)}
+          </button>
+        </li>
+      `).join("");
+
+      content.innerHTML = vessels.map((v, index) => {
+        const meta = vesselStaticMeta[v.vesselId] || {};
+        const alerts = getVesselAlerts(v);
+        const suppliers = [...new Set((v.items || []).map(i => i.supplier).filter(Boolean))].sort();
+
+        return `
+          <div class="tab-pane fade ${index === 0 ? "show active" : ""}" id="pane-${v.vesselId}" role="tabpanel" tabindex="0">
+            <div id="card-${v.vesselId}" class="row g-4">
+              <div class="col-12">
+                <div class="panel-card p-3">
+                  <div class="vessel-hero">
+                    <img
+                      class="vessel-photo"
+                      src="${meta.image || "https://picsum.photos/seed/defaultvessel/640/360"}"
+                      alt="Foto placeholder ${escapeHtml(v.vesselName)}"
+                      width="640"
+                      height="360"
+                      loading="lazy"
+                    />
+                    <div>
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <h3 class="h4 fw-bold mb-2">${escapeHtml(v.vesselName)}</h3>
+                          <div class="d-flex flex-wrap gap-2">
+                            <span class="status-badge badge-info">${escapeHtml(meta.flag || "Placeholder flag")}</span>
+                            <span class="status-badge badge-info">${escapeHtml(meta.type || "Placeholder type")}</span>
+                            <span class="status-badge ${statusBadgeClass(v.deliveryColor)}">${deliveryLabel(v)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="meta-grid mt-3">
+                        <div class="meta-pill">
+                          <div class="label">Posizione attuale</div>
+                          <div class="value">${safeText(meta.port)} · ${meta.coords ? meta.coords.join(", ") : "—"}</div>
+                        </div>
+                        <div class="meta-pill">
+                          <div class="label">ETA</div>
+                          <div class="value">${safeText(meta.eta)}</div>
+                        </div>
+                        <div class="meta-pill">
+                          <div class="label">ETB</div>
+                          <div class="value">${safeText(meta.etb)}</div>
+                        </div>
+                        <div class="meta-pill">
+                          <div class="label">ETD</div>
+                          <div class="value">${safeText(meta.etd)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="panel-card p-3">
+                  <h4 class="h6 fw-bold mb-3">KPI procurement</h4>
+                  <div class="mini-kpi-grid">
+                    <div class="mini-kpi"><div class="label">RFQ Open</div><div class="value">${v.rfqOpen || 0}</div></div>
+                    <div class="mini-kpi"><div class="label">RFQ > 7 gg</div><div class="value">${v.rfqOverdue7 || 0}</div></div>
+                    <div class="mini-kpi"><div class="label">RFQ > 15 gg</div><div class="value">${v.rfqOverdue15 || 0}</div></div>
+                    <div class="mini-kpi"><div class="label">Ready for PO</div><div class="value">${v.readyForPO || 0}</div></div>
+                    <div class="mini-kpi"><div class="label">Orders</div><div class="value">${v.orders || 0}</div></div>
+                    <div class="mini-kpi"><div class="label">DN Pending</div><div class="value">${v.dnPending || 0}</div></div>
+                    <div class="mini-kpi"><div class="label">Delivery</div><div class="value">${escapeHtml(v.delivery || "—")}</div></div>
+                    <div class="mini-kpi"><div class="label">Delivery Color</div><div class="value">${escapeHtml(v.deliveryColor || "—")}</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xl-6">
+                <div class="panel-card p-3 h-100">
+                  <h4 class="h6 fw-bold mb-3">Alert automatici</h4>
+                  <div class="alert-list">
+                    ${alerts.map(a => `
+                      <div class="alert-item">
+                        <span class="alert-dot" style="background:${a.color}"></span>
+                        <div>${escapeHtml(a.text)}</div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xl-6">
+                <div class="panel-card p-3 h-100">
+                  <h4 class="h6 fw-bold mb-3">Avanzamento processo</h4>
+
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                      <span class="subtle">REQ → PO</span>
+                      <strong>${v.pctReqToPO || 0}%</strong>
+                    </div>
+                    <div class="progress">
+                      <div class="progress-bar bg-accent" style="width:${v.pctReqToPO || 0}%"></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="d-flex justify-content-between mb-2">
+                      <span class="subtle">PO → DN</span>
+                      <strong>${v.pctPOToDN || 0}%</strong>
+                    </div>
+                    <div class="progress">
+                      <div class="progress-bar ${v.deliveryColor === "red" ? "bg-danger" : "bg-success"}" style="width:${v.pctPOToDN || 0}%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="panel-card p-3">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h4 class="h6 fw-bold mb-0">Ordini / items</h4>
+                    <span class="subtle small">${(v.items || []).length} righe</span>
+                  </div>
+
+                  <div class="filter-bar mb-3">
+                    <div>
+                      <label class="form-label small subtle">Filtro stato</label>
+                      <select class="form-select form-select-sm" data-filter-status="${v.vesselId}">
+                        <option value="all">Tutti</option>
+                        <option value="open">Aperti / non chiusi</option>
+                        <option value="overdue">Consegna in ritardo</option>
+                        <option value="dnpending">DN pending</option>
+                        <option value="rfq">RFQ issues</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="form-label small subtle">Fornitore</label>
+                      <select class="form-select form-select-sm" data-filter-supplier="${v.vesselId}">
+                        <option value="all">Tutti i fornitori</option>
+                        ${suppliers.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="form-label small subtle">Consegna entro</label>
+                      <input class="form-control form-control-sm" type="date" data-filter-date="${v.vesselId}">
+                    </div>
+                    <div>
+                      <label class="form-label small subtle">Ricerca testo</label>
+                      <input class="form-control form-control-sm" type="text" placeholder="Descrizione o stato" data-filter-text="${v.vesselId}">
+                    </div>
+                  </div>
+
+                  <div class="table-wrap">
+                    <table class="table table-striped table-hover align-middle">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Descrizione</th>
+                          <th>Supplier</th>
+                          <th>RFQ Status</th>
+                          <th>PO Status</th>
+                          <th>DN Status</th>
+                          <th>RFQ Days</th>
+                          <th>Delivery Date</th>
+                        </tr>
+                      </thead>
+                      <tbody id="table-${v.vesselId}">
+                        ${renderTableRows(v.items || [])}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="panel-card p-3">
+                 
