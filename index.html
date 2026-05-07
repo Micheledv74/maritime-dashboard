@@ -1330,11 +1330,24 @@ const AIS_API_KEY = 'c136d51b737b3c8ecd1f4e9d62c97fb2351d5e71';
 const AIS_WS_URL  = 'wss://stream.aisstream.io/v0/stream';
 
 // Vessel registry — add new vessels here as fleet expands
+// lastKnown: fallback position shown immediately on map while waiting for live AIS
 const VESSEL_REGISTRY = {
-  medtoscana:  { mmsi: '249090000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9490741', callsign: '9HA6104' },
-  medliguria:  { mmsi: '636024824', flag: '🇱🇷', flagName: 'Liberia', type: 'Bulk Carrier', imo: '9604811', callsign: '5LUL8'   },
-  norrbotten:  { mmsi: '255624000', flag: '🇵🇹', flagName: 'Portugal',type: 'Bulk Carrier', imo: '9191931', callsign: ''        },
-  peppino:     { mmsi: '256957000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9586708', callsign: '9HA6039' },
+  medtoscana: {
+    mmsi: '249090000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9490741', callsign: '9HA6104',
+    lastKnown: { lat: 30.03, lng: 122.05, note: 'Cantiere Zhoushan (dry dock)', ts: '2025-10' }
+  },
+  medliguria: {
+    mmsi: '636024824', flag: '🇱🇷', flagName: 'Liberia', type: 'Bulk Carrier', imo: '9604811', callsign: '5LUL8',
+    lastKnown: { lat: -5.2,  lng: 68.4,  note: 'Oceano Indiano → Luanda (Angola)', ts: '2026-05' }
+  },
+  norrbotten: {
+    mmsi: '255624000', flag: '🇵🇹', flagName: 'Portugal',type: 'General Cargo', imo: '9191931', callsign: 'CQCK',
+    lastKnown: { lat: 60.63, lng: 19.03, note: 'Mar Baltico, navigazione', ts: '2026-05' }
+  },
+  peppino: {
+    mmsi: '256957000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9586708', callsign: '9HA6039',
+    lastKnown: { lat: 39.20, lng: 119.18,note: 'Bo Hai, Cina (ancorata)', ts: '2026-04' }
+  },
 };
 
 // Last-known AIS state per vessel (updated by WebSocket)
@@ -1477,14 +1490,11 @@ function initMap() {
     maxZoom: 18
   }).addTo(fleetMap);
 
-  // Create placeholder markers for every vessel in JSON
+  // Create markers for every vessel — use lastKnown position from registry
   fleetData.vessels.forEach(v => {
-    const reg = VESSEL_REGISTRY[v.vesselId] || { flag: '🚢', flagName: '—', type: 'Vessel', imo: '—', callsign: '—', mmsi: '—' };
-    // Default scatter so they're not stacked at [0,0]
-    const defaultPos = { medtoscana:[37.5,15.1], medliguria:[43.5,8.0], norrbotten:[38.0,25.0], peppino:[36.5,22.0] };
-    const [lat, lng] = defaultPos[v.vesselId] || [35 + Math.random()*10, 10 + Math.random()*20];
-
-    const marker = buildMarker(v, reg, lat, lng, false);
+    const reg = VESSEL_REGISTRY[v.vesselId] || { flag:'🚢', flagName:'—', type:'Vessel', imo:'—', callsign:'—', mmsi:'—' };
+    const lk  = reg.lastKnown || { lat: 35, lng: 20 };
+    const marker = buildMarker(v, reg, lk.lat, lk.lng, false);
     marker.addTo(fleetMap);
     mapMarkers[v.vesselId] = marker;
   });
@@ -1492,36 +1502,54 @@ function initMap() {
 
 function buildMarker(v, reg, lat, lng, online) {
   const alertColor = v.deliveryColor === 'red' ? '#e74c3c' : v.deliveryColor === 'green' ? '#27ae60' : '#f39c12';
-  const pulseRing  = online ? `<circle cx="16" cy="16" r="13" fill="none" stroke="${alertColor}" stroke-width="1.5" opacity="0.4"><animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.5" to="0" dur="2s" repeatCount="indefinite"/></circle>` : '';
-  const opacity    = online ? '1' : '0.5';
+  const st = aisState[v.vesselId];
+  const isLastKnown = !st?.lastSeen || st?.isLastKnown;
+  const opacity = online ? '1' : isLastKnown ? '0.45' : '0.6';
+
+  const pulseRing = online
+    ? `<circle cx="16" cy="16" r="13" fill="none" stroke="${alertColor}" stroke-width="1.5" opacity="0.4">
+         <animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/>
+         <animate attributeName="opacity" from="0.5" to="0" dur="2s" repeatCount="indefinite"/>
+       </circle>` : '';
+
+  // Dashed circle for last-known positions
+  const circle = isLastKnown
+    ? `<circle cx="16" cy="16" r="11" fill="${alertColor}" fill-opacity="0.08" stroke="${alertColor}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>`
+    : `<circle cx="16" cy="16" r="11" fill="${alertColor}" fill-opacity="0.18" stroke="${alertColor}" stroke-width="2"/>`;
 
   const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 32 32" opacity="${opacity}">
-    ${pulseRing}
-    <circle cx="16" cy="16" r="11" fill="${alertColor}" fill-opacity="0.18" stroke="${alertColor}" stroke-width="2"/>
+    ${pulseRing}${circle}
     <text x="16" y="21" font-size="13" text-anchor="middle" fill="white">⛵</text>
   </svg>`;
 
-  const icon = L.divIcon({ className: 'vessel-icon', html: svgIcon, iconSize:[36,36], iconAnchor:[18,18], popupAnchor:[0,-18] });
+  const icon = L.divIcon({ className:'vessel-icon', html:svgIcon, iconSize:[36,36], iconAnchor:[18,18], popupAnchor:[0,-18] });
 
-  const st = aisState[v.vesselId];
-  const posLine = st
-    ? `<div class="ship-popup-row"><span>Pos</span><span>${st.lat.toFixed(4)}° / ${st.lng.toFixed(4)}°</span></div>`
-    : `<div class="ship-popup-row"><span>Pos</span><span style="color:var(--muted)">In attesa AIS…</span></div>`;
-  const sogLine = st ? `<div class="ship-popup-row"><span>Speed (SOG)</span><span>${st.sog} kn</span></div>` : '';
-  const cogLine = st ? `<div class="ship-popup-row"><span>Course (COG)</span><span>${st.cog}°</span></div>` : '';
-  const destLine= st?.destination ? `<div class="ship-popup-row"><span>Destinazione</span><span>${st.destination}</span></div>` : '';
-  const etaLine = st?.eta ? `<div class="ship-popup-row"><span>ETA</span><span>${st.eta}</span></div>` : '';
-  const lastSeen= st ? `<div class="ship-popup-row"><span>Ultimo segnale</span><span style="color:${online?'var(--green)':'var(--yellow)'}">${timeSince(st.lastSeen)}</span></div>` : '';
-  const offlineBadge = !online && st ? `<div style="text-align:center;font-family:var(--font-mono);font-size:0.6rem;color:var(--yellow);margin-bottom:6px;">⚠ Offline — ultima posizione nota</div>` : '';
+  const posLine = st?.lat
+    ? `<div class="ship-popup-row"><span>Posizione</span><span>${st.lat.toFixed(3)}°N, ${st.lng.toFixed(3)}°E</span></div>`
+    : `<div class="ship-popup-row"><span>Posizione</span><span style="color:var(--muted)">—</span></div>`;
+  const sogLine  = st?.sog && st.sog !== '—' ? `<div class="ship-popup-row"><span>Speed (SOG)</span><span>${st.sog} kn</span></div>` : '';
+  const cogLine  = st?.cog != null           ? `<div class="ship-popup-row"><span>Course (COG)</span><span>${st.cog}°</span></div>` : '';
+  const destLine = st?.destination           ? `<div class="ship-popup-row"><span>Destinazione</span><span>${st.destination}</span></div>` : '';
+  const etaLine  = st?.eta                   ? `<div class="ship-popup-row"><span>ETA</span><span>${st.eta}</span></div>` : '';
+
+  let aisInfo;
+  if (online) {
+    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--green);margin-bottom:5px">🟢 AIS Live · ${timeSince(st.lastSeen)}</div>`;
+  } else if (st?.lastSeen) {
+    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--yellow);margin-bottom:5px">🟡 Offline · ultima pos. ${timeSince(st.lastSeen)}</div>`;
+  } else if (isLastKnown) {
+    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);margin-bottom:5px">⚪ Posizione nota · ${st?.lastKnownTs || '—'}</div>`;
+  } else {
+    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);margin-bottom:5px">⚪ In attesa AIS…</div>`;
+  }
 
   const popupContent = `
     <div class="ship-popup-title">⚓ ${v.vesselName}</div>
-    ${offlineBadge}
+    ${aisInfo}
     <div class="ship-popup-row"><span>Tipo</span><span>${reg.type}</span></div>
     <div class="ship-popup-row"><span>Bandiera</span><span>${reg.flag} ${reg.flagName}</span></div>
     <div class="ship-popup-row"><span>MMSI</span><span>${reg.mmsi}</span></div>
-    <div class="ship-popup-row"><span>IMO</span><span>${reg.imo}</span></div>
-    ${posLine}${sogLine}${cogLine}${destLine}${etaLine}${lastSeen}
+    ${posLine}${sogLine}${cogLine}${destLine}${etaLine}
     <div class="ship-popup-row"><span>RFQ Aperti</span><span>${v.rfqOpen}</span></div>
     <div class="ship-popup-row"><span>DN Pendenti</span><span>${v.dnPending}</span></div>
     <button class="popup-btn" onclick="showVessel('${v.vesselId}')">→ Apri Scheda Nave</button>
@@ -1550,50 +1578,52 @@ function refreshMarker(vesselId) {
    AIS — WebSocket connection to aisstream.io
 ════════════════════════════════════════════════════════════════ */
 function initAIS() {
+  // Step 1 — paint last-known positions on map immediately (no API call needed)
+  Object.entries(VESSEL_REGISTRY).forEach(([vesselId, reg]) => {
+    if (!reg.lastKnown) return;
+    const lk = reg.lastKnown;
+    // Only set if no live data already
+    if (!aisState[vesselId]) {
+      aisState[vesselId] = {
+        lat: lk.lat, lng: lk.lng,
+        sog: '—', cog: null, heading: 0,
+        navStatus: '—', destination: lk.note || null, eta: null,
+        lastSeen: null,   // null = last-known, not live
+        online: false, isLastKnown: true, lastKnownTs: lk.ts
+      };
+      refreshMarker(vesselId);
+      updateAisStrip(vesselId);
+    }
+  });
+
+  // Step 2 — try reading positions from procurement JSON (if n8n adds them)
+  loadPositionsFromJSON();
+
+  // Step 3 — open live WebSocket for terrestrial vessels (NORRBOTTEN, PEPPINO)
   updateAisStatusBadge('connecting');
-  fetchLastPositionsREST().then(() => connectAIS());
+  connectAIS();
 }
 
-/* ── REST pre-fetch: last known position for each vessel ────────
-   Uses aisstream.io /v2/position/latest (available on free tier).
-   Falls back silently if the endpoint is unavailable.            */
-async function fetchLastPositionsREST() {
-  const entries = Object.entries(VESSEL_REGISTRY);
-  const results = await Promise.allSettled(entries.map(async ([vesselId, reg]) => {
-    const url = `https://api.aisstream.io/v2/position/latest?mmsi=${reg.mmsi}`;
-    const res  = await fetch(url, { headers: { 'X-API-Key': AIS_API_KEY } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    // aisstream REST returns array or single object depending on plan
-    const item = Array.isArray(data) ? data[0] : data;
-    if (!item) throw new Error('empty');
-    const lat = item.Latitude  ?? item.latitude;
-    const lng = item.Longitude ?? item.longitude;
-    if (lat == null || lng == null) throw new Error('no coords');
-
-    const now = Date.now();
-    aisState[vesselId] = {
-      ...(aisState[vesselId] || {}),
-      lat: parseFloat(parseFloat(lat).toFixed(5)),
-      lng: parseFloat(parseFloat(lng).toFixed(5)),
-      sog: item.Sog  != null ? parseFloat(item.Sog).toFixed(1)  : '—',
-      cog: item.Cog  != null ? Math.round(item.Cog)             : null,
-      heading:     item.TrueHeading ?? item.Cog ?? 0,
-      navStatus:   navStatusLabel(item.NavigationalStatus),
-      destination: (item.Destination || '').trim() || null,
-      eta:         null,
-      lastSeen:    item.TimeUtc ? new Date(item.TimeUtc).getTime() : now,
-      online:      true
-    };
-    refreshMarker(vesselId);
-    updateAisStrip(vesselId);
-    console.log(`[AIS REST] ${vesselId}: ${lat.toFixed(3)}, ${lng.toFixed(3)}`);
-  }));
-
-  // Log any failures (silently — WebSocket will still deliver live data)
-  results.forEach(({ status, reason }, i) => {
-    if (status === 'rejected')
-      console.warn(`[AIS REST] ${entries[i][0]}: ${reason?.message || reason}`);
+// Reads lat/lng from data-procurement.json if n8n enriches it with AIS data
+function loadPositionsFromJSON() {
+  if (!fleetData?.vessels) return;
+  fleetData.vessels.forEach(v => {
+    if (v.lat != null && v.lng != null) {
+      aisState[v.vesselId] = {
+        ...(aisState[v.vesselId] || {}),
+        lat: v.lat, lng: v.lng,
+        sog:         v.sog         ?? '—',
+        cog:         v.cog         ?? null,
+        destination: v.destination ?? null,
+        eta:         v.eta         ?? null,
+        navStatus:   v.navStatus   ?? '—',
+        lastSeen:    v.aisLastSeen ? new Date(v.aisLastSeen).getTime() : null,
+        online:      false,
+        isLastKnown: false
+      };
+      refreshMarker(v.vesselId);
+      updateAisStrip(v.vesselId);
+    }
   });
 }
 
@@ -1716,34 +1746,55 @@ function timeSince(ts) {
 function updateAisStrip(vesselId) {
   const st = aisState[vesselId];
   if (!st) return;
-  const online = (Date.now() - st.lastSeen) < 30 * 60 * 1000;
-  const setVal = (id, val, cls) => {
+  const online = st.online && st.lastSeen && (Date.now() - st.lastSeen) < 30 * 60 * 1000;
+  const isLastKnown = st.isLastKnown || !st.lastSeen;
+
+  const setVal = (id, val, extraStyle) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = val;
-    el.className = 'ais-item-value' + (cls ? ` ${cls}` : '');
+    el.innerHTML = val;
+    if (extraStyle) el.style.color = extraStyle;
+    else el.style.color = '';
   };
-  setVal(`ais-pos-${vesselId}`,   st.lat && st.lng ? `${st.lat.toFixed(3)}° N / ${st.lng.toFixed(3)}° E` : '—');
-  setVal(`ais-sog-${vesselId}`,   st.sog ? `${st.sog} kn` : '—');
-  setVal(`ais-cog-${vesselId}`,   st.cog != null ? `${st.cog}°` : '—');
-  setVal(`ais-nav-${vesselId}`,   st.navStatus || '—');
-  setVal(`ais-dest-${vesselId}`,  st.destination || '—');
-  setVal(`ais-eta-${vesselId}`,   st.eta || '—');
-  setVal(`ais-last-${vesselId}`,  timeSince(st.lastSeen), online ? 'ais-item-value text-green' : 'ais-item-value text-yellow');
 
-  // Refresh "last seen" labels every minute
+  const latLng = st.lat && st.lng
+    ? `${st.lat.toFixed(4)}° N, ${st.lng.toFixed(4)}° E`
+    : '—';
+
+  setVal(`ais-pos-${vesselId}`,  latLng);
+  setVal(`ais-sog-${vesselId}`,  st.sog && st.sog !== '—' ? `${st.sog} kn` : '—');
+  setVal(`ais-cog-${vesselId}`,  st.cog != null ? `${st.cog}°` : '—');
+  setVal(`ais-nav-${vesselId}`,  st.navStatus || '—');
+  setVal(`ais-dest-${vesselId}`, st.destination || '—');
+  setVal(`ais-eta-${vesselId}`,  st.eta || '—');
+
+  let lastStr, lastColor;
+  if (online) {
+    lastStr  = `🟢 Live · ${timeSince(st.lastSeen)}`;
+    lastColor = 'var(--green)';
+  } else if (st.lastSeen) {
+    lastStr  = `🟡 Offline · ${timeSince(st.lastSeen)}`;
+    lastColor = 'var(--yellow)';
+  } else if (isLastKnown && st.lastKnownTs) {
+    lastStr  = `⚪ Ultima nota · ${st.lastKnownTs}`;
+    lastColor = 'var(--muted)';
+  } else {
+    lastStr  = '⚪ In attesa AIS…';
+    lastColor = 'var(--muted)';
+  }
+  setVal(`ais-last-${vesselId}`, lastStr, lastColor);
+
+  // Refresh label every 60s
   clearInterval(window[`_aisTimer_${vesselId}`]);
-  window[`_aisTimer_${vesselId}`] = setInterval(() => {
-    setVal(`ais-last-${vesselId}`, timeSince(st.lastSeen), (Date.now()-st.lastSeen)<1800000?'ais-item-value text-green':'ais-item-value text-yellow');
-  }, 60000);
+  window[`_aisTimer_${vesselId}`] = setInterval(() => updateAisStrip(vesselId), 60000);
 }
 
 function updateAisStatusBadge(status) {
   const map = {
-    connecting:   { text:'AIS: Connessione…', cls:'', color:'var(--muted)' },
-    connected:    { text:'AIS: Live ●',       cls:'', color:'var(--green)' },
-    error:        { text:'AIS: Errore',        cls:'', color:'var(--red)'   },
-    reconnecting: { text:'AIS: Riconnessione…',cls:'', color:'var(--yellow)'}
+    connecting:   { text: 'AIS: Connessione…', color: 'var(--muted)'   },
+    connected:    { text: 'AIS: Live ●',       color: 'var(--green)'   },
+    error:        { text: 'AIS: Errore ✕',     color: 'var(--red)'     },
+    reconnecting: { text: 'AIS: Riconnessione…',color:'var(--yellow)'  },
   };
   const s = map[status] || map.error;
   const el = document.getElementById('ais-status-badge');
