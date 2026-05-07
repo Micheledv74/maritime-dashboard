@@ -1357,11 +1357,20 @@ let   aisSocket  = null;
 let   aisReconnectTimer = null;
 
 /* ════════════════════════════════════════════════════════════════
+   FLEET CONFIG
+   EXCLUDED_VESSELS : vesselId da ignorare anche se nel JSON
+   FLEET_ORDER      : ordine dei tab e delle schede nave
+════════════════════════════════════════════════════════════════ */
+const EXCLUDED_VESSELS = ['hsq'];          // ufficio — non è una nave
+
+const FLEET_ORDER = ['medtoscana', 'medliguria', 'norrbotten', 'peppino'];
+
+/* ════════════════════════════════════════════════════════════════
    STATE
 ════════════════════════════════════════════════════════════════ */
 let fleetData = null;
 let fleetMap  = null;
-let vesselTableState = {}; // per-vessel: { page, filters, sort }
+let vesselTableState = {};
 const PAGE_SIZE = 15;
 
 /* ════════════════════════════════════════════════════════════════
@@ -1372,6 +1381,10 @@ async function init() {
     const res  = await fetch(DATA_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     fleetData  = await res.json();
+
+    // ── Normalise fleet: remove excluded vessels, inject missing ones ──
+    fleetData.vessels = normaliseVessels(fleetData.vessels || []);
+
     renderAll();
   } catch (err) {
     console.error('Data load error:', err);
@@ -1382,6 +1395,45 @@ async function init() {
       </div>`;
     return;
   }
+}
+
+/* Filtra le navi escluse, aggiunge le navi mancanti con KPI vuoti,
+   ordina secondo FLEET_ORDER.                                       */
+function normaliseVessels(raw) {
+  // 1. Rimuovi escluse (hsq ecc.)
+  const filtered = raw.filter(v =>
+    !EXCLUDED_VESSELS.includes((v.vesselId || '').toLowerCase())
+  );
+
+  // 2. Per ogni nave in FLEET_ORDER, assicurati che esista nel dataset
+  FLEET_ORDER.forEach(id => {
+    if (!filtered.find(v => v.vesselId === id)) {
+      const reg = VESSEL_REGISTRY[id];
+      console.warn(`[Fleet] "${id}" assente dal JSON — aggiunta con KPI vuoti`);
+      filtered.push({
+        vesselId:     id,
+        vesselName:   reg ? reg.imo ? `${id.toUpperCase()}` : id.toUpperCase() : id.toUpperCase(),
+        rfqOpen:      0, rfqOverdue7: 0, rfqOverdue15: 0,
+        readyForPO:   0, orders: 0, dnPending: 0,
+        delivery:     '—', deliveryColor: 'grey',
+        pctReqToPO:   0, pctPOToDN: 0,
+        items:        [],
+        _missing:     true   // flag per mostrare badge "dati non disponibili"
+      });
+    }
+  });
+
+  // 3. Ordina secondo FLEET_ORDER, poi aggiunte fuori lista in fondo
+  filtered.sort((a, b) => {
+    const ia = FLEET_ORDER.indexOf(a.vesselId);
+    const ib = FLEET_ORDER.indexOf(b.vesselId);
+    if (ia === -1 && ib === -1) return 0;
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+
+  return filtered;
 }
 
 function renderAll() {
@@ -1834,6 +1886,7 @@ function buildVesselPage(v) {
 
     <!-- Vessel Header -->
     <div class="card-panel">
+      ${v._missing ? `<div class="alert-banner warn" style="margin-bottom:1rem"><i class="bi bi-exclamation-triangle-fill"></i><div class="alert-banner-text"><strong>Dati procurement non disponibili</strong> — ${v.vesselName} non è ancora nel <code style="color:var(--teal)">data-procurement.json</code>. Aggiorna il workflow n8n per includere questa nave.</div></div>` : ''}
       <div class="vessel-header">
         <div class="vessel-photo"><i class="bi bi-ship"></i></div>
         <div class="vessel-details">
