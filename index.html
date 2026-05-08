@@ -4,2495 +4,597 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maritime Fleet Dashboard</title>
-
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@300;400;600&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<!-- Bootstrap 5 -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Leaflet.js -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-<!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
 <style>
-/* ─── CSS VARIABLES ──────────────────────────────────────────── */
-:root {
-  --navy:      #0a1628;
-  --navy-2:    #0e1f3a;
-  --navy-3:    #152848;
-  --navy-4:    #1c3460;
-  --orange:    #e67e22;
-  --orange-dim:#b85d0e;
-  --red:       #e74c3c;
-  --green:     #27ae60;
-  --yellow:    #f39c12;
-  --teal:      #1abc9c;
-  --white:     #f0f4ff;
-  --muted:     #7a93b8;
-  --border:    rgba(255,255,255,0.07);
-  --card-bg:   rgba(14,31,58,0.85);
-  --glass:     rgba(21,40,72,0.6);
-  --shadow:    0 8px 32px rgba(0,0,0,0.4);
-  --font-head: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
-}
-
-/* ─── BASE ───────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: var(--font-body);
-  background: var(--navy);
-  color: var(--white);
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(26,188,156,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(230,126,34,0.05) 0%, transparent 60%),
-    linear-gradient(180deg, #0a1628 0%, #080f1e 100%);
-  background-attachment: fixed;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--navy-2); }
-::-webkit-scrollbar-thumb { background: var(--navy-4); border-radius: 3px; }
-
-/* ─── HEADER ─────────────────────────────────────────────────── */
-#main-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(8,15,30,0.92);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 1.5rem;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-box {
-  width: 42px; height: 42px;
-  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dim) 100%);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-head);
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.5px;
-  box-shadow: 0 4px 16px rgba(230,126,34,0.35);
-  flex-shrink: 0;
-}
-
-.brand-name {
-  font-family: var(--font-head);
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--white);
-  line-height: 1.1;
-}
-.brand-sub {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-.header-meta {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.sync-badge {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 4px 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sync-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(39,174,96,0.5); }
-  50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(39,174,96,0); }
-}
-
-/* ─── NAV TABS ───────────────────────────────────────────────── */
-#nav-bar {
-  background: rgba(8,15,30,0.85);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 64px;
-  z-index: 999;
-  padding: 0 1.5rem;
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  overflow-x: auto;
-}
-
-#nav-bar::-webkit-scrollbar { height: 0; }
-
-.nav-tab {
-  font-family: var(--font-head);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 20px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  border: none;
-  background: none;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.nav-tab:hover { color: var(--white); background: var(--border); }
-
-.nav-tab.active {
-  color: var(--orange);
-  border-bottom-color: var(--orange);
-  background: rgba(230,126,34,0.06);
-}
-
-.nav-tab .tab-icon { font-size: 1rem; }
-
-.nav-tab .vessel-alert {
-  font-size: 0.65rem;
-  background: var(--red);
-  color: #fff;
-  border-radius: 10px;
-  padding: 1px 6px;
-  font-family: var(--font-mono);
-}
-
-/* ─── SECTIONS / PAGES ───────────────────────────────────────── */
-.page-section { display: none; padding: 2rem 1.5rem; }
-.page-section.active { display: block; animation: fade-in 0.3s ease; }
-
-@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ─── CARD ───────────────────────────────────────────────────── */
-.card-panel {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.card-panel.no-pad { padding: 0; }
-
-.panel-title {
-  font-family: var(--font-head);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.panel-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* ─── KPI GRID ───────────────────────────────────────────────── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
-}
-
-.kpi-card {
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.kpi-card:hover { transform: translateY(-2px); }
-
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px; height: 100%;
-  border-radius: 12px 0 0 12px;
-}
-
-.kpi-card.kpi-ok::before    { background: var(--green); }
-.kpi-card.kpi-warn::before  { background: var(--yellow); }
-.kpi-card.kpi-alert::before { background: var(--red); }
-.kpi-card.kpi-info::before  { background: var(--teal); }
-.kpi-card.kpi-orange::before{ background: var(--orange); }
-
-.kpi-label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.5rem;
-}
-
-.kpi-value {
-  font-family: var(--font-head);
-  font-size: 2.2rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--white);
-}
-
-.kpi-value.kpi-red    { color: var(--red); }
-.kpi-value.kpi-green  { color: var(--green); }
-.kpi-value.kpi-orange { color: var(--orange); }
-.kpi-value.kpi-yellow { color: var(--yellow); }
-
-.kpi-sub {
-  font-size: 0.7rem;
-  color: var(--muted);
-  margin-top: 0.25rem;
-}
-
-/* ─── MAP ────────────────────────────────────────────────────── */
-#fleet-map {
-  height: 440px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.leaflet-popup-content-wrapper {
-  background: var(--navy-2) !important;
-  color: var(--white) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 10px !important;
-  box-shadow: var(--shadow) !important;
-}
-
-.leaflet-popup-tip { background: var(--navy-2) !important; }
-
-.ship-popup-title {
-  font-family: var(--font-head);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--orange);
-  margin-bottom: 6px;
-}
-
-.ship-popup-row {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--muted);
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 2px 0;
-}
-
-.ship-popup-row span:last-child {
-  color: var(--white);
-  font-weight: 600;
-}
-
-.popup-btn {
-  display: block;
-  width: 100%;
-  margin-top: 10px;
-  background: var(--orange);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 6px 0;
-  font-family: var(--font-head);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.popup-btn:hover { background: var(--orange-dim); }
-
-/* Custom vessel icon */
-.vessel-icon {
-  background: none;
-  border: none;
-}
-
-/* ─── FLEET OVERVIEW TABLE ───────────────────────────────────── */
-.fleet-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.fleet-table th {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-}
-
-.fleet-table td {
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 0.85rem;
-  vertical-align: middle;
-}
-
-.fleet-table tbody tr {
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.fleet-table tbody tr:hover {
-  background: rgba(255,255,255,0.03);
-}
-
-.vessel-name-cell {
-  font-family: var(--font-head);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--white);
-  letter-spacing: 0.5px;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.pill-red    { background: rgba(231,76,60,0.15);  color: var(--red);    border: 1px solid rgba(231,76,60,0.3); }
-.pill-green  { background: rgba(39,174,96,0.15);  color: var(--green);  border: 1px solid rgba(39,174,96,0.3); }
-.pill-yellow { background: rgba(243,156,18,0.15); color: var(--yellow); border: 1px solid rgba(243,156,18,0.3); }
-.pill-muted  { background: rgba(122,147,184,0.1); color: var(--muted);  border: 1px solid rgba(122,147,184,0.2); }
-
-/* ─── PROGRESS BARS ──────────────────────────────────────────── */
-.progress-row {
-  margin-bottom: 1rem;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-
-.progress-label span:last-child {
-  color: var(--white);
-  font-weight: 600;
-}
-
-.prog-bar {
-  height: 8px;
-  background: var(--navy-4);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.prog-fill {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 1s ease;
-}
-
-.prog-fill.orange { background: linear-gradient(90deg, var(--orange-dim), var(--orange)); }
-.prog-fill.teal   { background: linear-gradient(90deg, #12907c, var(--teal)); }
-.prog-fill.green  { background: linear-gradient(90deg, #1a7d45, var(--green)); }
-.prog-fill.red    { background: linear-gradient(90deg, #b0261e, var(--red)); }
-
-/* ─── VESSEL INFO HEADER ─────────────────────────────────────── */
-.vessel-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-}
-
-.vessel-photo {
-  width: 120px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--navy-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--muted);
-  font-size: 2.5rem;
-}
-
-.vessel-details { flex: 1; }
-
-.vessel-title {
-  font-family: var(--font-head);
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--white);
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
-.vessel-subtitle {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 0.75rem;
-}
-
-.vessel-tags { display: flex; gap: 8px; flex-wrap: wrap; }
-
-.vtag {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.8px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  background: var(--navy-3);
-}
-
-/* ─── AIS INFO STRIP ─────────────────────────────────────────── */
-.ais-strip {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.9rem 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.ais-item {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.ais-item-label {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--muted);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-.ais-item-value {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--white);
-}
-
-.ais-item-value.placeholder {
-  color: var(--muted);
-  font-style: italic;
-}
-
-/* ─── ITEMS TABLE ────────────────────────────────────────────── */
-.filter-bar {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.filter-bar input,
-.filter-bar select {
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--white);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  padding: 6px 12px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.filter-bar input::placeholder { color: var(--muted); }
-.filter-bar input:focus,
-.filter-bar select:focus { border-color: var(--orange); }
-.filter-bar select option { background: var(--navy-2); color: var(--white); }
-
-.items-table-wrap {
-  overflow-x: auto;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-.items-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 900px;
-}
-
-.items-table th {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 10px 12px;
-  background: var(--navy-2);
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.items-table th:hover { color: var(--white); }
-
-.items-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 0.78rem;
-  vertical-align: middle;
-}
-
-.items-table tbody tr:hover { background: rgba(255,255,255,0.02); }
-
-.items-table tbody tr.row-alert-red td:first-child {
-  border-left: 3px solid var(--red);
-}
-
-.items-table tbody tr.row-alert-yellow td:first-child {
-  border-left: 3px solid var(--yellow);
-}
-
-.desc-cell {
-  max-width: 280px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: 500;
-}
-
-.date-cell { font-family: var(--font-mono); font-size: 0.72rem; }
-.date-cell.overdue { color: var(--red); font-weight: 700; }
-
-.table-empty {
-  text-align: center;
-  padding: 3rem;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-}
-
-.pagination-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.pag-info {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--muted);
-}
-
-.pag-btns { display: flex; gap: 6px; }
-
-.pag-btn {
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  color: var(--white);
-  font-size: 0.75rem;
-  padding: 4px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.pag-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
-.pag-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* ─── CERTIFICATES TABLE ─────────────────────────────────────── */
-.cert-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.cert-table th {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-}
-
-.cert-table td {
-  padding: 11px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-size: 0.82rem;
-}
-
-.cert-placeholder-row td {
-  color: var(--muted);
-  font-style: italic;
-  text-align: center;
-  padding: 2rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-}
-
-/* ─── TODO SECTION ───────────────────────────────────────────── */
-.todo-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  margin-bottom: 0.75rem;
-  transition: border-color 0.2s, transform 0.15s;
-}
-
-.todo-item:hover { border-color: rgba(255,255,255,0.15); transform: translateX(3px); }
-
-.todo-item.prio-high   { border-left: 4px solid var(--red); }
-.todo-item.prio-medium { border-left: 4px solid var(--yellow); }
-.todo-item.prio-low    { border-left: 4px solid var(--teal); }
-
-.prio-badge {
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 5px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.prio-high-badge   { background: rgba(231,76,60,0.2);  color: var(--red);    border: 1px solid rgba(231,76,60,0.4); }
-.prio-medium-badge { background: rgba(243,156,18,0.2); color: var(--yellow); border: 1px solid rgba(243,156,18,0.4); }
-.prio-low-badge    { background: rgba(26,188,156,0.15);color: var(--teal);   border: 1px solid rgba(26,188,156,0.3); }
-
-.todo-body { flex: 1; }
-
-.todo-vessel {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--orange);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-
-.todo-desc {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--white);
-  margin-bottom: 4px;
-}
-
-.todo-action {
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.todo-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.btn-outlook-mail,
-.btn-outlook-task {
-  font-family: var(--font-mono);
-  font-size: 0.63rem;
-  letter-spacing: 0.5px;
-  padding: 6px 12px;
-  border-radius: 7px;
-  border: 1px solid;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.btn-outlook-mail {
-  background: rgba(0,114,198,0.15);
-  border-color: rgba(0,114,198,0.4);
-  color: #5eb3f9;
-}
-.btn-outlook-mail:hover { background: rgba(0,114,198,0.3); border-color: #5eb3f9; }
-
-.btn-outlook-task {
-  background: rgba(16,124,16,0.1);
-  border-color: rgba(16,124,16,0.3);
-  color: #6bcb6b;
-}
-.btn-outlook-task:hover { background: rgba(16,124,16,0.25); border-color: #6bcb6b; }
-
-/* ─── AZURE GUIDE ────────────────────────────────────────────── */
-.guide-step {
-  background: var(--navy-3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 0.75rem;
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.step-num {
-  font-family: var(--font-head);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--orange);
-  line-height: 1;
-  flex-shrink: 0;
-  min-width: 2rem;
-}
-
-.step-body h6 {
-  font-family: var(--font-head);
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 0.3rem;
-}
-
-.step-body p {
-  font-size: 0.82rem;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.code-inline {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  background: var(--navy-4);
-  border: 1px solid var(--border);
-  padding: 2px 7px;
-  border-radius: 5px;
-  color: var(--teal);
-}
-
-.perm-tag {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  background: rgba(26,188,156,0.12);
-  border: 1px solid rgba(26,188,156,0.3);
-  color: var(--teal);
-  padding: 2px 8px;
-  border-radius: 5px;
-  margin: 2px;
-}
-
-/* ─── ALERT BANNERS ──────────────────────────────────────────── */
-.alert-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  background: rgba(231,76,60,0.08);
-  border: 1px solid rgba(231,76,60,0.25);
-  border-radius: 10px;
-  padding: 0.9rem 1.1rem;
-  margin-bottom: 0.75rem;
-}
-
-.alert-banner.warn {
-  background: rgba(243,156,18,0.08);
-  border-color: rgba(243,156,18,0.25);
-}
-
-.alert-banner i { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
-.alert-banner.alert-danger i { color: var(--red); }
-.alert-banner.warn i { color: var(--yellow); }
-
-.alert-banner-text { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
-.alert-banner-text strong { color: var(--white); }
-
-/* ─── SECTION HEADER ─────────────────────────────────────────── */
-.section-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.section-title {
-  font-family: var(--font-head);
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--white);
-}
-
-.section-title span { color: var(--orange); }
-
-.section-count {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
-}
-
-/* ─── LOADING ────────────────────────────────────────────────── */
-#loading-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--navy);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  transition: opacity 0.5s;
-}
-
-.loading-logo {
-  font-family: var(--font-head);
-  font-size: 3rem;
-  font-weight: 800;
-  color: var(--orange);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-}
-
-.loading-bar {
-  width: 200px;
-  height: 3px;
-  background: var(--navy-3);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.loading-fill {
-  height: 100%;
-  background: var(--orange);
-  animation: loading-anim 1.8s ease-in-out infinite;
-}
-
-@keyframes loading-anim {
-  0%   { width: 0%; margin-left: 0%; }
-  50%  { width: 60%; margin-left: 20%; }
-  100% { width: 0%; margin-left: 100%; }
-}
-
-.loading-text {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--muted);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  #main-header { padding: 0 1rem; height: 56px; }
-  #nav-bar { top: 56px; padding: 0 0.5rem; }
-  .nav-tab { padding: 0 14px; font-size: 0.75rem; }
-  .page-section { padding: 1rem; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  #fleet-map { height: 300px; }
-  .vessel-header { flex-direction: column; }
-  .todo-item { flex-direction: column; }
-  .todo-buttons { flex-direction: row; }
-  .fleet-table td, .fleet-table th { padding: 8px; }
-  .brand-name { font-size: 1.1rem; }
-}
-
-/* ─── MISC ───────────────────────────────────────────────────── */
-.text-orange { color: var(--orange); }
-.text-red    { color: var(--red); }
-.text-green  { color: var(--green); }
-.text-yellow { color: var(--yellow); }
-.text-teal   { color: var(--teal); }
-.text-muted-custom  { color: var(--muted); }
-.font-mono   { font-family: var(--font-mono); }
-.font-head   { font-family: var(--font-head); }
-
-.divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
-
-/* OAuth status */
-.oauth-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: rgba(231,76,60,0.12);
-  border: 1px solid rgba(231,76,60,0.3);
-  color: #e74c3c;
-}
-
-.oauth-status.connected {
-  background: rgba(39,174,96,0.12);
-  border-color: rgba(39,174,96,0.3);
-  color: var(--green);
-}
-
-.btn-connect {
-  font-family: var(--font-head);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  padding: 8px 20px;
-  border-radius: 8px;
-  border: none;
-  background: linear-gradient(135deg, #0078D4, #005aad);
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-connect:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,120,212,0.4); }
+:root{--navy:#0a1628;--navy-2:#0e1f3a;--navy-3:#152848;--navy-4:#1c3460;--orange:#e67e22;--orange-dim:#b85d0e;--red:#e74c3c;--green:#27ae60;--yellow:#f39c12;--teal:#1abc9c;--white:#f0f4ff;--muted:#7a93b8;--border:rgba(255,255,255,0.07);--card-bg:rgba(14,31,58,0.85);--shadow:0 8px 32px rgba(0,0,0,0.4);--font-head:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;--font-mono:'IBM Plex Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden;background-image:radial-gradient(ellipse at 20% 50%,rgba(26,188,156,.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(230,126,34,.05) 0%,transparent 60%),linear-gradient(180deg,#0a1628 0%,#080f1e 100%);background-attachment:fixed}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--navy-2)}::-webkit-scrollbar-thumb{background:var(--navy-4);border-radius:3px}
+#main-header{position:sticky;top:0;z-index:1000;background:rgba(8,15,30,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 1.5rem;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo-box{width:42px;height:42px;background:linear-gradient(135deg,var(--orange),var(--orange-dim));border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:#fff;box-shadow:0 4px 16px rgba(230,126,34,.35);flex-shrink:0}
+.header-brand{display:flex;align-items:center;gap:12px}
+.brand-name{font-family:var(--font-head);font-size:1.35rem;font-weight:700;color:var(--white);line-height:1.1}
+.brand-sub{font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.header-meta{display:flex;align-items:center;gap:1rem}
+.sync-badge{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);background:var(--navy-3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(39,174,96,.5)}50%{opacity:.8;box-shadow:0 0 0 4px rgba(39,174,96,0)}}
+#nav-bar{background:rgba(8,15,30,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:999;padding:0 1.5rem;display:flex;align-items:stretch;overflow-x:auto}
+#nav-bar::-webkit-scrollbar{height:0}
+.nav-tab{font-family:var(--font-head);font-size:.85rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:0 20px;height:48px;display:flex;align-items:center;gap:8px;cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.nav-tab:hover{color:var(--white);background:var(--border)}
+.nav-tab.active{color:var(--orange);border-bottom-color:var(--orange);background:rgba(230,126,34,.06)}
+.vessel-alert{font-size:.65rem;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-family:var(--font-mono)}
+.page-section{display:none;padding:2rem 1.5rem}
+.page-section.active{display:block;animation:fade-in .3s ease}
+@keyframes fade-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card-panel{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(12px);box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1.5rem}
+.panel-title{font-family:var(--font-mono);font-size:.8rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem}
+.kpi-card{background:var(--navy-3);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;position:relative;overflow:hidden;transition:transform .2s}
+.kpi-card:hover{transform:translateY(-2px)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:12px 0 0 12px}
+.kpi-card.kpi-ok::before{background:var(--green)}.kpi-card.kpi-warn::before{background:var(--yellow)}.kpi-card.kpi-alert::before{background:var(--red)}.kpi-card.kpi-info::before{background:var(--teal)}.kpi-card.kpi-orange::before{background:var(--orange)}
+.kpi-label{font-family:var(--font-mono);font-size:.62rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.kpi-value{font-family:var(--font-head);font-size:2.2rem;font-weight:800;line-height:1;color:var(--white)}
+.kpi-value.kpi-red{color:var(--red)}.kpi-value.kpi-green{color:var(--green)}.kpi-value.kpi-orange{color:var(--orange)}.kpi-value.kpi-yellow{color:var(--yellow)}
+#fleet-map{height:440px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.leaflet-popup-content-wrapper{background:var(--navy-2)!important;color:var(--white)!important;border:1px solid var(--border)!important;border-radius:10px!important;box-shadow:var(--shadow)!important}
+.leaflet-popup-tip{background:var(--navy-2)!important}
+.ship-popup-title{font-family:var(--font-head);font-size:1rem;font-weight:700;color:var(--orange);margin-bottom:6px}
+.ship-popup-row{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px;padding:2px 0}
+.ship-popup-row span:last-child{color:var(--white);font-weight:600}
+.popup-btn{display:block;width:100%;margin-top:10px;background:var(--orange);color:#fff;border:none;border-radius:7px;padding:6px 0;font-family:var(--font-head);font-size:.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.popup-btn:hover{background:var(--orange-dim)}
+.vessel-icon{background:none;border:none}
+.fleet-table{width:100%;border-collapse:collapse}
+.fleet-table th{font-family:var(--font-mono);font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left}
+.fleet-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.85rem;vertical-align:middle}
+.fleet-table tbody tr{cursor:pointer;transition:background .15s}
+.fleet-table tbody tr:hover{background:rgba(255,255,255,.03)}
+.vessel-name-cell{font-family:var(--font-head);font-size:1rem;font-weight:700}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-family:var(--font-mono);font-size:.65rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.pill-red{background:rgba(231,76,60,.15);color:var(--red);border:1px solid rgba(231,76,60,.3)}
+.pill-green{background:rgba(39,174,96,.15);color:var(--green);border:1px solid rgba(39,174,96,.3)}
+.pill-yellow{background:rgba(243,156,18,.15);color:var(--yellow);border:1px solid rgba(243,156,18,.3)}
+.pill-muted{background:rgba(122,147,184,.1);color:var(--muted);border:1px solid rgba(122,147,184,.2)}
+.progress-row{margin-bottom:1rem}
+.progress-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin-bottom:6px}
+.progress-label span:last-child{color:var(--white);font-weight:600}
+.prog-bar{height:8px;background:var(--navy-4);border-radius:10px;overflow:hidden}
+.prog-fill{height:100%;border-radius:10px;transition:width 1s ease}
+.prog-fill.orange{background:linear-gradient(90deg,var(--orange-dim),var(--orange))}
+.prog-fill.teal{background:linear-gradient(90deg,#12907c,var(--teal))}
+.vessel-header{display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.vessel-photo{width:120px;height:90px;border-radius:10px;border:1px solid var(--border);background:var(--navy-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);font-size:2.5rem}
+.vessel-details{flex:1}
+.vessel-title{font-family:var(--font-head);font-size:2rem;font-weight:800;letter-spacing:1px;line-height:1;margin-bottom:.25rem}
+.vessel-subtitle{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.75rem}
+.vessel-tags{display:flex;gap:8px;flex-wrap:wrap}
+.vtag{font-family:var(--font-mono);font-size:.65rem;padding:3px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--navy-3)}
+.ais-strip{display:flex;gap:1.5rem;flex-wrap:wrap;background:var(--navy-3);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.25rem;margin-bottom:1.5rem}
+.ais-item{display:flex;flex-direction:column;gap:3px}
+.ais-item-label{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.ais-item-value{font-family:var(--font-mono);font-size:.82rem;font-weight:600;color:var(--white)}
+.ais-item-value.dim{color:var(--muted)}
+.filter-bar{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-bar input,.filter-bar select{background:var(--navy-3);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:var(--font-mono);font-size:.75rem;padding:6px 12px;outline:none}
+.filter-bar input::placeholder{color:var(--muted)}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--orange)}
+.filter-bar select option{background:var(--navy-2)}
+.items-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+.items-table{width:100%;border-collapse:collapse;min-width:900px}
+.items-table th{font-family:var(--font-mono);font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 12px;background:var(--navy-2);border-bottom:1px solid var(--border);text-align:left;cursor:pointer;white-space:nowrap;user-select:none}
+.items-table th:hover{color:var(--white)}
+.items-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem;vertical-align:middle}
+.items-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.items-table tbody tr.row-alert-red td:first-child{border-left:3px solid var(--red)}
+.items-table tbody tr.row-alert-yellow td:first-child{border-left:3px solid var(--yellow)}
+.desc-cell{max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.date-cell{font-family:var(--font-mono);font-size:.72rem}
+.date-cell.overdue{color:var(--red);font-weight:700}
+.table-empty{text-align:center;padding:3rem;color:var(--muted);font-family:var(--font-mono);font-size:.8rem}
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-top:1px solid var(--border)}
+.pag-info{font-family:var(--font-mono);font-size:.68rem;color:var(--muted)}
+.pag-btns{display:flex;gap:6px}
+.pag-btn{background:var(--navy-3);border:1px solid var(--border);color:var(--white);font-size:.75rem;padding:4px 12px;border-radius:6px;cursor:pointer}
+.pag-btn:hover:not(:disabled){border-color:var(--orange);color:var(--orange)}
+.pag-btn:disabled{opacity:.3;cursor:not-allowed}
+.cert-table{width:100%;border-collapse:collapse}
+.cert-table th{font-family:var(--font-mono);font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left}
+.cert-table td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem}
+.cert-ph td{color:var(--muted);font-style:italic;text-align:center;padding:2rem;font-family:var(--font-mono);font-size:.75rem}
+.todo-item{display:flex;align-items:flex-start;gap:1rem;background:var(--navy-3);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:.75rem;transition:border-color .2s,transform .15s}
+.todo-item:hover{border-color:rgba(255,255,255,.15);transform:translateX(3px)}
+.todo-item.prio-high{border-left:4px solid var(--red)}.todo-item.prio-medium{border-left:4px solid var(--yellow)}.todo-item.prio-low{border-left:4px solid var(--teal)}
+.prio-badge{font-family:var(--font-mono);font-size:.58rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:3px 8px;border-radius:5px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.pb-h{background:rgba(231,76,60,.2);color:var(--red);border:1px solid rgba(231,76,60,.4)}
+.pb-m{background:rgba(243,156,18,.2);color:var(--yellow);border:1px solid rgba(243,156,18,.4)}
+.pb-l{background:rgba(26,188,156,.15);color:var(--teal);border:1px solid rgba(26,188,156,.3)}
+.todo-body{flex:1}
+.todo-vessel{font-family:var(--font-mono);font-size:.62rem;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.todo-desc{font-size:.9rem;font-weight:500;margin-bottom:4px}
+.todo-action{font-size:.75rem;color:var(--muted)}
+.todo-buttons{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.btn-om,.btn-ot{font-family:var(--font-mono);font-size:.63rem;padding:6px 12px;border-radius:7px;border:1px solid;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-om{background:rgba(0,114,198,.15);border-color:rgba(0,114,198,.4);color:#5eb3f9}
+.btn-om:hover{background:rgba(0,114,198,.3)}
+.btn-ot{background:rgba(16,124,16,.1);border-color:rgba(16,124,16,.3);color:#6bcb6b}
+.btn-ot:hover{background:rgba(16,124,16,.25)}
+.alert-banner{display:flex;align-items:flex-start;gap:.75rem;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.75rem}
+.alert-banner.warn{background:rgba(243,156,18,.08);border-color:rgba(243,156,18,.25)}
+.alert-banner i{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.alert-banner.alert-danger i{color:var(--red)}.alert-banner.warn i{color:var(--yellow)}
+.alert-banner-text{font-size:.82rem;color:var(--muted);line-height:1.5}
+.alert-banner-text strong{color:var(--white)}
+.section-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.5rem}
+.section-title{font-family:var(--font-head);font-size:1.6rem;font-weight:800;letter-spacing:1px}
+.section-title span{color:var(--orange)}
+.guide-step{background:var(--navy-3);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:.75rem;display:flex;gap:1rem}
+.step-num{font-family:var(--font-head);font-size:1.5rem;font-weight:800;color:var(--orange);line-height:1;flex-shrink:0;min-width:2rem}
+.step-body h6{font-family:var(--font-head);font-size:.95rem;font-weight:700;margin-bottom:.3rem}
+.step-body p{font-size:.82rem;color:var(--muted);line-height:1.5}
+.code-inline{font-family:var(--font-mono);font-size:.72rem;background:var(--navy-4);border:1px solid var(--border);padding:2px 7px;border-radius:5px;color:var(--teal)}
+.perm-tag{display:inline-block;font-family:var(--font-mono);font-size:.65rem;background:rgba(26,188,156,.12);border:1px solid rgba(26,188,156,.3);color:var(--teal);padding:2px 8px;border-radius:5px;margin:2px}
+.oauth-status{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.68rem;padding:4px 12px;border-radius:20px;background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.3);color:var(--red)}
+.btn-connect{font-family:var(--font-head);font-size:.8rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;padding:8px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#0078D4,#005aad);color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-connect:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,120,212,.4)}
+#loading-overlay{position:fixed;inset:0;background:var(--navy);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .5s}
+.loading-logo{font-family:var(--font-head);font-size:3rem;font-weight:800;color:var(--orange);letter-spacing:4px}
+.loading-bar{width:200px;height:3px;background:var(--navy-3);border-radius:3px;overflow:hidden}
+.loading-fill{height:100%;background:var(--orange);animation:la 1.8s ease-in-out infinite}
+@keyframes la{0%{width:0%;margin-left:0%}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+.loading-text{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.text-orange{color:var(--orange)}.text-red{color:var(--red)}.text-green{color:var(--green)}.text-yellow{color:var(--yellow)}.text-teal{color:var(--teal)}.text-muted-c{color:var(--muted)}.f-mono{font-family:var(--font-mono)}
+@media(max-width:768px){#main-header{padding:0 1rem;height:56px}#nav-bar{top:56px;padding:0 .5rem}.nav-tab{padding:0 14px;font-size:.75rem}.page-section{padding:1rem}.kpi-grid{grid-template-columns:repeat(2,1fr)}#fleet-map{height:300px}.vessel-header{flex-direction:column}.todo-item{flex-direction:column}.todo-buttons{flex-direction:row}.brand-name{font-size:1.1rem}}
 </style>
 </head>
 <body>
-
-<!-- ══════════════════════════════════════════════════════════════
-     LOADING OVERLAY
-═══════════════════════════════════════════════════════════════ -->
 <div id="loading-overlay">
-  <div class="loading-logo">⚓ FLEET</div>
+  <div class="loading-logo">&#9875; FLEET</div>
   <div class="loading-bar"><div class="loading-fill"></div></div>
   <div class="loading-text">Loading procurement data...</div>
 </div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     HEADER
-═══════════════════════════════════════════════════════════════ -->
 <header id="main-header">
   <div class="header-brand">
     <div class="logo-box">MS</div>
-    <div>
-      <div class="brand-name">Maritime Solutions</div>
-      <div class="brand-sub">Fleet Procurement Dashboard</div>
-    </div>
+    <div><div class="brand-name">Maritime Solutions</div><div class="brand-sub">Fleet Procurement Dashboard</div></div>
   </div>
   <div class="header-meta">
-    <div class="sync-badge">
-      <span class="sync-dot"></span>
-      <span id="sync-time">Syncing...</span>
-    </div>
-    <div class="oauth-status" id="ms-status" title="Microsoft 365 not connected">
-      <i class="bi bi-microsoft"></i>
-      <span>Not connected</span>
-    </div>
+    <div class="sync-badge"><span class="sync-dot"></span><span id="sync-time">Syncing...</span></div>
+    <div class="oauth-status" id="ms-status"><i class="bi bi-microsoft"></i><span>Not connected</span></div>
   </div>
 </header>
-
-<!-- ══════════════════════════════════════════════════════════════
-     NAVIGATION BAR
-═══════════════════════════════════════════════════════════════ -->
 <nav id="nav-bar">
-  <button class="nav-tab active" onclick="showPage('home')" id="tab-home">
-    <i class="bi bi-globe2 tab-icon"></i> Fleet Home
-  </button>
-  <button class="nav-tab" onclick="showPage('todo')" id="tab-todo">
-    <i class="bi bi-check2-square tab-icon"></i> To Do
-    <span class="vessel-alert" id="todo-count-badge">0</span>
-  </button>
-  <!-- Vessel tabs dynamically added here -->
-  <div id="vessel-tabs"></div>
-  <button class="nav-tab" onclick="showPage('azure-guide')" id="tab-azure">
-    <i class="bi bi-shield-lock tab-icon"></i> Azure AD Guide
-  </button>
+  <button class="nav-tab active" onclick="showPage('home')" id="tab-home"><i class="bi bi-globe2"></i> Fleet Home</button>
+  <button class="nav-tab" onclick="showPage('todo')" id="tab-todo"><i class="bi bi-check2-square"></i> To Do <span class="vessel-alert" id="todo-count-badge">0</span></button>
+  <div id="vessel-tabs" style="display:contents"></div>
+  <button class="nav-tab" onclick="showPage('azure-guide')" id="tab-azure-guide"><i class="bi bi-shield-lock"></i> Azure AD Guide</button>
 </nav>
 
-<!-- ══════════════════════════════════════════════════════════════
-     PAGE: HOME
-═══════════════════════════════════════════════════════════════ -->
+<!-- HOME -->
 <section class="page-section active" id="page-home">
-
-  <!-- DIAGNOSTIC PANEL -->
-  <div class="card-panel" id="diag-panel" style="border-color:rgba(26,188,156,0.3);background:rgba(26,188,156,0.04)">
-    <div class="panel-title" style="cursor:pointer" onclick="toggleDiag()">
+  <div class="card-panel" style="border-color:rgba(26,188,156,.3);background:rgba(26,188,156,.04);margin-bottom:1.5rem">
+    <div class="panel-title" style="cursor:pointer;margin-bottom:0" onclick="toggleDiag()">
       <i class="bi bi-bug text-teal"></i> Pannello Diagnostico
-      <span id="diag-toggle" style="margin-left:auto;font-size:0.7rem;color:var(--teal)">▼ apri</span>
+      <span id="diag-toggle" style="margin-left:auto;font-size:.7rem;color:var(--teal);font-weight:400">&#9660; apri</span>
     </div>
-    <div id="diag-body" style="display:none">
+    <div id="diag-body" style="display:none;margin-top:1rem">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-
-        <!-- JSON status -->
-        <div style="background:var(--navy-3);border-radius:8px;padding:1rem">
-          <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--teal);letter-spacing:1px;margin-bottom:0.5rem">📦 JSON DATA-PROCUREMENT</div>
-          <div id="diag-json" style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);line-height:1.8">—</div>
-        </div>
-
-        <!-- AIS WebSocket status -->
-        <div style="background:var(--navy-3);border-radius:8px;padding:1rem">
-          <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--teal);letter-spacing:1px;margin-bottom:0.5rem">📡 AIS WEBSOCKET</div>
-          <div id="diag-ais" style="font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);line-height:1.8">—</div>
-        </div>
+        <div style="background:var(--navy-3);border-radius:8px;padding:1rem"><div style="font-family:var(--font-mono);font-size:.65rem;color:var(--teal);letter-spacing:1px;margin-bottom:.5rem">&#128230; JSON DATA-PROCUREMENT</div><div id="diag-json" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);line-height:1.8">&#8212;</div></div>
+        <div style="background:var(--navy-3);border-radius:8px;padding:1rem"><div style="font-family:var(--font-mono);font-size:.65rem;color:var(--teal);letter-spacing:1px;margin-bottom:.5rem">&#128225; AIS &#8212; Posizioni dal JSON</div><div id="diag-ais" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted);line-height:1.8">&#8212;</div></div>
       </div>
-
-      <!-- Raw JSON preview -->
-      <div style="background:var(--navy-3);border-radius:8px;padding:1rem">
-        <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--teal);letter-spacing:1px;margin-bottom:0.5rem">🔍 RAW JSON — primi 3 campi per nave</div>
-        <pre id="diag-raw" style="font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);overflow-x:auto;white-space:pre-wrap;margin:0">—</pre>
-      </div>
+      <div style="background:var(--navy-3);border-radius:8px;padding:1rem"><div style="font-family:var(--font-mono);font-size:.65rem;color:var(--teal);letter-spacing:1px;margin-bottom:.5rem">&#128269; RAW JSON</div><pre id="diag-raw" style="font-family:var(--font-mono);font-size:.68rem;color:var(--muted);overflow-x:auto;white-space:pre-wrap;margin:0">&#8212;</pre></div>
     </div>
   </div>
-
-  <!-- Global KPIs -->
   <div class="section-header">
     <div class="section-title"><span>Fleet</span> Overview</div>
-    <div class="section-count" id="fleet-vessel-count">Loading...</div>
+    <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted)" id="fleet-vessel-count">&#8212;</div>
   </div>
-
-  <div class="kpi-grid" id="global-kpis" style="margin-bottom:1.5rem">
-    <!-- dynamically filled -->
-  </div>
-
-  <!-- Map -->
-  <div class="card-panel no-pad" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-    <div class="panel-title"><i class="bi bi-pin-map text-orange"></i> Live Fleet Positions <span id="ais-status-badge" style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-left:0.5rem;font-weight:400">AIS: Connessione…</span><span style="flex:1"></span></div>
+  <div class="kpi-grid" id="global-kpis"></div>
+  <div class="card-panel">
+    <div class="panel-title"><i class="bi bi-pin-map text-orange"></i> Live Fleet Positions <span id="ais-status-badge" style="font-family:var(--font-mono);font-size:.62rem;font-weight:400;margin-left:.5rem">&#8212;</span></div>
     <div id="fleet-map"></div>
-    <!-- AIS debug strip -->
-    <div id="ais-debug-strip" style="display:flex;gap:1.5rem;flex-wrap:wrap;padding:0.75rem 0 0;font-family:var(--font-mono);font-size:0.65rem;color:var(--muted);">
-      <span>💡 Le posizioni AIS si aggiornano automaticamente quando le navi trasmettono (ogni 10–180 sec in navigazione, meno frequente in porto).</span>
-    </div>
+    <div style="padding:.75rem 0 0;font-family:var(--font-mono);font-size:.65rem;color:var(--muted)">&#128161; Posizioni aggiornate da n8n via VesselAPI. Cerchio tratteggiato = ultima posizione nota.</div>
   </div>
-
-  <!-- Fleet Table -->
   <div class="card-panel">
     <div class="panel-title"><i class="bi bi-table text-orange"></i> Fleet Status</div>
-    <div class="items-table-wrap">
-      <table class="fleet-table" id="fleet-table">
-        <thead>
-          <tr>
-            <th>Vessel</th>
-            <th>RFQ Open</th>
-            <th>Overdue 7d</th>
-            <th>Overdue 15d</th>
-            <th>Ready for PO</th>
-            <th>Orders</th>
-            <th>DN Pending</th>
-            <th>Delivery Status</th>
-            <th>REQ→PO</th>
-            <th>PO→DN</th>
-          </tr>
-        </thead>
-        <tbody id="fleet-table-body">
-          <!-- dynamically filled -->
-        </tbody>
-      </table>
-    </div>
+    <div class="items-table-wrap"><table class="fleet-table"><thead><tr><th>Vessel</th><th>RFQ Open</th><th>Overdue 7d</th><th>Overdue 15d</th><th>Ready PO</th><th>Orders</th><th>DN Pending</th><th>Delivery</th><th>REQ&#8594;PO</th><th>PO&#8594;DN</th></tr></thead><tbody id="fleet-table-body"></tbody></table></div>
   </div>
-
 </section>
 
-<!-- ══════════════════════════════════════════════════════════════
-     PAGE: TO DO / ACTIONS
-═══════════════════════════════════════════════════════════════ -->
+<!-- TODO -->
 <section class="page-section" id="page-todo">
-
   <div class="section-header">
-    <div class="section-title"><span>To Do</span> — Daily Actions</div>
-    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-      <div class="oauth-status" id="ms-status-todo">
-        <i class="bi bi-microsoft"></i> Microsoft 365 not connected
-      </div>
-      <button class="btn-connect" onclick="connectMicrosoft()">
-        <i class="bi bi-microsoft"></i> Connect Outlook
-      </button>
+    <div class="section-title"><span>To Do</span> &#8212; Azioni Giornaliere</div>
+    <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+      <div class="oauth-status" id="ms-status-todo"><i class="bi bi-microsoft"></i> Non connesso</div>
+      <button class="btn-connect" onclick="connectMicrosoft()"><i class="bi bi-microsoft"></i> Connect Outlook</button>
     </div>
   </div>
-
-  <!-- Outlook Tasks panel (hidden until connected) -->
-  <div id="outlook-tasks-panel" style="display:none;" class="card-panel">
-    <div class="panel-title"><i class="bi bi-check2-all text-teal"></i> Open Outlook Tasks</div>
-    <div id="outlook-tasks-list">Loading tasks...</div>
+  <div id="outlook-tasks-panel" style="display:none" class="card-panel">
+    <div class="panel-title"><i class="bi bi-check2-all text-teal"></i> Task aperti in Outlook</div>
+    <div id="outlook-tasks-list">Loading...</div>
   </div>
-
-  <!-- Generated Priority Actions -->
   <div class="card-panel">
-    <div class="panel-title"><i class="bi bi-lightning-charge-fill text-orange"></i> Priority Actions — Generated from Data</div>
-    <div id="todo-list">
-      <div class="table-empty">Loading procurement data...</div>
-    </div>
+    <div class="panel-title"><i class="bi bi-lightning-charge-fill text-orange"></i> Azioni prioritarie generate dai dati</div>
+    <div id="todo-list"><div class="table-empty">Caricamento...</div></div>
   </div>
-
 </section>
 
-<!-- ══════════════════════════════════════════════════════════════
-     PAGE: VESSEL PAGES  (dynamically generated)
-═══════════════════════════════════════════════════════════════ -->
 <div id="vessel-pages"></div>
 
-<!-- ══════════════════════════════════════════════════════════════
-     PAGE: AZURE AD GUIDE
-═══════════════════════════════════════════════════════════════ -->
+<!-- AZURE GUIDE -->
 <section class="page-section" id="page-azure-guide">
-
-  <div class="section-header">
-    <div class="section-title"><span>Azure AD</span> Setup Guide</div>
-    <div class="section-count">Microsoft Entra ID · App Registration</div>
-  </div>
-
-  <div class="card-panel">
-    <div class="panel-title"><i class="bi bi-info-circle text-teal"></i> Obiettivo</div>
-    <p style="font-size:0.85rem;color:var(--muted);line-height:1.7">
-      Questa guida spiega come registrare un'applicazione su <strong style="color:var(--white)">Azure Active Directory (Microsoft Entra ID)</strong>
-      per abilitare l'integrazione Outlook nella dashboard: invio email, creazione task, lettura bidirezionale dei task di flotta.
-      Le permission OAuth2 richieste sono <span class="code-inline">Mail.Send</span>, <span class="code-inline">Tasks.ReadWrite</span>, 
-      <span class="code-inline">User.Read</span>.
-    </p>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">1</div>
-    <div class="step-body">
-      <h6>Accedi al portale Azure</h6>
-      <p>Vai su <span class="code-inline">portal.azure.com</span> con un account amministratore del tuo tenant Microsoft 365 aziendale.
-        Dal menu laterale seleziona <strong style="color:var(--white)">Microsoft Entra ID</strong> (ex Azure Active Directory).</p>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">2</div>
-    <div class="step-body">
-      <h6>Registra una nuova applicazione</h6>
-      <p>Vai su <strong style="color:var(--white)">App registrations → New registration</strong>.<br>
-        — Name: <span class="code-inline">Maritime Fleet Dashboard</span><br>
-        — Supported account types: <strong style="color:var(--white)">Accounts in this organizational directory only (Single tenant)</strong><br>
-        — Redirect URI: <span class="code-inline">https://micheledv74.github.io/maritime-dashboard/</span> (tipo: <em>Single-page application</em>)<br>
-        Clicca <strong style="color:var(--white)">Register</strong>.
-      </p>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">3</div>
-    <div class="step-body">
-      <h6>Copia il Client ID e Tenant ID</h6>
-      <p>Nella pagina Overview dell'app trovi:<br>
-        — <strong style="color:var(--white)">Application (client) ID</strong>: incollalo nella variabile <span class="code-inline">AZURE_CLIENT_ID</span><br>
-        — <strong style="color:var(--white)">Directory (tenant) ID</strong>: incollalo nella variabile <span class="code-inline">AZURE_TENANT_ID</span><br>
-        del file <span class="code-inline">index.html</span> nella sezione <code style="color:var(--teal)">const AZURE_CONFIG</code>.
-      </p>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">4</div>
-    <div class="step-body">
-      <h6>Aggiungi le API Permissions</h6>
-      <p>Vai su <strong style="color:var(--white)">API permissions → Add a permission → Microsoft Graph → Delegated permissions</strong>.<br>
-        Aggiungi le seguenti permission:
-      </p>
-      <div style="margin-top:0.5rem;">
-        <span class="perm-tag">User.Read</span>
-        <span class="perm-tag">Mail.Send</span>
-        <span class="perm-tag">Tasks.ReadWrite</span>
-        <span class="perm-tag">MailboxSettings.Read</span>
-      </div>
-      <p style="margin-top:0.5rem;">Clicca <strong style="color:var(--white)">Grant admin consent</strong> per il tuo tenant.</p>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">5</div>
-    <div class="step-body">
-      <h6>Configura Authentication (PKCE per SPA)</h6>
-      <p>Vai su <strong style="color:var(--white)">Authentication</strong> e verifica che sia abilitato:<br>
-        — <span class="code-inline">Access tokens</span> ✓<br>
-        — <span class="code-inline">ID tokens</span> ✓<br>
-        Poiché è una SPA su GitHub Pages, usare il <strong style="color:var(--white)">Authorization Code Flow con PKCE</strong> 
-        tramite la libreria <span class="code-inline">@azure/msal-browser</span> (inclusa via CDN al prossimo step).<br>
-        <strong style="color:var(--yellow)">Non creare mai un Client Secret</strong> per app pubbliche su browser.
-      </p>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">6</div>
-    <div class="step-body">
-      <h6>Aggiorna index.html con le credenziali</h6>
-      <p>Cerca nel file la sezione <span class="code-inline">const AZURE_CONFIG</span> e inserisci:<br>
-        <span class="code-inline">clientId: "IL_TUO_CLIENT_ID"</span><br>
-        <span class="code-inline">tenantId: "IL_TUO_TENANT_ID"</span><br>
-        Il flusso OAuth2/MSAL sarà attivato al prossimo step di sviluppo. 
-        L'integrazione Outlook sarà operativa dopo il push su GitHub Pages.
-      </p>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">7</div>
-    <div class="step-body">
-      <h6>Test dell'integrazione</h6>
-      <p>Apri la dashboard su GitHub Pages → clicca <strong style="color:var(--white)">"Connect Outlook"</strong> nella sezione To Do.<br>
-        Effettua il login con il tuo account Microsoft 365 aziendale.<br>
-        Verifica che appaia il nome utente nel badge in alto a destra e che i task di Outlook siano visibili nel pannello.<br>
-        Se ricevi un errore <span class="code-inline">AADSTS700054</span>: verifica i Redirect URI nell'app Azure.<br>
-        Se ricevi <span class="code-inline">AADSTS65001</span>: rifare il Grant Admin Consent al punto 4.
-      </p>
-    </div>
-  </div>
-
-  <div class="card-panel" style="background:rgba(230,126,34,0.05);border-color:rgba(230,126,34,0.2);margin-top:0.5rem;">
-    <div class="panel-title"><i class="bi bi-rocket-takeoff text-orange"></i> Prossimo Step</div>
-    <p style="font-size:0.82rem;color:var(--muted);line-height:1.6">
-      Al prossimo step integriamo MSAL.js (libreria Microsoft Authentication Library) direttamente nel file per abilitare il login OAuth2, 
-      la lettura bidirezionale dei task Outlook e l'invio email via Microsoft Graph API. Forniscimi il tuo <strong style="color:var(--white)">Client ID</strong> e 
-      <strong style="color:var(--white)">Tenant ID</strong> dopo la registrazione e aggiungiamo il codice.
-    </p>
-  </div>
-
+  <div class="section-header"><div class="section-title"><span>Azure AD</span> Setup Guide</div></div>
+  <div class="card-panel"><div class="panel-title"><i class="bi bi-info-circle text-teal"></i> Obiettivo</div><p style="font-size:.85rem;color:var(--muted);line-height:1.7">Registra un&#8217;app su <strong style="color:var(--white)">Azure Active Directory</strong> per abilitare l&#8217;integrazione Outlook. Permission richieste: <span class="code-inline">Mail.Send</span> <span class="code-inline">Tasks.ReadWrite</span> <span class="code-inline">User.Read</span></p></div>
+  <div class="guide-step"><div class="step-num">1</div><div class="step-body"><h6>Accedi al portale Azure</h6><p>Vai su <span class="code-inline">portal.azure.com</span> &#8594; <strong style="color:var(--white)">Microsoft Entra ID</strong></p></div></div>
+  <div class="guide-step"><div class="step-num">2</div><div class="step-body"><h6>Registra una nuova applicazione</h6><p>App registrations &#8594; New registration<br>Name: <span class="code-inline">Maritime Fleet Dashboard</span><br>Redirect URI: <span class="code-inline">https://micheledv74.github.io/maritime-dashboard/</span> (SPA)<br>Account type: Single tenant</p></div></div>
+  <div class="guide-step"><div class="step-num">3</div><div class="step-body"><h6>Copia Client ID e Tenant ID</h6><p>Incollali nella variabile <span class="code-inline">AZURE_CONFIG</span> nell&#8217;index.html.</p></div></div>
+  <div class="guide-step"><div class="step-num">4</div><div class="step-body"><h6>Aggiungi API Permissions</h6><p>Microsoft Graph &#8594; Delegated:<br><span class="perm-tag">User.Read</span><span class="perm-tag">Mail.Send</span><span class="perm-tag">Tasks.ReadWrite</span><br>&#8594; Grant admin consent</p></div></div>
+  <div class="guide-step"><div class="step-num">5</div><div class="step-body"><h6>Abilita token (SPA/PKCE)</h6><p>Authentication &#8594; Access tokens &#10003; &#183; ID tokens &#10003;<br><strong style="color:var(--yellow)">Non creare Client Secret</strong> per app pubbliche su browser.</p></div></div>
+  <div class="card-panel" style="background:rgba(230,126,34,.05);border-color:rgba(230,126,34,.2)"><div class="panel-title"><i class="bi bi-rocket-takeoff text-orange"></i> Prossimo Step</div><p style="font-size:.82rem;color:var(--muted);line-height:1.6">Quando hai Client ID e Tenant ID, comunica i valori e aggiungiamo MSAL.js per il login OAuth2 con Microsoft Graph.</p></div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════════════
-     SCRIPTS
-═══════════════════════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
 <script>
 'use strict';
-
-/* ════════════════════════════════════════════════════════════════
-   CONFIGURATION
-════════════════════════════════════════════════════════════════ */
-const DATA_URL = 'https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json';
-
-// Azure AD — fill after app registration (Step 3 of guide)
-const AZURE_CONFIG = {
-  clientId: 'YOUR_CLIENT_ID_HERE',
-  tenantId: 'YOUR_TENANT_ID_HERE',
-  redirectUri: 'https://micheledv74.github.io/maritime-dashboard/',
-  scopes: ['User.Read', 'Mail.Send', 'Tasks.ReadWrite']
+const DATA_URL='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json';
+const AZURE_CONFIG={clientId:'YOUR_CLIENT_ID_HERE',tenantId:'YOUR_TENANT_ID_HERE',redirectUri:'https://micheledv74.github.io/maritime-dashboard/',scopes:['User.Read','Mail.Send','Tasks.ReadWrite']};
+const EXCLUDED_VESSELS=['hsq'];
+const FLEET_ORDER=['medtoscana','medliguria','norrbotten','peppino'];
+const PAGE_SIZE=15;
+const VESSEL_REGISTRY={
+  medtoscana:{mmsi:'249090000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9490741',callsign:'9HA6104',lastKnown:{lat:30.03,lng:122.05,note:'Cantiere Zhoushan (dry dock)',ts:'2025-10'}},
+  medliguria:{mmsi:'636024824',flag:'\u{1F1F1}\u{1F1F7}',flagName:'Liberia',type:'Bulk Carrier',imo:'9604811',callsign:'5LUL8',lastKnown:{lat:-5.2,lng:68.4,note:'Oceano Indiano - Luanda',ts:'2026-05'}},
+  norrbotten:{mmsi:'255624000',flag:'\u{1F1F5}\u{1F1F9}',flagName:'Portugal',type:'General Cargo',imo:'9191931',callsign:'CQCK',lastKnown:{lat:60.63,lng:19.03,note:'Mar Baltico',ts:'2026-05'}},
+  peppino:{mmsi:'256957000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9586708',callsign:'9HA6039',lastKnown:{lat:39.20,lng:119.18,note:'Bo Hai, Cina (ancorata)',ts:'2026-04'}}
 };
+let fleetData=null,fleetMap=null;
+const aisState={},mapMarkers={},vts={};
+const escH=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const isExcl=v=>EXCLUDED_VESSELS.some(ex=>(v.vesselId||'').toLowerCase()===ex||(v.vesselName||'').toLowerCase()===ex);
+const actV=()=>(fleetData?.vessels||[]).filter(v=>!isExcl(v));
 
-// ── AIS Configuration ──────────────────────────────────────────
-const AIS_API_KEY = 'c136d51b737b3c8ecd1f4e9d62c97fb2351d5e71';
-const AIS_WS_URL  = 'wss://stream.aisstream.io/v0/stream';
-
-// Vessel registry — add new vessels here as fleet expands
-// lastKnown: fallback position shown immediately on map while waiting for live AIS
-const VESSEL_REGISTRY = {
-  medtoscana: {
-    mmsi: '249090000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9490741', callsign: '9HA6104',
-    lastKnown: { lat: 30.03, lng: 122.05, note: 'Cantiere Zhoushan (dry dock)', ts: '2025-10' }
-  },
-  medliguria: {
-    mmsi: '636024824', flag: '🇱🇷', flagName: 'Liberia', type: 'Bulk Carrier', imo: '9604811', callsign: '5LUL8',
-    lastKnown: { lat: -5.2,  lng: 68.4,  note: 'Oceano Indiano → Luanda (Angola)', ts: '2026-05' }
-  },
-  norrbotten: {
-    mmsi: '255624000', flag: '🇵🇹', flagName: 'Portugal',type: 'General Cargo', imo: '9191931', callsign: 'CQCK',
-    lastKnown: { lat: 60.63, lng: 19.03, note: 'Mar Baltico, navigazione', ts: '2026-05' }
-  },
-  peppino: {
-    mmsi: '256957000', flag: '🇲🇹', flagName: 'Malta',   type: 'Bulk Carrier', imo: '9586708', callsign: '9HA6039',
-    lastKnown: { lat: 39.20, lng: 119.18,note: 'Bo Hai, Cina (ancorata)', ts: '2026-04' }
-  },
-};
-
-// Last-known AIS state per vessel (updated by WebSocket)
-const aisState = {};       // { [vesselId]: { lat, lng, sog, cog, heading, destination, eta, navStatus, lastSeen, online } }
-const mapMarkers = {};     // { [vesselId]: L.marker }
-let   aisSocket  = null;
-let   aisReconnectTimer = null;
-
-/* ════════════════════════════════════════════════════════════════
-   FLEET CONFIG
-   EXCLUDED_VESSELS : vesselId da ignorare anche se nel JSON
-   FLEET_ORDER      : ordine dei tab e delle schede nave
-════════════════════════════════════════════════════════════════ */
-const EXCLUDED_VESSELS = ['hsq'];          // ufficio — non è una nave
-
-const FLEET_ORDER = ['medtoscana', 'medliguria', 'norrbotten', 'peppino'];
-
-/* ════════════════════════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════════════════════════ */
-let fleetData = null;
-let fleetMap  = null;
-let vesselTableState = {};
-const PAGE_SIZE = 15;
-
-/* ════════════════════════════════════════════════════════════════
-   INIT
-════════════════════════════════════════════════════════════════ */
-async function init() {
-  try {
-    const res  = await fetch(DATA_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    fleetData  = await res.json();
-
-    // ── Normalise fleet: remove excluded vessels, inject missing ones ──
-    fleetData.vessels = normaliseVessels(fleetData.vessels || []);
-
+async function init(){
+  try{
+    const res=await fetch(DATA_URL);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    fleetData=await res.json();
+    fleetData.vessels=normalise(fleetData.vessels||[]);
     renderAll();
-  } catch (err) {
-    console.error('Data load error:', err);
-    document.getElementById('loading-overlay').innerHTML =
-      `<div style="text-align:center;color:var(--red);font-family:var(--font-mono);font-size:0.8rem;">
-        <i class="bi bi-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:1rem;"></i>
-        Failed to load data.<br><small style="color:var(--muted)">${err.message}</small>
-      </div>`;
-    return;
+  }catch(e){
+    document.getElementById('loading-overlay').innerHTML='<div style="text-align:center;color:var(--red);font-family:var(--font-mono);font-size:.8rem"><i class="bi bi-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:1rem"></i>Errore: '+e.message+'</div>';
   }
 }
 
-/* Filtra le navi escluse, aggiunge le navi mancanti con KPI vuoti,
-   ordina secondo FLEET_ORDER.                                       */
-function normaliseVessels(raw) {
-  // 1. Rimuovi escluse — controllo su vesselId E vesselName
-  const filtered = raw.filter(v => {
-    const id   = (v.vesselId   || '').toLowerCase().trim();
-    const name = (v.vesselName || '').toLowerCase().trim();
-    const excluded = EXCLUDED_VESSELS.some(ex =>
-      id === ex.toLowerCase() || name === ex.toLowerCase()
-    );
-    if (excluded) console.log(`[Fleet] Escluso: ${v.vesselId} / ${v.vesselName}`);
-    return !excluded;
+function normalise(raw){
+  const f=raw.filter(v=>!isExcl(v));
+  FLEET_ORDER.forEach(id=>{
+    if(!f.find(v=>v.vesselId===id))
+      f.push({vesselId:id,vesselName:id.toUpperCase(),rfqOpen:0,rfqOverdue7:0,rfqOverdue15:0,readyForPO:0,orders:0,dnPending:0,delivery:'--',deliveryColor:'grey',pctReqToPO:0,pctPOToDN:0,lat:null,lng:null,sog:null,cog:null,destination:null,eta:null,navStatus:null,aisLastSeen:null,items:[],_missing:true});
   });
-
-  // 2. Per ogni nave in FLEET_ORDER, assicurati che esista nel dataset
-  FLEET_ORDER.forEach(id => {
-    if (!filtered.find(v => v.vesselId === id)) {
-      const reg = VESSEL_REGISTRY[id];
-      console.warn(`[Fleet] "${id}" assente dal JSON — aggiunta con KPI vuoti`);
-      filtered.push({
-        vesselId:     id,
-        vesselName:   reg ? reg.imo ? `${id.toUpperCase()}` : id.toUpperCase() : id.toUpperCase(),
-        rfqOpen:      0, rfqOverdue7: 0, rfqOverdue15: 0,
-        readyForPO:   0, orders: 0, dnPending: 0,
-        delivery:     '—', deliveryColor: 'grey',
-        pctReqToPO:   0, pctPOToDN: 0,
-        items:        [],
-        _missing:     true   // flag per mostrare badge "dati non disponibili"
-      });
-    }
-  });
-
-  // 3. Ordina secondo FLEET_ORDER, poi aggiunte fuori lista in fondo
-  filtered.sort((a, b) => {
-    const ia = FLEET_ORDER.indexOf(a.vesselId);
-    const ib = FLEET_ORDER.indexOf(b.vesselId);
-    if (ia === -1 && ib === -1) return 0;
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
-
-  return filtered;
+  f.sort((a,b)=>{const ia=FLEET_ORDER.indexOf(a.vesselId),ib=FLEET_ORDER.indexOf(b.vesselId);if(ia===-1&&ib===-1)return 0;if(ia===-1)return 1;if(ib===-1)return -1;return ia-ib;});
+  return f;
 }
 
-function renderAll() {
-  renderSyncTime();
-  renderGlobalKPIs();
-  renderFleetTable();
-  renderVesselTabs();
-  renderVesselPages();
-  renderTodoList();
-  initMap();
-  initAIS();
-  // Hide loading
-  const ov = document.getElementById('loading-overlay');
-  ov.style.opacity = '0';
-  setTimeout(() => ov.style.display = 'none', 500);
+function renderAll(){
+  renderSync();renderKPIs();renderFleetTable();renderTabs();renderPages();renderTodo();initMap();initAIS();
+  const ov=document.getElementById('loading-overlay');ov.style.opacity='0';setTimeout(()=>ov.style.display='none',500);
 }
 
-/* ════════════════════════════════════════════════════════════════
-   SYNC TIME
-════════════════════════════════════════════════════════════════ */
-function renderSyncTime() {
-  const d = new Date(fleetData.lastSync);
-  const fmt = d.toLocaleString('it-IT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-  document.getElementById('sync-time').textContent = `Sync: ${fmt}`;
+function renderSync(){
+  const d=new Date(fleetData.lastSync);
+  document.getElementById('sync-time').textContent='Sync: '+d.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
-/* ════════════════════════════════════════════════════════════════
-   GLOBAL KPIs
-════════════════════════════════════════════════════════════════ */
-function renderGlobalKPIs() {
-  const vessels = fleetData.vessels.filter(v =>
-    !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)
-  );
-  const totRFQ      = vessels.reduce((s,v) => s + (v.rfqOpen || 0), 0);
-  const totOverdue7 = vessels.reduce((s,v) => s + (v.rfqOverdue7 || 0), 0);
-  const totOverdue15= vessels.reduce((s,v) => s + (v.rfqOverdue15 || 0), 0);
-  const totDNPend   = vessels.reduce((s,v) => s + (v.dnPending || 0), 0);
-  const totOrders   = vessels.reduce((s,v) => s + (v.orders || 0), 0);
-  const totReadyPO  = vessels.reduce((s,v) => s + (v.readyForPO || 0), 0);
-  const delayed     = vessels.filter(v => v.deliveryColor === 'red').length;
-
-  document.getElementById('fleet-vessel-count').textContent = `${vessels.length} navi in flotta`;
-
-  const kpiEl = document.getElementById('global-kpis');
-  kpiEl.innerHTML = [
-    kpiCard('RFQ Aperti',    totRFQ,      'kpi-info',   '',        'bi-file-earmark-text',  ''),
-    kpiCard('Scaduti >7gg',  totOverdue7, totOverdue7 > 0 ? 'kpi-warn' : 'kpi-ok', totOverdue7 > 0 ? 'kpi-yellow' : 'kpi-green', 'bi-clock-history', ''),
-    kpiCard('Scaduti >15gg', totOverdue15,totOverdue15 > 0 ? 'kpi-alert':'kpi-ok',  totOverdue15 > 0?'kpi-red':'kpi-green','bi-exclamation-triangle',''),
-    kpiCard('Pronti per PO', totReadyPO,  'kpi-orange', 'kpi-orange','bi-bag-check',''),
-    kpiCard('Ordini Totali', totOrders,   'kpi-info',   '',          'bi-cart3',''),
-    kpiCard('DN Pendenti',   totDNPend,   totDNPend > 50 ? 'kpi-warn':'kpi-ok', totDNPend>50?'kpi-yellow':'kpi-green','bi-box-seam',''),
-    kpiCard('Consegne Ritardo', delayed,  delayed > 0 ? 'kpi-alert':'kpi-ok', delayed>0?'kpi-red':'kpi-green','bi-truck','navi'),
-    kpiCard('Flotta Attiva', vessels.length, 'kpi-ok', 'kpi-green', 'bi-send','navi'),
+function renderKPIs(){
+  const vv=actV();
+  document.getElementById('fleet-vessel-count').textContent=vv.length+' navi in flotta';
+  const s=k=>vv.reduce((t,v)=>t+(v[k]||0),0);
+  const delayed=vv.filter(v=>v.deliveryColor==='red').length;
+  document.getElementById('global-kpis').innerHTML=[
+    kC('RFQ Aperti',s('rfqOpen'),'kpi-info','','bi-file-earmark-text'),
+    kC('Scaduti >7gg',s('rfqOverdue7'),s('rfqOverdue7')>0?'kpi-warn':'kpi-ok',s('rfqOverdue7')>0?'kpi-yellow':'kpi-green','bi-clock-history'),
+    kC('Scaduti >15gg',s('rfqOverdue15'),s('rfqOverdue15')>0?'kpi-alert':'kpi-ok',s('rfqOverdue15')>0?'kpi-red':'kpi-green','bi-exclamation-triangle'),
+    kC('Pronti PO',s('readyForPO'),s('readyForPO')>0?'kpi-orange':'kpi-ok',s('readyForPO')>0?'kpi-orange':'kpi-green','bi-bag-check'),
+    kC('Ordini',s('orders'),'kpi-info','','bi-cart3'),
+    kC('DN Pendenti',s('dnPending'),s('dnPending')>50?'kpi-warn':'kpi-ok',s('dnPending')>50?'kpi-yellow':'kpi-green','bi-box-seam'),
+    kC('Cons. Ritardo',delayed,delayed>0?'kpi-alert':'kpi-ok',delayed>0?'kpi-red':'kpi-green','bi-truck'),
+    kC('Flotta',vv.length,'kpi-ok','kpi-green','bi-send')
   ].join('');
 }
+function kC(l,v,c,vc,i){return'<div class="kpi-card '+c+'"><div class="kpi-label"><i class="bi '+i+'"></i> '+l+'</div><div class="kpi-value '+vc+'">'+v+'</div></div>';}
 
-function kpiCard(label, value, cls, valCls, icon, sub) {
-  return `<div class="kpi-card ${cls}">
-    <div class="kpi-label"><i class="bi ${icon}"></i> ${label}</div>
-    <div class="kpi-value ${valCls}">${value}</div>
-    ${sub ? `<div class="kpi-sub">${sub}</div>` : ''}
-  </div>`;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   FLEET TABLE
-════════════════════════════════════════════════════════════════ */
-function renderFleetTable() {
-  const tbody = document.getElementById('fleet-table-body');
-  tbody.innerHTML = fleetData.vessels
-    .filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex))
-    .map(v => {
-    const pct1 = (v.pctReqToPO || 0);
-    const pct2 = (v.pctPOToDN  || 0);
-    const pillClass = v.deliveryColor === 'red' ? 'pill-red' : v.deliveryColor === 'green' ? 'pill-green' : 'pill-yellow';
-    const delivText = v.deliveryColor === 'red' ? '⚠ Ritardo' : v.deliveryColor === 'green' ? '✓ OK' : '~ In corso';
-    return `<tr onclick="showVessel('${v.vesselId}')">
-      <td><div class="vessel-name-cell">${v.vesselName}</div></td>
-      <td><span class="${v.rfqOpen > 0 ? 'text-orange font-mono' : ''}" style="font-weight:600">${v.rfqOpen}</span></td>
-      <td><span class="${v.rfqOverdue7 > 0 ? 'text-yellow font-mono' : 'text-muted-custom font-mono'}">${v.rfqOverdue7}</span></td>
-      <td><span class="${v.rfqOverdue15 > 0 ? 'text-red font-mono' : 'text-muted-custom font-mono'}">${v.rfqOverdue15}</span></td>
-      <td><span class="${v.readyForPO > 0 ? 'text-orange font-mono' : 'text-muted-custom font-mono'}">${v.readyForPO}</span></td>
-      <td class="font-mono">${v.orders}</td>
-      <td><span class="${v.dnPending > 30 ? 'text-yellow font-mono' : 'font-mono'}">${v.dnPending}</span></td>
-      <td><span class="status-pill ${pillClass}">${delivText}</span></td>
-      <td>
-        <div class="prog-bar" style="width:80px">
-          <div class="prog-fill orange" style="width:${pct1}%"></div>
-        </div>
-        <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-top:2px">${pct1}%</div>
-      </td>
-      <td>
-        <div class="prog-bar" style="width:80px">
-          <div class="prog-fill teal" style="width:${pct2}%"></div>
-        </div>
-        <div style="font-family:var(--font-mono);font-size:0.62rem;color:var(--muted);margin-top:2px">${pct2}%</div>
-      </td>
-    </tr>`;
+function renderFleetTable(){
+  document.getElementById('fleet-table-body').innerHTML=actV().map(v=>{
+    const pc=v.deliveryColor==='red'?'pill-red':v.deliveryColor==='green'?'pill-green':'pill-yellow';
+    const dt=v.deliveryColor==='red'?'Ritardo':v.deliveryColor==='green'?'OK':'In corso';
+    const pb=(pct)=>'<div class="prog-bar" style="width:80px"><div class="prog-fill orange" style="width:'+pct+'%"></div></div><div class="f-mono" style="font-size:.6rem;color:var(--muted);margin-top:2px">'+pct+'%</div>';
+    const pb2=(pct)=>'<div class="prog-bar" style="width:80px"><div class="prog-fill teal" style="width:'+pct+'%"></div></div><div class="f-mono" style="font-size:.6rem;color:var(--muted);margin-top:2px">'+pct+'%</div>';
+    return'<tr onclick="showVessel(\''+v.vesselId+'\')">'
+      +'<td><div class="vessel-name-cell">'+escH(v.vesselName)+'</div></td>'
+      +'<td><span class="'+(v.rfqOpen>0?'text-orange f-mono':'')+'">'+v.rfqOpen+'</span></td>'
+      +'<td><span class="'+(v.rfqOverdue7>0?'text-yellow f-mono':'text-muted-c f-mono')+'">'+v.rfqOverdue7+'</span></td>'
+      +'<td><span class="'+(v.rfqOverdue15>0?'text-red f-mono':'text-muted-c f-mono')+'">'+v.rfqOverdue15+'</span></td>'
+      +'<td><span class="'+(v.readyForPO>0?'text-orange f-mono':'text-muted-c f-mono')+'">'+v.readyForPO+'</span></td>'
+      +'<td class="f-mono">'+v.orders+'</td>'
+      +'<td><span class="'+(v.dnPending>30?'text-yellow f-mono':'f-mono')+'">'+v.dnPending+'</span></td>'
+      +'<td><span class="status-pill '+pc+'">'+dt+'</span></td>'
+      +'<td>'+pb(v.pctReqToPO||0)+'</td>'
+      +'<td>'+pb2(v.pctPOToDN||0)+'</td>'
+      +'</tr>';
   }).join('');
 }
 
-/* ════════════════════════════════════════════════════════════════
-   MAP — init with placeholder pins, AIS will move them live
-════════════════════════════════════════════════════════════════ */
-function initMap() {
-  fleetMap = L.map('fleet-map', { zoomControl: true, scrollWheelZoom: false });
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© <a href="https://carto.com/" style="color:#7a93b8">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" style="color:#7a93b8">OSM</a>',
-    maxZoom: 18
-  }).addTo(fleetMap);
-
-  // Create markers for every vessel — use lastKnown position from registry
-  const bounds = [];
-  fleetData.vessels
-    .filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex))
-    .forEach(v => {
-      const reg = VESSEL_REGISTRY[v.vesselId] || { flag:'🚢', flagName:'—', type:'Vessel', imo:'—', callsign:'—', mmsi:'—' };
-      const lk  = reg.lastKnown || { lat: 35, lng: 20 };
-      const marker = buildMarker(v, reg, lk.lat, lk.lng, false);
-      marker.addTo(fleetMap);
-      mapMarkers[v.vesselId] = marker;
-      bounds.push([lk.lat, lk.lng]);
-    });
-
-  // Auto-fit map to show all vessel positions
-  if (bounds.length > 0) {
-    try {
-      fleetMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 6 });
-    } catch(e) {
-      fleetMap.setView([20, 60], 2);
-    }
-  } else {
-    fleetMap.setView([20, 60], 2);
-  }
-}
-
-function buildMarker(v, reg, lat, lng, online) {
-  const alertColor = v.deliveryColor === 'red' ? '#e74c3c' : v.deliveryColor === 'green' ? '#27ae60' : '#f39c12';
-  const st = aisState[v.vesselId];
-  const isLastKnown = !st?.lastSeen || st?.isLastKnown;
-  const opacity = online ? '1' : isLastKnown ? '0.45' : '0.6';
-
-  const pulseRing = online
-    ? `<circle cx="16" cy="16" r="13" fill="none" stroke="${alertColor}" stroke-width="1.5" opacity="0.4">
-         <animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/>
-         <animate attributeName="opacity" from="0.5" to="0" dur="2s" repeatCount="indefinite"/>
-       </circle>` : '';
-
-  // Dashed circle for last-known positions
-  const circle = isLastKnown
-    ? `<circle cx="16" cy="16" r="11" fill="${alertColor}" fill-opacity="0.08" stroke="${alertColor}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>`
-    : `<circle cx="16" cy="16" r="11" fill="${alertColor}" fill-opacity="0.18" stroke="${alertColor}" stroke-width="2"/>`;
-
-  const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 32 32" opacity="${opacity}">
-    ${pulseRing}${circle}
-    <text x="16" y="21" font-size="13" text-anchor="middle" fill="white">⛵</text>
-  </svg>`;
-
-  const icon = L.divIcon({ className:'vessel-icon', html:svgIcon, iconSize:[36,36], iconAnchor:[18,18], popupAnchor:[0,-18] });
-
-  const posLine = st?.lat
-    ? `<div class="ship-popup-row"><span>Posizione</span><span>${st.lat.toFixed(3)}°N, ${st.lng.toFixed(3)}°E</span></div>`
-    : `<div class="ship-popup-row"><span>Posizione</span><span style="color:var(--muted)">—</span></div>`;
-  const sogLine  = st?.sog && st.sog !== '—' ? `<div class="ship-popup-row"><span>Speed (SOG)</span><span>${st.sog} kn</span></div>` : '';
-  const cogLine  = st?.cog != null           ? `<div class="ship-popup-row"><span>Course (COG)</span><span>${st.cog}°</span></div>` : '';
-  const destLine = st?.destination           ? `<div class="ship-popup-row"><span>Destinazione</span><span>${st.destination}</span></div>` : '';
-  const etaLine  = st?.eta                   ? `<div class="ship-popup-row"><span>ETA</span><span>${st.eta}</span></div>` : '';
-
-  let aisInfo;
-  if (online) {
-    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--green);margin-bottom:5px">🟢 AIS Live · ${timeSince(st.lastSeen)}</div>`;
-  } else if (st?.lastSeen) {
-    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--yellow);margin-bottom:5px">🟡 Offline · ultima pos. ${timeSince(st.lastSeen)}</div>`;
-  } else if (isLastKnown) {
-    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);margin-bottom:5px">⚪ Posizione nota · ${st?.lastKnownTs || '—'}</div>`;
-  } else {
-    aisInfo = `<div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);margin-bottom:5px">⚪ In attesa AIS…</div>`;
-  }
-
-  const popupContent = `
-    <div class="ship-popup-title">⚓ ${v.vesselName}</div>
-    ${aisInfo}
-    <div class="ship-popup-row"><span>Tipo</span><span>${reg.type}</span></div>
-    <div class="ship-popup-row"><span>Bandiera</span><span>${reg.flag} ${reg.flagName}</span></div>
-    <div class="ship-popup-row"><span>MMSI</span><span>${reg.mmsi}</span></div>
-    ${posLine}${sogLine}${cogLine}${destLine}${etaLine}
-    <div class="ship-popup-row"><span>RFQ Aperti</span><span>${v.rfqOpen}</span></div>
-    <div class="ship-popup-row"><span>DN Pendenti</span><span>${v.dnPending}</span></div>
-    <button class="popup-btn" onclick="showVessel('${v.vesselId}')">→ Apri Scheda Nave</button>
-  `;
-
-  const marker = L.marker([lat, lng], { icon });
-  marker.bindPopup(popupContent, { maxWidth: 260 });
-  return marker;
-}
-
-function refreshMarker(vesselId) {
-  const v   = fleetData.vessels.find(x => x.vesselId === vesselId);
-  const reg = VESSEL_REGISTRY[vesselId] || {};
-  const st  = aisState[vesselId];
-  if (!v || !st || !mapMarkers[vesselId]) return;
-
-  const online = (Date.now() - st.lastSeen) < 30 * 60 * 1000; // within 30 min
-  const newMarker = buildMarker(v, reg, st.lat, st.lng, online);
-  const oldMarker = mapMarkers[vesselId];
-  newMarker.addTo(fleetMap);
-  fleetMap.removeLayer(oldMarker);
-  mapMarkers[vesselId] = newMarker;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   AIS — WebSocket connection to aisstream.io
-════════════════════════════════════════════════════════════════ */
-function initAIS() {
-  // Step 1 — paint last-known positions on map immediately (no API call needed)
-  Object.entries(VESSEL_REGISTRY).forEach(([vesselId, reg]) => {
-    if (!reg.lastKnown) return;
-    const lk = reg.lastKnown;
-    // Only set if no live data already
-    if (!aisState[vesselId]) {
-      aisState[vesselId] = {
-        lat: lk.lat, lng: lk.lng,
-        sog: '—', cog: null, heading: 0,
-        navStatus: '—', destination: lk.note || null, eta: null,
-        lastSeen: null,   // null = last-known, not live
-        online: false, isLastKnown: true, lastKnownTs: lk.ts
-      };
-      refreshMarker(vesselId);
-      updateAisStrip(vesselId);
-    }
+function initMap(){
+  fleetMap=L.map('fleet-map',{zoomControl:true,scrollWheelZoom:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://carto.com/" style="color:#7a93b8">CARTO</a> &copy; OSM',maxZoom:18}).addTo(fleetMap);
+  const bounds=[];
+  actV().forEach(v=>{
+    const reg=VESSEL_REGISTRY[v.vesselId]||{},lk=reg.lastKnown||{lat:35,lng:20};
+    const st=aisState[v.vesselId];
+    const lat=st?.lat??lk.lat,lng=st?.lng??lk.lng;
+    const m=buildMarker(v,lat,lng);m.addTo(fleetMap);mapMarkers[v.vesselId]=m;bounds.push([lat,lng]);
   });
-
-  // Step 2 — try reading positions from procurement JSON (if n8n adds them)
-  loadPositionsFromJSON();
-
-  // Step 3 — open live WebSocket for terrestrial vessels (NORRBOTTEN, PEPPINO)
-  updateAisStatusBadge('connecting');
-  connectAIS();
+  if(bounds.length){try{fleetMap.fitBounds(bounds,{padding:[50,50],maxZoom:5});}catch(e){fleetMap.setView([20,60],2);}}
+  else fleetMap.setView([20,60],2);
 }
 
-// Reads lat/lng from data-procurement.json if n8n enriches it with AIS data
-function loadPositionsFromJSON() {
-  if (!fleetData?.vessels) return;
-  fleetData.vessels.filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)).forEach(v => {
-    if (v.lat != null && v.lng != null) {
-      aisState[v.vesselId] = {
-        ...(aisState[v.vesselId] || {}),
-        lat: v.lat, lng: v.lng,
-        sog:         v.sog         ?? '—',
-        cog:         v.cog         ?? null,
-        destination: v.destination ?? null,
-        eta:         v.eta         ?? null,
-        navStatus:   v.navStatus   ?? '—',
-        lastSeen:    v.aisLastSeen ? new Date(v.aisLastSeen).getTime() : null,
-        online:      false,
-        isLastKnown: false
-      };
-      refreshMarker(v.vesselId);
-      updateAisStrip(v.vesselId);
+function buildMarker(v,lat,lng){
+  const reg=VESSEL_REGISTRY[v.vesselId]||{flag:'',flagName:'--',type:'Vessel',imo:'--',callsign:'--',mmsi:'--'};
+  const st=aisState[v.vesselId];
+  const col=v.deliveryColor==='red'?'#e74c3c':v.deliveryColor==='green'?'#27ae60':'#f39c12';
+  const live=!!(st?.aisLastSeen&&!st?.isLastKnown);
+  const op=live?'1':'0.5';
+  const da=live?'':'stroke-dasharray="4 3"';
+  const pulse=live?'<circle cx="16" cy="16" r="13" fill="none" stroke="'+col+'" stroke-width="1.5" opacity=".4"><animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".5" to="0" dur="2s" repeatCount="indefinite"/></circle>':'';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 32 32" opacity="'+op+'">'+pulse+'<circle cx="16" cy="16" r="11" fill="'+col+'" fill-opacity=".15" stroke="'+col+'" stroke-width="2" '+da+'/><text x="16" y="21" font-size="13" text-anchor="middle" fill="white">&#9973;</text></svg>';
+  const icon=L.divIcon({className:'vessel-icon',html:svg,iconSize:[36,36],iconAnchor:[18,18],popupAnchor:[0,-18]});
+  let ai='';
+  if(st?.lat) ai+='<div class="ship-popup-row"><span>Pos</span><span>'+st.lat.toFixed(3)+'N, '+st.lng.toFixed(3)+'E</span></div>';
+  if(st?.sog!=null) ai+='<div class="ship-popup-row"><span>SOG</span><span>'+st.sog+' kn</span></div>';
+  if(st?.destination) ai+='<div class="ship-popup-row"><span>Dest</span><span>'+escH(st.destination)+'</span></div>';
+  if(st?.aisLastSeen) ai+='<div class="ship-popup-row"><span>AIS</span><span style="color:'+(live?'var(--green)':'var(--muted)')+'">'+new Date(st.aisLastSeen).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span></div>';
+  const popup='<div class="ship-popup-title">&#9875; '+escH(v.vesselName)+'</div>'
+    +'<div class="ship-popup-row"><span>Tipo</span><span>'+reg.type+'</span></div>'
+    +'<div class="ship-popup-row"><span>MMSI</span><span>'+reg.mmsi+'</span></div>'
+    +ai
+    +'<div class="ship-popup-row"><span>RFQ</span><span>'+v.rfqOpen+'</span></div>'
+    +'<div class="ship-popup-row"><span>DN Pend.</span><span>'+v.dnPending+'</span></div>'
+    +'<button class="popup-btn" onclick="showVessel(\''+v.vesselId+'\')">&#8594; Apri Scheda Nave</button>';
+  return L.marker([lat,lng],{icon}).bindPopup(popup,{maxWidth:260});
+}
+
+function refreshMarker(vid){
+  const v=fleetData.vessels.find(x=>x.vesselId===vid);
+  const reg=VESSEL_REGISTRY[vid]||{},lk=reg.lastKnown||{lat:35,lng:20};
+  const st=aisState[vid];
+  if(!v||!mapMarkers[vid])return;
+  const lat=st?.lat??lk.lat,lng=st?.lng??lk.lng;
+  const nm=buildMarker(v,lat,lng);nm.addTo(fleetMap);fleetMap.removeLayer(mapMarkers[vid]);mapMarkers[vid]=nm;
+}
+
+function initAIS(){
+  let anyLive=false;
+  fleetData.vessels.forEach(v=>{
+    const reg=VESSEL_REGISTRY[v.vesselId]||{},lk=reg.lastKnown;
+    if(v.lat!=null&&v.lng!=null){
+      aisState[v.vesselId]={lat:v.lat,lng:v.lng,sog:v.sog,cog:v.cog,destination:v.destination,eta:v.eta,navStatus:v.navStatus,aisLastSeen:v.aisLastSeen,isLastKnown:false};
+      anyLive=true;
+    }else if(lk){
+      aisState[v.vesselId]={lat:lk.lat,lng:lk.lng,sog:null,cog:null,destination:lk.note,eta:null,navStatus:null,aisLastSeen:null,isLastKnown:true,lastKnownTs:lk.ts};
     }
+    updateAisStrip(v.vesselId);
   });
+  const el=document.getElementById('ais-status-badge');
+  el.textContent=anyLive?'&#9679; Posizioni da VesselAPI (n8n)':'&#9711; Posizioni last-known -- aggiorna n8n';
+  el.style.color=anyLive?'var(--green)':'var(--muted)';
 }
 
-function connectAIS() {
-  if (aisSocket) { try { aisSocket.close(); } catch(_){} }
-  aisSocket = new WebSocket(AIS_WS_URL);
-
-  aisSocket.onopen = () => {
-    updateAisStatusBadge('connected');
-    // ⚠ FilterMMSI MUST be integers, not strings
-    const mmsiInts = Object.values(VESSEL_REGISTRY).map(r => parseInt(r.mmsi, 10));
-    aisSocket.send(JSON.stringify({
-      APIKey:       AIS_API_KEY,
-      BoundingBoxes: [[[-90, -180], [90, 180]]],
-      FilterMMSI:   mmsiInts
-    }));
-    console.log('[AIS WS] Connected — subscribed to MMSI:', mmsiInts);
-  };
-
-  aisSocket.onmessage = (evt) => {
-    try { handleAisMessage(JSON.parse(evt.data)); }
-    catch(e) { console.warn('[AIS WS] Parse error', e); }
-  };
-
-  aisSocket.onerror = (e) => {
-    console.warn('[AIS WS] Error', e);
-    updateAisStatusBadge('error');
-  };
-
-  aisSocket.onclose = (e) => {
-    updateAisStatusBadge('reconnecting');
-    console.log(`[AIS WS] Closed (code ${e.code}) — reconnecting in 20s…`);
-    clearTimeout(aisReconnectTimer);
-    aisReconnectTimer = setTimeout(connectAIS, 20000);
-  };
+function updateAisStrip(vid){
+  const st=aisState[vid];if(!st)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el){el.textContent=v||'--';el.className='ais-item-value'+((!v||v==='--')?' dim':'');}};
+  set('ais-pos-'+vid,st.lat?st.lat.toFixed(4)+'N, '+st.lng.toFixed(4)+'E':null);
+  set('ais-sog-'+vid,st.sog!=null?st.sog+' kn':null);
+  set('ais-cog-'+vid,st.cog!=null?st.cog+'':null);
+  set('ais-nav-'+vid,st.navStatus);
+  set('ais-dest-'+vid,st.destination);
+  set('ais-eta-'+vid,st.eta);
+  const el=document.getElementById('ais-last-'+vid);
+  if(!el)return;
+  if(st.isLastKnown){el.textContent='Ultima nota: '+( st.lastKnownTs||'--');el.style.color='var(--muted)';}
+  else if(st.aisLastSeen){el.textContent='VesselAPI: '+new Date(st.aisLastSeen).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});el.style.color='var(--green)';}
 }
 
-function handleAisMessage(msg) {
-  diagAisMessages++;
-  const meta     = msg.MetaData || {};
-  const mmsi     = String(meta.MMSI || meta.mmsi || '');
-  const vesselId = mmsiToVesselId(mmsi);
-  const logEntry = `[${new Date().toLocaleTimeString()}] ${msg.MessageType} MMSI:${mmsi} → ${vesselId||'sconosciuto'}`;
-  diagAisLog.push(logEntry);
-  if (diagAisLog.length > 20) diagAisLog.shift();
-  if (!vesselId) return;
-
-  const now = Date.now();
-
-  if (msg.MessageType === 'PositionReport' ||
-      msg.MessageType === 'StandardClassBPositionReport' ||
-      msg.MessageType === 'ExtendedClassBPositionReport') {
-
-    const pr  = msg.Message?.PositionReport
-             || msg.Message?.StandardClassBPositionReport
-             || msg.Message?.ExtendedClassBPositionReport
-             || {};
-
-    // lat/lng can be in MetaData (lowercase) or in the Message object (TitleCase)
-    const lat = meta.latitude  ?? meta.Latitude  ?? pr.Latitude;
-    const lng = meta.longitude ?? meta.Longitude ?? pr.Longitude;
-    if (lat == null || lng == null) return;
-    if (lat === 0 && lng === 0)     return;        // invalid AIS fix
-    if (lat > 90 || lat < -90)      return;
-    if (lng > 180 || lng < -180)    return;
-
-    aisState[vesselId] = {
-      ...(aisState[vesselId] || {}),
-      lat:       parseFloat(parseFloat(lat).toFixed(5)),
-      lng:       parseFloat(parseFloat(lng).toFixed(5)),
-      sog:       (pr.Sog ?? 0).toFixed(1),
-      cog:       Math.round(pr.Cog ?? 0),
-      heading:   pr.TrueHeading ?? pr.Cog ?? 0,
-      navStatus: navStatusLabel(pr.NavigationalStatus),
-      lastSeen:  now,
-      online:    true
-    };
-
-    refreshMarker(vesselId);
-    updateAisStrip(vesselId);
-    console.log(`[AIS WS] ${vesselId} → ${lat.toFixed(3)}°, ${lng.toFixed(3)}° @ ${aisState[vesselId].sog}kn`);
-  }
-
-  if (msg.MessageType === 'ShipStaticData') {
-    const sd  = msg.Message?.ShipStaticData || {};
-    const eta = sd.Eta;
-    let etaStr = null;
-    if (eta && eta.Month && eta.Day && eta.Hour != null) {
-      etaStr = `${String(eta.Day).padStart(2,'0')}/${String(eta.Month).padStart(2,'0')} `
-             + `${String(eta.Hour).padStart(2,'0')}:${String(eta.Minute||0).padStart(2,'0')} UTC`;
-    }
-    aisState[vesselId] = {
-      ...(aisState[vesselId] || {}),
-      destination: (sd.Destination || '').trim().replace(/[\x00-\x1f]/g,'') || null,
-      eta:         etaStr,
-      lastSeen:    aisState[vesselId]?.lastSeen || now
-    };
-    updateAisStrip(vesselId);
-    refreshMarker(vesselId);
-    console.log(`[AIS WS] Static ${vesselId} → dest: ${aisState[vesselId].destination}, ETA: ${etaStr}`);
-  }
-}
-
-function mmsiToVesselId(mmsi) {
-  return Object.entries(VESSEL_REGISTRY).find(([,r]) => r.mmsi === mmsi)?.[0] || null;
-}
-
-function navStatusLabel(code) {
-  const labels = {
-    0:'Under Way Engine',1:'At Anchor',2:'Not Under Command',3:'Restricted Manoeuvrability',
-    4:'Constrained by Draught',5:'Moored',6:'Aground',7:'Engaged in Fishing',8:'Under Way Sailing',15:'Undefined'
-  };
-  return labels[code] ?? 'Unknown';
-}
-
-function timeSince(ts) {
-  if (!ts) return '—';
-  const sec = Math.floor((Date.now() - ts) / 1000);
-  if (sec < 60)   return `${sec}s fa`;
-  if (sec < 3600) return `${Math.floor(sec/60)}min fa`;
-  return `${Math.floor(sec/3600)}h fa`;
-}
-
-function updateAisStrip(vesselId) {
-  const st = aisState[vesselId];
-  if (!st) return;
-  const online = st.online && st.lastSeen && (Date.now() - st.lastSeen) < 30 * 60 * 1000;
-  const isLastKnown = st.isLastKnown || !st.lastSeen;
-
-  const setVal = (id, val, extraStyle) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerHTML = val;
-    if (extraStyle) el.style.color = extraStyle;
-    else el.style.color = '';
-  };
-
-  const latLng = st.lat && st.lng
-    ? `${st.lat.toFixed(4)}° N, ${st.lng.toFixed(4)}° E`
-    : '—';
-
-  setVal(`ais-pos-${vesselId}`,  latLng);
-  setVal(`ais-sog-${vesselId}`,  st.sog && st.sog !== '—' ? `${st.sog} kn` : '—');
-  setVal(`ais-cog-${vesselId}`,  st.cog != null ? `${st.cog}°` : '—');
-  setVal(`ais-nav-${vesselId}`,  st.navStatus || '—');
-  setVal(`ais-dest-${vesselId}`, st.destination || '—');
-  setVal(`ais-eta-${vesselId}`,  st.eta || '—');
-
-  let lastStr, lastColor;
-  if (online) {
-    lastStr  = `🟢 Live · ${timeSince(st.lastSeen)}`;
-    lastColor = 'var(--green)';
-  } else if (st.lastSeen) {
-    lastStr  = `🟡 Offline · ${timeSince(st.lastSeen)}`;
-    lastColor = 'var(--yellow)';
-  } else if (isLastKnown && st.lastKnownTs) {
-    lastStr  = `⚪ Ultima nota · ${st.lastKnownTs}`;
-    lastColor = 'var(--muted)';
-  } else {
-    lastStr  = '⚪ In attesa AIS…';
-    lastColor = 'var(--muted)';
-  }
-  setVal(`ais-last-${vesselId}`, lastStr, lastColor);
-
-  // Refresh label every 60s
-  clearInterval(window[`_aisTimer_${vesselId}`]);
-  window[`_aisTimer_${vesselId}`] = setInterval(() => updateAisStrip(vesselId), 60000);
-}
-
-function updateAisStatusBadge(status) {
-  const map = {
-    connecting:   { text: 'AIS: Connessione…', color: 'var(--muted)'   },
-    connected:    { text: 'AIS: Live ●',       color: 'var(--green)'   },
-    error:        { text: 'AIS: Errore ✕',     color: 'var(--red)'     },
-    reconnecting: { text: 'AIS: Riconnessione…',color:'var(--yellow)'  },
-  };
-  const s = map[status] || map.error;
-  const el = document.getElementById('ais-status-badge');
-  if (el) { el.textContent = s.text; el.style.color = s.color; }
-}
-
-/* ════════════════════════════════════════════════════════════════
-   VESSEL TABS + PAGES
-════════════════════════════════════════════════════════════════ */
-function renderVesselTabs() {
-  const container = document.getElementById('vessel-tabs');
-  container.innerHTML = fleetData.vessels
-    .filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex))
-    .map(v => {
-    const hasAlert = v.deliveryColor === 'red' || v.rfqOverdue7 > 0;
-    return `<button class="nav-tab" onclick="showVessel('${v.vesselId}')" id="tab-vessel-${v.vesselId}">
-      <i class="bi bi-ship tab-icon"></i> ${v.vesselName}
-      ${hasAlert ? `<span class="vessel-alert">${(v.rfqOverdue7||0) + (v.rfqOverdue15||0)}</span>` : ''}
-    </button>`;
+function renderTabs(){
+  document.getElementById('vessel-tabs').innerHTML=actV().map(v=>{
+    const a=v.rfqOverdue7>0||v.rfqOverdue15>0||v.deliveryColor==='red';
+    const n=(v.rfqOverdue7||0)+(v.rfqOverdue15||0);
+    return'<button class="nav-tab" onclick="showVessel(\''+v.vesselId+'\')" id="tab-vessel-'+v.vesselId+'"><i class="bi bi-ship"></i> '+escH(v.vesselName)+(a&&n>0?'<span class="vessel-alert">'+n+'</span>':'')+'</button>';
   }).join('');
 }
 
-function renderVesselPages() {
-  const container = document.getElementById('vessel-pages');
-  const vessels   = fleetData.vessels.filter(v =>
-    !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)
-  );
-  container.innerHTML = vessels.map(v => buildVesselPage(v)).join('');
-  vessels.forEach(v => {
-    vesselTableState[v.vesselId] = { page: 1, search: '', filterRFQ: '', filterPO: '', filterDN: '', sort: { col: 'deliveryDate', dir: 1 } };
-    renderItemsTable(v.vesselId);
+function renderPages(){
+  const vv=actV();
+  document.getElementById('vessel-pages').innerHTML=vv.map(v=>buildPage(v)).join('');
+  vv.forEach(v=>{vts[v.vesselId]={page:1,search:'',filterRFQ:'',filterPO:'',filterDN:'',sort:{col:'deliveryDate',dir:1}};renderItems(v.vesselId);});
+}
+
+function buildPage(v){
+  const reg=VESSEL_REGISTRY[v.vesselId]||{flag:'',flagName:'--',type:'Vessel',imo:'--',callsign:'--',mmsi:'--'};
+  const ac=v.deliveryColor==='red'?'kpi-alert':v.deliveryColor==='green'?'kpi-ok':'kpi-warn';
+  const mb=v._missing?'<div class="alert-banner warn" style="margin-bottom:1rem"><i class="bi bi-exclamation-triangle-fill"></i><div class="alert-banner-text"><strong>Dati procurement non disponibili</strong> -- '+escH(v.vesselName)+' non e\' ancora nel JSON. Aggiorna il workflow n8n.</div></div>':'';
+  return'<section class="page-section" id="page-vessel-'+v.vesselId+'">'
+  +'<div class="card-panel">'+mb
+  +'<div class="vessel-header"><div class="vessel-photo"><i class="bi bi-ship"></i></div><div class="vessel-details">'
+  +'<div class="vessel-title">'+escH(v.vesselName)+'</div>'
+  +'<div class="vessel-subtitle">'+reg.flag+' '+reg.type+' &middot; IMO '+reg.imo+'</div>'
+  +'<div class="vessel-tags"><span class="vtag"><i class="bi bi-flag"></i> '+reg.flagName+'</span><span class="vtag"><i class="bi bi-broadcast"></i> MMSI: <strong style="color:var(--teal)">'+reg.mmsi+'</strong></span>'+(reg.callsign?'<span class="vtag"><i class="bi bi-radio"></i> '+reg.callsign+'</span>':'')+'</div>'
+  +'</div></div>'
+  +'<div class="ais-strip">'
+  +['&#128205; Posizione|ais-pos','SOG|ais-sog','COG|ais-cog','Nav Status|ais-nav','Destinazione|ais-dest','ETA|ais-eta','AIS Aggiornato|ais-last'].map(s=>{const[l,id]=s.split('|');return'<div class="ais-item"><div class="ais-item-label">'+l+'</div><div class="ais-item-value dim" id="'+id+'-'+v.vesselId+'">--</div></div>';}).join('')
+  +'</div></div>'
+  +'<div class="kpi-grid">'
+  +kC('RFQ Aperti',v.rfqOpen,v.rfqOpen>0?'kpi-info':'kpi-ok',v.rfqOpen>0?'kpi-orange':'kpi-green','bi-file-earmark-text')
+  +kC('Scaduti >7gg',v.rfqOverdue7,v.rfqOverdue7>0?'kpi-warn':'kpi-ok',v.rfqOverdue7>0?'kpi-yellow':'kpi-green','bi-clock-history')
+  +kC('Scaduti >15gg',v.rfqOverdue15,v.rfqOverdue15>0?'kpi-alert':'kpi-ok',v.rfqOverdue15>0?'kpi-red':'kpi-green','bi-exclamation-triangle')
+  +kC('Ready PO',v.readyForPO,v.readyForPO>0?'kpi-orange':'kpi-ok',v.readyForPO>0?'kpi-orange':'kpi-green','bi-bag-check')
+  +kC('Ordini',v.orders,'kpi-info','','bi-cart3')
+  +kC('DN Pendenti',v.dnPending,v.dnPending>30?'kpi-warn':'kpi-ok',v.dnPending>30?'kpi-yellow':'kpi-green','bi-box-seam')
+  +kC('Delivery',v.delivery,ac,v.deliveryColor==='red'?'kpi-red':'kpi-green','bi-truck')
+  +'</div>'
+  +'<div class="card-panel"><div class="panel-title"><i class="bi bi-graph-up-arrow text-orange"></i> Avanzamento Procurement</div>'
+  +'<div class="progress-row"><div class="progress-label"><span>REQ &#8594; PO</span><span>'+(v.pctReqToPO||0)+'%</span></div><div class="prog-bar"><div class="prog-fill orange" style="width:'+(v.pctReqToPO||0)+'%"></div></div></div>'
+  +'<div class="progress-row"><div class="progress-label"><span>PO &#8594; DN</span><span>'+(v.pctPOToDN||0)+'%</span></div><div class="prog-bar"><div class="prog-fill teal" style="width:'+(v.pctPOToDN||0)+'%"></div></div></div></div>'
+  +buildAlerts(v)
+  +'<div class="card-panel"><div class="panel-title"><i class="bi bi-table text-orange"></i> Ordini &amp; Requisizioni</div>'
+  +'<div class="filter-bar">'
+  +'<input type="text" placeholder="&#128269; Cerca..." style="flex:1;min-width:180px" oninput="filterT(\''+v.vesselId+'\',\'search\',this.value)">'
+  +'<select onchange="filterT(\''+v.vesselId+'\',\'filterRFQ\',this.value)"><option value="">Tutti RFQ</option><option>RFQ Sent to Vendor</option><option>RFQ Offer Acknowledged</option><option>RFQ Refused</option></select>'
+  +'<select onchange="filterT(\''+v.vesselId+'\',\'filterPO\',this.value)"><option value="">Tutti PO</option><option>PO Published</option><option>PO Finalized</option><option>PO Cancelled</option></select>'
+  +'<select onchange="filterT(\''+v.vesselId+'\',\'filterDN\',this.value)"><option value="">Tutti DN</option><option>DN Shipped to Vessel</option><option>DN Received on Board</option><option>DN Ready for Shipment</option><option>DN Delivery Tracking Open</option></select>'
+  +'</div>'
+  +'<div class="items-table-wrap"><table class="items-table"><thead><tr>'
+  +['Descrizione','Fornitore','RFQ Status','RFQ %','Giorni','PO Status','DN Status','Consegna'].map((h,i)=>{const cols=['description','supplier','rfqStatus','rfqPct','rfqDays','poStatus','dnStatus','deliveryDate'];return'<th onclick="sortT(\''+v.vesselId+'\',\''+cols[i]+'\')">'+h+' &#8597;</th>';}).join('')
+  +'</tr></thead><tbody id="items-tbody-'+v.vesselId+'"></tbody></table>'
+  +'<div class="pagination-bar"><div class="pag-info" id="pag-info-'+v.vesselId+'"></div><div class="pag-btns"><button class="pag-btn" id="pag-prev-'+v.vesselId+'" onclick="chPage(\''+v.vesselId+'\',-1)">&#8592; Prec</button><button class="pag-btn" id="pag-next-'+v.vesselId+'" onclick="chPage(\''+v.vesselId+'\',1)">Succ &#8594;</button></div></div>'
+  +'</div></div>'
+  +'<div class="card-panel"><div class="panel-title"><i class="bi bi-award text-orange"></i> Certificati Nave</div>'
+  +'<div style="font-family:var(--font-mono);font-size:.65rem;color:var(--yellow);margin-bottom:.75rem">&#9888; Sezione predisposta -- dati da aggiungere al prossimo step</div>'
+  +'<div class="items-table-wrap"><table class="cert-table"><thead><tr><th>Certificato</th><th>Ente</th><th>Emissione</th><th>Scadenza</th><th>Stato</th><th>Note</th></tr></thead>'
+  +'<tbody><tr class="cert-ph"><td colspan="6"><i class="bi bi-folder2-open" style="font-size:1.5rem;display:block;margin-bottom:.5rem"></i>Nessun certificato caricato</td></tr></tbody></table></div></div>'
+  +'</section>';
+}
+
+function buildAlerts(v){
+  const a=[];
+  if(v.rfqOverdue15>0)a.push('<div class="alert-banner alert-danger"><i class="bi bi-exclamation-octagon-fill"></i><div class="alert-banner-text"><strong>'+v.rfqOverdue15+' RFQ scaduti &gt;15gg</strong> -- Azione immediata.</div></div>');
+  if(v.rfqOverdue7>0)a.push('<div class="alert-banner warn"><i class="bi bi-exclamation-triangle-fill"></i><div class="alert-banner-text"><strong>'+v.rfqOverdue7+' RFQ scaduti &gt;7gg</strong> -- Sollecitare i fornitori.</div></div>');
+  if(v.readyForPO>0)a.push('<div class="alert-banner warn" style="background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.25)"><i class="bi bi-bag-check" style="color:var(--orange)"></i><div class="alert-banner-text"><strong>'+v.readyForPO+' pronti per PO</strong> -- Approvare i Purchase Order.</div></div>');
+  if(v.deliveryColor==='red')a.push('<div class="alert-banner alert-danger"><i class="bi bi-truck"></i><div class="alert-banner-text"><strong>Consegne in ritardo</strong> -- Verificare tracking DN.</div></div>');
+  return a.length?'<div style="margin-bottom:1.5rem">'+a.join('')+'</div>':'';
+}
+
+function filterT(vid,k,val){vts[vid][k]=val;vts[vid].page=1;renderItems(vid);}
+function sortT(vid,col){const s=vts[vid].sort;if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}renderItems(vid);}
+function chPage(vid,d){vts[vid].page+=d;renderItems(vid);}
+
+function renderItems(vid){
+  const vessel=fleetData.vessels.find(v=>v.vesselId===vid);if(!vessel)return;
+  const st=vts[vid];
+  let items=[...(vessel.items||[])];
+  if(st.search){const q=st.search.toLowerCase();items=items.filter(i=>(i.description||'').toLowerCase().includes(q)||(i.supplier||'').toLowerCase().includes(q));}
+  if(st.filterRFQ)items=items.filter(i=>i.rfqStatus===st.filterRFQ);
+  if(st.filterPO)items=items.filter(i=>i.poStatus===st.filterPO);
+  if(st.filterDN)items=items.filter(i=>i.dnStatus===st.filterDN);
+  const{col,dir}=st.sort;
+  items.sort((a,b)=>{let av=a[col]??'',bv=b[col]??'';if(col==='deliveryDate'){av=av==='--'?'9999':av;bv=bv==='--'?'9999':bv;}return(typeof av==='number'?(av-bv):String(av).localeCompare(String(bv)))*dir;});
+  const total=items.length,pages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  st.page=Math.min(Math.max(1,st.page),pages);
+  const start=(st.page-1)*PAGE_SIZE,page=items.slice(start,start+PAGE_SIZE);
+  const today=new Date();
+  const tbody=document.getElementById('items-tbody-'+vid);
+  tbody.innerHTML=page.length?page.map(i=>{
+    const ov=i.deliveryDate&&i.deliveryDate!=='--'&&new Date(i.deliveryDate)<today;
+    const nr=!ov&&i.deliveryDate&&i.deliveryDate!=='--'&&(new Date(i.deliveryDate)-today)<7*864e5;
+    return'<tr class="'+(ov?'row-alert-red':nr?'row-alert-yellow':'')+'">'
+      +'<td><div class="desc-cell" title="'+escH(i.description)+'">'+escH(i.description)+'</div></td>'
+      +'<td style="color:var(--muted);font-size:.75rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escH(i.supplier||'--')+'</td>'
+      +'<td>'+sPill(i.rfqStatus)+'</td>'
+      +'<td class="f-mono" style="font-size:.72rem">'+(i.rfqPct!=null?i.rfqPct+'%':'--')+'</td>'
+      +'<td class="f-mono" style="font-size:.72rem">'+(i.rfqDays!=null?i.rfqDays+'d':'--')+'</td>'
+      +'<td>'+sPill(i.poStatus)+'</td>'
+      +'<td>'+sPill(i.dnStatus)+'</td>'
+      +'<td class="date-cell'+(ov?' overdue':'')+'">'+(ov?(i.deliveryDate+' &#9888;'):(i.deliveryDate||'--'))+'</td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="8" class="table-empty">Nessun risultato</td></tr>';
+  document.getElementById('pag-info-'+vid).textContent=(start+1)+'--'+Math.min(start+PAGE_SIZE,total)+' di '+total;
+  document.getElementById('pag-prev-'+vid).disabled=st.page<=1;
+  document.getElementById('pag-next-'+vid).disabled=st.page>=pages;
+}
+
+function sPill(val){
+  if(!val)return'<span style="color:var(--muted);font-size:.7rem">--</span>';
+  let c='pill-muted';
+  if(val.includes('Finalized')||val.includes('Acknowledged')||val.includes('Received'))c='pill-green';
+  if(val.includes('Published')||val.includes('Sent')||val.includes('Shipped'))c='pill-yellow';
+  if(val.includes('Cancelled')||val.includes('Refused'))c='pill-red';
+  return'<span class="status-pill '+c+'" style="font-size:.58rem;padding:2px 7px">'+escH(val)+'</span>';
+}
+
+function renderTodo(){
+  const actions=[];
+  actV().forEach(v=>{
+    if(v.rfqOverdue15>0)actions.push({p:'high',v:v.vesselName,d:v.rfqOverdue15+' RFQ scaduti >15gg',a:'Contattare fornitore o aprire nuovo RFQ',s:'[URGENTE] RFQ -- '+v.vesselName,b:v.rfqOverdue15+' RFQ scaduti per '+v.vesselName});
+    if(v.rfqOverdue7>0)actions.push({p:'high',v:v.vesselName,d:v.rfqOverdue7+' RFQ scaduti >7gg',a:'Sollecitare le offerte ai fornitori',s:'[FOLLOW-UP] RFQ -- '+v.vesselName,b:v.rfqOverdue7+' RFQ in scadenza per '+v.vesselName});
+    if(v.readyForPO>0)actions.push({p:'medium',v:v.vesselName,d:v.readyForPO+' ordini pronti per PO',a:'Approvare e pubblicare i Purchase Order',s:'[AZIONE] PO -- '+v.vesselName,b:v.readyForPO+' ordini pronti per PO per '+v.vesselName});
+    if(v.dnPending>30)actions.push({p:'medium',v:v.vesselName,d:v.dnPending+' DN pendenti',a:'Monitorare il tracking delle delivery note',s:'[TRACKING] DN -- '+v.vesselName,b:v.dnPending+' DN pendenti per '+v.vesselName});
+    if(v.rfqOpen>0&&v.rfqOverdue7===0)actions.push({p:'low',v:v.vesselName,d:v.rfqOpen+' RFQ aperti in corso',a:'Monitoraggio regolare',s:'[INFO] RFQ -- '+v.vesselName,b:v.rfqOpen+' RFQ aperti per '+v.vesselName});
   });
+  const po={'high':0,'medium':1,'low':2};actions.sort((a,b)=>po[a.p]-po[b.p]);
+  document.getElementById('todo-count-badge').textContent=actions.filter(a=>a.p==='high').length;
+  const el=document.getElementById('todo-list');
+  if(!actions.length){el.innerHTML='<div class="table-empty">&#10003; Nessuna azione richiesta</div>';return;}
+  const pc={'high':'prio-high','medium':'prio-medium','low':'prio-low'};
+  const bc={'high':'pb-h','medium':'pb-m','low':'pb-l'};
+  const lbl={'high':'&#9889; ALTA','medium':'&#9650; MEDIA','low':'&#9661; BASSA'};
+  el.innerHTML=actions.map((a,i)=>'<div class="todo-item '+pc[a.p]+'">'
+    +'<div class="prio-badge '+bc[a.p]+'">'+lbl[a.p]+'</div>'
+    +'<div class="todo-body"><div class="todo-vessel">&#9875; '+escH(a.v)+'</div><div class="todo-desc">'+escH(a.d)+'</div><div class="todo-action">&#8594; '+escH(a.a)+'</div></div>'
+    +'<div class="todo-buttons"><button class="btn-om" onclick="oMail('+i+')"><i class="bi bi-envelope"></i> Email</button><button class="btn-ot" onclick="oTask('+i+')"><i class="bi bi-check2-square"></i> Task</button></div>'
+    +'</div>').join('');
+  window._ta=actions;
 }
 
-function buildVesselPage(v) {
-  const reg      = VESSEL_REGISTRY[v.vesselId] || { flag: '🚢', flagName: '—', type: 'Vessel', imo: '—', callsign: '—', mmsi: '—' };
-  const alertCls = v.deliveryColor === 'red' ? 'kpi-alert' : v.deliveryColor === 'green' ? 'kpi-ok' : 'kpi-warn';
-
-  return `
-  <section class="page-section" id="page-vessel-${v.vesselId}">
-
-    <!-- Vessel Header -->
-    <div class="card-panel">
-      ${v._missing ? `<div class="alert-banner warn" style="margin-bottom:1rem"><i class="bi bi-exclamation-triangle-fill"></i><div class="alert-banner-text"><strong>Dati procurement non disponibili</strong> — ${v.vesselName} non è ancora nel <code style="color:var(--teal)">data-procurement.json</code>. Aggiorna il workflow n8n per includere questa nave.</div></div>` : ''}
-      <div class="vessel-header">
-        <div class="vessel-photo"><i class="bi bi-ship"></i></div>
-        <div class="vessel-details">
-          <div class="vessel-title">${v.vesselName}</div>
-          <div class="vessel-subtitle">${reg.flag} ${reg.type} · IMO ${reg.imo}</div>
-          <div class="vessel-tags">
-            <span class="vtag"><i class="bi bi-flag"></i> ${reg.flagName}</span>
-            <span class="vtag"><i class="bi bi-broadcast"></i> MMSI: <strong style="color:var(--teal)">${reg.mmsi}</strong></span>
-            <span class="vtag"><i class="bi bi-hash"></i> IMO: ${reg.imo}</span>
-            ${reg.callsign ? `<span class="vtag"><i class="bi bi-radio"></i> ${reg.callsign}</span>` : ''}
-          </div>
-        </div>
-      </div>
-
-      <!-- AIS Strip — values updated live by WebSocket -->
-      <div class="ais-strip">
-        <div class="ais-item">
-          <div class="ais-item-label">📍 Posizione</div>
-          <div class="ais-item-value placeholder" id="ais-pos-${v.vesselId}">In attesa AIS…</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">Speed (SOG)</div>
-          <div class="ais-item-value placeholder" id="ais-sog-${v.vesselId}">— kn</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">Course (COG)</div>
-          <div class="ais-item-value placeholder" id="ais-cog-${v.vesselId}">—°</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">Nav Status</div>
-          <div class="ais-item-value placeholder" id="ais-nav-${v.vesselId}">—</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">Destinazione</div>
-          <div class="ais-item-value placeholder" id="ais-dest-${v.vesselId}">—</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">ETA</div>
-          <div class="ais-item-value placeholder" id="ais-eta-${v.vesselId}">—</div>
-        </div>
-        <div class="ais-item">
-          <div class="ais-item-label">Ultimo segnale</div>
-          <div class="ais-item-value placeholder" id="ais-last-${v.vesselId}">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-grid" style="margin-bottom:1.5rem">
-      ${kpiCard('RFQ Aperti',    v.rfqOpen,      v.rfqOpen > 0 ? 'kpi-info':'kpi-ok',   v.rfqOpen > 0 ? 'kpi-orange':'kpi-green', 'bi-file-earmark-text','')}
-      ${kpiCard('Scaduti >7gg',  v.rfqOverdue7,  v.rfqOverdue7 > 0 ? 'kpi-warn':'kpi-ok',  v.rfqOverdue7>0?'kpi-yellow':'kpi-green','bi-clock-history','')}
-      ${kpiCard('Scaduti >15gg', v.rfqOverdue15, v.rfqOverdue15 > 0 ? 'kpi-alert':'kpi-ok', v.rfqOverdue15>0?'kpi-red':'kpi-green','bi-exclamation-triangle','')}
-      ${kpiCard('Ready for PO',  v.readyForPO,   v.readyForPO > 0 ? 'kpi-orange':'kpi-ok', v.readyForPO>0?'kpi-orange':'kpi-green','bi-bag-check','')}
-      ${kpiCard('Ordini',        v.orders,        'kpi-info',    '',          'bi-cart3','')}
-      ${kpiCard('DN Pendenti',   v.dnPending,    v.dnPending > 30 ? 'kpi-warn':'kpi-ok',  v.dnPending>30?'kpi-yellow':'kpi-green','bi-box-seam','')}
-      ${kpiCard('Delivery',      v.delivery,     alertCls, v.deliveryColor === 'red' ? 'kpi-red' : 'kpi-green','bi-truck','')}
-    </div>
-
-    <!-- Progress Bars -->
-    <div class="card-panel">
-      <div class="panel-title"><i class="bi bi-graph-up-arrow text-orange"></i> Avanzamento Procurement</div>
-      <div class="progress-row">
-        <div class="progress-label"><span>REQ → PO</span><span>${v.pctReqToPO || 0}%</span></div>
-        <div class="prog-bar"><div class="prog-fill orange" style="width:${v.pctReqToPO || 0}%"></div></div>
-      </div>
-      <div class="progress-row">
-        <div class="progress-label"><span>PO → DN</span><span>${v.pctPOToDN || 0}%</span></div>
-        <div class="prog-bar"><div class="prog-fill teal" style="width:${v.pctPOToDN || 0}%"></div></div>
-      </div>
-    </div>
-
-    <!-- Alerts -->
-    ${buildVesselAlerts(v)}
-
-    <!-- Items Table -->
-    <div class="card-panel">
-      <div class="panel-title"><i class="bi bi-table text-orange"></i> Ordini &amp; Requisizioni</div>
-
-      <div class="filter-bar">
-        <input type="text" placeholder="🔍 Cerca descrizione / fornitore…" style="flex:1;min-width:200px"
-          oninput="filterTable('${v.vesselId}', 'search', this.value)">
-        <select onchange="filterTable('${v.vesselId}', 'filterRFQ', this.value)">
-          <option value="">Tutti RFQ Status</option>
-          <option>RFQ Sent to Vendor</option>
-          <option>RFQ Offer Acknowledged</option>
-          <option>RFQ Refused</option>
-        </select>
-        <select onchange="filterTable('${v.vesselId}', 'filterPO', this.value)">
-          <option value="">Tutti PO Status</option>
-          <option>PO Published</option>
-          <option>PO Finalized</option>
-          <option>PO Cancelled</option>
-        </select>
-        <select onchange="filterTable('${v.vesselId}', 'filterDN', this.value)">
-          <option value="">Tutti DN Status</option>
-          <option>DN Shipped to Vessel</option>
-          <option>DN Received on Board</option>
-          <option>DN Ready for Shipment</option>
-          <option>DN Delivery Tracking Open</option>
-        </select>
-      </div>
-
-      <div class="items-table-wrap" id="items-wrap-${v.vesselId}">
-        <table class="items-table" id="items-table-${v.vesselId}">
-          <thead>
-            <tr>
-              <th onclick="sortTable('${v.vesselId}','description')">Descrizione ↕</th>
-              <th onclick="sortTable('${v.vesselId}','supplier')">Fornitore ↕</th>
-              <th onclick="sortTable('${v.vesselId}','rfqStatus')">RFQ Status ↕</th>
-              <th onclick="sortTable('${v.vesselId}','rfqPct')">RFQ % ↕</th>
-              <th onclick="sortTable('${v.vesselId}','rfqDays')">RFQ Giorni ↕</th>
-              <th onclick="sortTable('${v.vesselId}','poStatus')">PO Status ↕</th>
-              <th onclick="sortTable('${v.vesselId}','dnStatus')">DN Status ↕</th>
-              <th onclick="sortTable('${v.vesselId}','deliveryDate')">Consegna ↕</th>
-            </tr>
-          </thead>
-          <tbody id="items-tbody-${v.vesselId}">
-          </tbody>
-        </table>
-        <div class="pagination-bar">
-          <div class="pag-info" id="pag-info-${v.vesselId}"></div>
-          <div class="pag-btns">
-            <button class="pag-btn" id="pag-prev-${v.vesselId}" onclick="changePage('${v.vesselId}',-1)">← Prec</button>
-            <button class="pag-btn" id="pag-next-${v.vesselId}" onclick="changePage('${v.vesselId}',1)">Succ →</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Certificates -->
-    <div class="card-panel">
-      <div class="panel-title"><i class="bi bi-award text-orange"></i> Certificati Nave</div>
-      <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--yellow);margin-bottom:0.75rem;">
-        ⚠ Sezione predisposta — dati da collegare nella fase successiva
-      </div>
-      <div class="items-table-wrap">
-        <table class="cert-table">
-          <thead>
-            <tr>
-              <th>Certificato</th>
-              <th>Ente Rilasciante</th>
-              <th>Data Emissione</th>
-              <th>Scadenza</th>
-              <th>Stato</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="cert-placeholder-row">
-              <td colspan="6">
-                <i class="bi bi-folder2-open" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
-                Nessun certificato caricato — i dati saranno integrati nel prossimo step di sviluppo.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </section>`;
+function showPage(id){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('tab-'+id)?.classList.add('active');
+  if(id==='home'&&fleetMap)setTimeout(()=>fleetMap.invalidateSize(),200);
+}
+function showVessel(vid){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-vessel-'+vid)?.classList.add('active');
+  document.getElementById('tab-vessel-'+vid)?.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function buildVesselAlerts(v) {
-  const alerts = [];
-  if (v.rfqOverdue15 > 0)
-    alerts.push(`<div class="alert-banner alert-danger"><i class="bi bi-exclamation-octagon-fill"></i><div class="alert-banner-text"><strong>${v.rfqOverdue15} RFQ scaduti da oltre 15 giorni</strong> — Azione immediata richiesta: contattare il fornitore o chiudere l'RFQ.</div></div>`);
-  if (v.rfqOverdue7 > 0)
-    alerts.push(`<div class="alert-banner warn"><i class="bi bi-exclamation-triangle-fill"></i><div class="alert-banner-text"><strong>${v.rfqOverdue7} RFQ scaduti da 7+ giorni</strong> — Verificare lo stato delle offerte e sollecitare i fornitori.</div></div>`);
-  if (v.readyForPO > 0)
-    alerts.push(`<div class="alert-banner warn" style="background:rgba(230,126,34,0.08);border-color:rgba(230,126,34,0.25)"><i class="bi bi-bag-check" style="color:var(--orange)"></i><div class="alert-banner-text"><strong>${v.readyForPO} ordini pronti per PO</strong> — Approvare e finalizzare i Purchase Order in attesa.</div></div>`);
-  if (v.deliveryColor === 'red')
-    alerts.push(`<div class="alert-banner alert-danger"><i class="bi bi-truck"></i><div class="alert-banner-text"><strong>Consegne in ritardo</strong> — Alcune consegne sono scadute o fuori dai termini. Verificare il tracking DN.</div></div>`);
-  return alerts.length ? `<div style="margin-bottom:1.5rem">${alerts.join('')}</div>` : '';
+function toggleDiag(){
+  const b=document.getElementById('diag-body'),t=document.getElementById('diag-toggle');
+  const o=b.style.display==='none';b.style.display=o?'block':'none';
+  t.textContent=o?'\u25b2 chiudi':'\u25bc apri';if(o)refreshDiag();
 }
-
-/* ════════════════════════════════════════════════════════════════
-   ITEMS TABLE — FILTER / SORT / PAGINATE
-════════════════════════════════════════════════════════════════ */
-function filterTable(vesselId, key, value) {
-  vesselTableState[vesselId][key] = value;
-  vesselTableState[vesselId].page = 1;
-  renderItemsTable(vesselId);
-}
-
-function sortTable(vesselId, col) {
-  const s = vesselTableState[vesselId].sort;
-  if (s.col === col) s.dir *= -1;
-  else { s.col = col; s.dir = 1; }
-  renderItemsTable(vesselId);
-}
-
-function changePage(vesselId, delta) {
-  vesselTableState[vesselId].page += delta;
-  renderItemsTable(vesselId);
-}
-
-function renderItemsTable(vesselId) {
-  const vessel = fleetData.vessels.find(v => v.vesselId === vesselId);
-  if (!vessel) return;
-  const st = vesselTableState[vesselId];
-  let items = [...(vessel.items || [])];
-
-  // Filter
-  if (st.search) {
-    const q = st.search.toLowerCase();
-    items = items.filter(i => (i.description||'').toLowerCase().includes(q) || (i.supplier||'').toLowerCase().includes(q));
-  }
-  if (st.filterRFQ) items = items.filter(i => i.rfqStatus === st.filterRFQ);
-  if (st.filterPO)  items = items.filter(i => i.poStatus  === st.filterPO);
-  if (st.filterDN)  items = items.filter(i => i.dnStatus  === st.filterDN);
-
-  // Sort
-  const { col, dir } = st.sort;
-  items.sort((a,b) => {
-    let av = a[col] ?? '', bv = b[col] ?? '';
-    if (col === 'deliveryDate') { av = av === '—' ? '9999' : av; bv = bv === '—' ? '9999' : bv; }
-    if (typeof av === 'number') return (av - bv) * dir;
-    return String(av).localeCompare(String(bv)) * dir;
-  });
-
-  // Paginate
-  const total = items.length;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  st.page = Math.min(Math.max(1, st.page), pages);
-  const start = (st.page - 1) * PAGE_SIZE;
-  const page  = items.slice(start, start + PAGE_SIZE);
-
-  const tbody = document.getElementById(`items-tbody-${vesselId}`);
-  if (!page.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="table-empty">Nessun risultato per i filtri applicati.</td></tr>`;
-  } else {
-    const today = new Date();
-    tbody.innerHTML = page.map(i => {
-      const isOverdue = i.deliveryDate && i.deliveryDate !== '—' && new Date(i.deliveryDate) < today;
-      const isNear    = !isOverdue && i.deliveryDate && i.deliveryDate !== '—' && (new Date(i.deliveryDate) - today) < 7*24*3600*1000;
-      const rowCls    = isOverdue ? 'row-alert-red' : isNear ? 'row-alert-yellow' : '';
-      const dateCls   = isOverdue ? 'date-cell overdue' : 'date-cell';
-      return `<tr class="${rowCls}">
-        <td><div class="desc-cell" title="${escHtml(i.description)}">${escHtml(i.description)}</div></td>
-        <td style="color:var(--muted);font-size:0.75rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(i.supplier||'—')}</td>
-        <td>${statusPill(i.rfqStatus, 'rfq')}</td>
-        <td class="font-mono" style="font-size:0.72rem">${i.rfqPct != null ? i.rfqPct+'%' : '—'}</td>
-        <td class="font-mono" style="font-size:0.72rem">${i.rfqDays != null ? i.rfqDays+'d' : '—'}</td>
-        <td>${statusPill(i.poStatus, 'po')}</td>
-        <td>${statusPill(i.dnStatus, 'dn')}</td>
-        <td class="${dateCls}">${formatDate(i.deliveryDate)}</td>
-      </tr>`;
-    }).join('');
-  }
-
-  // Pagination info
-  document.getElementById(`pag-info-${vesselId}`).textContent =
-    `${start+1}–${Math.min(start+PAGE_SIZE, total)} di ${total} record`;
-  document.getElementById(`pag-prev-${vesselId}`).disabled = st.page <= 1;
-  document.getElementById(`pag-next-${vesselId}`).disabled = st.page >= pages;
-}
-
-function statusPill(val, type) {
-  if (!val) return '<span style="color:var(--muted);font-size:0.7rem;">—</span>';
-  let cls = 'pill-muted';
-  if (val.includes('Finalized') || val.includes('Acknowledged') || val.includes('Received'))  cls = 'pill-green';
-  if (val.includes('Published') || val.includes('Sent') || val.includes('Shipped'))            cls = 'pill-yellow';
-  if (val.includes('Cancelled') || val.includes('Refused'))                                     cls = 'pill-red';
-  return `<span class="status-pill ${cls}" style="font-size:0.58rem;padding:2px 7px;">${escHtml(val)}</span>`;
-}
-
-function formatDate(d) {
-  if (!d || d === '—') return '<span style="color:var(--muted)">—</span>';
-  try {
-    const dt = new Date(d);
-    const today = new Date();
-    if (dt < today) return `<span style="color:var(--red)">${d} ⚠</span>`;
-    return d;
-  } catch { return d; }
-}
-
-/* ════════════════════════════════════════════════════════════════
-   TODO LIST
-════════════════════════════════════════════════════════════════ */
-function renderTodoList() {
-  const actions = [];
-
-  fleetData.vessels.filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)).forEach(v => {
-    // RFQ overdue >15
-    if (v.rfqOverdue15 > 0) actions.push({
-      prio: 'high', vessel: v.vesselName,
-      desc: `${v.rfqOverdue15} RFQ scaduti da oltre 15 giorni`,
-      action: 'Contattare il fornitore o annullare l\'RFQ e aprirne uno nuovo',
-      emailSubject: `[URGENTE] RFQ Scaduti – ${v.vesselName}`,
-      emailBody: `Gentile team,\n\nSi segnala che ${v.rfqOverdue15} RFQ sono scaduti da oltre 15 giorni per la nave ${v.vesselName}.\nSi richiede azione immediata.\n\nCoriali saluti`
-    });
-    // RFQ overdue >7
-    if (v.rfqOverdue7 > 0) actions.push({
-      prio: 'high', vessel: v.vesselName,
-      desc: `${v.rfqOverdue7} RFQ in scadenza da 7+ giorni`,
-      action: 'Sollecitare le offerte ai fornitori e verificare lo stato',
-      emailSubject: `[FOLLOW-UP] RFQ in Scadenza – ${v.vesselName}`,
-      emailBody: `Gentile team,\n\n${v.rfqOverdue7} RFQ risultano in scadenza per la nave ${v.vesselName}.\nSi chiede di verificare lo stato delle offerte.\n\nCordiali saluti`
-    });
-    // Ready for PO
-    if (v.readyForPO > 0) actions.push({
-      prio: 'medium', vessel: v.vesselName,
-      desc: `${v.readyForPO} ordini pronti per finalizzare PO`,
-      action: 'Approvare e pubblicare i Purchase Order in attesa di firma',
-      emailSubject: `[AZIONE] Approvazione PO – ${v.vesselName}`,
-      emailBody: `Gentile responsabile acquisti,\n\n${v.readyForPO} ordini per ${v.vesselName} sono pronti per essere finalizzati come PO.\nSi chiede la vostra approvazione.\n\nCordiali saluti`
-    });
-    // High DN pending
-    if (v.dnPending > 30) actions.push({
-      prio: 'medium', vessel: v.vesselName,
-      desc: `${v.dnPending} DN pendenti — verifica tracking consegne`,
-      action: 'Monitorare il tracking delle delivery note e aggiornare lo stato',
-      emailSubject: `[TRACKING] DN Pendenti – ${v.vesselName}`,
-      emailBody: `Gentile team logistica,\n\nResultano ${v.dnPending} DN pendenti per ${v.vesselName}.\nSi chiede aggiornamento sul tracking delle spedizioni.\n\nCordiali saluti`
-    });
-    // Check items with overdue delivery
-    const today = new Date();
-    (v.items||[]).forEach(i => {
-      if (i.deliveryDate && i.deliveryDate !== '—' && new Date(i.deliveryDate) < today && i.poStatus && !i.poStatus.includes('Cancelled')) {
-        // Only add first few per vessel to avoid spam
-        if (actions.filter(a => a.vessel === v.vesselName && a.prio === 'high' && a.desc.includes('scaduta')).length < 2) {
-          actions.push({
-            prio: 'high', vessel: v.vesselName,
-            desc: `Consegna scaduta: ${i.description.slice(0,60)}${i.description.length>60?'...':''}`,
-            action: `Contattare ${i.supplier || 'fornitore'} per aggiornamento stato spedizione`,
-            emailSubject: `[RITARDO] Consegna Scaduta – ${v.vesselName}`,
-            emailBody: `Gentile ${i.supplier || 'fornitore'},\n\nLa consegna di "${i.description}" prevista per ${i.deliveryDate} non risulta ancora pervenuta.\nSi chiede urgente aggiornamento sullo stato della spedizione.\n\nCordiali saluti`
-          });
-        }
-      }
-    });
-  });
-
-  // Low priority: open RFQs with no issues
-  fleetData.vessels.filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)).forEach(v => {
-    if (v.rfqOpen > 0 && v.rfqOverdue7 === 0) actions.push({
-      prio: 'low', vessel: v.vesselName,
-      desc: `${v.rfqOpen} RFQ aperti in corso — monitoraggio regolare`,
-      action: 'Nessuna azione urgente — continuare il monitoraggio',
-      emailSubject: `[INFO] RFQ Aperti – ${v.vesselName}`,
-      emailBody: `Aggiornamento settimanale RFQ per ${v.vesselName}: ${v.rfqOpen} RFQ aperti in corso.`
-    });
-  });
-
-  const totalHigh = actions.filter(a => a.prio === 'high').length;
-  document.getElementById('todo-count-badge').textContent = totalHigh;
-
-  const el = document.getElementById('todo-list');
-  if (!actions.length) {
-    el.innerHTML = '<div class="table-empty">✓ Nessuna azione richiesta al momento</div>';
-    return;
-  }
-
-  // Sort: high > medium > low
-  const prioOrder = { high: 0, medium: 1, low: 2 };
-  actions.sort((a,b) => prioOrder[a.prio] - prioOrder[b.prio]);
-
-  el.innerHTML = actions.map((a, idx) => {
-    const prioCls = { high: 'prio-high', medium: 'prio-medium', low: 'prio-low' }[a.prio];
-    const prioBadge = { high: 'prio-high-badge', medium: 'prio-medium-badge', low: 'prio-low-badge' }[a.prio];
-    const prioLabel = { high: '⚡ ALTA', medium: '▲ MEDIA', low: '▽ BASSA' }[a.prio];
-    return `
-    <div class="todo-item ${prioCls}">
-      <div class="prio-badge ${prioBadge}">${prioLabel}</div>
-      <div class="todo-body">
-        <div class="todo-vessel">⚓ ${a.vessel}</div>
-        <div class="todo-desc">${a.desc}</div>
-        <div class="todo-action">→ ${a.action}</div>
-      </div>
-      <div class="todo-buttons">
-        <button class="btn-outlook-mail" onclick="sendOutlookMail(${idx})" title="Invia email in Outlook">
-          <i class="bi bi-envelope"></i> Email
-        </button>
-        <button class="btn-outlook-task" onclick="createOutlookTask(${idx})" title="Crea Task in Outlook">
-          <i class="bi bi-check2-square"></i> Task
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Store actions globally for Outlook integration
-  window._todoActions = actions;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   DIAGNOSTICS
-════════════════════════════════════════════════════════════════ */
-let diagAisMessages = 0;
-let diagAisState    = 'Non avviato';
-let diagAisLog      = [];
-
-function toggleDiag() {
-  const body   = document.getElementById('diag-body');
-  const toggle = document.getElementById('diag-toggle');
-  const open   = body.style.display === 'none';
-  body.style.display  = open ? 'block' : 'none';
-  toggle.textContent  = open ? '▲ chiudi' : '▼ apri';
-  if (open) refreshDiag();
-}
-
-function refreshDiag() {
-  // JSON panel
-  const jEl = document.getElementById('diag-json');
-  if (fleetData) {
-    const vessels = (fleetData.vessels || []).filter(v =>
-      !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)
-    );
-    jEl.innerHTML = [
-      `<span style="color:var(--white)">lastSync:</span> ${fleetData.lastSync || '—'}`,
-      `<span style="color:var(--white)">vessels trovate:</span> ${vessels.length}`,
-      ...vessels.map(v =>
-        `  <span style="color:var(--orange)">${v.vesselId}</span> "${v.vesselName}" — ` +
-        `items: <span style="color:var(--white)">${(v.items||[]).length}</span> ` +
-        `rfqOpen: <span style="color:var(--white)">${v.rfqOpen}</span>` +
-        (v._missing ? ' <span style="color:var(--red)">[MANCANTE DAL JSON]</span>' : '')
-      )
-    ].join('<br>');
-  } else {
-    jEl.textContent = '❌ JSON non caricato';
-  }
-
-  // AIS panel
-  const aEl = document.getElementById('diag-ais');
-  const wsState = aisSocket
-    ? ['CONNECTING','OPEN','CLOSING','CLOSED'][aisSocket.readyState] || '?'
-    : 'Non creato';
-  aEl.innerHTML = [
-    `<span style="color:var(--white)">WS State:</span> <span style="color:${wsState==='OPEN'?'var(--green)':'var(--yellow)'}">${wsState}</span>`,
-    `<span style="color:var(--white)">Messaggi ricevuti:</span> ${diagAisMessages}`,
-    `<span style="color:var(--white)">MMSI registrati:</span>`,
-    ...Object.entries(VESSEL_REGISTRY).map(([id, r]) => {
-      const st = aisState[id];
-      const stateStr = st?.online ? `🟢 Live (${timeSince(st.lastSeen)})` :
-                       st?.lastSeen ? `🟡 Offline (${timeSince(st.lastSeen)})` :
-                       st ? `⚪ Last-known (${st.lastKnownTs||'—'})` : '⬜ Nessun dato';
-      return `  <span style="color:var(--orange)">${id}</span> MMSI:${r.mmsi} — ${stateStr}`;
-    }),
-    diagAisLog.length ? `<br><span style="color:var(--white)">Ultimi messaggi:</span><br>${diagAisLog.slice(-5).map(m=>`  ${m}`).join('<br>')}` : ''
+function refreshDiag(){
+  const vv=(fleetData?.vessels||[]),active=vv.filter(v=>!isExcl(v)),excl=vv.filter(v=>isExcl(v));
+  document.getElementById('diag-json').innerHTML=[
+    '<span style="color:var(--white)">lastSync:</span> '+(fleetData?.lastSync||'--'),
+    '<span style="color:var(--white)">Navi attive:</span> '+active.length+' | <span style="color:var(--red)">Escluse:</span> '+(excl.map(v=>v.vesselId).join(', ')||'nessuna'),
+    ...active.map(v=>'  <span style="color:var(--orange)">'+v.vesselId+'</span> "'+v.vesselName+'" items:<span style="color:var(--white)">'+(v.items||[]).length+'</span> rfqOpen:<span style="color:var(--white)">'+v.rfqOpen+'</span>'+(v._missing?' <span style="color:var(--red)">[MANCANTE]</span>':''))
   ].join('<br>');
-
-  // Raw JSON
-  const rEl = document.getElementById('diag-raw');
-  if (fleetData?.vessels) {
-    rEl.textContent = JSON.stringify(
-      fleetData.vessels.map(v => ({
-        vesselId: v.vesselId,
-        vesselName: v.vesselName,
-        rfqOpen: v.rfqOpen,
-        rfqOverdue7: v.rfqOverdue7,
-        orders: v.orders,
-        dnPending: v.dnPending,
-        deliveryColor: v.deliveryColor,
-        itemsCount: (v.items||[]).length,
-        _missing: v._missing || false
-      })),
-      null, 2
-    );
-  }
-
-  // Auto-refresh every 5s while open
-  clearTimeout(window._diagTimer);
-  if (document.getElementById('diag-body').style.display !== 'none') {
-    window._diagTimer = setTimeout(refreshDiag, 5000);
-  }
+  document.getElementById('diag-ais').innerHTML=[
+    '<span style="color:var(--white)">Fonte:</span> n8n &#8594; VesselAPI &#8594; JSON',
+    ...active.map(v=>{const st=aisState[v.vesselId];const s=st?.isLastKnown?'&#9711; Last-known ('+(st.lastKnownTs||'--')+')':st?.aisLastSeen?'&#9679; VesselAPI '+new Date(st.aisLastSeen).toLocaleDateString('it-IT'):'&#9633; Nessun dato';return'  <span style="color:var(--orange)">'+v.vesselId+'</span> -- '+s;})
+  ].join('<br>');
+  document.getElementById('diag-raw').textContent=JSON.stringify(active.map(v=>({vesselId:v.vesselId,vesselName:v.vesselName,rfqOpen:v.rfqOpen,orders:v.orders,dnPending:v.dnPending,deliveryColor:v.deliveryColor,lat:v.lat,lng:v.lng,aisLastSeen:v.aisLastSeen,itemsCount:(v.items||[]).length,_missing:!!v._missing})),null,2);
+  clearTimeout(window._dt);
+  if(document.getElementById('diag-body').style.display!=='none')window._dt=setTimeout(refreshDiag,10000);
 }
 
-
-function showPage(pageId) {
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const page = document.getElementById(`page-${pageId}`);
-  const tab  = document.getElementById(`tab-${pageId}`);
-  if (page) page.classList.add('active');
-  if (tab)  tab.classList.add('active');
-  // Refresh map size when switching to home
-  if (pageId === 'home' && fleetMap) setTimeout(() => fleetMap.invalidateSize(), 200);
-}
-
-function showVessel(vesselId) {
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const page = document.getElementById(`page-vessel-${vesselId}`);
-  const tab  = document.getElementById(`tab-vessel-${vesselId}`);
-  if (page) page.classList.add('active');
-  if (tab)  tab.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-/* ════════════════════════════════════════════════════════════════
-   MICROSOFT / OUTLOOK INTEGRATION
-   (Placeholder — MSAL integration added at next step)
-════════════════════════════════════════════════════════════════ */
-let msalInstance = null;
-let msAccount   = null;
-
-function connectMicrosoft() {
-  if (AZURE_CONFIG.clientId === 'YOUR_CLIENT_ID_HERE') {
-    alert('⚠ Per collegare Microsoft 365:\n\n1. Segui la guida "Azure AD Setup" nella barra di navigazione\n2. Registra l\'app su portal.azure.com\n3. Sostituisci YOUR_CLIENT_ID_HERE e YOUR_TENANT_ID_HERE nel codice\n4. Ricarica la pagina e clicca nuovamente "Connect Outlook"');
-    showPage('azure-guide');
-    return;
-  }
-  // MSAL integration will be added in Step 3 (Outlook module)
-  alert('MSAL.js integration will be enabled in the next step. Please register the app on Azure AD first.');
-}
-
-async function sendOutlookMail(idx) {
-  const a = window._todoActions?.[idx];
-  if (!a) return;
-  if (!msAccount) {
-    // Fallback: open mailto
-    const body = encodeURIComponent(a.emailBody);
-    const subj = encodeURIComponent(a.emailSubject);
-    window.open(`mailto:?subject=${subj}&body=${body}`);
-    return;
-  }
-  // Microsoft Graph API call (enabled after MSAL step)
-  alert('Outlook mail integration requires Microsoft 365 connection. Use the "Connect Outlook" button first.');
-}
-
-async function createOutlookTask(idx) {
-  const a = window._todoActions?.[idx];
-  if (!a) return;
-  if (!msAccount) {
-    alert('Per creare task in Outlook, collega prima il tuo account Microsoft 365 con il pulsante "Connect Outlook".');
-    return;
-  }
-  // Microsoft Graph API call (enabled after MSAL step)
-  alert('Task creation requires Microsoft 365 connection.');
-}
-
-/* ════════════════════════════════════════════════════════════════
-   UTILS
-════════════════════════════════════════════════════════════════ */
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ════════════════════════════════════════════════════════════════
-   BOOTSTRAP
-════════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', init);
+let msAccount=null;
+function connectMicrosoft(){if(AZURE_CONFIG.clientId==='YOUR_CLIENT_ID_HERE'){alert('Segui la guida Azure AD Guide nella barra di navigazione.');showPage('azure-guide');return;}alert('MSAL.js integration attiva al Step 3.');}
+async function oMail(i){const a=window._ta?.[i];if(!a)return;window.open('mailto:?subject='+encodeURIComponent(a.s)+'&body='+encodeURIComponent(a.b));}
+async function oTask(i){alert('Connetti prima Microsoft 365 con il pulsante Connect Outlook.');}
+document.addEventListener('DOMContentLoaded',init);
 </script>
-
 </body>
 </html>
