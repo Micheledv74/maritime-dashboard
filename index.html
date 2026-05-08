@@ -1430,10 +1430,16 @@ async function init() {
 /* Filtra le navi escluse, aggiunge le navi mancanti con KPI vuoti,
    ordina secondo FLEET_ORDER.                                       */
 function normaliseVessels(raw) {
-  // 1. Rimuovi escluse (hsq ecc.)
-  const filtered = raw.filter(v =>
-    !EXCLUDED_VESSELS.includes((v.vesselId || '').toLowerCase())
-  );
+  // 1. Rimuovi escluse — controllo su vesselId E vesselName
+  const filtered = raw.filter(v => {
+    const id   = (v.vesselId   || '').toLowerCase().trim();
+    const name = (v.vesselName || '').toLowerCase().trim();
+    const excluded = EXCLUDED_VESSELS.some(ex =>
+      id === ex.toLowerCase() || name === ex.toLowerCase()
+    );
+    if (excluded) console.log(`[Fleet] Escluso: ${v.vesselId} / ${v.vesselName}`);
+    return !excluded;
+  });
 
   // 2. Per ogni nave in FLEET_ORDER, assicurati che esista nel dataset
   FLEET_ORDER.forEach(id => {
@@ -1494,7 +1500,9 @@ function renderSyncTime() {
    GLOBAL KPIs
 ════════════════════════════════════════════════════════════════ */
 function renderGlobalKPIs() {
-  const vessels = fleetData.vessels;
+  const vessels = fleetData.vessels.filter(v =>
+    !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)
+  );
   const totRFQ      = vessels.reduce((s,v) => s + (v.rfqOpen || 0), 0);
   const totOverdue7 = vessels.reduce((s,v) => s + (v.rfqOverdue7 || 0), 0);
   const totOverdue15= vessels.reduce((s,v) => s + (v.rfqOverdue15 || 0), 0);
@@ -1531,7 +1539,9 @@ function kpiCard(label, value, cls, valCls, icon, sub) {
 ════════════════════════════════════════════════════════════════ */
 function renderFleetTable() {
   const tbody = document.getElementById('fleet-table-body');
-  tbody.innerHTML = fleetData.vessels.map(v => {
+  tbody.innerHTML = fleetData.vessels
+    .filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex))
+    .map(v => {
     const pct1 = (v.pctReqToPO || 0);
     const pct2 = (v.pctPOToDN  || 0);
     const pillClass = v.deliveryColor === 'red' ? 'pill-red' : v.deliveryColor === 'green' ? 'pill-green' : 'pill-yellow';
@@ -1565,7 +1575,7 @@ function renderFleetTable() {
    MAP — init with placeholder pins, AIS will move them live
 ════════════════════════════════════════════════════════════════ */
 function initMap() {
-  fleetMap = L.map('fleet-map', { zoomControl: true, scrollWheelZoom: false }).setView([35, 18], 4);
+  fleetMap = L.map('fleet-map', { zoomControl: true, scrollWheelZoom: false });
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '© <a href="https://carto.com/" style="color:#7a93b8">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" style="color:#7a93b8">OSM</a>',
@@ -1573,13 +1583,28 @@ function initMap() {
   }).addTo(fleetMap);
 
   // Create markers for every vessel — use lastKnown position from registry
-  fleetData.vessels.forEach(v => {
-    const reg = VESSEL_REGISTRY[v.vesselId] || { flag:'🚢', flagName:'—', type:'Vessel', imo:'—', callsign:'—', mmsi:'—' };
-    const lk  = reg.lastKnown || { lat: 35, lng: 20 };
-    const marker = buildMarker(v, reg, lk.lat, lk.lng, false);
-    marker.addTo(fleetMap);
-    mapMarkers[v.vesselId] = marker;
-  });
+  const bounds = [];
+  fleetData.vessels
+    .filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex))
+    .forEach(v => {
+      const reg = VESSEL_REGISTRY[v.vesselId] || { flag:'🚢', flagName:'—', type:'Vessel', imo:'—', callsign:'—', mmsi:'—' };
+      const lk  = reg.lastKnown || { lat: 35, lng: 20 };
+      const marker = buildMarker(v, reg, lk.lat, lk.lng, false);
+      marker.addTo(fleetMap);
+      mapMarkers[v.vesselId] = marker;
+      bounds.push([lk.lat, lk.lng]);
+    });
+
+  // Auto-fit map to show all vessel positions
+  if (bounds.length > 0) {
+    try {
+      fleetMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 6 });
+    } catch(e) {
+      fleetMap.setView([20, 60], 2);
+    }
+  } else {
+    fleetMap.setView([20, 60], 2);
+  }
 }
 
 function buildMarker(v, reg, lat, lng, online) {
@@ -1689,7 +1714,7 @@ function initAIS() {
 // Reads lat/lng from data-procurement.json if n8n enriches it with AIS data
 function loadPositionsFromJSON() {
   if (!fleetData?.vessels) return;
-  fleetData.vessels.forEach(v => {
+  fleetData.vessels.filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)).forEach(v => {
     if (v.lat != null && v.lng != null) {
       aisState[v.vesselId] = {
         ...(aisState[v.vesselId] || {}),
@@ -1892,7 +1917,9 @@ function updateAisStatusBadge(status) {
 ════════════════════════════════════════════════════════════════ */
 function renderVesselTabs() {
   const container = document.getElementById('vessel-tabs');
-  container.innerHTML = fleetData.vessels.map(v => {
+  container.innerHTML = fleetData.vessels
+    .filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex))
+    .map(v => {
     const hasAlert = v.deliveryColor === 'red' || v.rfqOverdue7 > 0;
     return `<button class="nav-tab" onclick="showVessel('${v.vesselId}')" id="tab-vessel-${v.vesselId}">
       <i class="bi bi-ship tab-icon"></i> ${v.vesselName}
@@ -1903,9 +1930,11 @@ function renderVesselTabs() {
 
 function renderVesselPages() {
   const container = document.getElementById('vessel-pages');
-  container.innerHTML = fleetData.vessels.map(v => buildVesselPage(v)).join('');
-  // Init table state
-  fleetData.vessels.forEach(v => {
+  const vessels   = fleetData.vessels.filter(v =>
+    !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)
+  );
+  container.innerHTML = vessels.map(v => buildVesselPage(v)).join('');
+  vessels.forEach(v => {
     vesselTableState[v.vesselId] = { page: 1, search: '', filterRFQ: '', filterPO: '', filterDN: '', sort: { col: 'deliveryDate', dir: 1 } };
     renderItemsTable(v.vesselId);
   });
@@ -2203,7 +2232,7 @@ function formatDate(d) {
 function renderTodoList() {
   const actions = [];
 
-  fleetData.vessels.forEach(v => {
+  fleetData.vessels.filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)).forEach(v => {
     // RFQ overdue >15
     if (v.rfqOverdue15 > 0) actions.push({
       prio: 'high', vessel: v.vesselName,
@@ -2255,7 +2284,7 @@ function renderTodoList() {
   });
 
   // Low priority: open RFQs with no issues
-  fleetData.vessels.forEach(v => {
+  fleetData.vessels.filter(v => !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)).forEach(v => {
     if (v.rfqOpen > 0 && v.rfqOverdue7 === 0) actions.push({
       prio: 'low', vessel: v.vesselName,
       desc: `${v.rfqOpen} RFQ aperti in corso — monitoraggio regolare`,
@@ -2325,7 +2354,9 @@ function refreshDiag() {
   // JSON panel
   const jEl = document.getElementById('diag-json');
   if (fleetData) {
-    const vessels = fleetData.vessels || [];
+    const vessels = (fleetData.vessels || []).filter(v =>
+      !EXCLUDED_VESSELS.some(ex => v.vesselId?.toLowerCase() === ex)
+    );
     jEl.innerHTML = [
       `<span style="color:var(--white)">lastSync:</span> ${fleetData.lastSync || '—'}`,
       `<span style="color:var(--white)">vessels trovate:</span> ${vessels.length}`,
