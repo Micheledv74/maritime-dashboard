@@ -247,6 +247,7 @@ body{font-family:var(--font-body);background:var(--navy);color:var(--white);min-
 <script>
 'use strict';
 const DATA_URL='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json';
+const AIS_URL ='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json';
 const AZURE_CONFIG={clientId:'YOUR_CLIENT_ID_HERE',tenantId:'YOUR_TENANT_ID_HERE',redirectUri:'https://micheledv74.github.io/maritime-dashboard/',scopes:['User.Read','Mail.Send','Tasks.ReadWrite']};
 const EXCLUDED_VESSELS=['hsq'];
 const FLEET_ORDER=['medtoscana','medliguria','norrbotten','peppino'];
@@ -257,7 +258,7 @@ const VESSEL_REGISTRY={
   norrbotten:{mmsi:'255624000',flag:'\u{1F1F5}\u{1F1F9}',flagName:'Portugal',type:'General Cargo',imo:'9191931',callsign:'CQCK',lastKnown:{lat:60.63,lng:19.03,note:'Mar Baltico',ts:'2026-05'}},
   peppino:{mmsi:'256957000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9586708',callsign:'9HA6039',lastKnown:{lat:39.20,lng:119.18,note:'Bo Hai, Cina (ancorata)',ts:'2026-04'}}
 };
-let fleetData=null,fleetMap=null;
+let fleetData=null,aisData=null,fleetMap=null;
 const aisState={},mapMarkers={},vts={};
 const escH=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const isExcl=v=>EXCLUDED_VESSELS.some(ex=>(v.vesselId||'').toLowerCase()===ex||(v.vesselName||'').toLowerCase()===ex);
@@ -265,14 +266,41 @@ const actV=()=>(fleetData?.vessels||[]).filter(v=>!isExcl(v));
 
 async function init(){
   try{
-    const res=await fetch(DATA_URL);
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    fleetData=await res.json();
-    fleetData.vessels=normalise(fleetData.vessels||[]);
+    // Carica procurement e AIS in parallelo
+    const [procRes, aisRes] = await Promise.allSettled([
+      fetch(DATA_URL),
+      fetch(AIS_URL)
+    ]);
+
+    if(procRes.status==='rejected'||!procRes.value.ok)
+      throw new Error('Procurement JSON non disponibile');
+
+    fleetData = await procRes.value.json();
+    fleetData.vessels = normalise(fleetData.vessels||[]);
+
+    // AIS JSON — opzionale, se non esiste usa last-known
+    if(aisRes.status==='fulfilled' && aisRes.value.ok){
+      aisData = await aisRes.value.json();
+      mergeAisIntoVessels();
+    }
+
     renderAll();
   }catch(e){
     document.getElementById('loading-overlay').innerHTML='<div style="text-align:center;color:var(--red);font-family:var(--font-mono);font-size:.8rem"><i class="bi bi-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:1rem"></i>Errore: '+e.message+'</div>';
   }
+}
+
+// Applica i dati AIS dal file separato alle navi del procurement
+function mergeAisIntoVessels(){
+  if(!aisData?.vessels) return;
+  fleetData.vessels.forEach(v=>{
+    const a=aisData.vessels[v.vesselId];
+    if(!a) return;
+    v.lat=a.lat; v.lng=a.lng; v.sog=a.sog; v.cog=a.cog;
+    v.heading=a.heading; v.navStatus=a.navStatus;
+    v.destination=a.destination; v.eta=a.eta;
+    v.aisLastSeen=a.aisLastSeen;
+  });
 }
 
 function normalise(raw){
@@ -582,7 +610,8 @@ function refreshDiag(){
     ...active.map(v=>'  <span style="color:var(--orange)">'+v.vesselId+'</span> "'+v.vesselName+'" items:<span style="color:var(--white)">'+(v.items||[]).length+'</span> rfqOpen:<span style="color:var(--white)">'+v.rfqOpen+'</span>'+(v._missing?' <span style="color:var(--red)">[MANCANTE]</span>':''))
   ].join('<br>');
   document.getElementById('diag-ais').innerHTML=[
-    '<span style="color:var(--white)">Fonte:</span> n8n &#8594; VesselAPI &#8594; JSON',
+    '<span style="color:var(--white)">Fonte:</span> data-ais.json (Workflow 2 → VesselAPI)',
+    '<span style="color:var(--white)">AIS lastSync:</span> '+(aisData?.lastSync ? new Date(aisData.lastSync).toLocaleString('it-IT') : '<span style="color:var(--red)">data-ais.json non trovato</span>'),
     ...active.map(v=>{const st=aisState[v.vesselId];const s=st?.isLastKnown?'&#9711; Last-known ('+(st.lastKnownTs||'--')+')':st?.aisLastSeen?'&#9679; VesselAPI '+new Date(st.aisLastSeen).toLocaleDateString('it-IT'):'&#9633; Nessun dato';return'  <span style="color:var(--orange)">'+v.vesselId+'</span> -- '+s;})
   ].join('<br>');
   document.getElementById('diag-raw').textContent=JSON.stringify(active.map(v=>({vesselId:v.vesselId,vesselName:v.vesselName,rfqOpen:v.rfqOpen,orders:v.orders,dnPending:v.dnPending,deliveryColor:v.deliveryColor,lat:v.lat,lng:v.lng,aisLastSeen:v.aisLastSeen,itemsCount:(v.items||[]).length,_missing:!!v._missing})),null,2);
