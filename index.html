@@ -259,10 +259,18 @@ const AIS_WS_KEY='c136d51b737b3c8ecd1f4e9d62c97fb2351d5e71';
 const AIS_WS_URL='wss://stream.aisstream.io/v0/stream';
 
 const VESSEL_REGISTRY={
-  medtoscana:{mmsi:'249090000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9490741',callsign:'9HA6104',lastKnown:{lat:41.618,lng:141.663,note:'Pacifico → Manzanillo',ts:'2026-05'}},
-  medliguria:{mmsi:'636024824',flag:'\u{1F1F1}\u{1F1F7}',flagName:'Liberia',type:'Bulk Carrier',imo:'9604811',callsign:'5LUL8',lastKnown:{lat:30.219,lng:-93.257,note:'Golfo del Messico',ts:'2026-05'}},
-  norrbotten:{mmsi:'255624000',flag:'\u{1F1F5}\u{1F1F9}',flagName:'Portugal',type:'General Cargo',imo:'9191931',callsign:'CQCK',lastKnown:{lat:60.63,lng:19.03,note:'Mar Baltico',ts:'2026-05'}},
-  peppino:{mmsi:'256957000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9586708',callsign:'9HA6039',lastKnown:{lat:-5.825,lng:106.949,note:'Mar di Giava',ts:'2026-05'}}
+  medtoscana:{mmsi:'249090000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9490741',callsign:'9HA6104',
+    lastKnown:{lat:41.618,lng:141.663,note:'Pacifico → Manzanillo',ts:'2026-05'},
+    knownDest:'MXZLO', knownEta:'2026-05-30 06:00 UTC'},
+  medliguria:{mmsi:'636024824',flag:'\u{1F1F1}\u{1F1F7}',flagName:'Liberia',type:'Bulk Carrier',imo:'9604811',callsign:'5LUL8',
+    lastKnown:{lat:30.219,lng:-93.257,note:'Golfo del Messico',ts:'2026-05'},
+    knownDest:null, knownEta:null},
+  norrbotten:{mmsi:'255624000',flag:'\u{1F1F5}\u{1F1F9}',flagName:'Portugal',type:'General Cargo',imo:'9191931',callsign:'CQCK',
+    lastKnown:{lat:60.63,lng:19.03,note:'Mar Baltico',ts:'2026-05'},
+    knownDest:null, knownEta:null},
+  peppino:{mmsi:'256957000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9586708',callsign:'9HA6039',
+    lastKnown:{lat:-5.825,lng:106.949,note:'Mar di Giava',ts:'2026-05'},
+    knownDest:null, knownEta:null}
 };
 
 let fleetData=null,aisData=null,portsData=null,fleetMap=null;
@@ -327,7 +335,9 @@ function normalise(raw){
 }
 
 function renderAll(){
-  renderSync();renderKPIs();renderFleetTable();renderTabs();renderPages();renderTodo();initMap();initAIS();
+  renderSync();renderKPIs();renderFleetTable();renderTabs();renderPages();renderTodo();
+  initAIS();   // ← prima: popola aisState con posizioni e destinazioni
+  initMap();   // ← dopo: usa aisState per marker, icone e rotte
   const ov=document.getElementById('loading-overlay');ov.style.opacity='0';setTimeout(()=>ov.style.display='none',500);
 }
 
@@ -459,14 +469,17 @@ function initAIS(){
   let anyLive=false;
   fleetData.vessels.forEach(v=>{
     const reg=VESSEL_REGISTRY[v.vesselId]||{},lk=reg.lastKnown;
+    // Destinazione: dati reali > destinazione nota > null
+    const dest=v.destination||reg.knownDest||null;
+    const eta =v.eta        ||reg.knownEta ||null;
     if(v.lat!=null&&v.lng!=null){
       aisState[v.vesselId]={lat:v.lat,lng:v.lng,sog:v.sog,cog:v.cog,heading:v.heading,
-        navStatus:v.navStatus,destination:v.destination,eta:v.eta,
+        navStatus:v.navStatus,destination:dest,eta:eta,
         aisLastSeen:v.aisLastSeen,isLastKnown:false};
       anyLive=true;
     }else if(lk){
       aisState[v.vesselId]={lat:lk.lat,lng:lk.lng,sog:null,cog:null,
-        destination:lk.note,eta:null,navStatus:null,
+        destination:dest,eta:eta,navStatus:null,
         aisLastSeen:null,isLastKnown:true,lastKnownTs:lk.ts};
     }
     updateAisStrip(v.vesselId);
@@ -474,7 +487,6 @@ function initAIS(){
   const el=document.getElementById('ais-status-badge');
   el.textContent=anyLive?'&#9679; Posizioni da VesselAPI':'&#9711; Posizioni last-known';
   el.style.color=anyLive?'var(--green)':'var(--muted)';
-  // Avvia WebSocket per aggiornamenti live (destinazione, ETA, stato nave)
   connectAisWS();
 }
 
