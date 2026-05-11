@@ -246,60 +246,73 @@ body{font-family:var(--font-body);background:var(--navy);color:var(--white);min-
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
 'use strict';
-const DATA_URL='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json';
-const AIS_URL ='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json';
+const DATA_URL ='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json';
+const AIS_URL  ='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json';
+const PORTS_URL='https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ports.json';
 const AZURE_CONFIG={clientId:'YOUR_CLIENT_ID_HERE',tenantId:'YOUR_TENANT_ID_HERE',redirectUri:'https://micheledv74.github.io/maritime-dashboard/',scopes:['User.Read','Mail.Send','Tasks.ReadWrite']};
 const EXCLUDED_VESSELS=['hsq'];
 const FLEET_ORDER=['medtoscana','medliguria','norrbotten','peppino'];
 const PAGE_SIZE=15;
+
+// aisstream.io — WebSocket gratuito per aggiornamenti live
+const AIS_WS_KEY='c136d51b737b3c8ecd1f4e9d62c97fb2351d5e71';
+const AIS_WS_URL='wss://stream.aisstream.io/v0/stream';
+
 const VESSEL_REGISTRY={
-  medtoscana:{mmsi:'249090000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9490741',callsign:'9HA6104',lastKnown:{lat:30.03,lng:122.05,note:'Cantiere Zhoushan (dry dock)',ts:'2025-10'}},
-  medliguria:{mmsi:'636024824',flag:'\u{1F1F1}\u{1F1F7}',flagName:'Liberia',type:'Bulk Carrier',imo:'9604811',callsign:'5LUL8',lastKnown:{lat:-5.2,lng:68.4,note:'Oceano Indiano - Luanda',ts:'2026-05'}},
+  medtoscana:{mmsi:'249090000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9490741',callsign:'9HA6104',lastKnown:{lat:41.618,lng:141.663,note:'Pacifico → Manzanillo',ts:'2026-05'}},
+  medliguria:{mmsi:'636024824',flag:'\u{1F1F1}\u{1F1F7}',flagName:'Liberia',type:'Bulk Carrier',imo:'9604811',callsign:'5LUL8',lastKnown:{lat:30.219,lng:-93.257,note:'Golfo del Messico',ts:'2026-05'}},
   norrbotten:{mmsi:'255624000',flag:'\u{1F1F5}\u{1F1F9}',flagName:'Portugal',type:'General Cargo',imo:'9191931',callsign:'CQCK',lastKnown:{lat:60.63,lng:19.03,note:'Mar Baltico',ts:'2026-05'}},
-  peppino:{mmsi:'256957000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9586708',callsign:'9HA6039',lastKnown:{lat:39.20,lng:119.18,note:'Bo Hai, Cina (ancorata)',ts:'2026-04'}}
+  peppino:{mmsi:'256957000',flag:'\u{1F1F2}\u{1F1F9}',flagName:'Malta',type:'Bulk Carrier',imo:'9586708',callsign:'9HA6039',lastKnown:{lat:-5.825,lng:106.949,note:'Mar di Giava',ts:'2026-05'}}
 };
-let fleetData=null,aisData=null,fleetMap=null;
-const aisState={},mapMarkers={},vts={};
+
+let fleetData=null,aisData=null,portsData=null,fleetMap=null;
+let aisSocket=null,aisReconnectTimer=null;
+const aisState={},mapMarkers={},routeLayers={},vts={};
 const escH=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const isExcl=v=>EXCLUDED_VESSELS.some(ex=>(v.vesselId||'').toLowerCase()===ex||(v.vesselName||'').toLowerCase()===ex);
 const actV=()=>(fleetData?.vessels||[]).filter(v=>!isExcl(v));
 
+// Nav status labels e icone
+const NAV_STATUS={0:{label:'Under Way',icon:'⛵',color:'#27ae60'},1:{label:'At Anchor',icon:'⚓',color:'#f39c12'},2:{label:'Not Under Command',icon:'⚠️',color:'#e74c3c'},3:{label:'Restricted Manoeuvrability',icon:'⚠️',color:'#e67e22'},5:{label:'Moored',icon:'🟢',color:'#1abc9c'},6:{label:'Aground',icon:'🆘',color:'#e74c3c'},8:{label:'Under Sail',icon:'⛵',color:'#27ae60'},15:{label:'Undefined',icon:'❓',color:'#7a93b8'}};
+const navInfo=code=>{const c=parseInt(code??15);return NAV_STATUS[c]||NAV_STATUS[15];};
+
+// Lookup porto da LOCODE o nome libero
+function lookupPort(dest){
+  if(!dest||!portsData?.ports)return null;
+  const d=dest.trim().toUpperCase().replace(/\s+/g,'');
+  // Prova LOCODE diretto (5 char)
+  if(d.length===5&&portsData.ports[d])return{code:d,...portsData.ports[d]};
+  // Prova senza spazi
+  for(const[k,v]of Object.entries(portsData.ports)){
+    if(k===d||k.replace(/\s/g,'')===d)return{code:k,...v};
+    if(v.name.toUpperCase()===dest.trim().toUpperCase())return{code:k,...v};
+  }
+  return null;
+}
+
 async function init(){
   try{
-    // Carica procurement e AIS in parallelo
-    const [procRes, aisRes] = await Promise.allSettled([
-      fetch(DATA_URL),
-      fetch(AIS_URL)
+    const [procRes,aisRes,portsRes]=await Promise.allSettled([
+      fetch(DATA_URL),fetch(AIS_URL),fetch(PORTS_URL)
     ]);
-
-    if(procRes.status==='rejected'||!procRes.value.ok)
-      throw new Error('Procurement JSON non disponibile');
-
-    fleetData = await procRes.value.json();
-    fleetData.vessels = normalise(fleetData.vessels||[]);
-
-    // AIS JSON — opzionale, se non esiste usa last-known
-    if(aisRes.status==='fulfilled' && aisRes.value.ok){
-      aisData = await aisRes.value.json();
-      mergeAisIntoVessels();
-    }
-
+    if(procRes.status==='rejected'||!procRes.value.ok)throw new Error('Procurement JSON non disponibile');
+    fleetData=await procRes.value.json();
+    fleetData.vessels=normalise(fleetData.vessels||[]);
+    if(aisRes.status==='fulfilled'&&aisRes.value.ok){aisData=await aisRes.value.json();mergeAisIntoVessels();}
+    if(portsRes.status==='fulfilled'&&portsRes.value.ok){portsData=await portsRes.value.json();}
     renderAll();
   }catch(e){
     document.getElementById('loading-overlay').innerHTML='<div style="text-align:center;color:var(--red);font-family:var(--font-mono);font-size:.8rem"><i class="bi bi-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:1rem"></i>Errore: '+e.message+'</div>';
   }
 }
 
-// Applica i dati AIS dal file separato alle navi del procurement
 function mergeAisIntoVessels(){
-  if(!aisData?.vessels) return;
+  if(!aisData?.vessels)return;
   fleetData.vessels.forEach(v=>{
-    const a=aisData.vessels[v.vesselId];
-    if(!a) return;
-    v.lat=a.lat; v.lng=a.lng; v.sog=a.sog; v.cog=a.cog;
-    v.heading=a.heading; v.navStatus=a.navStatus;
-    v.destination=a.destination; v.eta=a.eta;
-    v.aisLastSeen=a.aisLastSeen;
+    const a=aisData.vessels[v.vesselId];if(!a)return;
+    v.lat=a.lat;v.lng=a.lng;v.sog=a.sog;v.cog=a.cog;
+    v.heading=a.heading;v.navStatus=a.navStatus;
+    v.destination=a.destination;v.eta=a.eta;v.aisLastSeen=a.aisLastSeen;
   });
 }
 
@@ -370,35 +383,65 @@ function initMap(){
     const reg=VESSEL_REGISTRY[v.vesselId]||{},lk=reg.lastKnown||{lat:35,lng:20};
     const st=aisState[v.vesselId];
     const lat=st?.lat??lk.lat,lng=st?.lng??lk.lng;
-    const m=buildMarker(v,lat,lng);m.addTo(fleetMap);mapMarkers[v.vesselId]=m;bounds.push([lat,lng]);
+    const m=buildMarker(v,lat,lng);m.addTo(fleetMap);mapMarkers[v.vesselId]=m;
+    bounds.push([lat,lng]);
+    drawRoute(v.vesselId,lat,lng,st?.destination);
   });
-  if(bounds.length){try{fleetMap.fitBounds(bounds,{padding:[50,50],maxZoom:5});}catch(e){fleetMap.setView([20,60],2);}}
+  if(bounds.length){try{fleetMap.fitBounds(bounds,{padding:[50,50],maxZoom:4});}catch(e){fleetMap.setView([20,60],2);}}
   else fleetMap.setView([20,60],2);
+}
+
+function drawRoute(vid,lat,lng,destination){
+  // Rimuovi rotta precedente
+  if(routeLayers[vid]){routeLayers[vid].forEach(l=>fleetMap.removeLayer(l));routeLayers[vid]=[];}
+  if(!destination||!portsData?.ports)return;
+  const port=lookupPort(destination);
+  if(!port)return;
+  const layers=[];
+  // Linea tratteggiata dalla posizione attuale al porto di arrivo
+  const line=L.polyline([[lat,lng],[port.lat,port.lng]],{
+    color:'rgba(230,126,34,0.5)',weight:2,dashArray:'8 6',dashOffset:'0'
+  }).addTo(fleetMap);
+  // Marcatore porto arrivo
+  const portIcon=L.divIcon({className:'vessel-icon',html:
+    '<div style="background:var(--navy-2,#0e1f3a);border:2px solid #e67e22;border-radius:6px;padding:2px 5px;font-size:10px;color:#e67e22;white-space:nowrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,0.5)">🏁 '+escH(port.name)+'</div>',
+    iconAnchor:[0,10]});
+  const portMarker=L.marker([port.lat,port.lng],{icon:portIcon}).addTo(fleetMap);
+  layers.push(line,portMarker);
+  routeLayers[vid]=layers;
 }
 
 function buildMarker(v,lat,lng){
   const reg=VESSEL_REGISTRY[v.vesselId]||{flag:'',flagName:'--',type:'Vessel',imo:'--',callsign:'--',mmsi:'--'};
   const st=aisState[v.vesselId];
-  const col=v.deliveryColor==='red'?'#e74c3c':v.deliveryColor==='green'?'#27ae60':'#f39c12';
+  const ni=navInfo(st?.navStatus);
   const live=!!(st?.aisLastSeen&&!st?.isLastKnown);
-  const op=live?'1':'0.5';
+  const col=v.deliveryColor==='red'?'#e74c3c':v.deliveryColor==='green'?'#27ae60':'#f39c12';
+  const op=live?'1':'0.55';
   const da=live?'':'stroke-dasharray="4 3"';
-  const pulse=live?'<circle cx="16" cy="16" r="13" fill="none" stroke="'+col+'" stroke-width="1.5" opacity=".4"><animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".5" to="0" dur="2s" repeatCount="indefinite"/></circle>':'';
-  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 32 32" opacity="'+op+'">'+pulse+'<circle cx="16" cy="16" r="11" fill="'+col+'" fill-opacity=".15" stroke="'+col+'" stroke-width="2" '+da+'/><text x="16" y="21" font-size="13" text-anchor="middle" fill="white">&#9973;</text></svg>';
+  const pulse=live?'<circle cx="16" cy="16" r="13" fill="none" stroke="'+ni.color+'" stroke-width="1.5" opacity=".4"><animate attributeName="r" from="10" to="18" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".5" to="0" dur="2s" repeatCount="indefinite"/></circle>':'';
+  // Icona diversa per stato nave
+  const ns=parseInt(st?.navStatus??-1);
+  let vesselIcon='&#9973;'; // ⛵ default
+  if(ns===1)vesselIcon='&#9875;';    // ⚓ anchor
+  else if(ns===5)vesselIcon='&#128994;'; // 🟢 moored
+  else if(ns===6)vesselIcon='&#128682;'; // 🆘 aground
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 32 32" opacity="'+op+'">'+pulse+'<circle cx="16" cy="16" r="11" fill="'+ni.color+'" fill-opacity=".2" stroke="'+ni.color+'" stroke-width="2" '+da+'/><text x="16" y="21" font-size="12" text-anchor="middle">'+vesselIcon+'</text></svg>';
   const icon=L.divIcon({className:'vessel-icon',html:svg,iconSize:[36,36],iconAnchor:[18,18],popupAnchor:[0,-18]});
-  let ai='';
-  if(st?.lat) ai+='<div class="ship-popup-row"><span>Pos</span><span>'+st.lat.toFixed(3)+'N, '+st.lng.toFixed(3)+'E</span></div>';
-  if(st?.sog!=null) ai+='<div class="ship-popup-row"><span>SOG</span><span>'+st.sog+' kn</span></div>';
-  if(st?.destination) ai+='<div class="ship-popup-row"><span>Dest</span><span>'+escH(st.destination)+'</span></div>';
-  if(st?.aisLastSeen) ai+='<div class="ship-popup-row"><span>AIS</span><span style="color:'+(live?'var(--green)':'var(--muted)')+'">'+new Date(st.aisLastSeen).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span></div>';
-  const popup='<div class="ship-popup-title">&#9875; '+escH(v.vesselName)+'</div>'
+  // Popup
+  let rows='';
+  rows+='<div class="ship-popup-row"><span>Stato</span><span>'+ni.icon+' '+ni.label+'</span></div>';
+  if(st?.sog!=null)rows+='<div class="ship-popup-row"><span>Velocità</span><span>'+st.sog+' kn</span></div>';
+  if(st?.destination){const p=lookupPort(st.destination);rows+='<div class="ship-popup-row"><span>Destinazione</span><span>'+escH(p?p.name:st.destination)+'</span></div>';}
+  if(st?.eta)rows+='<div class="ship-popup-row"><span>ETA</span><span>'+escH(st.eta)+'</span></div>';
+  if(st?.aisLastSeen)rows+='<div class="ship-popup-row"><span>AIS</span><span style="color:'+(live?'var(--green)':'var(--muted)')+'">'+new Date(st.aisLastSeen).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span></div>';
+  const popup='<div class="ship-popup-title">'+vesselIcon+' '+escH(v.vesselName)+'</div>'
     +'<div class="ship-popup-row"><span>Tipo</span><span>'+reg.type+'</span></div>'
     +'<div class="ship-popup-row"><span>MMSI</span><span>'+reg.mmsi+'</span></div>'
-    +ai
-    +'<div class="ship-popup-row"><span>RFQ</span><span>'+v.rfqOpen+'</span></div>'
-    +'<div class="ship-popup-row"><span>DN Pend.</span><span>'+v.dnPending+'</span></div>'
+    +rows
+    +'<div class="ship-popup-row"><span>RFQ Aperti</span><span>'+v.rfqOpen+'</span></div>'
     +'<button class="popup-btn" onclick="showVessel(\''+v.vesselId+'\')">&#8594; Apri Scheda Nave</button>';
-  return L.marker([lat,lng],{icon}).bindPopup(popup,{maxWidth:260});
+  return L.marker([lat,lng],{icon}).bindPopup(popup,{maxWidth:270});
 }
 
 function refreshMarker(vid){
@@ -408,38 +451,95 @@ function refreshMarker(vid){
   if(!v||!mapMarkers[vid])return;
   const lat=st?.lat??lk.lat,lng=st?.lng??lk.lng;
   const nm=buildMarker(v,lat,lng);nm.addTo(fleetMap);fleetMap.removeLayer(mapMarkers[vid]);mapMarkers[vid]=nm;
+  drawRoute(vid,lat,lng,st?.destination);
 }
 
+/* ── AIS: carica da JSON + WebSocket aisstream.io per live ───── */
 function initAIS(){
   let anyLive=false;
   fleetData.vessels.forEach(v=>{
     const reg=VESSEL_REGISTRY[v.vesselId]||{},lk=reg.lastKnown;
     if(v.lat!=null&&v.lng!=null){
-      aisState[v.vesselId]={lat:v.lat,lng:v.lng,sog:v.sog,cog:v.cog,destination:v.destination,eta:v.eta,navStatus:v.navStatus,aisLastSeen:v.aisLastSeen,isLastKnown:false};
+      aisState[v.vesselId]={lat:v.lat,lng:v.lng,sog:v.sog,cog:v.cog,heading:v.heading,
+        navStatus:v.navStatus,destination:v.destination,eta:v.eta,
+        aisLastSeen:v.aisLastSeen,isLastKnown:false};
       anyLive=true;
     }else if(lk){
-      aisState[v.vesselId]={lat:lk.lat,lng:lk.lng,sog:null,cog:null,destination:lk.note,eta:null,navStatus:null,aisLastSeen:null,isLastKnown:true,lastKnownTs:lk.ts};
+      aisState[v.vesselId]={lat:lk.lat,lng:lk.lng,sog:null,cog:null,
+        destination:lk.note,eta:null,navStatus:null,
+        aisLastSeen:null,isLastKnown:true,lastKnownTs:lk.ts};
     }
     updateAisStrip(v.vesselId);
   });
   const el=document.getElementById('ais-status-badge');
-  el.textContent=anyLive?'&#9679; Posizioni da VesselAPI (n8n)':'&#9711; Posizioni last-known -- aggiorna n8n';
+  el.textContent=anyLive?'&#9679; Posizioni da VesselAPI':'&#9711; Posizioni last-known';
   el.style.color=anyLive?'var(--green)':'var(--muted)';
+  // Avvia WebSocket per aggiornamenti live (destinazione, ETA, stato nave)
+  connectAisWS();
+}
+
+function connectAisWS(){
+  if(aisSocket){try{aisSocket.close();}catch(_){}}
+  aisSocket=new WebSocket(AIS_WS_URL);
+  aisSocket.onopen=()=>{
+    const mmsis=Object.values(VESSEL_REGISTRY).map(r=>parseInt(r.mmsi,10));
+    aisSocket.send(JSON.stringify({APIKey:AIS_WS_KEY,BoundingBoxes:[[[-90,-180],[90,180]]],FilterMMSI:mmsis}));
+    const el=document.getElementById('ais-status-badge');
+    if(el){el.textContent+=' · WS &#9679;';el.style.color='var(--green)';}
+  };
+  aisSocket.onmessage=evt=>{
+    try{handleAisWS(JSON.parse(evt.data));}catch(_){}
+  };
+  aisSocket.onclose=()=>{clearTimeout(aisReconnectTimer);aisReconnectTimer=setTimeout(connectAisWS,20000);};
+  aisSocket.onerror=()=>{};
+}
+
+function handleAisWS(msg){
+  const meta=msg.MetaData||{};
+  const mmsi=String(meta.MMSI||'');
+  const vid=Object.entries(VESSEL_REGISTRY).find(([,r])=>r.mmsi===mmsi)?.[0];
+  if(!vid)return;
+  const now=Date.now();
+  if(msg.MessageType==='PositionReport'||msg.MessageType==='StandardClassBPositionReport'){
+    const pr=msg.Message?.PositionReport||msg.Message?.StandardClassBPositionReport||{};
+    const lat=meta.latitude??pr.Latitude,lng=meta.longitude??pr.Longitude;
+    if(lat==null||lng==null||lat===0&&lng===0)return;
+    aisState[vid]={...(aisState[vid]||{}),lat:parseFloat(lat.toFixed(5)),lng:parseFloat(lng.toFixed(5)),
+      sog:(pr.Sog??0).toFixed(1),cog:Math.round(pr.Cog??0),
+      navStatus:pr.NavigationalStatus,lastSeen:now,isLastKnown:false,aisLastSeen:new Date().toISOString()};
+    refreshMarker(vid);updateAisStrip(vid);
+  }
+  if(msg.MessageType==='ShipStaticData'){
+    const sd=msg.Message?.ShipStaticData||{};
+    const eta=sd.Eta,etaStr=eta&&eta.Month&&eta.Day?`${String(eta.Day).padStart(2,'0')}/${String(eta.Month).padStart(2,'0')} ${String(eta.Hour||0).padStart(2,'0')}:${String(eta.Minute||0).padStart(2,'0')} UTC`:null;
+    aisState[vid]={...(aisState[vid]||{}),
+      destination:(sd.Destination||'').trim().replace(/[\x00-\x1f]/g,'')||aisState[vid]?.destination,
+      eta:etaStr||aisState[vid]?.eta,lastSeen:aisState[vid]?.lastSeen||now};
+    refreshMarker(vid);updateAisStrip(vid);
+  }
 }
 
 function updateAisStrip(vid){
   const st=aisState[vid];if(!st)return;
-  const set=(id,v)=>{const el=document.getElementById(id);if(el){el.textContent=v||'--';el.className='ais-item-value'+((!v||v==='--')?' dim':'');}};
+  const set=(id,v,c)=>{const el=document.getElementById(id);if(el){el.textContent=v||'--';el.className='ais-item-value'+((!v||v==='--')?' dim':'');if(c)el.style.color=c;else el.style.color='';}};
   set('ais-pos-'+vid,st.lat?st.lat.toFixed(4)+'N, '+st.lng.toFixed(4)+'E':null);
   set('ais-sog-'+vid,st.sog!=null?st.sog+' kn':null);
-  set('ais-cog-'+vid,st.cog!=null?st.cog+'':null);
-  set('ais-nav-'+vid,st.navStatus);
-  set('ais-dest-'+vid,st.destination);
+  set('ais-cog-'+vid,st.cog!=null?st.cog+'°':null);
+  // Nav status con icona
+  const ni=navInfo(st.navStatus);
+  set('ais-nav-'+vid,st.navStatus!=null?ni.icon+' '+ni.label:null,ni.color);
+  // Destinazione con nome porto
+  const port=st.destination?lookupPort(st.destination):null;
+  set('ais-dest-'+vid,port?'🏁 '+port.name:st.destination||null);
   set('ais-eta-'+vid,st.eta);
   const el=document.getElementById('ais-last-'+vid);
   if(!el)return;
-  if(st.isLastKnown){el.textContent='Ultima nota: '+( st.lastKnownTs||'--');el.style.color='var(--muted)';}
-  else if(st.aisLastSeen){el.textContent='VesselAPI: '+new Date(st.aisLastSeen).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});el.style.color='var(--green)';}
+  if(st.isLastKnown){el.textContent='⚪ Ultima nota: '+(st.lastKnownTs||'--');el.style.color='var(--muted)';}
+  else if(st.aisLastSeen){
+    const live=(Date.now()-new Date(st.aisLastSeen).getTime())<3600000;
+    el.textContent=(live?'🟢 Live: ':'🟡 AIS: ')+new Date(st.aisLastSeen).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    el.style.color=live?'var(--green)':'var(--yellow)';
+  }
 }
 
 function renderTabs(){
