@@ -402,19 +402,42 @@ function initMap(){
 }
 
 function drawRoute(vid,lat,lng,destination){
-  // Rimuovi rotta precedente
   if(routeLayers[vid]){routeLayers[vid].forEach(l=>fleetMap.removeLayer(l));routeLayers[vid]=[];}
   if(!destination||!portsData?.ports)return;
   const port=lookupPort(destination);
   if(!port)return;
+
+  const st=aisState[vid];
+  let destLng=port.lng;
+
+  // Correzione antimeridiano — se la nave naviga verso est (COG 45°-315°)
+  // e la destinazione è "dall'altra parte" rispetto alla direzione,
+  // usa la longitudine avvolta (+360) per disegnare la linea nella direzione corretta
+  const cog=st?.cog??null;
+  if(cog!==null){
+    const headingEast=cog>45&&cog<315;
+    const diffEast=((port.lng-lng)+360)%360;   // gradi verso est
+    const diffWest=360-diffEast;                // gradi verso ovest
+    if(headingEast&&diffEast<diffWest){
+      // Rotta più corta va ad est — usa longitudine "avvolta" se necessario
+      if(port.lng<lng) destLng=port.lng+360;
+    } else if(!headingEast&&diffWest<diffEast){
+      // Rotta più corta va ad ovest
+      if(port.lng>lng) destLng=port.lng-360;
+    }
+  } else {
+    // Senza COG: usa il percorso più breve geometricamente
+    const diffEast=((port.lng-lng)+360)%360;
+    if(diffEast>180) destLng=port.lng-360;
+    else if(diffEast<180&&port.lng<lng) destLng=port.lng+360;
+  }
+
   const layers=[];
-  // Linea tratteggiata dalla posizione attuale al porto di arrivo
-  const line=L.polyline([[lat,lng],[port.lat,port.lng]],{
-    color:'rgba(230,126,34,0.5)',weight:2,dashArray:'8 6',dashOffset:'0'
+  const line=L.polyline([[lat,lng],[port.lat,destLng]],{
+    color:'rgba(230,126,34,0.55)',weight:2,dashArray:'10 6'
   }).addTo(fleetMap);
-  // Marcatore porto arrivo
   const portIcon=L.divIcon({className:'vessel-icon',html:
-    '<div style="background:var(--navy-2,#0e1f3a);border:2px solid #e67e22;border-radius:6px;padding:2px 5px;font-size:10px;color:#e67e22;white-space:nowrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,0.5)">🏁 '+escH(port.name)+'</div>',
+    '<div style="background:var(--navy-2,#0e1f3a);border:2px solid #e67e22;border-radius:6px;padding:2px 6px;font-size:10px;color:#e67e22;white-space:nowrap;font-family:monospace;box-shadow:0 2px 8px rgba(0,0,0,.5)">&#127937; '+escH(port.name)+'</div>',
     iconAnchor:[0,10]});
   const portMarker=L.marker([port.lat,port.lng],{icon:portIcon}).addTo(fleetMap);
   layers.push(line,portMarker);
