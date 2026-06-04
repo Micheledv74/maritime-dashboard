@@ -1,0 +1,66 @@
+{
+  "_comment": "Schema di esempio per data-tracking.json. Sarà popolato dal workflow n8n in v0.2 (vedi README). Sostituisci lat/lng/ETA/agent con valori reali.",
+  "lastSync": "2026-06-04T08:00:00.000Z",
+  "vessels": [
+    {
+      "vesselId": "peppino",
+      "imo": "9999991",
+      "lat": 41.05,
+      "lng": 12.45,
+      "speed": 11.2,
+      "course": 145,
+      "status": "Underway",
+      "area": "Mar Tirreno",
+      "nextPort": "Genova",
+      "eta": "2026-06-08T10:00:00Z",
+      "etb": "2026-06-08T14:00:00Z",
+      "etd": "2026-06-10T18:00:00Z",
+      "agent": "Agent Placeholder Srl"
+    },
+    {
+      "vesselId": "medliguria",
+      "imo": "9618372",
+      "lat": 39.82,
+      "lng": 13.21,
+      "speed": 12.4,
+      "course": 98,
+      "status": "Underway",
+      "area": "Mar Tirreno",
+      "nextPort": "Gioia Tauro",
+      "eta": "2026-06-08T06:00:00Z",
+      "etb": "2026-06-09T06:00:00Z",
+      "etd": "2026-06-11T20:00:00Z",
+      "agent": "Marnavi Spa"
+    },
+    {
+      "vesselId": "medtoscana",
+      "imo": "9999992",
+      "lat": 1.27,
+      "lng": 103.83,
+      "speed": 0.0,
+      "course": 0,
+      "status": "At anchor",
+      "area": "Singapore Strait",
+      "nextPort": "Singapore",
+      "eta": "2026-06-12T08:00:00Z",
+      "etb": "2026-06-13T04:00:00Z",
+      "etd": "2026-06-15T22:00:00Z",
+      "agent": "Singapore Maritime Agencies"
+    },
+    {
+      "vesselId": "norrbotten",
+      "imo": "9999993",
+      "lat": 52.37,
+      "lng": 4.89,
+      "speed": 13.8,
+      "course": 270,
+      "status": "Underway",
+      "area": "Mare del Nord",
+      "nextPort": "Rotterdam",
+      "eta": "2026-06-07T12:00:00Z",
+      "etb": "2026-06-07T18:00:00Z",
+      "etd": "2026-06-09T08:00:00Z",
+      "agent": "Rotterdam Port Agent BV"
+    }
+  ]
+}
