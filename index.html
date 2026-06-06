@@ -1311,6 +1311,170 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+
+/* === PAGINA TO-DO DEDICATA ============================================== */
+.todo-page-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 18px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.todo-page-header h1 {
+  margin: 0 0 4px;
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.todo-page-stats {
+  display: flex; gap: 16px;
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.todo-page-stats .stat strong { color: var(--text); font-weight: 600; }
+.todo-page-stats .stat.warn strong { color: var(--c-amber-fg); }
+.todo-page-stats .stat.crit strong { color: var(--c-red-fg); }
+
+.todo-toolbar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 16px;
+}
+.todo-toolbar .filter-chip {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  padding: 6px 12px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+}
+.todo-toolbar .filter-chip.active {
+  background: var(--accent); color: var(--accent-fg); border-color: var(--accent);
+}
+.todo-toolbar .filter-chip:hover:not(.active) { background: var(--bg-muted); }
+
+.todo-section-divider {
+  margin: 24px 0 12px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.todo-section-divider h3 {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+}
+.todo-section-divider .chevron {
+  font-size: 14px;
+  color: var(--text-faint);
+  transition: transform 0.15s;
+}
+.todo-section-divider.collapsed .chevron { transform: rotate(-90deg); }
+.todo-section-divider .count {
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  font-weight: 400;
+}
+.todo-section-collapsible { display: block; }
+.todo-section-collapsible.collapsed { display: none; }
+
+/* Priorità: bordo sinistro colorato */
+.todo-item[data-priority="alta"] { border-left-color: var(--c-red-dot); border-left-width: 4px; }
+.todo-item[data-priority="media"] { border-left-color: var(--c-amber-dot); }
+.todo-item[data-priority="bassa"] { border-left-color: var(--text-faint); }
+.todo-item.done { border-left-color: var(--c-green-dot) !important; }
+
+/* Categorie e tag visualizzati nella riga to-do */
+.todo-cat {
+  display: inline-block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--c-slate-bg);
+  color: var(--c-slate-fg);
+  margin-right: 6px;
+  font-weight: 500;
+}
+.todo-cat[data-cat="Nave"] { background: var(--c-blue-bg); color: var(--c-blue-fg); }
+.todo-cat[data-cat="Ufficio"] { background: var(--c-purple-bg); color: var(--c-purple-fg); }
+.todo-cat[data-cat="Colleghi"] { background: var(--c-amber-bg); color: var(--c-amber-fg); }
+.todo-cat[data-cat="Infoship"] { background: var(--c-red-bg); color: var(--c-red-fg); }
+.todo-cat[data-cat="Sistema"] { background: var(--c-slate-bg); color: var(--c-slate-fg); }
+.todo-cat[data-cat="Personale"] { background: var(--c-green-bg); color: var(--c-green-fg); }
+.todo-cat[data-cat="Altro"] { background: var(--bg-muted); color: var(--text-muted); }
+
+.todo-tags {
+  display: inline-flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 4px;
+}
+.todo-tag {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+/* Tag input nel form (autocomplete) */
+.tag-input-wrap {
+  position: relative;
+}
+.tag-suggestions {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  max-height: 200px; overflow-y: auto;
+  z-index: 10;
+  display: none;
+}
+.tag-suggestions.open { display: block; }
+.tag-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+}
+.tag-suggestion:hover, .tag-suggestion.selected { background: var(--bg-muted); }
+
+.todo-tags-current {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 4px;
+}
+.todo-tag-chip {
+  font-size: 11px;
+  padding: 2px 10px 2px 8px;
+  border-radius: 999px;
+  background: var(--c-slate-bg);
+  color: var(--c-slate-fg);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.todo-tag-chip button {
+  background: transparent; border: none; color: inherit;
+  cursor: pointer; padding: 0 0 0 4px;
+  font-size: 14px; line-height: 1;
+}
+
+/* Backup status indicator */
+.backup-status {
+  font-size: 11px;
+  color: var(--text-faint);
+  padding: 8px 12px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+.backup-status .backup-ok { color: var(--c-green-fg); }
+
+
 </style>
 </head>
 <body>
@@ -1422,6 +1586,17 @@ a:hover { text-decoration: underline; }
         <input type="file" accept="application/json" id="import-backup" style="font-size:11px;">
       </div>
       <div class="setting-row">
+        <label>Backup to-do manuale</label>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" id="export-todos-json">JSON</button>
+          <button class="btn btn-sm" id="export-todos-xlsx">Excel</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <label>Importa to-do da JSON</label>
+        <input type="file" accept="application/json" id="import-todos" style="font-size:11px;">
+      </div>
+      <div class="setting-row">
         <label>Pulisci snooze e note locali</label>
         <button class="btn btn-sm" id="clear-local">Reset</button>
       </div>
@@ -1497,7 +1672,7 @@ a:hover { text-decoration: underline; }
 <div class="snooze-menu" id="snooze-menu"></div>
 
 
-<!-- Modal: To-do (nuovo / modifica) -->
+<!-- Modal: To-do (nuovo / modifica) - v0.3 esteso -->
 <div class="modal" id="modal-todo">
   <div class="modal-content">
     <div class="modal-header">
@@ -1505,9 +1680,29 @@ a:hover { text-decoration: underline; }
       <button class="close" data-close-modal>✕</button>
     </div>
     <div class="todo-form-row">
+      <label for="todo-category">Categoria</label>
+      <select id="todo-category">
+        <option value="Nave">⚓ Nave</option>
+        <option value="Ufficio">🏢 Ufficio</option>
+        <option value="Colleghi">👥 Colleghi</option>
+        <option value="Infoship">💾 Infoship</option>
+        <option value="Sistema">⚙️ Sistema</option>
+        <option value="Personale">👤 Personale</option>
+        <option value="Altro">📝 Altro</option>
+      </select>
+    </div>
+    <div class="todo-form-row" id="todo-vessel-row">
       <label for="todo-vessel">Nave</label>
       <select id="todo-vessel">
-        <option value="">— Generale —</option>
+        <option value="">— Seleziona —</option>
+      </select>
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-priority">Priorità</label>
+      <select id="todo-priority">
+        <option value="alta">🔴 Alta</option>
+        <option value="media" selected>🟡 Media</option>
+        <option value="bassa">⚪ Bassa</option>
       </select>
     </div>
     <div class="todo-form-row">
@@ -1519,12 +1714,22 @@ a:hover { text-decoration: underline; }
         <option value="Sollecitare">⏰ Sollecitare</option>
         <option value="Verificare">🔍 Verificare</option>
         <option value="Aspettare risposta">⌛ Aspettare risposta</option>
+        <option value="Documentare">📄 Documentare</option>
+        <option value="Controllare">✅ Controllare</option>
         <option value="Altro">📝 Altro</option>
       </select>
     </div>
     <div class="todo-form-row">
-      <label for="todo-target">A / Per</label>
-      <input type="text" id="todo-target" placeholder="es. Wilhelmsen, Master, C/Eng., ...">
+      <label for="todo-reference">Riferimento</label>
+      <input type="text" id="todo-reference" placeholder="Fornitore, documento, persona…">
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-tag-input">Tag</label>
+      <div class="tag-input-wrap" style="flex:1;">
+        <input type="text" id="todo-tag-input" placeholder="Aggiungi tag e premi Invio…" autocomplete="off">
+        <div class="tag-suggestions" id="todo-tag-suggestions"></div>
+        <div class="todo-tags-current" id="todo-tags-current"></div>
+      </div>
     </div>
     <div class="todo-form-row">
       <label for="todo-when">Quando</label>
@@ -1710,7 +1915,9 @@ const LS_KEYS = {
   onbDone: "mpd.onboardingDone",
   cache: "mpd.cache",
   todos: "mpd.todos",
-  archivedActions: "mpd.archivedActions"
+  archivedActions: "mpd.archivedActions",
+  lastBackupDate: "mpd.lastBackupDate",
+  lastExcelDate: "mpd.lastExcelDate"
 };
 
 function loadSettings() {
@@ -1731,7 +1938,29 @@ function loadNotes() {
 }
 function saveNotes() { localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes)); }
 function loadTodos() {
-  try { return JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]"); } catch { return []; }
+  try {
+    const arr = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
+    // Retrocompatibilità: porto le to-do vecchie al nuovo schema
+    return arr.map(t => ({
+      category: t.category || (t.vessel ? "Nave" : "Altro"),
+      priority: t.priority || "media",
+      reference: t.reference || t.target || "",
+      tags: Array.isArray(t.tags) ? t.tags : [],
+      ...t,
+      // Forza i nuovi default se mancanti (l'ordine matters)
+      category: t.category || (t.vessel ? "Nave" : "Altro"),
+      priority: t.priority || "media"
+    }));
+  } catch { return []; }
+}
+
+// Restituisce tutti i tag mai usati nelle to-do (per autocomplete)
+function getAllTags() {
+  const s = new Set();
+  for (const t of state.todos) {
+    if (Array.isArray(t.tags)) for (const tag of t.tags) s.add(tag);
+  }
+  return [...s].sort();
 }
 function saveTodos() { localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos)); }
 function loadArchivedActions() {
@@ -1803,6 +2032,7 @@ async function loadData() {
   checkWhatsNew();
   maybeMorningSnapshot();
   maybePlayAudioAlert();
+  autoBackupCheck();
 }
 
 function readCache() {
@@ -2228,10 +2458,13 @@ function snoozeUntil(key, when) {
 function addTodo(todo) {
   const newTodo = {
     id: "td_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
-    vessel: todo.vessel || "",         // vesselId o "" per generale
-    action: todo.action || "Altro",    // tipo azione
-    target: todo.target || "",         // destinatario / riferimento
-    dueDate: todo.dueDate || "",       // YYYY-MM-DD
+    category: todo.category || "Nave",    // Nave / Ufficio / Colleghi / Infoship / Sistema / Personale / Altro
+    priority: todo.priority || "media",   // alta / media / bassa
+    vessel: todo.vessel || "",            // vesselId o "" per non-Nave
+    action: todo.action || "Altro",       // tipo azione
+    reference: todo.reference || todo.target || "", // riferimento (fornitore/doc/persona). target = retrocompat
+    tags: Array.isArray(todo.tags) ? todo.tags : [], // array di stringhe
+    dueDate: todo.dueDate || "",          // YYYY-MM-DD
     note: todo.note || "",
     done: false,
     createdAt: new Date().toISOString()
@@ -2330,6 +2563,7 @@ function render() {
   else if (state.view === "vessel") renderVesselDetail();
   else if (state.view === "supplier") renderSupplierPulse();
   else if (state.view === "debug") renderDebug();
+  else if (state.view === "todos") renderTodosPage();
 }
 
 function applySettings() {
@@ -2384,14 +2618,27 @@ function renderSwitcher() {
   row.innerHTML = "";
   select.innerHTML = "";
 
-  const overviewPill = makeEl(`<button class="pill ${state.view === "overview" ? "active" : ""}" data-vid="" role="tab">
+  const overviewPill = makeEl(`<button class="pill ${state.view === "overview" ? "active" : ""}" data-view="overview" role="tab">
     <span>Overview</span>
     <span class="pill-key">0</span>
   </button>`);
   row.appendChild(overviewPill);
   const ovOpt = document.createElement("option");
-  ovOpt.value = ""; ovOpt.textContent = "● Overview"; if (state.view === "overview") ovOpt.selected = true;
+  ovOpt.value = "__overview"; ovOpt.textContent = "● Overview"; if (state.view === "overview") ovOpt.selected = true;
   select.appendChild(ovOpt);
+
+  // Pill To-do (badge con conteggio aperte)
+  const openTodosCount = todosOpen().length;
+  const todoPill = makeEl(`<button class="pill ${state.view === "todos" ? "active" : ""}" data-view="todos" role="tab">
+    <span>☐ To-do</span>
+    ${openTodosCount > 0 ? `<span class="pill-dot crit" style="background: var(--c-blue-dot);"></span>` : ""}
+    <span class="pill-key">${openTodosCount > 0 ? openTodosCount : ""}</span>
+  </button>`);
+  row.appendChild(todoPill);
+  const todoOpt = document.createElement("option");
+  todoOpt.value = "__todos"; todoOpt.textContent = `☐ To-do${openTodosCount > 0 ? " (" + openTodosCount + ")" : ""}`;
+  if (state.view === "todos") todoOpt.selected = true;
+  select.appendChild(todoOpt);
 
   VESSELS.forEach((v, idx) => {
     const dataVessel = state.data ? state.data.vessels.find(x => x.vesselId === v.vesselId) : null;
@@ -3150,6 +3397,175 @@ function renderSupplierPulse() {
   `;
 }
 
+// ----- TO-DO PAGE DEDICATA ----------------------------------------------
+function renderTodosPage() {
+  const filter = state._todoFilter || { category: "all", vessel: "all", priority: "all" };
+  const search = (state._todoSearch || "").toLowerCase();
+  const showCompleted = state._todoShowCompleted;
+
+  // Filtra to-do
+  let aperte = state.todos.filter(t => !t.done);
+  let completate = state.todos.filter(t => t.done);
+
+  const matchFilter = t => {
+    if (filter.category !== "all" && t.category !== filter.category) return false;
+    if (filter.vessel !== "all" && t.vessel !== filter.vessel) return false;
+    if (filter.priority !== "all" && t.priority !== filter.priority) return false;
+    if (search) {
+      const hay = [t.action, t.reference, t.note, ...(t.tags||[])].join(" ").toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  };
+  aperte = aperte.filter(matchFilter);
+  completate = completate.filter(matchFilter);
+
+  // Ordina aperte: per scadenza (overdue prima, poi today, poi future), priorità
+  const orderPrio = { alta: 0, media: 1, bassa: 2 };
+  const orderClass = { overdue: 0, today: 1, future: 2 };
+  aperte.sort((a, b) => {
+    const ca = classifyDueDate(a.dueDate);
+    const cb = classifyDueDate(b.dueDate);
+    if (ca !== cb) return (orderClass[ca]||9) - (orderClass[cb]||9);
+    const pa = orderPrio[a.priority] ?? 9;
+    const pb = orderPrio[b.priority] ?? 9;
+    if (pa !== pb) return pa - pb;
+    return (a.dueDate || "9999").localeCompare(b.dueDate || "9999");
+  });
+  // Ordina completate per doneAt desc
+  completate.sort((a, b) => (b.doneAt || b.createdAt || "").localeCompare(a.doneAt || a.createdAt || ""));
+
+  // Stats
+  const totaleAperte = state.todos.filter(t => !t.done).length;
+  const scaduteCount = state.todos.filter(t => !t.done && classifyDueDate(t.dueDate) === "overdue").length;
+  const oggiCount = state.todos.filter(t => !t.done && classifyDueDate(t.dueDate) === "today").length;
+  const fatteSettimana = state.todos.filter(t => {
+    if (!t.done || !t.doneAt) return false;
+    const days = (Date.now() - new Date(t.doneAt).getTime()) / 86400000;
+    return days <= 7;
+  }).length;
+
+  // Categorie disponibili (con count)
+  const CATEGORIES = ["Nave", "Ufficio", "Colleghi", "Infoship", "Sistema", "Personale", "Altro"];
+
+  // Backup info
+  const lastBackup = localStorage.getItem(LS_KEYS.lastBackupDate);
+  const lastExcel = localStorage.getItem(LS_KEYS.lastExcelDate);
+
+  document.getElementById("view-root").innerHTML = `
+    <header class="todo-page-header">
+      <div>
+        <h1>Le mie to-do</h1>
+        <div class="todo-page-stats">
+          <span class="stat ${scaduteCount > 0 ? "crit" : ""}">${scaduteCount > 0 ? "⚠ " : ""}<strong>${scaduteCount}</strong> scadute</span>
+          <span class="stat ${oggiCount > 0 ? "warn" : ""}"><strong>${oggiCount}</strong> oggi</span>
+          <span class="stat"><strong>${totaleAperte}</strong> aperte totali</span>
+          <span class="stat"><strong>${fatteSettimana}</strong> completate questa settimana</span>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-primary" id="todo-new-from-page">+ Nuova to-do</button>
+        <button class="btn" id="todo-export-excel">📥 Esporta Excel</button>
+      </div>
+    </header>
+
+    <div class="backup-status">
+      Backup: <span class="backup-ok">JSON ${lastBackup ? formatRelative(new Date(lastBackup)) : "non ancora"}</span>
+      · Excel ${lastExcel ? formatRelative(new Date(lastExcel)) : "non ancora"}
+      · I backup vanno nella cartella Download del browser, spostali dove preferisci.
+    </div>
+
+    <div class="todo-toolbar">
+      <input type="search" class="search-input" id="todo-search" placeholder="Cerca tra le to-do…" value="${escapeHTML(state._todoSearch || "")}" style="flex:1;min-width:200px;">
+    </div>
+
+    <div class="todo-toolbar">
+      <span class="muted" style="font-size:var(--fs-sm);">Categoria:</span>
+      <button class="filter-chip ${filter.category === "all" ? "active" : ""}" data-tf-cat="all">Tutte</button>
+      ${CATEGORIES.map(c => {
+        const n = state.todos.filter(t => !t.done && t.category === c).length;
+        if (n === 0 && filter.category !== c) return "";
+        return `<button class="filter-chip ${filter.category === c ? "active" : ""}" data-tf-cat="${escapeAttr(c)}">${c} (${n})</button>`;
+      }).join("")}
+    </div>
+
+    <div class="todo-toolbar">
+      <span class="muted" style="font-size:var(--fs-sm);">Priorità:</span>
+      <button class="filter-chip ${filter.priority === "all" ? "active" : ""}" data-tf-prio="all">Tutte</button>
+      <button class="filter-chip ${filter.priority === "alta" ? "active" : ""}" data-tf-prio="alta">🔴 Alta</button>
+      <button class="filter-chip ${filter.priority === "media" ? "active" : ""}" data-tf-prio="media">🟡 Media</button>
+      <button class="filter-chip ${filter.priority === "bassa" ? "active" : ""}" data-tf-prio="bassa">⚪ Bassa</button>
+    </div>
+
+    ${VESSELS.length > 0 ? `
+    <div class="todo-toolbar">
+      <span class="muted" style="font-size:var(--fs-sm);">Nave:</span>
+      <button class="filter-chip ${filter.vessel === "all" ? "active" : ""}" data-tf-ves="all">Tutte</button>
+      ${VESSELS.map(v => {
+        const n = state.todos.filter(t => !t.done && t.vessel === v.vesselId).length;
+        if (n === 0 && filter.vessel !== v.vesselId) return "";
+        return `<button class="filter-chip ${filter.vessel === v.vesselId ? "active" : ""}" data-tf-ves="${escapeAttr(v.vesselId)}">${v.displayName} (${n})</button>`;
+      }).join("")}
+    </div>` : ""}
+
+    <div class="todo-section-divider">
+      <span class="chevron">▾</span>
+      <h3>Aperte</h3>
+      <span class="count">${aperte.length}</span>
+    </div>
+    <div class="todo-section-collapsible">
+      ${aperte.length === 0 ? `<div class="empty-state">Nessuna to-do aperta con questi filtri.</div>` :
+        `<div class="todo-list">${aperte.map(todoRowHTML).join("")}</div>`}
+    </div>
+
+    <div class="todo-section-divider ${showCompleted ? "" : "collapsed"}" id="completed-divider">
+      <span class="chevron">▾</span>
+      <h3>Completate</h3>
+      <span class="count">${completate.length}${completate.length > 30 ? " (mostro le ultime 30)" : ""}</span>
+    </div>
+    <div class="todo-section-collapsible ${showCompleted ? "" : "collapsed"}" id="completed-section">
+      ${completate.length === 0 ? `<div class="empty-state">Nessuna to-do completata corrisponde ai filtri.</div>` :
+        `<div class="todo-list">${completate.slice(0, 30).map(todoRowHTML).join("")}</div>`}
+    </div>
+  `;
+
+  // Handlers
+  document.getElementById("todo-new-from-page").addEventListener("click", () => openTodoModal(null));
+  document.getElementById("todo-export-excel").addEventListener("click", () => exportTodosToExcel(false));
+
+  document.getElementById("todo-search").addEventListener("input", e => {
+    state._todoSearch = e.target.value;
+    renderTodosPage();
+  });
+
+  document.querySelectorAll("[data-tf-cat]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state._todoFilter.category = btn.dataset.tfCat;
+      renderTodosPage();
+    });
+  });
+  document.querySelectorAll("[data-tf-prio]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state._todoFilter.priority = btn.dataset.tfPrio;
+      renderTodosPage();
+    });
+  });
+  document.querySelectorAll("[data-tf-ves]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state._todoFilter.vessel = btn.dataset.tfVes;
+      renderTodosPage();
+    });
+  });
+
+  // Collapse/expand sezione completate
+  document.getElementById("completed-divider").addEventListener("click", () => {
+    state._todoShowCompleted = !state._todoShowCompleted;
+    renderTodosPage();
+  });
+
+  attachTodoHandlers(document.getElementById("view-root"));
+}
+
 // ----- DEBUG VIEW --------------------------------------------------------
 function renderDebug() {
   const cacheTs = readCache()?.procurement?.lastSync || "—";
@@ -3225,7 +3641,7 @@ function attachActionHandlers(root) {
   });
 }
 
-// Renderizza un to-do come riga compatta
+// Renderizza una to-do come riga compatta — versione v0.3 con categoria/priorità/tag
 function todoRowHTML(t) {
   const cls = classifyDueDate(t.dueDate);
   const dateLabel = t.dueDate ?
@@ -3233,20 +3649,32 @@ function todoRowHTML(t) {
      cls === "overdue" ? "Scaduto " + formatDate(t.dueDate) :
      formatDate(t.dueDate))
     : "—";
+  const category = t.category || "Altro";
+  const priority = t.priority || "media";
+  const ref = t.reference || t.target || "";  // retrocompat con campo target
   const vesselName = t.vessel ?
     (VESSELS.find(v => v.vesselId === t.vessel)?.displayName || t.vessel)
-    : "Generale";
-  return `<div class="todo-item ${t.done ? "done" : cls}" data-todo-id="${escapeAttr(t.id)}">
+    : "";
+  const tags = Array.isArray(t.tags) ? t.tags : [];
+
+  // Sezione "contesto" (nave + riferimento + tag)
+  let contextParts = [];
+  if (vesselName) contextParts.push(`<span class="vessel-tag">${escapeHTML(vesselName)}</span>`);
+  if (ref) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
+
+  return `<div class="todo-item ${t.done ? "done" : cls}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
+      <span class="todo-cat" data-cat="${escapeAttr(category)}">${escapeHTML(category)}</span>
       <span class="todo-action">${escapeHTML(t.action)}</span>
-      ${t.target ? `· <span class="todo-target">${escapeHTML(t.target)}</span>` : ""}
-      <span class="vessel-tag">${escapeHTML(vesselName)}</span>
+      ${contextParts.length > 0 ? "· " + contextParts.join(" · ") : ""}
       ${t.note ? `<span class="todo-note">${escapeHTML(t.note)}</span>` : ""}
+      ${tags.length > 0 ? `<div class="todo-tags">${tags.map(tag => `<span class="todo-tag">${escapeHTML(tag)}</span>`).join("")}</div>` : ""}
     </div>
     <div class="todo-actions">
       <button class="btn btn-sm" data-todo-edit="${escapeAttr(t.id)}" title="Modifica">✎</button>
-      <button class="btn btn-sm" data-todo-done="${escapeAttr(t.id)}" title="Fatto">✓</button>
+      ${!t.done ? `<button class="btn btn-sm" data-todo-done="${escapeAttr(t.id)}" title="Fatto">✓</button>` :
+                  `<button class="btn btn-sm" data-todo-undone="${escapeAttr(t.id)}" title="Riapri">↺</button>`}
       <button class="btn-snooze" data-todo-delete="${escapeAttr(t.id)}" title="Elimina">🗑</button>
     </div>
   </div>`;
@@ -3260,6 +3688,13 @@ function attachTodoHandlers(root) {
     btn.addEventListener("click", () => {
       updateTodo(btn.dataset.todoDone, { done: true, doneAt: new Date().toISOString() });
       showToast("To-do completato");
+      render();
+    });
+  });
+  root.querySelectorAll("[data-todo-undone]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      updateTodo(btn.dataset.todoUndone, { done: false, doneAt: null });
+      showToast("To-do riaperto");
       render();
     });
   });
@@ -3447,6 +3882,15 @@ function goSupplierPulse() {
   render();
 }
 
+function goTodos() {
+  state.view = "todos";
+  state._todoFilter = state._todoFilter || { category: "all", vessel: "all", priority: "all" };
+  state._todoSearch = state._todoSearch || "";
+  state._todoShowCompleted = state._todoShowCompleted ?? false;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 // Apre modale con il dettaglio delle consegne di un giorno specifico per una nave
 function openHeatmapDetail(vesselId, dateISO) {
   const cfg = VESSELS.find(v => v.vesselId === vesselId);
@@ -3523,6 +3967,157 @@ function buildSampleTracking() {
   };
 }
 
+
+// ============================================================================
+// === BACKUP & EXPORT TO-DO ==================================================
+// ============================================================================
+// Strategia:
+// - JSON backup automatico ogni giorno (alla prima apertura della dashboard)
+// - Excel backup automatico settimanale (alla prima apertura del lunedì)
+// - Export Excel manuale sempre disponibile dal bottone nella pagina to-do
+// I file vanno nei Downloads del browser. Il filename include la data.
+
+function downloadFile(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// JSON backup: include tutte le to-do (aperte E completate) per archivio totale
+function exportTodosToJSON(silent) {
+  const payload = {
+    backupDate: new Date().toISOString(),
+    version: "0.3",
+    counts: {
+      open: state.todos.filter(t => !t.done).length,
+      done: state.todos.filter(t => t.done).length,
+      total: state.todos.length
+    },
+    todos: state.todos
+  };
+  const fname = `mpd-todos-${todayISO()}.json`;
+  downloadFile(fname, JSON.stringify(payload, null, 2), "application/json");
+  localStorage.setItem(LS_KEYS.lastBackupDate, new Date().toISOString());
+  if (!silent) showToast("Backup JSON scaricato");
+}
+
+// Excel export: usa SheetJS (caricato on-demand da CDN)
+async function exportTodosToExcel(silent) {
+  if (!silent) showToast("Preparazione Excel…");
+  // Carica SheetJS on-demand
+  if (typeof XLSX === "undefined") {
+    await loadSheetJS();
+  }
+  if (typeof XLSX === "undefined") {
+    showToast("Errore caricamento libreria Excel");
+    return;
+  }
+
+  // Costruisco righe per il foglio
+  const rows = state.todos.map(t => {
+    const vessel = t.vessel ?
+      (VESSELS.find(v => v.vesselId === t.vessel)?.displayName || t.vessel)
+      : "";
+    return {
+      "ID": t.id,
+      "Stato": t.done ? "Completata" : "Aperta",
+      "Categoria": t.category || "",
+      "Priorità": t.priority || "",
+      "Nave": vessel,
+      "Azione": t.action || "",
+      "Riferimento": t.reference || t.target || "",
+      "Tag": (t.tags || []).join(", "),
+      "Scadenza": t.dueDate || "",
+      "Nota": t.note || "",
+      "Creata": t.createdAt ? t.createdAt.slice(0, 19).replace("T", " ") : "",
+      "Completata": t.doneAt ? t.doneAt.slice(0, 19).replace("T", " ") : ""
+    };
+  });
+
+  // Ordina: aperte prima (per scadenza), poi completate (per doneAt desc)
+  rows.sort((a, b) => {
+    if (a.Stato !== b.Stato) return a.Stato === "Aperta" ? -1 : 1;
+    if (a.Stato === "Aperta") return (a.Scadenza || "9999").localeCompare(b.Scadenza || "9999");
+    return (b.Completata || "").localeCompare(a.Completata || "");
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  // Auto-width colonne (approssimazione)
+  ws["!cols"] = [
+    { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 18 },
+    { wch: 16 }, { wch: 28 }, { wch: 20 }, { wch: 12 }, { wch: 40 },
+    { wch: 18 }, { wch: 18 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "To-do");
+
+  // Aggiungo un secondo sheet "Stats" con stats aggregate
+  const statsData = [
+    { "Metrica": "Data export", "Valore": new Date().toLocaleString("it-IT") },
+    { "Metrica": "Totale to-do", "Valore": state.todos.length },
+    { "Metrica": "Aperte", "Valore": state.todos.filter(t => !t.done).length },
+    { "Metrica": "Completate", "Valore": state.todos.filter(t => t.done).length },
+    { "Metrica": "Scadute (non fatte)", "Valore": state.todos.filter(t => !t.done && classifyDueDate(t.dueDate) === "overdue").length },
+    { "Metrica": "Per categoria", "Valore": "" },
+    ...["Nave", "Ufficio", "Colleghi", "Infoship", "Sistema", "Personale", "Altro"].map(c => ({
+      "Metrica": "  · " + c,
+      "Valore": state.todos.filter(t => t.category === c).length
+    }))
+  ];
+  const wsStats = XLSX.utils.json_to_sheet(statsData);
+  wsStats["!cols"] = [{ wch: 30 }, { wch: 16 }];
+  XLSX.utils.book_append_sheet(wb, wsStats, "Stats");
+
+  const fname = `mpd-todos-${todayISO()}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  localStorage.setItem(LS_KEYS.lastExcelDate, new Date().toISOString());
+  if (!silent) showToast("Excel scaricato");
+}
+
+// Carica SheetJS da CDN
+function loadSheetJS() {
+  return new Promise((resolve, reject) => {
+    if (typeof XLSX !== "undefined") return resolve();
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// Backup automatico: chiamato all'avvio, decide se serve un backup oggi
+function autoBackupCheck() {
+  if (state.todos.length === 0) return;  // niente da backuppare
+
+  const todayStr = todayISO();
+  const lastBackup = localStorage.getItem(LS_KEYS.lastBackupDate);
+  const lastBackupDay = lastBackup ? lastBackup.slice(0, 10) : null;
+
+  // Backup JSON: se ultimo backup è di un altro giorno
+  if (lastBackupDay !== todayStr) {
+    setTimeout(() => exportTodosToJSON(true), 2000);  // delay per non interferire col load
+  }
+
+  // Backup Excel: settimanale (ogni lunedì o se >7 giorni dall'ultimo)
+  const lastExcel = localStorage.getItem(LS_KEYS.lastExcelDate);
+  const isMonday = new Date().getDay() === 1;
+  const daysSinceExcel = lastExcel ?
+    (Date.now() - new Date(lastExcel).getTime()) / 86400000 : 999;
+
+  if ((isMonday && lastExcel?.slice(0,10) !== todayStr) || daysSinceExcel > 7) {
+    setTimeout(() => exportTodosToExcel(true), 4000);
+  }
+}
+
+
 // ============================================================================
 // === UTILS ==================================================================
 // ============================================================================
@@ -3590,17 +4185,19 @@ document.addEventListener("DOMContentLoaded", () => {
     m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); });
   });
 
-  // Vessel switcher events (event delegation)
+  // Vessel switcher events (event delegation) — supporta data-view + data-vid
   document.getElementById("pill-row").addEventListener("click", e => {
     const pill = e.target.closest(".pill");
-    if (pill) {
-      const vid = pill.dataset.vid;
-      if (!vid) goOverview(); else goVessel(vid);
-    }
+    if (!pill) return;
+    if (pill.dataset.view === "overview") goOverview();
+    else if (pill.dataset.view === "todos") goTodos();
+    else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
   document.getElementById("vessel-select").addEventListener("change", e => {
-    const vid = e.target.value;
-    if (!vid) goOverview(); else goVessel(vid);
+    const v = e.target.value;
+    if (v === "__overview" || v === "") goOverview();
+    else if (v === "__todos") goTodos();
+    else goVessel(v);
   });
 
   // Settings toggles
@@ -3638,6 +4235,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("export-backup").addEventListener("click", exportBackup);
   document.getElementById("import-backup").addEventListener("change", importBackup);
+  document.getElementById("export-todos-json").addEventListener("click", () => exportTodosToJSON(false));
+  document.getElementById("export-todos-xlsx").addEventListener("click", () => exportTodosToExcel(false));
+  document.getElementById("import-todos").addEventListener("change", importTodosFromJSON);
   document.getElementById("clear-local").addEventListener("click", () => {
     if (confirm("Cancellare tutti gli snooze e le note locali?")) {
       state.snoozed = {}; state.notes = {};
@@ -3647,13 +4247,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // FAB (+) ora apre la modale to-do, non più la quick capture vecchia
+  // FAB (+) apre la modale to-do
   document.getElementById("fab-quick").addEventListener("click", () => openTodoModal(null));
 
-  // To-do modale: handler save + cambio del campo "quando"
+  // To-do modale: handler save + cambio campi
   document.getElementById("todo-save").addEventListener("click", saveTodoFromModal);
   document.getElementById("todo-when").addEventListener("change", e => {
     document.getElementById("todo-date-row").style.display = e.target.value === "custom" ? "" : "none";
+  });
+  document.getElementById("todo-category").addEventListener("change", updateVesselRowVisibility);
+  document.getElementById("todo-tag-input").addEventListener("keydown", handleTagInput);
+  document.getElementById("todo-tag-input").addEventListener("focus", e => showTagSuggestions(e.target.value));
+  document.getElementById("todo-tag-input").addEventListener("blur", () => {
+    // Delay per permettere il click sul suggerimento
+    setTimeout(() => document.getElementById("todo-tag-suggestions").classList.remove("open"), 200);
   });
 
   // Palette
@@ -3692,6 +4299,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.key === "0") goOverview();
       else goVessel(VESSELS[Number(e.key) - 1].vesselId);
     }
+    else if (e.key === "t" || e.key === "T") goTodos();
   });
 
   // Click outside snooze menu closes it
@@ -3775,15 +4383,17 @@ function openEOD() {
 // ============================================================================
 
 let editingTodoId = null;
+let modalCurrentTags = [];  // tag attualmente selezionati nella modale
 
 function openTodoModal(todoId, prefillVesselId) {
   editingTodoId = todoId || null;
+  modalCurrentTags = [];
   const modal = document.getElementById("modal-todo");
   const title = document.getElementById("modal-todo-title");
 
   // Popola dropdown navi
   const vesselSelect = document.getElementById("todo-vessel");
-  vesselSelect.innerHTML = '<option value="">— Generale —</option>';
+  vesselSelect.innerHTML = '<option value="">— Seleziona —</option>';
   for (const v of VESSELS) {
     const opt = document.createElement("option");
     opt.value = v.vesselId;
@@ -3796,47 +4406,148 @@ function openTodoModal(todoId, prefillVesselId) {
     const t = state.todos.find(x => x.id === todoId);
     if (!t) return;
     title.textContent = "Modifica to-do";
+    document.getElementById("todo-category").value = t.category || (t.vessel ? "Nave" : "Altro");
+    document.getElementById("todo-priority").value = t.priority || "media";
     vesselSelect.value = t.vessel || "";
     document.getElementById("todo-action").value = t.action || "Altro";
-    document.getElementById("todo-target").value = t.target || "";
+    document.getElementById("todo-reference").value = t.reference || t.target || "";
     document.getElementById("todo-when").value = "custom";
     document.getElementById("todo-date").value = t.dueDate || "";
     document.getElementById("todo-date-row").style.display = "";
     document.getElementById("todo-note").value = t.note || "";
+    modalCurrentTags = Array.isArray(t.tags) ? [...t.tags] : [];
   } else {
     // Nuovo
     title.textContent = "Nuova to-do";
-    vesselSelect.value = prefillVesselId || (state.view === "vessel" ? state.selectedVesselId : "") || "";
+    const prefillVessel = prefillVesselId || (state.view === "vessel" ? state.selectedVesselId : "") || "";
+    document.getElementById("todo-category").value = prefillVessel ? "Nave" : "Nave";
+    document.getElementById("todo-priority").value = "media";
+    vesselSelect.value = prefillVessel;
     document.getElementById("todo-action").value = "Telefonare";
-    document.getElementById("todo-target").value = "";
+    document.getElementById("todo-reference").value = "";
     document.getElementById("todo-when").value = "today";
     document.getElementById("todo-date").value = "";
     document.getElementById("todo-date-row").style.display = "none";
     document.getElementById("todo-note").value = "";
   }
 
+  // Aggiorna visibilità del campo Nave in base alla Categoria
+  updateVesselRowVisibility();
+  renderCurrentTags();
+  document.getElementById("todo-tag-input").value = "";
+  document.getElementById("todo-tag-suggestions").classList.remove("open");
+
   modal.classList.add("open");
-  setTimeout(() => document.getElementById("todo-action").focus(), 100);
+  setTimeout(() => document.getElementById("todo-reference").focus(), 100);
+}
+
+// Nasconde/mostra il campo Nave in base alla categoria selezionata
+function updateVesselRowVisibility() {
+  const cat = document.getElementById("todo-category").value;
+  const row = document.getElementById("todo-vessel-row");
+  if (cat === "Nave") {
+    row.style.display = "";
+  } else {
+    row.style.display = "none";
+    // Se sono in categoria non-Nave, svuoto il select
+    document.getElementById("todo-vessel").value = "";
+  }
+}
+
+function renderCurrentTags() {
+  const container = document.getElementById("todo-tags-current");
+  container.innerHTML = modalCurrentTags.map((tag, i) =>
+    `<span class="todo-tag-chip">${escapeHTML(tag)}<button data-tag-remove="${i}" title="Rimuovi">×</button></span>`
+  ).join("");
+  container.querySelectorAll("[data-tag-remove]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      modalCurrentTags.splice(parseInt(btn.dataset.tagRemove), 1);
+      renderCurrentTags();
+    });
+  });
+}
+
+function handleTagInput(e) {
+  const input = e.target;
+  const val = input.value.trim();
+  if (e.key === "Enter" && val) {
+    e.preventDefault();
+    if (!modalCurrentTags.includes(val)) modalCurrentTags.push(val);
+    input.value = "";
+    renderCurrentTags();
+    document.getElementById("todo-tag-suggestions").classList.remove("open");
+    return;
+  }
+  if (e.key === "Backspace" && !val && modalCurrentTags.length > 0) {
+    modalCurrentTags.pop();
+    renderCurrentTags();
+    return;
+  }
+  // Show autocomplete
+  showTagSuggestions(val);
+}
+
+function showTagSuggestions(query) {
+  const box = document.getElementById("todo-tag-suggestions");
+  const all = getAllTags().filter(t => !modalCurrentTags.includes(t));
+  let filtered = all;
+  if (query) {
+    filtered = all.filter(t => t.toLowerCase().includes(query.toLowerCase()));
+  }
+  if (filtered.length === 0) {
+    box.classList.remove("open");
+    return;
+  }
+  box.innerHTML = filtered.slice(0, 8).map(t =>
+    `<div class="tag-suggestion" data-tag-pick="${escapeAttr(t)}">${escapeHTML(t)}</div>`
+  ).join("");
+  box.classList.add("open");
+  box.querySelectorAll("[data-tag-pick]").forEach(el => {
+    el.addEventListener("click", () => {
+      const tag = el.dataset.tagPick;
+      if (!modalCurrentTags.includes(tag)) modalCurrentTags.push(tag);
+      document.getElementById("todo-tag-input").value = "";
+      renderCurrentTags();
+      box.classList.remove("open");
+    });
+  });
 }
 
 function saveTodoFromModal() {
-  const vessel = document.getElementById("todo-vessel").value;
+  const category = document.getElementById("todo-category").value;
+  const priority = document.getElementById("todo-priority").value;
+  const vessel = category === "Nave" ? document.getElementById("todo-vessel").value : "";
   const action = document.getElementById("todo-action").value;
-  const target = document.getElementById("todo-target").value.trim();
+  const reference = document.getElementById("todo-reference").value.trim();
   const when = document.getElementById("todo-when").value;
   const customDate = document.getElementById("todo-date").value;
   const note = document.getElementById("todo-note").value.trim();
   const dueDate = resolveWhen(when, customDate);
 
+  // Validazione minima: per categoria Nave serve una nave
+  if (category === "Nave" && !vessel) {
+    showToast("Seleziona la nave per categoria 'Nave'");
+    return;
+  }
+
+  // Tag: se c'è ancora testo nel campo, lo aggiungo come ultimo tag
+  const pendingTag = document.getElementById("todo-tag-input").value.trim();
+  if (pendingTag && !modalCurrentTags.includes(pendingTag)) {
+    modalCurrentTags.push(pendingTag);
+  }
+
+  const payload = { category, priority, vessel, action, reference, tags: [...modalCurrentTags], dueDate, note };
+
   if (editingTodoId) {
-    updateTodo(editingTodoId, { vessel, action, target, dueDate, note });
+    updateTodo(editingTodoId, payload);
     showToast("To-do aggiornato");
   } else {
-    addTodo({ vessel, action, target, dueDate, note });
+    addTodo(payload);
     showToast("To-do salvato");
   }
   document.getElementById("modal-todo").classList.remove("open");
   editingTodoId = null;
+  modalCurrentTags = [];
   render();
 }
 
@@ -3865,6 +4576,39 @@ function exportBackup() {
   a.click();
   URL.revokeObjectURL(url);
   showToast("Backup scaricato");
+}
+
+// Importa to-do da un backup JSON precedente.
+// Modalità "merge intelligente": se un to-do con stesso id esiste, lo salta
+// (così reimportare 2 volte lo stesso file non duplica). Quelli nuovi vengono aggiunti.
+function importTodosFromJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const incoming = Array.isArray(data.todos) ? data.todos : Array.isArray(data) ? data : [];
+      if (incoming.length === 0) {
+        showToast("Nessun to-do nel file");
+        return;
+      }
+      const existingIds = new Set(state.todos.map(t => t.id));
+      let added = 0;
+      for (const t of incoming) {
+        if (t && t.id && !existingIds.has(t.id)) {
+          state.todos.push(t);
+          added++;
+        }
+      }
+      saveTodos();
+      showToast(`Importati ${added} to-do (${incoming.length - added} già presenti)`);
+      render();
+    } catch (err) {
+      showToast("File non valido: " + err.message);
+    }
+  };
+  reader.readAsText(file);
 }
 
 function importBackup(e) {
