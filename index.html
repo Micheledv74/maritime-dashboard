@@ -966,34 +966,7 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; justify-content: center;
 }
 .fab:active { transform: scale(0.95); }
-.qc-bar {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  left: 24px;
-  max-width: 480px;
-  margin-left: auto;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  padding: 12px;
-  display: none;
-  align-items: center;
-  gap: 8px;
-  box-shadow: var(--shadow-lg);
-  z-index: 30;
-}
-.qc-bar.open { display: flex; }
-.qc-bar input {
-  flex: 1;
-  border: none;
-  padding: 8px 10px;
-  background: transparent;
-  font-family: inherit;
-  font-size: var(--fs-sm);
-  color: var(--text);
-  outline: none;
-}
+/* qc-bar rimosso: sostituito da modale to-do */
 
 /* === TOAST ============================================================= */
 .toast {
@@ -1053,7 +1026,7 @@ a:hover { text-decoration: underline; }
 
 /* === PRINT (PDF EXPORT) ================================================ */
 @media print {
-  .app-header, .vessel-switcher, .fab, .qc-bar, .vessel-toolbar, .modal, .palette { display: none !important; }
+  .app-header, .vessel-switcher, .fab, .vessel-toolbar, .modal, .palette { display: none !important; }
   body { background: white; color: black; font-size: 13px; }
   .main-wrap { padding: 0; max-width: none; }
   .vessel-card, .action-row, .info-card, .position-panel, .heatmap { break-inside: avoid; box-shadow: none; border-color: #ddd; }
@@ -1114,6 +1087,230 @@ a:hover { text-decoration: underline; }
 }
 .onb-dot.active { background: var(--accent); }
 
+
+
+/* === NOTE PIENE (evidenziate) ============================================ */
+.notes-input.has-content {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  border-style: solid;
+  color: var(--c-amber-fg);
+}
+[data-theme="dark"] .notes-input.has-content,
+:root:not([data-theme="light"]) .notes-input.has-content {
+  background: rgba(217, 119, 6, 0.18);
+  border-color: rgba(217, 119, 6, 0.45);
+  color: #fcd34d;
+}
+.notes-input.has-content::before {
+  content: '✎';
+  margin-right: 4px;
+}
+
+/* === TO-DO LIST ========================================================== */
+.todo-section {
+  margin-bottom: 24px;
+}
+.todo-list {
+  display: grid;
+  gap: 8px;
+}
+.todo-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--c-blue-dot);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+@media (max-width: 640px) {
+  .todo-item { grid-template-columns: 1fr; gap: 8px; }
+}
+.todo-item.overdue { border-left-color: var(--c-red-dot); }
+.todo-item.today { border-left-color: var(--c-amber-dot); }
+.todo-item.done { opacity: 0.5; text-decoration: line-through; }
+.todo-meta {
+  font-size: var(--fs-xs);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+  background: var(--c-slate-bg);
+  color: var(--c-slate-fg);
+  white-space: nowrap;
+}
+.todo-meta.overdue { background: var(--c-red-bg); color: var(--c-red-fg); }
+.todo-meta.today { background: var(--c-amber-bg); color: var(--c-amber-fg); }
+.todo-body {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+.todo-body .todo-action {
+  font-weight: 500;
+}
+.todo-body .todo-target {
+  color: var(--text-muted);
+}
+.todo-body .todo-note {
+  display: block;
+  color: var(--text-faint);
+  font-size: var(--fs-xs);
+  margin-top: 2px;
+}
+.todo-actions {
+  display: flex;
+  gap: 6px;
+  justify-self: end;
+}
+@media (max-width: 640px) {
+  .todo-actions { justify-self: stretch; }
+}
+
+/* === MODALE TO-DO (form strutturato) ===================================== */
+.todo-form-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+@media (max-width: 480px) {
+  .todo-form-row { grid-template-columns: 1fr; gap: 4px; }
+}
+.todo-form-row label {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.todo-form-row select,
+.todo-form-row input[type="text"],
+.todo-form-row input[type="date"],
+.todo-form-row textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+.todo-form-row textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+/* === HEADER: badge to-do ================================================= */
+.icon-btn .badge {
+  position: absolute;
+  top: -2px; right: -2px;
+  background: var(--c-red-dot);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px; height: 16px;
+  border-radius: 999px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.icon-btn { position: relative; }
+
+/* === KPI card cliccabili ================================================= */
+.kpi.clickable {
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+.kpi.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.kpi.clickable:active {
+  transform: translateY(0);
+}
+
+/* === Heatmap celle cliccabili ============================================ */
+.heat-cell.has-data {
+  cursor: pointer;
+}
+.heat-cell.has-data:hover {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* === RFQ Age band ======================================================== */
+.age-bands {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.age-band {
+  background: var(--bg-muted);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.age-band:hover { background: var(--border); }
+.age-band.warn { background: var(--c-amber-bg); color: var(--c-amber-fg); }
+.age-band.crit { background: var(--c-red-bg); color: var(--c-red-fg); }
+.age-band-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+.age-band-count {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* === Pulsante done (✓) accanto allo snooze =============================== */
+.btn-done {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  padding: 6px 8px;
+  font-size: 16px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.btn-done:hover {
+  color: var(--c-green-fg);
+  background: var(--c-green-bg);
+  border-radius: var(--radius-sm);
+}
+
+/* === Età dell'azione ===================================================== */
+.action-age {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* === AIS: campo non disponibile ========================================== */
+.ais-unavailable {
+  color: var(--text-faint);
+  font-style: italic;
+  font-size: var(--fs-sm);
+  padding: 8px 0;
+}
+.ais-stale {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--c-amber-fg);
+  margin-left: 6px;
+}
+
+
 </style>
 </head>
 <body>
@@ -1136,6 +1333,9 @@ a:hover { text-decoration: underline; }
         <span>☾</span><span class="label-md">Fine giornata</span>
       </button>
       <button class="icon-btn" id="btn-palette" title="Cerca (⌘K)" aria-label="Cerca">⌕</button>
+      <button class="icon-btn" id="btn-todos" title="Le mie to-do" aria-label="To-do">
+        ☐<span id="todos-badge" class="badge" style="display:none;">0</span>
+      </button>
       <button class="icon-btn" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">⚙</button>
     </div>
   </div>
@@ -1155,11 +1355,7 @@ a:hover { text-decoration: underline; }
 </main>
 
 <!-- Floating Quick Capture -->
-<button class="fab" id="fab-quick" title="Aggiungi nota volante" aria-label="Quick capture">+</button>
-<div class="qc-bar" id="qc-bar">
-  <input type="text" id="qc-input" placeholder="Cosa devo ricordare? (premi Invio)" autocomplete="off">
-  <button class="btn btn-sm" id="qc-close">✕</button>
-</div>
+<button class="fab" id="fab-quick" title="Aggiungi to-do" aria-label="Nuova to-do">+</button>
 
 <!-- Modal: Settings -->
 <div class="modal" id="modal-settings">
@@ -1205,13 +1401,7 @@ a:hover { text-decoration: underline; }
       </div>
     </div>
 
-    <div class="modal-section">
-      <h3>Integrazioni</h3>
-      <div class="setting-row">
-        <label>Webhook n8n Quick Capture</label>
-        <input type="text" data-setting="qcWebhook" placeholder="https://n8n.tuodominio.com/webhook/...">
-      </div>
-    </div>
+<!-- Integrazioni Quick Capture rimosse: le to-do sono ora native -->
 
     <div class="modal-section">
       <h3>Strumenti</h3>
@@ -1306,6 +1496,71 @@ a:hover { text-decoration: underline; }
 <!-- Snooze menu (positioned via JS) -->
 <div class="snooze-menu" id="snooze-menu"></div>
 
+
+<!-- Modal: To-do (nuovo / modifica) -->
+<div class="modal" id="modal-todo">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-todo-title">Nuova to-do</h2>
+      <button class="close" data-close-modal>✕</button>
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-vessel">Nave</label>
+      <select id="todo-vessel">
+        <option value="">— Generale —</option>
+      </select>
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-action">Azione</label>
+      <select id="todo-action">
+        <option value="Telefonare">📞 Telefonare</option>
+        <option value="Inviare email">✉️ Inviare email</option>
+        <option value="Chiedere">❓ Chiedere</option>
+        <option value="Sollecitare">⏰ Sollecitare</option>
+        <option value="Verificare">🔍 Verificare</option>
+        <option value="Aspettare risposta">⌛ Aspettare risposta</option>
+        <option value="Altro">📝 Altro</option>
+      </select>
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-target">A / Per</label>
+      <input type="text" id="todo-target" placeholder="es. Wilhelmsen, Master, C/Eng., ...">
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-when">Quando</label>
+      <select id="todo-when">
+        <option value="today">Oggi</option>
+        <option value="tomorrow">Domani</option>
+        <option value="thisweek">Questa settimana</option>
+        <option value="custom">Data specifica…</option>
+      </select>
+    </div>
+    <div class="todo-form-row" id="todo-date-row" style="display:none;">
+      <label for="todo-date">Data</label>
+      <input type="date" id="todo-date">
+    </div>
+    <div class="todo-form-row">
+      <label for="todo-note">Nota</label>
+      <textarea id="todo-note" placeholder="Dettagli, contesto, riferimenti…"></textarea>
+    </div>
+    <div class="flex gap-2" style="justify-content: flex-end; margin-top: 16px;">
+      <button class="btn" data-close-modal>Annulla</button>
+      <button class="btn btn-primary" id="todo-save">Salva to-do</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Dettaglio cella heatmap -->
+<div class="modal" id="modal-heatmap-detail">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="heatmap-detail-title">Consegne</h2>
+      <button class="close" data-close-modal>✕</button>
+    </div>
+    <div id="heatmap-detail-body"></div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -1393,18 +1648,21 @@ const VESSELS = [
 
 const DATA_URLS = {
   procurement: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json",
-  tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-tracking.json"
+  tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json"
 };
 
 const DEFAULT_SETTINGS = {
   density: false,
-  dark: null,            // null = follow system; true/false = forced
+  dark: null,
   readonly: false,
   showTests: false,
   audio: false,
   overdueDays: 7,
   staleHours: 24,
-  qcWebhook: ""
+  qcWebhook: "",
+  refusedTTL: 14,        // RFQ Refused mostrate fino a 14 giorni
+  readyForPOTTL: 60,     // Ready for PO mostrate fino a 60 giorni
+  batchTTL: 30           // Batch suggestion mostrate fino a 30 giorni
 };
 
 const ALERT_CONFIG = {
@@ -1433,6 +1691,8 @@ const state = {
   settings: loadSettings(),
   snoozed: loadSnoozed(),       // { actionKey: ISOdate }
   notes: loadNotes(),           // { itemId: "text" }
+  todos: loadTodos(),           // [{ id, vessel, action, target, when, note, done, createdAt }]
+  archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
   morningSnapshot: loadSnapshot()
 };
 
@@ -1448,7 +1708,9 @@ const LS_KEYS = {
   lastVisit: "mpd.lastVisit",
   lastSnapshotDate: "mpd.lastSnapshotDate",
   onbDone: "mpd.onboardingDone",
-  cache: "mpd.cache"
+  cache: "mpd.cache",
+  todos: "mpd.todos",
+  archivedActions: "mpd.archivedActions"
 };
 
 function loadSettings() {
@@ -1468,6 +1730,14 @@ function loadNotes() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS.notes) || "{}"); } catch { return {}; }
 }
 function saveNotes() { localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes)); }
+function loadTodos() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]"); } catch { return []; }
+}
+function saveTodos() { localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos)); }
+function loadArchivedActions() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS.archivedActions) || "{}"); } catch { return {}; }
+}
+function saveArchivedActions() { localStorage.setItem(LS_KEYS.archivedActions, JSON.stringify(state.archivedActions)); }
 function loadSnapshot() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS.snapshot) || "null"); } catch { return null; }
 }
@@ -1545,14 +1815,14 @@ function writeCache(payload) {
   try { localStorage.setItem(LS_KEYS.cache, JSON.stringify(payload)); } catch {}
 }
 
-// Merge: aggancia il tracking per vesselId e calcola derivati
+// Merge: aggancia il tracking AIS per vesselId e calcola derivati.
+// Schema data-ais.json: { lastSync, vessels: { medliguria: {...}, medtoscana: {...}, ... } }
+// dove ogni vessel ha: lat, lng, sog, cog, heading, navStatus, destination, eta, aisLastSeen, error
 function mergeAndPrepare() {
   if (!state.data || !state.data.vessels) return;
 
-  const trackingMap = {};
-  if (state.tracking && state.tracking.vessels) {
-    for (const t of state.tracking.vessels) trackingMap[t.vesselId] = t;
-  }
+  // state.tracking.vessels è un OGGETTO con chiavi vesselId, non un array
+  const trackingMap = (state.tracking && state.tracking.vessels) || {};
 
   // Filtra item di test se non richiesto
   for (const v of state.data.vessels) {
@@ -1566,6 +1836,24 @@ function mergeAndPrepare() {
   }
 }
 
+// Traduzione codici ITU navStatus AIS in stringhe leggibili
+function aisNavStatusText(code) {
+  if (code == null) return "—";
+  const map = {
+    0: "In navigazione",
+    1: "All'ancora",
+    2: "Senza comando",
+    3: "Manovra limitata",
+    4: "Limitata da pescaggio",
+    5: "Ormeggiata",
+    6: "Incagliata",
+    7: "Pesca",
+    8: "In navigazione a vela",
+    15: "—"
+  };
+  return map[code] || `Codice ${code}`;
+}
+
 // ============================================================================
 // === RULES ENGINE ===========================================================
 // ============================================================================
@@ -1575,17 +1863,20 @@ function mergeAndPrepare() {
 
 const priorityRules = [
 
-  // 1. RFQ Refused: il fornitore ha rifiutato, urge riassegnare
+  // 1. RFQ Refused: il fornitore ha rifiutato, urge riassegnare.
+  // TTL: oltre N giorni dalla data di rifiuto, l'azione è probabilmente già stata
+  // gestita altrove e diventa solo "rumore storico" → sparisce dalla lista.
   function ruleRFQRefused(item, vessel) {
-    if (item.rfqStatus === "RFQ Refused") {
-      return {
-        key: "refused:" + item.id,
-        level: "critical",
-        label: `RFQ refused · ${item.rfqDays || "?"}g`,
-        action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
-      };
-    }
-    return null;
+    if (item.rfqStatus !== "RFQ Refused") return null;
+    const days = item.rfqDays || 0;
+    if (days > (state.settings.refusedTTL || 14)) return null;
+    return {
+      key: "refused:" + item.id,
+      level: "critical",
+      label: `RFQ refused · ${days}g`,
+      ageDays: days,
+      action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
+    };
   },
 
   // 2. Consegna fuori finestra ETA: il PO è emesso ma arriverà dopo la partenza
@@ -1619,6 +1910,7 @@ const priorityRules = [
         key: "overdue:" + item.id,
         level: "warning",
         label: `In attesa · ${item.rfqDays}g`,
+        ageDays: item.rfqDays,
         action: { label: "Sollecita", type: "mailto",
                   payload: { to: "", subject: "Sollecito offerta " + (item.description || ""),
                              body: `Buongiorno,\n\nin attesa di vostra cortese offerta per "${item.description}" inviata ${item.rfqDays} giorni fa.\nÈ possibile ricevere un riscontro?\n\nGrazie,\nMichele` } }
@@ -1627,19 +1919,22 @@ const priorityRules = [
     return null;
   },
 
-  // 4. Pronto per PO a livello item
+  // 4. Pronto per PO a livello item.
+  // TTL: oltre N giorni, considera che probabilmente non procederà come PO
+  // (item sostituito, fornitore cambiato, ecc) e smetti di proporlo.
   function ruleReadyForPO(item, vessel) {
-    if (item.rfqStatus === "RFQ Offer Acknowledged" &&
-        (!item.poStatus || item.poStatus === "") &&
-        item.reqStatus && item.reqStatus !== "REQ Cancelled") {
-      return {
-        key: "readyPO:" + item.id,
-        level: "info",
-        label: "Pronto per PO",
-        action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
-      };
-    }
-    return null;
+    if (item.rfqStatus !== "RFQ Offer Acknowledged") return null;
+    if (item.poStatus && item.poStatus !== "") return null;
+    if (!item.reqStatus || item.reqStatus === "REQ Cancelled") return null;
+    const days = item.rfqDays || 0;
+    if (days > (state.settings.readyForPOTTL || 60)) return null;
+    return {
+      key: "readyPO:" + item.id,
+      level: "info",
+      label: "Pronto per PO",
+      ageDays: days,
+      action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
+    };
   }
 ];
 
@@ -1703,11 +1998,33 @@ function generateActionsForVessel(vessel) {
     });
   }
 
-  // Ordina per gravità + dedupe snoozed
+  // Ordina per gravità + dedupe snoozed + dedupe archiviate (la cui situazione
+  // Infoship non è cambiata dall'ultima archiviazione)
   const order = { critical: 0, warning: 1, info: 2, flag: 3 };
   return out
     .filter(a => !isSnoozedNow(a.key))
+    .filter(a => !isArchivedAndUnchanged(a))
     .sort((a, b) => (order[a.level] ?? 9) - (order[b.level] ?? 9));
+}
+
+// Verifica se un'azione è stata archiviata e se lo stato Infoship non è cambiato
+// dalla data di archiviazione. Se è cambiato, la rimostriamo.
+function isArchivedAndUnchanged(action) {
+  const archived = state.archivedActions[action.key];
+  if (!archived) return false;
+  // Se lo stato attuale è uguale a quello al momento dell'archiviazione → tenuta nascosta
+  return archived.lastSeenStatus === (action.label || "");
+}
+
+// Marca un'azione come "fatto" (la nasconde finché Infoship non cambia stato)
+function archiveAction(actionKey, actionLabel) {
+  state.archivedActions[actionKey] = {
+    archivedAt: new Date().toISOString(),
+    lastSeenStatus: actionLabel
+  };
+  saveArchivedActions();
+  showToast("Azione archiviata");
+  render();
 }
 
 function generateAllActions() {
@@ -1905,6 +2222,73 @@ function snoozeUntil(key, when) {
 }
 
 // ============================================================================
+// === TO-DO MANAGEMENT =======================================================
+// ============================================================================
+
+function addTodo(todo) {
+  const newTodo = {
+    id: "td_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+    vessel: todo.vessel || "",         // vesselId o "" per generale
+    action: todo.action || "Altro",    // tipo azione
+    target: todo.target || "",         // destinatario / riferimento
+    dueDate: todo.dueDate || "",       // YYYY-MM-DD
+    note: todo.note || "",
+    done: false,
+    createdAt: new Date().toISOString()
+  };
+  state.todos.unshift(newTodo);
+  saveTodos();
+  return newTodo;
+}
+
+function updateTodo(id, patch) {
+  const i = state.todos.findIndex(t => t.id === id);
+  if (i < 0) return;
+  state.todos[i] = { ...state.todos[i], ...patch };
+  saveTodos();
+}
+
+function deleteTodo(id) {
+  state.todos = state.todos.filter(t => t.id !== id);
+  saveTodos();
+}
+
+function todosForVessel(vesselId, includeDone) {
+  return state.todos.filter(t =>
+    t.vessel === vesselId && (includeDone || !t.done)
+  );
+}
+
+function todosGeneral(includeDone) {
+  return state.todos.filter(t =>
+    !t.vessel && (includeDone || !t.done)
+  );
+}
+
+function todosOpen() {
+  return state.todos.filter(t => !t.done);
+}
+
+// Classifica una data: "overdue" (passata), "today", "future"
+function classifyDueDate(dueDate) {
+  if (!dueDate) return "future";
+  const today = todayISO();
+  if (dueDate < today) return "overdue";
+  if (dueDate === today) return "today";
+  return "future";
+}
+
+// Risolve "quando" simbolico (today/tomorrow/thisweek) in YYYY-MM-DD
+function resolveWhen(when, customDate) {
+  const d = new Date();
+  if (when === "today") return d.toISOString().slice(0, 10);
+  if (when === "tomorrow") { d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); }
+  if (when === "thisweek") { d.setDate(d.getDate() + 5); return d.toISOString().slice(0, 10); }
+  if (when === "custom") return customDate || todayISO();
+  return todayISO();
+}
+
+// ============================================================================
 // === AUDIO ALERT ============================================================
 // ============================================================================
 
@@ -1957,6 +2341,18 @@ function applySettings() {
 }
 
 function renderSyncInfo() {
+  // Aggiorno anche il badge to-do
+  const todoCount = todosOpen().length;
+  const badge = document.getElementById("todos-badge");
+  if (badge) {
+    if (todoCount > 0) {
+      badge.textContent = todoCount > 99 ? "99+" : todoCount;
+      badge.style.display = "";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
   const dot = document.getElementById("sync-dot");
   const txt = document.getElementById("sync-text");
   if (!state.data || !state.data.lastSync) {
@@ -2084,11 +2480,11 @@ function renderOverview() {
         <span class="vessel-meta">${(v.items || []).length} item</span>
       </div>
       <div class="kpi-row">
-        <div class="kpi"><div class="kpi-label">RFQ</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
-        <div class="kpi ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}"><div class="kpi-label">Overdue</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
-        <div class="kpi ${(v.readyForPO || 0) > 0 ? "blue" : ""}"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
-        <div class="kpi"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
-        <div class="kpi"><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
+        <div class="kpi clickable" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">RFQ</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
+        <div class="kpi clickable ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}" data-kpi-filter="rfqOverdue7" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Overdue</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
+        <div class="kpi clickable ${(v.readyForPO || 0) > 0 ? "blue" : ""}" data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
+        <div class="kpi clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
+        <div class="kpi clickable" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
       </div>
       <div class="vessel-foot">
         <span>Prossimo porto</span>
@@ -2097,8 +2493,23 @@ function renderOverview() {
     </div>`;
   }
 
+  // Sezione to-do
+  const openTodos = todosOpen();
+  const todoSection = openTodos.length > 0 ? `
+    <section class="todo-section">
+      <div class="section-title">
+        <h2>Le mie to-do</h2>
+        <span class="section-meta">${openTodos.length} aperte</span>
+      </div>
+      <div class="todo-list">
+        ${openTodos.slice(0, 8).map(todoRowHTML).join("")}
+      </div>
+    </section>
+  ` : "";
+
   root.innerHTML = `
     ${whatsNewHTML}
+    ${todoSection}
     <section>
       <div class="section-title">
         <h2>Flotta</h2>
@@ -2124,12 +2535,56 @@ function renderOverview() {
     </section>
   `;
 
-  // Click handlers per vessel cards
+  // Click handlers per vessel cards (ignora click sui KPI cliccabili)
   root.querySelectorAll(".vessel-card[data-vid]").forEach(card => {
-    card.addEventListener("click", () => goVessel(card.dataset.vid));
+    card.addEventListener("click", (e) => {
+      // se il click è su un KPI cliccabile, non navigare
+      if (e.target.closest(".kpi.clickable")) return;
+      goVessel(card.dataset.vid);
+    });
+  });
+
+  // KPI cliccabili nelle vessel card → vai alla nave con filtro
+  root.querySelectorAll(".kpi[data-kpi-filter]").forEach(kpi => {
+    kpi.addEventListener("click", (e) => {
+      e.stopPropagation();
+      goVesselWithFilter(kpi.dataset.kpiVid, kpi.dataset.kpiFilter);
+    });
+  });
+
+  // Heatmap cells cliccabili
+  root.querySelectorAll(".heat-cell.has-data").forEach(cell => {
+    cell.addEventListener("click", () => {
+      openHeatmapDetail(cell.dataset.vid, cell.dataset.date);
+    });
   });
 
   attachActionHandlers(root);
+  attachTodoHandlers(root);
+}
+
+// Naviga a una nave e applica un filtro KPI specifico
+function goVesselWithFilter(vesselId, filter) {
+  state.selectedVesselId = vesselId;
+  state.view = "vessel";
+  state.searchQuery = "";
+  state.supplierFilter = "";
+
+  // Mappa filtro KPI → pipelineFilter o filtri specifici
+  state._kpiFilter = filter;
+  if (filter === "rfqOpen") state.pipelineFilter = "RFQ";
+  else if (filter === "readyForPO") state.pipelineFilter = "RFQ";
+  else if (filter === "orders") state.pipelineFilter = "PO";
+  else if (filter === "dnPending") state.pipelineFilter = "DN";
+  else if (filter === "rfqOverdue7") state.pipelineFilter = "RFQ";
+  else state.pipelineFilter = null;
+
+  render();
+  // Scrolla alla tabella items
+  setTimeout(() => {
+    const tbody = document.getElementById("items-tbody");
+    if (tbody) tbody.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
 }
 
 function renderHeatmap() {
@@ -2165,7 +2620,9 @@ function renderHeatmap() {
       }
       const level = count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : 3;
       const isToday = d.toISOString().slice(0,10) === todayStr ? 1 : 0;
-      html += `<div class="heat-cell" data-level="${level}" data-today="${isToday}" title="${count} consegne">${count || ""}</div>`;
+      const dISO = d.toISOString().slice(0,10);
+      const hasData = count > 0 ? "has-data" : "";
+      html += `<div class="heat-cell ${hasData}" data-level="${level}" data-today="${isToday}" data-vid="${cfg.vesselId}" data-date="${dISO}" title="${count} consegne — click per dettaglio">${count || ""}</div>`;
     });
   }
   html += `</div>`;
@@ -2196,46 +2653,85 @@ function renderVesselDetail() {
     alertLine = `<div class="alert-line">⚠ ${parts.join(" · ")}</div>`;
   }
 
-  // Position panel
-  const posHTML = trk ? `
-    <div class="position-grid">
-      <div class="pos-cell">
-        <div class="pos-label">Posizione</div>
-        <div class="pos-main">${trk.area || formatLatLon(trk.lat, trk.lng)}</div>
-        <div class="pos-sub">${formatLatLon(trk.lat, trk.lng)} · ${trk.speed ?? "—"} kn · ${trk.course ?? "—"}°</div>
-      </div>
-      <div class="pos-cell">
-        <div class="pos-label">Prossimo porto</div>
-        <div class="pos-main">${trk.nextPort || "—"}</div>
-        <div class="pos-sub">ETA ${formatDate(trk.eta)} · ETB ${formatDate(trk.etb)}</div>
-      </div>
-      <div class="pos-cell">
-        <div class="pos-label">Permanenza</div>
-        <div class="pos-main">${etdInfo(trk.etb, trk.etd)}</div>
-        <div class="pos-sub">ETD ${formatDate(trk.etd)}</div>
-      </div>
-      <div class="pos-cell">
-        <div class="pos-label">Agent</div>
-        <div class="pos-main">${trk.agent || "—"}</div>
-        <div class="pos-sub">${trk.status || "—"}</div>
-      </div>
-    </div>
-    <div class="map-toggle">
-      <button id="toggle-map">▾ Mostra mappa</button>
-      <div id="map"></div>
-    </div>` : `
-    <div class="empty-state" style="padding: 12px; text-align: left; color: var(--text-faint); font-size: var(--fs-sm);">
-      Dati tracking AIS non ancora disponibili. Verranno popolati dal workflow n8n in v0.2.
+  // Pannello posizione AIS (schema data-ais.json: lat/lng/sog/cog/heading/navStatus/destination/eta/aisLastSeen)
+  let posHTML;
+  if (!trk) {
+    posHTML = `<div class="ais-unavailable">Dati tracking AIS non ancora disponibili per questa nave.</div>`;
+  } else if (trk.lat == null || trk.lng == null) {
+    // Nave configurata ma senza dati AIS (es. fuori copertura, non ancora operativa)
+    const errMsg = trk.error ? ` (${trk.error})` : "";
+    posHTML = `<div class="ais-unavailable">
+      Posizione AIS non disponibile${errMsg}.
+      ${trk.aisLastSeen ? `Ultimo segnale: ${formatRelative(new Date(trk.aisLastSeen))}` : "Nessun segnale ricevuto."}
     </div>`;
+  } else {
+    // Verifica freschezza del dato AIS
+    const lastSeenDate = trk.aisLastSeen ? new Date(trk.aisLastSeen) : null;
+    const hoursOld = lastSeenDate ? Math.round((Date.now() - lastSeenDate.getTime()) / 36e5) : null;
+    const staleWarning = hoursOld != null && hoursOld > 24 ?
+      `<span class="ais-stale">⚠ segnale vecchio di ${hoursOld}h</span>` : "";
 
-  // KPI strip
+    posHTML = `
+      <div class="position-grid">
+        <div class="pos-cell">
+          <div class="pos-label">Posizione</div>
+          <div class="pos-main">${formatLatLon(trk.lat, trk.lng)}</div>
+          <div class="pos-sub">${trk.sog != null ? trk.sog.toFixed(1) + " kn" : "—"} · COG ${trk.cog != null ? trk.cog.toFixed(0) + "°" : "—"}</div>
+        </div>
+        <div class="pos-cell">
+          <div class="pos-label">Stato</div>
+          <div class="pos-main">${aisNavStatusText(trk.navStatus)}</div>
+          <div class="pos-sub">Heading ${trk.heading != null ? trk.heading + "°" : "—"}</div>
+        </div>
+        <div class="pos-cell">
+          <div class="pos-label">Destinazione</div>
+          <div class="pos-main">${escapeHTML(trk.destination || "—")}</div>
+          <div class="pos-sub">ETA ${formatDate(trk.eta)}</div>
+        </div>
+        <div class="pos-cell">
+          <div class="pos-label">Ultimo segnale</div>
+          <div class="pos-main">${lastSeenDate ? formatRelative(lastSeenDate) : "—"}</div>
+          <div class="pos-sub">${staleWarning || (lastSeenDate ? lastSeenDate.toLocaleString("it-IT", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) : "—")}</div>
+        </div>
+      </div>
+      <div class="map-toggle">
+        <button id="toggle-map">▾ Mostra mappa</button>
+        <div id="map"></div>
+      </div>`;
+  }
+
+  // KPI strip (cliccabile: applica filtro pipeline + scroll alla tabella)
   const kpiHTML = `<div class="kpi-row" style="margin-bottom: 18px;">
-    <div class="kpi"><div class="kpi-label">RFQ Open</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
-    <div class="kpi ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}"><div class="kpi-label">Overdue 7g</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
-    <div class="kpi ${(v.readyForPO || 0) > 0 ? "blue" : ""}"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
-    <div class="kpi"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
-    <div class="kpi"><div class="kpi-label">DN pending</div><div class="kpi-value">${v.dnPending || 0}</div></div>
+    <div class="kpi clickable" data-vd-kpi="rfqOpen"><div class="kpi-label">RFQ Open</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
+    <div class="kpi clickable ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}" data-vd-kpi="rfqOverdue7"><div class="kpi-label">Overdue 7g</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
+    <div class="kpi clickable ${(v.readyForPO || 0) > 0 ? "blue" : ""}" data-vd-kpi="readyForPO"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
+    <div class="kpi clickable" data-vd-kpi="orders"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
+    <div class="kpi clickable" data-vd-kpi="dnPending"><div class="kpi-label">DN pending</div><div class="kpi-value">${v.dnPending || 0}</div></div>
   </div>`;
+
+  // RFQ age bands: vista a colpo d'occhio degli RFQ per fascia di età
+  const rfqItems = (v.items || []).filter(it => it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" && (!it.poStatus || it.poStatus === ""));
+  const band17 = rfqItems.filter(it => it.rfqDays != null && it.rfqDays >= 1 && it.rfqDays <= 7).length;
+  const band815 = rfqItems.filter(it => it.rfqDays != null && it.rfqDays >= 8 && it.rfqDays <= 15).length;
+  const band15plus = rfqItems.filter(it => it.rfqDays != null && it.rfqDays > 15).length;
+  const ageBandsHTML = (band17 + band815 + band15plus > 0) ? `
+    <section style="margin-top: 12px;">
+      <div class="section-title"><h2 style="font-size: var(--fs-base);">RFQ per fascia di età</h2></div>
+      <div class="age-bands">
+        <div class="age-band" data-age-band="1-7">
+          <div class="age-band-label">1-7 giorni</div>
+          <div class="age-band-count">${band17}</div>
+        </div>
+        <div class="age-band warn" data-age-band="8-15">
+          <div class="age-band-label">8-15 giorni</div>
+          <div class="age-band-count">${band815}</div>
+        </div>
+        <div class="age-band crit" data-age-band="15+">
+          <div class="age-band-label">oltre 15 giorni</div>
+          <div class="age-band-count">${band15plus}</div>
+        </div>
+      </div>
+    </section>` : "";
 
   // Pipeline counts per state
   const pipeline = computePipeline(v);
@@ -2255,6 +2751,10 @@ function renderVesselDetail() {
     <section class="position-panel">${posHTML}</section>
 
     ${kpiHTML}
+
+    ${ageBandsHTML}
+
+    <section class="todo-section" id="vessel-todo-section"></section>
 
     <section>
       <div class="section-title"><h2>Azioni oggi su questa nave</h2></div>
@@ -2298,7 +2798,7 @@ function renderVesselDetail() {
           <option value="">Tutti i fornitori</option>
           ${uniqueSuppliers(v.items).map(s => `<option value="${escapeHTML(s)}" ${s === state.supplierFilter ? "selected" : ""}>${escapeHTML(s)}</option>`).join("")}
         </select>
-        ${state.pipelineFilter ? `<button class="btn btn-sm" onclick="clearPipelineFilter()">Pulisci filtro stadio</button>` : ""}
+        ${state.pipelineFilter || state._kpiFilter ? `<button class="btn btn-sm" onclick="clearPipelineFilter()">Pulisci filtri</button>` : ""}
       </div>
       <div class="items-table-wrap as-cards">
         <table class="items-table as-cards" id="items-table">
@@ -2360,6 +2860,58 @@ function renderVesselDetail() {
 
   renderItemsTable(v);
   attachActionHandlers(document.getElementById("view-root"));
+
+  // KPI cliccabili in vessel-detail
+  document.querySelectorAll("[data-vd-kpi]").forEach(kpi => {
+    kpi.addEventListener("click", () => {
+      const f = kpi.dataset.vdKpi;
+      if (f === "rfqOpen" || f === "rfqOverdue7" || f === "readyForPO") state.pipelineFilter = "RFQ";
+      else if (f === "orders") state.pipelineFilter = "PO";
+      else if (f === "dnPending") state.pipelineFilter = "DN";
+      state._kpiFilter = f;
+      render();
+      setTimeout(() => {
+        const tbody = document.getElementById("items-tbody");
+        if (tbody) tbody.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    });
+  });
+
+  // Age band cliccabili
+  document.querySelectorAll("[data-age-band]").forEach(band => {
+    band.addEventListener("click", () => {
+      state.pipelineFilter = "RFQ";
+      state._kpiFilter = "ageband:" + band.dataset.ageBand;
+      render();
+      setTimeout(() => {
+        const tbody = document.getElementById("items-tbody");
+        if (tbody) tbody.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    });
+  });
+
+  // Heatmap detail click su una eventuale heatmap presente
+  document.querySelectorAll(".heat-cell.has-data").forEach(cell => {
+    cell.addEventListener("click", () => openHeatmapDetail(cell.dataset.vid, cell.dataset.date));
+  });
+
+  // To-do della nave
+  const vesselTodos = todosForVessel(cfg.vesselId, false);
+  const todoSect = document.getElementById("vessel-todo-section");
+  if (vesselTodos.length > 0) {
+    todoSect.innerHTML = `
+      <div class="section-title">
+        <h2>To-do su ${escapeHTML(cfg.displayName)}</h2>
+        <span class="section-meta">${vesselTodos.length} aperte</span>
+      </div>
+      <div class="todo-list">
+        ${vesselTodos.map(todoRowHTML).join("")}
+      </div>
+    `;
+    attachTodoHandlers(todoSect);
+  } else {
+    todoSect.style.display = "none";
+  }
 }
 
 function computePipeline(v) {
@@ -2440,6 +2992,20 @@ function renderItemsTable(v) {
       return state._sortDir * String(av).localeCompare(String(bv));
     });
   }
+  // Filtro extra per KPI/age band
+  if (state._kpiFilter) {
+    if (state._kpiFilter === "rfqOverdue7") {
+      items = items.filter(it => it.rfqStatus && it.rfqDays > 7);
+    } else if (state._kpiFilter === "readyForPO") {
+      items = items.filter(it => it.rfqStatus === "RFQ Offer Acknowledged" && (!it.poStatus || it.poStatus === ""));
+    } else if (state._kpiFilter === "ageband:1-7") {
+      items = items.filter(it => it.rfqStatus && it.rfqDays >= 1 && it.rfqDays <= 7 && (!it.poStatus || it.poStatus === ""));
+    } else if (state._kpiFilter === "ageband:8-15") {
+      items = items.filter(it => it.rfqStatus && it.rfqDays >= 8 && it.rfqDays <= 15 && (!it.poStatus || it.poStatus === ""));
+    } else if (state._kpiFilter === "ageband:15+") {
+      items = items.filter(it => it.rfqStatus && it.rfqDays > 15 && (!it.poStatus || it.poStatus === ""));
+    }
+  }
   if (items.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="padding: 24px;">Nessun item corrisponde ai filtri.</td></tr>`;
     return;
@@ -2458,12 +3024,12 @@ function renderItemsTable(v) {
       <td data-label="Consegna" class="num">${formatDate(it.deliveryDate)}</td>
       <td data-label="ETA" class="days-cell ${daysToETA.cls}">${daysToETA.label}</td>
       <td data-label="Nota">
-        <textarea class="notes-input" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
+        <textarea class="notes-input ${note ? "has-content" : ""}" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
       </td>
     </tr>`;
   }).join("");
 
-  // Note autosave
+  // Note autosave + toggle stile has-content
   tbody.querySelectorAll(".notes-input").forEach(ta => {
     ta.addEventListener("blur", e => {
       const id = e.target.dataset.itemId;
@@ -2471,6 +3037,9 @@ function renderItemsTable(v) {
       if (val) state.notes[id] = val;
       else delete state.notes[id];
       saveNotes();
+      // Toggle classe
+      if (val) e.target.classList.add("has-content");
+      else e.target.classList.remove("has-content");
     });
   });
 }
@@ -2516,7 +3085,7 @@ function togglePipelineFilter(stage) {
   state.pipelineFilter = state.pipelineFilter === stage ? null : stage;
   render();
 }
-function clearPipelineFilter() { state.pipelineFilter = null; render(); }
+function clearPipelineFilter() { state.pipelineFilter = null; state._kpiFilter = null; render(); }
 
 // ----- SUPPLIER PULSE VIEW -----------------------------------------------
 function renderSupplierPulse() {
@@ -2617,6 +3186,7 @@ function actionRowHTML(a) {
   const desc = a.description || a.body || "";
   const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
   const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag">${escapeHTML(a.vesselName)}</span>` : "";
+  const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   let actionBtn = "";
   if (a.action) {
     if (a.action.type === "link") {
@@ -2630,10 +3200,11 @@ function actionRowHTML(a) {
   return `<div class="action-row" data-action-key="${escapeAttr(a.key)}">
     <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
     <div class="action-body">
-      ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag}
+      ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag}
     </div>
     <div class="action-btns">
       ${actionBtn}
+      <button class="btn-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" title="Segna come fatto">✓</button>
       <button class="btn-snooze" data-snooze-key="${escapeAttr(a.key)}" title="Rimanda">⏰</button>
     </div>
   </div>`;
@@ -2644,6 +3215,61 @@ function attachActionHandlers(root) {
     btn.addEventListener("click", e => {
       e.stopPropagation();
       openSnoozeMenu(btn, btn.dataset.snoozeKey);
+    });
+  });
+  root.querySelectorAll("[data-done-key]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      archiveAction(btn.dataset.doneKey, btn.dataset.doneLabel);
+    });
+  });
+}
+
+// Renderizza un to-do come riga compatta
+function todoRowHTML(t) {
+  const cls = classifyDueDate(t.dueDate);
+  const dateLabel = t.dueDate ?
+    (cls === "today" ? "Oggi" :
+     cls === "overdue" ? "Scaduto " + formatDate(t.dueDate) :
+     formatDate(t.dueDate))
+    : "—";
+  const vesselName = t.vessel ?
+    (VESSELS.find(v => v.vesselId === t.vessel)?.displayName || t.vessel)
+    : "Generale";
+  return `<div class="todo-item ${t.done ? "done" : cls}" data-todo-id="${escapeAttr(t.id)}">
+    <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
+    <div class="todo-body">
+      <span class="todo-action">${escapeHTML(t.action)}</span>
+      ${t.target ? `· <span class="todo-target">${escapeHTML(t.target)}</span>` : ""}
+      <span class="vessel-tag">${escapeHTML(vesselName)}</span>
+      ${t.note ? `<span class="todo-note">${escapeHTML(t.note)}</span>` : ""}
+    </div>
+    <div class="todo-actions">
+      <button class="btn btn-sm" data-todo-edit="${escapeAttr(t.id)}" title="Modifica">✎</button>
+      <button class="btn btn-sm" data-todo-done="${escapeAttr(t.id)}" title="Fatto">✓</button>
+      <button class="btn-snooze" data-todo-delete="${escapeAttr(t.id)}" title="Elimina">🗑</button>
+    </div>
+  </div>`;
+}
+
+function attachTodoHandlers(root) {
+  root.querySelectorAll("[data-todo-edit]").forEach(btn => {
+    btn.addEventListener("click", () => openTodoModal(btn.dataset.todoEdit));
+  });
+  root.querySelectorAll("[data-todo-done]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      updateTodo(btn.dataset.todoDone, { done: true, doneAt: new Date().toISOString() });
+      showToast("To-do completato");
+      render();
+    });
+  });
+  root.querySelectorAll("[data-todo-delete]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (confirm("Eliminare questo to-do?")) {
+        deleteTodo(btn.dataset.todoDelete);
+        showToast("To-do eliminato");
+        render();
+      }
     });
   });
 }
@@ -2709,7 +3335,8 @@ async function toggleMap(trk, vesselName) {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap", maxZoom: 12
   }).addTo(mapInstance);
-  L.marker([trk.lat, trk.lng]).addTo(mapInstance).bindPopup(`<strong>${vesselName}</strong><br>${trk.speed || "—"} kn · ${trk.course || "—"}°`).openPopup();
+  const popupText = `<strong>${vesselName}</strong><br>${trk.sog != null ? trk.sog.toFixed(1) : "—"} kn · COG ${trk.cog != null ? trk.cog.toFixed(0) : "—"}°<br>${aisNavStatusText(trk.navStatus)}`;
+  L.marker([trk.lat, trk.lng]).addTo(mapInstance).bindPopup(popupText).openPopup();
 }
 
 async function loadLeaflet() {
@@ -2820,6 +3447,35 @@ function goSupplierPulse() {
   render();
 }
 
+// Apre modale con il dettaglio delle consegne di un giorno specifico per una nave
+function openHeatmapDetail(vesselId, dateISO) {
+  const cfg = VESSELS.find(v => v.vesselId === vesselId);
+  const v = state.data.vessels.find(x => x.vesselId === vesselId);
+  if (!cfg || !v) return;
+
+  const dayItems = (v.items || []).filter(it => it.deliveryDate === dateISO);
+  const title = `Consegne ${formatDate(dateISO)} — ${cfg.displayName}`;
+  document.getElementById("heatmap-detail-title").textContent = title;
+
+  let body = "";
+  if (dayItems.length === 0) {
+    body = `<div class="empty-state" style="padding: 24px;">Nessuna consegna prevista.</div>`;
+  } else {
+    body = `<div class="items-table-wrap as-cards"><table class="items-table as-cards"><thead><tr>
+      <th>Descrizione</th><th>Fornitore</th><th>Stato</th>
+    </tr></thead><tbody>${dayItems.map(it => {
+      const st = bestStatus(it);
+      return `<tr>
+        <td data-label="Descrizione"><strong>${escapeHTML(truncate(it.description || "", 100))}</strong></td>
+        <td data-label="Fornitore" class="muted">${escapeHTML(it.supplier || "—")}</td>
+        <td data-label="Stato"><span class="tag ${statusClass(st.kind)}">${escapeHTML(st.label)}</span></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`;
+  }
+  document.getElementById("heatmap-detail-body").innerHTML = body;
+  document.getElementById("modal-heatmap-detail").classList.add("open");
+}
+
 // ============================================================================
 // === WHATS NEW DISMISS ======================================================
 // ============================================================================
@@ -2924,6 +3580,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-eod").addEventListener("click", openEOD);
   document.getElementById("btn-palette").addEventListener("click", openPalette);
   document.getElementById("btn-settings").addEventListener("click", () => document.getElementById("modal-settings").classList.add("open"));
+  document.getElementById("btn-todos").addEventListener("click", () => openTodoModal(null));
 
   // Modal close
   document.querySelectorAll("[data-close-modal]").forEach(b => {
@@ -2990,17 +3647,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Quick capture
-  document.getElementById("fab-quick").addEventListener("click", () => {
-    document.getElementById("qc-bar").classList.add("open");
-    document.getElementById("qc-input").focus();
-  });
-  document.getElementById("qc-close").addEventListener("click", () => {
-    document.getElementById("qc-bar").classList.remove("open");
-  });
-  document.getElementById("qc-input").addEventListener("keydown", e => {
-    if (e.key === "Enter") submitQuickCapture();
-    if (e.key === "Escape") document.getElementById("qc-bar").classList.remove("open");
+  // FAB (+) ora apre la modale to-do, non più la quick capture vecchia
+  document.getElementById("fab-quick").addEventListener("click", () => openTodoModal(null));
+
+  // To-do modale: handler save + cambio del campo "quando"
+  document.getElementById("todo-save").addEventListener("click", saveTodoFromModal);
+  document.getElementById("todo-when").addEventListener("change", e => {
+    document.getElementById("todo-date-row").style.display = e.target.value === "custom" ? "" : "none";
   });
 
   // Palette
@@ -3118,30 +3771,79 @@ function openEOD() {
 }
 
 // ============================================================================
+// === MODALE TO-DO ===========================================================
+// ============================================================================
+
+let editingTodoId = null;
+
+function openTodoModal(todoId, prefillVesselId) {
+  editingTodoId = todoId || null;
+  const modal = document.getElementById("modal-todo");
+  const title = document.getElementById("modal-todo-title");
+
+  // Popola dropdown navi
+  const vesselSelect = document.getElementById("todo-vessel");
+  vesselSelect.innerHTML = '<option value="">— Generale —</option>';
+  for (const v of VESSELS) {
+    const opt = document.createElement("option");
+    opt.value = v.vesselId;
+    opt.textContent = v.displayName;
+    vesselSelect.appendChild(opt);
+  }
+
+  if (todoId) {
+    // Edit
+    const t = state.todos.find(x => x.id === todoId);
+    if (!t) return;
+    title.textContent = "Modifica to-do";
+    vesselSelect.value = t.vessel || "";
+    document.getElementById("todo-action").value = t.action || "Altro";
+    document.getElementById("todo-target").value = t.target || "";
+    document.getElementById("todo-when").value = "custom";
+    document.getElementById("todo-date").value = t.dueDate || "";
+    document.getElementById("todo-date-row").style.display = "";
+    document.getElementById("todo-note").value = t.note || "";
+  } else {
+    // Nuovo
+    title.textContent = "Nuova to-do";
+    vesselSelect.value = prefillVesselId || (state.view === "vessel" ? state.selectedVesselId : "") || "";
+    document.getElementById("todo-action").value = "Telefonare";
+    document.getElementById("todo-target").value = "";
+    document.getElementById("todo-when").value = "today";
+    document.getElementById("todo-date").value = "";
+    document.getElementById("todo-date-row").style.display = "none";
+    document.getElementById("todo-note").value = "";
+  }
+
+  modal.classList.add("open");
+  setTimeout(() => document.getElementById("todo-action").focus(), 100);
+}
+
+function saveTodoFromModal() {
+  const vessel = document.getElementById("todo-vessel").value;
+  const action = document.getElementById("todo-action").value;
+  const target = document.getElementById("todo-target").value.trim();
+  const when = document.getElementById("todo-when").value;
+  const customDate = document.getElementById("todo-date").value;
+  const note = document.getElementById("todo-note").value.trim();
+  const dueDate = resolveWhen(when, customDate);
+
+  if (editingTodoId) {
+    updateTodo(editingTodoId, { vessel, action, target, dueDate, note });
+    showToast("To-do aggiornato");
+  } else {
+    addTodo({ vessel, action, target, dueDate, note });
+    showToast("To-do salvato");
+  }
+  document.getElementById("modal-todo").classList.remove("open");
+  editingTodoId = null;
+  render();
+}
+
+// ============================================================================
 // === QUICK CAPTURE ==========================================================
 // ============================================================================
-async function submitQuickCapture() {
-  const input = document.getElementById("qc-input");
-  const text = input.value.trim();
-  if (!text) return;
-  const webhook = state.settings.qcWebhook;
-  if (!webhook) {
-    showToast("Configura il webhook n8n in Impostazioni");
-    return;
-  }
-  try {
-    await fetch(webhook, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, timestamp: new Date().toISOString(), source: "dashboard" })
-    });
-    input.value = "";
-    document.getElementById("qc-bar").classList.remove("open");
-    showToast("Inviato a Notion via n8n");
-  } catch (err) {
-    showToast("Errore invio: " + err.message);
-  }
-}
+// submitQuickCapture rimosso: sostituito dalla modale to-do nativa
 
 // ============================================================================
 // === BACKUP =================================================================
