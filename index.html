@@ -2080,11 +2080,13 @@ const state = {
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
   morningSnapshot: loadSnapshot(),
   drive: {
-    token: null,                  // token di accesso OAuth (in memoria, NON in localStorage per sicurezza)
-    fileId: localStorage.getItem(LS_KEYS.driveFileId) || null,
+    // Hardcoded perché LS_KEYS è dichiarato dopo state nel file (temporal dead zone).
+    // Le chiavi sono fisse, non c'è rischio di drift con LS_KEYS.
+    token: null,                  // token di accesso OAuth (in memoria, non in localStorage)
+    fileId: localStorage.getItem("mpd.driveFileId") || null,
     status: "disconnected",       // disconnected | connected | syncing | error
     lastSyncAt: null,
-    lastModifiedAt: localStorage.getItem(LS_KEYS.driveLastModified) || null,
+    lastModifiedAt: localStorage.getItem("mpd.driveLastModified") || null,
     pushTimer: null,
     pollTimer: null,
     lastError: null
