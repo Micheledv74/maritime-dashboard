@@ -2112,7 +2112,8 @@ const LS_KEYS = {
   lastExcelDate: "mpd.lastExcelDate",
   driveToken: "mpd.driveToken",
   driveFileId: "mpd.driveFileId",
-  driveLastModified: "mpd.driveLastModified"
+  driveLastModified: "mpd.driveLastModified",
+  driveWasConnected: "mpd.driveWasConnected"  // flag persistente: l'utente ha già autorizzato
 };
 
 function loadSettings() {
@@ -4371,14 +4372,15 @@ function renderDriveIndicator() {
 }
 
 // === CONNECT (OAuth) =======================================================
-function driveConnect() {
+function driveConnect(silent) {
   if (typeof google === "undefined" || !google.accounts) {
-    showToast("Libreria Google non ancora caricata, riprova tra un momento");
+    if (!silent) showToast("Libreria Google non ancora caricata, riprova tra un momento");
+    // Se siamo in modalità silent e la libreria non è ancora pronta, ritento tra 2s
+    if (silent) setTimeout(() => driveConnect(true), 2000);
     return;
   }
   driveSetStatus("syncing");
 
-  // Inizializza il token client (una volta sola)
   if (!tokenClient) {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: DRIVE_CONFIG.clientId,
@@ -4387,8 +4389,45 @@ function driveConnect() {
       error_callback: handleTokenError
     });
   }
-  // Richiede il token (apre il popup di consenso)
-  tokenClient.requestAccessToken({ prompt: "consent" });
+
+  state.drive.silentRefreshInProgress = !!silent;
+  // Silent: prompt="" sfrutta la sessione esistente di Google (cookie del browser),
+  // niente popup se l'utente ha già autorizzato l'app prima.
+  // Manual: prompt="consent" forza la schermata di autorizzazione esplicita.
+  tokenClient.requestAccessToken({
+    prompt: silent ? "" : "consent"
+  });
+}
+
+// Refresh silenzioso: chiamato N secondi prima della scadenza del token
+function scheduleSilentRefresh(secondsBeforeExpiry) {
+  if (state.drive.refreshTimer) clearTimeout(state.drive.refreshTimer);
+  state.drive.refreshTimer = setTimeout(() => {
+    // Ripeti solo se siamo ancora "connessi" logicamente
+    if (localStorage.getItem(LS_KEYS.driveWasConnected) === "true") {
+      driveConnect(true);  // silent
+    }
+  }, Math.max(secondsBeforeExpiry * 1000, 10_000));
+}
+
+// Auto-reconnect al boot della dashboard se l'utente era già connesso prima.
+// Aspetta che la libreria GIS sia caricata, poi prova il silent refresh.
+function driveAutoReconnect() {
+  if (localStorage.getItem(LS_KEYS.driveWasConnected) !== "true") return;
+  // Aspetta che GIS sia caricato (caricato in async/defer)
+  let attempts = 0;
+  const maxAttempts = 30;  // 30 * 200ms = 6 secondi max
+  const tryConnect = () => {
+    if (typeof google !== "undefined" && google.accounts) {
+      driveConnect(true);  // silent
+    } else if (attempts < maxAttempts) {
+      attempts++;
+      setTimeout(tryConnect, 200);
+    } else {
+      console.warn("GIS non caricato dopo 6s, auto-reconnect saltato");
+    }
+  };
+  tryConnect();
 }
 
 function handleTokenResponse(response) {
@@ -4398,12 +4437,32 @@ function handleTokenResponse(response) {
     return;
   }
   state.drive.token = response.access_token;
+  // Memorizzo quando scade: i token Google OAuth durano typically 3600s (1 ora)
+  const expiresIn = response.expires_in || 3600;
+  state.drive.tokenExpiresAt = Date.now() + (expiresIn * 1000);
+  // Flag persistente: l'utente ha autorizzato l'app su questo browser
+  localStorage.setItem(LS_KEYS.driveWasConnected, "true");
+  // Pianifica refresh silenzioso 60s prima della scadenza
+  scheduleSilentRefresh(expiresIn - 60);
   driveSetStatus("syncing");
-  showToast("Connesso a Google Drive ✓");
+  // Mostra il toast solo se NON era un refresh silenzioso
+  if (!state.drive.silentRefreshInProgress) {
+    showToast("Connesso a Google Drive ✓");
+  }
+  state.drive.silentRefreshInProgress = false;
   driveInit();
 }
 
 function handleTokenError(err) {
+  // Se era un tentativo di silent refresh fallito, non mostriamo toast aggressivi
+  if (state.drive.silentRefreshInProgress) {
+    state.drive.silentRefreshInProgress = false;
+    driveSetStatus("disconnected", "Rinnovo silenzioso fallito, riconnetti");
+    // Mostra un toast informativo, non allarmante
+    showToast("Riconnetti Drive dalle Impostazioni");
+    renderDriveConnectRow();
+    return;
+  }
   driveSetStatus("error", err.message || "Login annullato");
   showToast("Login Drive annullato o fallito");
 }
@@ -4415,12 +4474,16 @@ function driveDisconnect() {
   }
   state.drive.token = null;
   state.drive.fileId = null;
+  state.drive.tokenExpiresAt = null;
   localStorage.removeItem(LS_KEYS.driveFileId);
   localStorage.removeItem(LS_KEYS.driveLastModified);
+  localStorage.removeItem(LS_KEYS.driveWasConnected);
   if (state.drive.pollTimer) clearInterval(state.drive.pollTimer);
   if (state.drive.pushTimer) clearTimeout(state.drive.pushTimer);
+  if (state.drive.refreshTimer) clearTimeout(state.drive.refreshTimer);
   state.drive.pollTimer = null;
   state.drive.pushTimer = null;
+  state.drive.refreshTimer = null;
   driveSetStatus("disconnected");
   showToast("Disconnesso da Google Drive");
   renderDriveConnectRow();
@@ -4949,6 +5012,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Drive indicator iniziale
   renderDriveIndicator();
+
+  // Auto-reconnect a Drive se l'utente era connesso (silent refresh)
+  driveAutoReconnect();
 });
 
 // ============================================================================
