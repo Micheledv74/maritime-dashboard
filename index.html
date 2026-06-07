@@ -1475,6 +1475,86 @@ a:hover { text-decoration: underline; }
 .backup-status .backup-ok { color: var(--c-green-fg); }
 
 
+
+
+/* === MOBILE LAYOUT FIX (v0.3.1) ========================================= */
+@media (max-width: 640px) {
+  :root {
+    --header-h: 52px;
+    --switcher-h: 52px;
+  }
+  .header-inner {
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .brand {
+    font-size: var(--fs-base);
+    flex-shrink: 0;
+  }
+  .sync-info {
+    font-size: var(--fs-xs);
+  }
+  /* Su mobile nascondo i bottoni espansi e mostro solo il menu */
+  .header-actions .desktop-only { display: none; }
+  .header-actions .mobile-only { display: inline-flex; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    min-width: 40px; min-height: 40px;
+  }
+  /* Vessel switcher più compatto su mobile */
+  .vessel-switcher {
+    padding: 8px 12px;
+  }
+  .pill {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: var(--fs-xs);
+  }
+}
+@media (min-width: 641px) {
+  .header-actions .mobile-only { display: none; }
+}
+
+/* Menu dropdown mobile */
+.mobile-menu {
+  position: absolute;
+  top: calc(var(--header-h) + 4px);
+  right: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  z-index: 60;
+  display: none;
+  min-width: 220px;
+}
+.mobile-menu.open { display: block; }
+.mobile-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  font-size: var(--fs-sm);
+  font-family: inherit;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 44px;
+}
+.mobile-menu button:hover { background: var(--bg-muted); }
+.mobile-menu button .icon { width: 24px; text-align: center; font-size: 18px; }
+.mobile-menu .divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+
 </style>
 </head>
 <body>
@@ -1490,17 +1570,34 @@ a:hover { text-decoration: underline; }
       <span id="sync-text">Caricamento…</span>
     </div>
     <div class="header-actions">
-      <button class="icon-btn refresh has-label" id="btn-refresh" title="Aggiorna dati (R)" aria-label="Aggiorna">
+      <button class="icon-btn refresh has-label desktop-only" id="btn-refresh" title="Aggiorna dati (R)" aria-label="Aggiorna">
         <span>↻</span><span class="label-md">Aggiorna</span>
       </button>
-      <button class="icon-btn eod has-label" id="btn-eod" title="Fine giornata" aria-label="Fine giornata">
+      <button class="icon-btn eod has-label desktop-only" id="btn-eod" title="Fine giornata" aria-label="Fine giornata">
         <span>☾</span><span class="label-md">Fine giornata</span>
       </button>
-      <button class="icon-btn" id="btn-palette" title="Cerca (⌘K)" aria-label="Cerca">⌕</button>
-      <button class="icon-btn" id="btn-todos" title="Le mie to-do" aria-label="To-do">
+      <button class="icon-btn desktop-only" id="btn-palette" title="Cerca (⌘K)" aria-label="Cerca">⌕</button>
+      <button class="icon-btn desktop-only" id="btn-todos" title="Le mie to-do" aria-label="To-do">
         ☐<span id="todos-badge" class="badge" style="display:none;">0</span>
       </button>
-      <button class="icon-btn" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">⚙</button>
+      <button class="icon-btn desktop-only" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">⚙</button>
+
+      <!-- Menu mobile ☰ (visibile solo su <640px) -->
+      <button class="icon-btn mobile-only" id="btn-mobile-menu" title="Menu" aria-label="Menu">
+        <span style="font-size:22px;line-height:1;">☰</span>
+        <span id="todos-badge-mobile" class="badge" style="display:none;">0</span>
+      </button>
+    </div>
+
+    <!-- Dropdown menu mobile -->
+    <div class="mobile-menu" id="mobile-menu">
+      <button data-mm-action="refresh"><span class="icon">↻</span>Aggiorna dati</button>
+      <button data-mm-action="eod"><span class="icon">☾</span>Fine giornata</button>
+      <div class="divider"></div>
+      <button data-mm-action="todo-new"><span class="icon">＋</span>Nuova to-do</button>
+      <button data-mm-action="palette"><span class="icon">⌕</span>Cerca</button>
+      <div class="divider"></div>
+      <button data-mm-action="settings"><span class="icon">⚙</span>Impostazioni</button>
     </div>
   </div>
 </header>
@@ -2578,14 +2675,18 @@ function renderSyncInfo() {
   // Aggiorno anche il badge to-do
   const todoCount = todosOpen().length;
   const badge = document.getElementById("todos-badge");
-  if (badge) {
+  const badgeMobile = document.getElementById("todos-badge-mobile");
+  const updateBadge = (el) => {
+    if (!el) return;
     if (todoCount > 0) {
-      badge.textContent = todoCount > 99 ? "99+" : todoCount;
-      badge.style.display = "";
+      el.textContent = todoCount > 99 ? "99+" : todoCount;
+      el.style.display = "";
     } else {
-      badge.style.display = "none";
+      el.style.display = "none";
     }
-  }
+  };
+  updateBadge(badge);
+  updateBadge(badgeMobile);
 
   const dot = document.getElementById("sync-dot");
   const txt = document.getElementById("sync-text");
@@ -4176,6 +4277,31 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-palette").addEventListener("click", openPalette);
   document.getElementById("btn-settings").addEventListener("click", () => document.getElementById("modal-settings").classList.add("open"));
   document.getElementById("btn-todos").addEventListener("click", () => openTodoModal(null));
+
+  // Menu mobile ☰: apre/chiude dropdown
+  const mobileMenu = document.getElementById("mobile-menu");
+  document.getElementById("btn-mobile-menu").addEventListener("click", e => {
+    e.stopPropagation();
+    mobileMenu.classList.toggle("open");
+  });
+  // Click su una voce del menu: esegui azione e chiudi
+  mobileMenu.querySelectorAll("[data-mm-action]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const a = btn.dataset.mmAction;
+      mobileMenu.classList.remove("open");
+      if (a === "refresh") { loadData(); showToast("Aggiornamento…"); }
+      else if (a === "eod") openEOD();
+      else if (a === "todo-new") openTodoModal(null);
+      else if (a === "palette") openPalette();
+      else if (a === "settings") document.getElementById("modal-settings").classList.add("open");
+    });
+  });
+  // Click fuori dal menu chiude
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#mobile-menu") && !e.target.closest("#btn-mobile-menu")) {
+      mobileMenu.classList.remove("open");
+    }
+  });
 
   // Modal close
   document.querySelectorAll("[data-close-modal]").forEach(b => {
