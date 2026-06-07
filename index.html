@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Google Identity Services per sync Drive (caricato in modalità defer per non bloccare il render iniziale) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* === DESIGN TOKENS ====================================================== */
 :root {
@@ -1555,6 +1557,65 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+
+/* === SYNC DRIVE INDICATOR ============================================== */
+.drive-sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.drive-sync-indicator:hover { background: var(--border); }
+.drive-sync-indicator.connected { background: var(--c-green-bg); color: var(--c-green-fg); }
+.drive-sync-indicator.syncing { background: var(--c-blue-bg); color: var(--c-blue-fg); }
+.drive-sync-indicator.error { background: var(--c-red-bg); color: var(--c-red-fg); }
+.drive-sync-indicator.disconnected { background: var(--bg-muted); color: var(--text-faint); }
+
+.drive-sync-indicator .drive-icon {
+  display: inline-block;
+  width: 14px; height: 14px;
+  text-align: center;
+  line-height: 14px;
+  font-size: 13px;
+}
+.drive-sync-indicator.syncing .drive-icon {
+  animation: spin 1.2s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Su mobile l'indicatore nell'header è troppo lungo, lo riduciamo */
+@media (max-width: 640px) {
+  .drive-sync-indicator .drive-label { display: none; }
+  .drive-sync-indicator { padding: 4px 8px; }
+}
+
+/* Connect button nelle Impostazioni */
+.drive-connect-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.drive-connect-row .status {
+  flex: 1;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.drive-connect-row .status.connected { color: var(--c-green-fg); font-weight: 500; }
+
+
 </style>
 </head>
 <body>
@@ -1568,6 +1629,9 @@ a:hover { text-decoration: underline; }
     <div class="sync-info" id="sync-info">
       <span class="sync-dot" id="sync-dot"></span>
       <span id="sync-text">Caricamento…</span>
+      <span class="drive-sync-indicator disconnected" id="drive-sync-indicator" title="Click in Impostazioni per connettere Drive">
+        <span class="drive-icon">☁</span><span class="drive-label">Drive</span>
+      </span>
     </div>
     <div class="header-actions">
       <button class="icon-btn refresh has-label desktop-only" id="btn-refresh" title="Aggiorna dati (R)" aria-label="Aggiorna">
@@ -1663,6 +1727,16 @@ a:hover { text-decoration: underline; }
     </div>
 
 <!-- Integrazioni Quick Capture rimosse: le to-do sono ora native -->
+
+    <div class="modal-section">
+      <h3>Google Drive Sync</h3>
+      <div class="drive-connect-row" id="drive-connect-row">
+        <div class="status">☁ Drive non connesso</div>
+      </div>
+      <p style="font-size:var(--fs-xs);color:var(--text-faint);margin:8px 0 0;">
+        Sincronizza to-do, note locali e azioni archiviate tra PC, cellulare e tablet usando il tuo Google Drive personale.
+      </p>
+    </div>
 
     <div class="modal-section">
       <h3>Strumenti</h3>
@@ -1953,6 +2027,15 @@ const DATA_URLS = {
   tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json"
 };
 
+// === Configurazione Google Drive Sync ===
+const DRIVE_CONFIG = {
+  clientId: "1076578113222-2kdv5qprstn35qjrv47fbkhd6hh2ublm.apps.googleusercontent.com",
+  scope: "https://www.googleapis.com/auth/drive.file",  // solo file creati dall'app
+  filename: "mpd-data.json",
+  syncIntervalMs: 60_000,          // polling ogni 60s per cambiamenti remoti
+  pushDebounceMs: 5_000            // attende 5s di "calma" prima di pushare
+};
+
 const DEFAULT_SETTINGS = {
   density: false,
   dark: null,
@@ -1995,7 +2078,17 @@ const state = {
   notes: loadNotes(),           // { itemId: "text" }
   todos: loadTodos(),           // [{ id, vessel, action, target, when, note, done, createdAt }]
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
-  morningSnapshot: loadSnapshot()
+  morningSnapshot: loadSnapshot(),
+  drive: {
+    token: null,                  // token di accesso OAuth (in memoria, NON in localStorage per sicurezza)
+    fileId: localStorage.getItem(LS_KEYS.driveFileId) || null,
+    status: "disconnected",       // disconnected | connected | syncing | error
+    lastSyncAt: null,
+    lastModifiedAt: localStorage.getItem(LS_KEYS.driveLastModified) || null,
+    pushTimer: null,
+    pollTimer: null,
+    lastError: null
+  }
 };
 
 // ============================================================================
@@ -2014,7 +2107,10 @@ const LS_KEYS = {
   todos: "mpd.todos",
   archivedActions: "mpd.archivedActions",
   lastBackupDate: "mpd.lastBackupDate",
-  lastExcelDate: "mpd.lastExcelDate"
+  lastExcelDate: "mpd.lastExcelDate",
+  driveToken: "mpd.driveToken",
+  driveFileId: "mpd.driveFileId",
+  driveLastModified: "mpd.driveLastModified"
 };
 
 function loadSettings() {
@@ -2033,7 +2129,10 @@ function saveSnoozed() { localStorage.setItem(LS_KEYS.snoozed, JSON.stringify(st
 function loadNotes() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS.notes) || "{}"); } catch { return {}; }
 }
-function saveNotes() { localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes)); }
+function saveNotes() {
+  localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes));
+  driveSchedulePush();
+}
 function loadTodos() {
   try {
     const arr = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
@@ -2059,11 +2158,17 @@ function getAllTags() {
   }
   return [...s].sort();
 }
-function saveTodos() { localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos)); }
+function saveTodos() {
+  localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos));
+  driveSchedulePush();  // sync su Drive (debounced)
+}
 function loadArchivedActions() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS.archivedActions) || "{}"); } catch { return {}; }
 }
-function saveArchivedActions() { localStorage.setItem(LS_KEYS.archivedActions, JSON.stringify(state.archivedActions)); }
+function saveArchivedActions() {
+  localStorage.setItem(LS_KEYS.archivedActions, JSON.stringify(state.archivedActions));
+  driveSchedulePush();
+}
 function loadSnapshot() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS.snapshot) || "null"); } catch { return null; }
 }
@@ -2574,7 +2679,7 @@ function addTodo(todo) {
 function updateTodo(id, patch) {
   const i = state.todos.findIndex(t => t.id === id);
   if (i < 0) return;
-  state.todos[i] = { ...state.todos[i], ...patch };
+  state.todos[i] = { ...state.todos[i], ...patch, updatedAt: new Date().toISOString() };
   saveTodos();
 }
 
@@ -4219,6 +4324,377 @@ function autoBackupCheck() {
 }
 
 
+
+// ============================================================================
+// === GOOGLE DRIVE SYNC ======================================================
+// ============================================================================
+// Sincronizzazione di to-do, note, azioni archiviate via un singolo file
+// `mpd-data.json` salvato in Google Drive con scope drive.file (solo file
+// creati dall'app). Strategia: stale-while-revalidate + last-write-wins.
+//
+// Flusso:
+//   1. driveConnect()  → OAuth popup, ottiene token
+//   2. driveInit()     → cerca/crea il file, fa pull iniziale
+//   3. driveSchedulePush() → debounced, chiamato a ogni modifica locale
+//   4. driveStartPolling() → ogni 60s controlla se il file remoto è cambiato
+// ============================================================================
+
+let tokenClient = null;  // gapi.client OAuth (creato on-demand)
+
+// === STATUS & UI ===========================================================
+function driveSetStatus(status, errorMsg) {
+  state.drive.status = status;
+  state.drive.lastError = errorMsg || null;
+  if (status === "connected" || status === "syncing") {
+    state.drive.lastSyncAt = new Date().toISOString();
+  }
+  renderDriveIndicator();
+}
+
+function renderDriveIndicator() {
+  const indicator = document.getElementById("drive-sync-indicator");
+  if (!indicator) return;
+
+  const status = state.drive.status;
+  const labels = {
+    disconnected: { icon: "☁", text: "Drive non connesso", title: "Click in Impostazioni per connettere Drive" },
+    connected:    { icon: "☁", text: "Sync OK",            title: "Sincronizzato con Drive" + (state.drive.lastSyncAt ? " · " + new Date(state.drive.lastSyncAt).toLocaleTimeString("it-IT") : "") },
+    syncing:      { icon: "↻", text: "Sync…",              title: "Sincronizzazione in corso" },
+    error:        { icon: "⚠", text: "Errore",             title: state.drive.lastError || "Errore di sincronizzazione" }
+  };
+  const cfg = labels[status] || labels.disconnected;
+  indicator.className = "drive-sync-indicator " + status;
+  indicator.title = cfg.title;
+  indicator.innerHTML = `<span class="drive-icon">${cfg.icon}</span><span class="drive-label">${cfg.text}</span>`;
+}
+
+// === CONNECT (OAuth) =======================================================
+function driveConnect() {
+  if (typeof google === "undefined" || !google.accounts) {
+    showToast("Libreria Google non ancora caricata, riprova tra un momento");
+    return;
+  }
+  driveSetStatus("syncing");
+
+  // Inizializza il token client (una volta sola)
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: DRIVE_CONFIG.clientId,
+      scope: DRIVE_CONFIG.scope,
+      callback: handleTokenResponse,
+      error_callback: handleTokenError
+    });
+  }
+  // Richiede il token (apre il popup di consenso)
+  tokenClient.requestAccessToken({ prompt: "consent" });
+}
+
+function handleTokenResponse(response) {
+  if (response.error) {
+    driveSetStatus("error", "OAuth error: " + response.error);
+    showToast("Errore login Drive: " + response.error);
+    return;
+  }
+  state.drive.token = response.access_token;
+  driveSetStatus("syncing");
+  showToast("Connesso a Google Drive ✓");
+  driveInit();
+}
+
+function handleTokenError(err) {
+  driveSetStatus("error", err.message || "Login annullato");
+  showToast("Login Drive annullato o fallito");
+}
+
+function driveDisconnect() {
+  // Revoca il token
+  if (state.drive.token && typeof google !== "undefined" && google.accounts) {
+    try { google.accounts.oauth2.revoke(state.drive.token); } catch {}
+  }
+  state.drive.token = null;
+  state.drive.fileId = null;
+  localStorage.removeItem(LS_KEYS.driveFileId);
+  localStorage.removeItem(LS_KEYS.driveLastModified);
+  if (state.drive.pollTimer) clearInterval(state.drive.pollTimer);
+  if (state.drive.pushTimer) clearTimeout(state.drive.pushTimer);
+  state.drive.pollTimer = null;
+  state.drive.pushTimer = null;
+  driveSetStatus("disconnected");
+  showToast("Disconnesso da Google Drive");
+  renderDriveConnectRow();
+}
+
+// === FILE INIT (find or create) ============================================
+async function driveInit() {
+  if (!state.drive.token) return;
+  driveSetStatus("syncing");
+
+  try {
+    // Cerca il file
+    let fileId = state.drive.fileId;
+    if (!fileId) {
+      fileId = await driveFindFile();
+    }
+    if (fileId) {
+      state.drive.fileId = fileId;
+      localStorage.setItem(LS_KEYS.driveFileId, fileId);
+      // Pull iniziale
+      await drivePull();
+    } else {
+      // Non esiste, crealo con i dati locali correnti
+      await drivePush();
+    }
+    driveSetStatus("connected");
+    driveStartPolling();
+    renderDriveConnectRow();
+  } catch (err) {
+    console.error("Drive init error:", err);
+    driveSetStatus("error", err.message);
+    showToast("Errore Drive: " + err.message);
+  }
+}
+
+async function driveFindFile() {
+  const url = `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_CONFIG.filename}' and trashed=false&fields=files(id,modifiedTime)&spaces=drive`;
+  const res = await driveFetch(url);
+  if (!res.ok) throw new Error("Errore ricerca file: HTTP " + res.status);
+  const data = await res.json();
+  if (data.files && data.files.length > 0) {
+    return data.files[0].id;
+  }
+  return null;
+}
+
+// === PULL (download da Drive + merge con locale) ===========================
+async function drivePull() {
+  if (!state.drive.token || !state.drive.fileId) return;
+
+  // Prima controlla i metadati per vedere se è cambiato
+  const metaUrl = `https://www.googleapis.com/drive/v3/files/${state.drive.fileId}?fields=id,modifiedTime`;
+  const metaRes = await driveFetch(metaUrl);
+  if (!metaRes.ok) {
+    if (metaRes.status === 404) {
+      // File cancellato remotamente: lo ricreiamo
+      state.drive.fileId = null;
+      localStorage.removeItem(LS_KEYS.driveFileId);
+      await drivePush();
+      return;
+    }
+    throw new Error("Errore metadati: HTTP " + metaRes.status);
+  }
+  const meta = await metaRes.json();
+
+  // Se non è cambiato dal nostro ultimo sync, skippa
+  if (state.drive.lastModifiedAt && meta.modifiedTime <= state.drive.lastModifiedAt) {
+    return;  // niente di nuovo
+  }
+
+  // Scarica il contenuto
+  const contentUrl = `https://www.googleapis.com/drive/v3/files/${state.drive.fileId}?alt=media`;
+  const contentRes = await driveFetch(contentUrl);
+  if (!contentRes.ok) throw new Error("Errore download: HTTP " + contentRes.status);
+  const remote = await contentRes.json();
+
+  // Merge con dati locali
+  mergeRemoteIntoLocal(remote);
+
+  state.drive.lastModifiedAt = meta.modifiedTime;
+  localStorage.setItem(LS_KEYS.driveLastModified, meta.modifiedTime);
+  state.drive.lastSyncAt = new Date().toISOString();
+  driveSetStatus("connected");
+  render();  // rerender per mostrare eventuali to-do nuove
+}
+
+// === MERGE (last-write-wins su id, additivo per chiavi) ====================
+// Strategia:
+// - todos: per id, vince il più recente per "updatedAt" (se manca, doneAt o createdAt)
+//          le to-do presenti solo in uno dei due lati vengono aggiunte
+// - notes: vince valore più recente (non abbiamo timestamp, usiamo presenza)
+//          merge per id chiave: se entrambi presenti vince il remoto
+// - archivedActions: union — se entrambi presenti vince archivedAt più recente
+function mergeRemoteIntoLocal(remote) {
+  if (!remote || typeof remote !== "object") return;
+
+  // --- TODOS ---
+  if (Array.isArray(remote.todos)) {
+    const localById = {};
+    for (const t of state.todos) localById[t.id] = t;
+    for (const r of remote.todos) {
+      const local = localById[r.id];
+      if (!local) {
+        state.todos.push(r);
+      } else {
+        // Vince il più recente: confronto updatedAt (o doneAt o createdAt)
+        const localTs = local.updatedAt || local.doneAt || local.createdAt || "";
+        const remoteTs = r.updatedAt || r.doneAt || r.createdAt || "";
+        if (remoteTs > localTs) {
+          Object.assign(local, r);
+        }
+      }
+    }
+    saveTodos();
+  }
+
+  // --- NOTES (dizionario itemId -> testo) ---
+  if (remote.notes && typeof remote.notes === "object") {
+    // Strategia semplice: merge additivo. In caso di conflitto vince remoto
+    // (perché un'altra device l'ha aggiornato dopo)
+    state.notes = { ...state.notes, ...remote.notes };
+    saveNotes();
+  }
+
+  // --- ARCHIVED ACTIONS ---
+  if (remote.archivedActions && typeof remote.archivedActions === "object") {
+    for (const [key, val] of Object.entries(remote.archivedActions)) {
+      const local = state.archivedActions[key];
+      if (!local || (val.archivedAt && val.archivedAt > (local.archivedAt || ""))) {
+        state.archivedActions[key] = val;
+      }
+    }
+    saveArchivedActions();
+  }
+}
+
+// === PUSH (upload su Drive) ================================================
+async function drivePush() {
+  if (!state.drive.token) return;
+  driveSetStatus("syncing");
+
+  const payload = {
+    schemaVersion: "1.0",
+    deviceId: getDeviceId(),
+    pushedAt: new Date().toISOString(),
+    todos: state.todos,
+    notes: state.notes,
+    archivedActions: state.archivedActions
+  };
+  const body = JSON.stringify(payload, null, 2);
+
+  try {
+    let res;
+    if (state.drive.fileId) {
+      // Update file esistente (multipart per metadati + contenuto)
+      res = await driveUploadMultipart(state.drive.fileId, body, false);
+    } else {
+      // Create file nuovo
+      res = await driveUploadMultipart(null, body, true);
+    }
+    if (!res.ok) throw new Error("Upload HTTP " + res.status);
+    const data = await res.json();
+
+    if (!state.drive.fileId) {
+      state.drive.fileId = data.id;
+      localStorage.setItem(LS_KEYS.driveFileId, data.id);
+    }
+    if (data.modifiedTime) {
+      state.drive.lastModifiedAt = data.modifiedTime;
+      localStorage.setItem(LS_KEYS.driveLastModified, data.modifiedTime);
+    }
+    driveSetStatus("connected");
+  } catch (err) {
+    console.error("Drive push error:", err);
+    driveSetStatus("error", err.message);
+  }
+}
+
+async function driveUploadMultipart(fileId, content, isNew) {
+  const boundary = "mpd_boundary_" + Date.now();
+  const metadata = isNew ? { name: DRIVE_CONFIG.filename, mimeType: "application/json" } : {};
+  const metadataPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}`;
+  const contentPart = `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  const body = metadataPart + contentPart;
+
+  const url = isNew
+    ? "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime"
+    : `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id,modifiedTime`;
+
+  return await driveFetch(url, {
+    method: isNew ? "POST" : "PATCH",
+    headers: {
+      "Content-Type": "multipart/related; boundary=" + boundary
+    },
+    body: body
+  });
+}
+
+// Wrapper fetch che aggiunge l'Authorization header
+async function driveFetch(url, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers["Authorization"] = "Bearer " + state.drive.token;
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    // Token scaduto: lo invalidiamo e l'utente dovrà rifare login
+    state.drive.token = null;
+    driveSetStatus("disconnected", "Sessione scaduta, riconnetti Drive");
+    showToast("Sessione Drive scaduta, riconnetti dalle Impostazioni");
+  }
+  return res;
+}
+
+// === DEBOUNCED PUSH (chiamato a ogni modifica locale) =====================
+function driveSchedulePush() {
+  if (!state.drive.token || state.drive.status === "disconnected") return;
+  if (state.drive.pushTimer) clearTimeout(state.drive.pushTimer);
+  state.drive.pushTimer = setTimeout(() => {
+    state.drive.pushTimer = null;
+    drivePush();
+  }, DRIVE_CONFIG.pushDebounceMs);
+}
+
+// === POLLING (controllo periodico modifiche remote) =======================
+function driveStartPolling() {
+  if (state.drive.pollTimer) clearInterval(state.drive.pollTimer);
+  state.drive.pollTimer = setInterval(() => {
+    if (state.drive.status !== "disconnected" && state.drive.fileId) {
+      drivePull().catch(err => console.error("Poll error:", err));
+    }
+  }, DRIVE_CONFIG.syncIntervalMs);
+}
+
+// Device ID univoco (random, per debug conflitti)
+function getDeviceId() {
+  let id = localStorage.getItem("mpd.deviceId");
+  if (!id) {
+    id = "dev_" + Math.random().toString(36).slice(2, 12);
+    localStorage.setItem("mpd.deviceId", id);
+  }
+  return id;
+}
+
+// === UI: pannello connessione nelle Impostazioni ===========================
+function renderDriveConnectRow() {
+  const row = document.getElementById("drive-connect-row");
+  if (!row) return;
+  const connected = !!state.drive.token;
+  const status = state.drive.status;
+  const lastSync = state.drive.lastSyncAt ? new Date(state.drive.lastSyncAt).toLocaleString("it-IT") : "mai";
+
+  row.innerHTML = connected ? `
+    <div class="status connected">
+      ✓ Connesso a Google Drive<br>
+      <span style="font-size:var(--fs-xs);color:var(--text-muted);">Ultimo sync: ${lastSync}</span>
+    </div>
+    <button class="btn btn-sm" id="drive-sync-now-btn">Sincronizza ora</button>
+    <button class="btn btn-sm" id="drive-disconnect-btn">Disconnetti</button>
+  ` : `
+    <div class="status">
+      ☁ Drive non connesso<br>
+      <span style="font-size:var(--fs-xs);">Connetti per sincronizzare to-do, note e azioni tra dispositivi</span>
+    </div>
+    <button class="btn btn-primary btn-sm" id="drive-connect-btn">🔗 Connetti Drive</button>
+  `;
+
+  document.getElementById("drive-connect-btn")?.addEventListener("click", driveConnect);
+  document.getElementById("drive-disconnect-btn")?.addEventListener("click", driveDisconnect);
+  document.getElementById("drive-sync-now-btn")?.addEventListener("click", async () => {
+    await drivePush();
+    await drivePull();
+    showToast("Sync manuale completato");
+  });
+}
+
+
 // ============================================================================
 // === UTILS ==================================================================
 // ============================================================================
@@ -4275,8 +4751,21 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-refresh").addEventListener("click", () => { loadData(); showToast("Aggiornamento…"); });
   document.getElementById("btn-eod").addEventListener("click", openEOD);
   document.getElementById("btn-palette").addEventListener("click", openPalette);
-  document.getElementById("btn-settings").addEventListener("click", () => document.getElementById("modal-settings").classList.add("open"));
+  document.getElementById("btn-settings").addEventListener("click", () => {
+    document.getElementById("modal-settings").classList.add("open");
+    renderDriveConnectRow();
+  });
   document.getElementById("btn-todos").addEventListener("click", () => openTodoModal(null));
+
+  // Click sull'indicatore Drive → apri Impostazioni
+  document.getElementById("drive-sync-indicator").addEventListener("click", () => {
+    document.getElementById("modal-settings").classList.add("open");
+    renderDriveConnectRow();
+    // Scrolla alla sezione Drive
+    setTimeout(() => {
+      document.getElementById("drive-connect-row")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  });
 
   // Menu mobile ☰: apre/chiude dropdown
   const mobileMenu = document.getElementById("mobile-menu");
@@ -4455,6 +4944,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial load
   if (window.location.hash === "#debug") { state.view = "debug"; }
   loadData();
+
+  // Drive indicator iniziale
+  renderDriveIndicator();
 });
 
 // ============================================================================
