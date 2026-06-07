@@ -279,12 +279,10 @@ a:hover { text-decoration: underline; }
   .pill .pill-key { display: inline; }
 }
 
-/* Mobile: dropdown instead of pills */
-@media (max-width: 640px) {
-  .pill-row { display: none; }
-  .switcher-select-wrap { display: block; }
-}
-.switcher-select-wrap { display: none; }
+/* Le pill sono sempre visibili (scroll orizzontale su mobile).
+   Il vecchio dropdown nativo è stato rimosso perché si schiacciava troppo
+   su mobile con 6 elementi e finiva per essere invisibile. */
+.switcher-select-wrap { display: none !important; }
 .switcher-select {
   width: 100%;
   padding: 12px 14px;
@@ -1616,6 +1614,54 @@ a:hover { text-decoration: underline; }
 .drive-connect-row .status.connected { color: var(--c-green-fg); font-weight: 500; }
 
 
+
+
+/* Mobile-specific tweaks per il pill-row */
+@media (max-width: 640px) {
+  .vessel-switcher {
+    /* Aggiungo una sottile sfumatura ai bordi per indicare che si può scrollare */
+    background-image:
+      linear-gradient(to right, var(--bg) 0%, transparent 16px),
+      linear-gradient(to left, var(--bg) 0%, transparent 16px);
+    background-position: 0 0, 100% 0;
+    background-size: 50% 100%, 50% 100%;
+    background-repeat: no-repeat;
+  }
+  .pill-row {
+    /* Padding laterale per non avere le pill attaccate al bordo */
+    padding-left: 4px;
+    padding-right: 4px;
+    /* Snap dolce per scroll naturale */
+    scroll-snap-type: x proximity;
+  }
+  .pill-row .pill {
+    scroll-snap-align: start;
+  }
+}
+
+
+
+/* Badge to-do nelle vessel-card */
+.vessel-todo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.vessel-todo-badge:hover {
+  background: var(--c-blue-dot);
+  color: var(--accent-fg);
+}
+
+
 </style>
 </head>
 <body>
@@ -2927,13 +2973,21 @@ function renderOverview() {
     const merged = { ...v, ...cfg };
     const status = vesselStatus(merged);
     const eta = (v.tracking && v.tracking.nextPort) ? `${v.tracking.nextPort} · ETA ${formatDate(v.tracking.eta)}` : "—";
+    // Conteggio to-do aperte specifiche per questa nave
+    const vesselTodos = todosForVessel(cfg.vesselId, false);
+    const todoBadge = vesselTodos.length > 0 ?
+      `<span class="vessel-todo-badge" data-vessel-todos="${cfg.vesselId}" title="${vesselTodos.length} to-do aperte">☐ ${vesselTodos.length}</span>` : "";
+
     cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}">
       <div class="vessel-card-head">
         <div class="vessel-name">
           <span class="pill-dot ${status === "green" ? "" : status}"></span>
           ${cfg.displayName}
         </div>
-        <span class="vessel-meta">${(v.items || []).length} item</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${todoBadge}
+          <span class="vessel-meta">${(v.items || []).length} item</span>
+        </div>
       </div>
       <div class="kpi-row">
         <div class="kpi clickable" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">RFQ</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
@@ -2949,23 +3003,12 @@ function renderOverview() {
     </div>`;
   }
 
-  // Sezione to-do
-  const openTodos = todosOpen();
-  const todoSection = openTodos.length > 0 ? `
-    <section class="todo-section">
-      <div class="section-title">
-        <h2>Le mie to-do</h2>
-        <span class="section-meta">${openTodos.length} aperte</span>
-      </div>
-      <div class="todo-list">
-        ${openTodos.slice(0, 8).map(todoRowHTML).join("")}
-      </div>
-    </section>
-  ` : "";
+  // Niente sezione to-do nell'Overview (decisione v0.4.1):
+  // l'Overview deve restare una panoramica veloce, non una lista lunga.
+  // Le to-do sono accessibili dalla pill "To-do" in alto e via badge sulle vessel-card.
 
   root.innerHTML = `
     ${whatsNewHTML}
-    ${todoSection}
     <section>
       <div class="section-title">
         <h2>Flotta</h2>
@@ -2991,9 +3034,17 @@ function renderOverview() {
     </section>
   `;
 
-  // Click handlers per vessel cards (ignora click sui KPI cliccabili)
+  // Click handlers per vessel cards (ignora click sui KPI cliccabili e sul badge to-do)
   root.querySelectorAll(".vessel-card[data-vid]").forEach(card => {
     card.addEventListener("click", (e) => {
+      // Click su badge to-do → pagina to-do filtrata per nave
+      const todoBadge = e.target.closest("[data-vessel-todos]");
+      if (todoBadge) {
+        e.stopPropagation();
+        state._todoFilter = { category: "Nave", vessel: todoBadge.dataset.vesselTodos, priority: "all" };
+        goTodos();
+        return;
+      }
       // se il click è su un KPI cliccabile, non navigare
       if (e.target.closest(".kpi.clickable")) return;
       goVessel(card.dataset.vid);
