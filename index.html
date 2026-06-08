@@ -1662,6 +1662,201 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+
+/* === FILTRI COMPATTI v0.4.2 ============================================= */
+
+/* Riga dei chip temporali (sempre visibile, una sola riga) */
+.time-chips-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+  margin-bottom: 12px;
+}
+.time-chips-row::-webkit-scrollbar { display: none; }
+
+.time-chip {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  padding: 6px 14px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.time-chip:hover:not(.active) { background: var(--bg-muted); }
+.time-chip.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.time-chip .count {
+  font-size: 11px;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+.time-chip.crit:not(.active) { border-color: var(--c-red-dot); color: var(--c-red-fg); }
+.time-chip.warn:not(.active) { border-color: var(--c-amber-dot); color: var(--c-amber-fg); }
+
+/* Riga compatta dei filtri avanzati */
+.filters-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filters-trigger {
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  padding: 6px 14px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.filters-trigger:hover { background: var(--bg-muted); }
+.filters-trigger.has-active {
+  border-color: var(--accent);
+  background: var(--bg-muted);
+}
+.filters-trigger .badge {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* Chip filtro attivo (mostra valore + X per rimuovere) */
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  font-weight: 500;
+  border: 1px solid var(--c-blue-dot);
+}
+.active-filter-chip button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.active-filter-chip button:hover { background: rgba(0,0,0,0.08); }
+
+/* Popover dei filtri avanzati */
+.filters-popover {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: 70vh;
+  overflow-y: auto;
+  display: none;
+}
+.filters-popover.open { display: block; }
+.filters-popover .pop-section {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.filters-popover .pop-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.filters-popover .pop-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.filters-popover .pop-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filters-popover .pop-opt {
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+}
+.filters-popover .pop-opt:hover:not(.active) { background: var(--bg-muted); }
+.filters-popover .pop-opt.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.filters-popover .pop-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Header to-do page compatta su mobile */
+@media (max-width: 640px) {
+  .todo-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .todo-page-header > div:first-child {
+    margin-bottom: 8px;
+  }
+  .todo-page-stats {
+    font-size: var(--fs-xs);
+  }
+  .filters-popover {
+    width: calc(100vw - 24px);
+    right: 12px !important;
+    left: 12px !important;
+  }
+}
+
+
 </style>
 </head>
 <body>
@@ -3663,6 +3858,37 @@ function renderTodosPage() {
   const search = (state._todoSearch || "").toLowerCase();
   const showCompleted = state._todoShowCompleted;
 
+  // Filtro temporale (nuovo in v0.4.2)
+  const timeFilter = state._todoTimeFilter || "all";
+  const matchTimeFilter = t => {
+    if (timeFilter === "all") return true;
+    const cls = classifyDueDate(t.dueDate);
+    if (timeFilter === "overdue") return cls === "overdue";
+    if (timeFilter === "today") return cls === "today";
+    if (timeFilter === "tomorrow") return t.dueDate === tomorrow();
+    if (timeFilter === "thisweek") {
+      // Da oggi a domenica (inclusi)
+      if (!t.dueDate) return false;
+      const today = new Date();
+      const day = today.getDay() === 0 ? 7 : today.getDay();
+      const sunday = new Date(today);
+      sunday.setDate(today.getDate() + (7 - day));
+      const sundayISO = sunday.toISOString().slice(0, 10);
+      return t.dueDate >= todayISO() && t.dueDate <= sundayISO;
+    }
+    if (timeFilter === "future") {
+      // Dopo domenica della settimana corrente
+      if (!t.dueDate) return false;
+      const today = new Date();
+      const day = today.getDay() === 0 ? 7 : today.getDay();
+      const sunday = new Date(today);
+      sunday.setDate(today.getDate() + (7 - day));
+      const sundayISO = sunday.toISOString().slice(0, 10);
+      return t.dueDate > sundayISO;
+    }
+    return true;
+  };
+
   // Filtra to-do
   let aperte = state.todos.filter(t => !t.done);
   let completate = state.todos.filter(t => t.done);
@@ -3671,6 +3897,7 @@ function renderTodosPage() {
     if (filter.category !== "all" && t.category !== filter.category) return false;
     if (filter.vessel !== "all" && t.vessel !== filter.vessel) return false;
     if (filter.priority !== "all" && t.priority !== filter.priority) return false;
+    if (!matchTimeFilter(t)) return false;
     if (search) {
       const hay = [t.action, t.reference, t.note, ...(t.tags||[])].join(" ").toLowerCase();
       if (!hay.includes(search)) return false;
@@ -3708,6 +3935,26 @@ function renderTodosPage() {
   // Categorie disponibili (con count)
   const CATEGORIES = ["Nave", "Ufficio", "Colleghi", "Infoship", "Sistema", "Personale", "Altro"];
 
+  // Conteggi per chip temporali — usano TUTTE le aperte (non filtrate)
+  const allOpen = state.todos.filter(t => !t.done);
+  const tomorrowISO = tomorrow();
+  const today = new Date();
+  const day = today.getDay() === 0 ? 7 : today.getDay();
+  const sundayDate = new Date(today);
+  sundayDate.setDate(today.getDate() + (7 - day));
+  const sundayISO = sundayDate.toISOString().slice(0, 10);
+  const countOverdue = allOpen.filter(t => classifyDueDate(t.dueDate) === "overdue").length;
+  const countToday = allOpen.filter(t => classifyDueDate(t.dueDate) === "today").length;
+  const countTomorrow = allOpen.filter(t => t.dueDate === tomorrowISO).length;
+  const countThisWeek = allOpen.filter(t => t.dueDate && t.dueDate >= todayISO() && t.dueDate <= sundayISO).length;
+  const countFuture = allOpen.filter(t => t.dueDate && t.dueDate > sundayISO).length;
+
+  // Conta i filtri avanzati attivi (per badge dropdown)
+  const activeAdvancedCount =
+    (filter.category !== "all" ? 1 : 0) +
+    (filter.priority !== "all" ? 1 : 0) +
+    (filter.vessel !== "all" ? 1 : 0);
+
   // Backup info
   const lastBackup = localStorage.getItem(LS_KEYS.lastBackupDate);
   const lastExcel = localStorage.getItem(LS_KEYS.lastExcelDate);
@@ -3735,38 +3982,84 @@ function renderTodosPage() {
       · I backup vanno nella cartella Download del browser, spostali dove preferisci.
     </div>
 
+    <!-- Ricerca testuale -->
     <div class="todo-toolbar">
       <input type="search" class="search-input" id="todo-search" placeholder="Cerca tra le to-do…" value="${escapeHTML(state._todoSearch || "")}" style="flex:1;min-width:200px;">
     </div>
 
-    <div class="todo-toolbar">
-      <span class="muted" style="font-size:var(--fs-sm);">Categoria:</span>
-      <button class="filter-chip ${filter.category === "all" ? "active" : ""}" data-tf-cat="all">Tutte</button>
-      ${CATEGORIES.map(c => {
-        const n = state.todos.filter(t => !t.done && t.category === c).length;
-        if (n === 0 && filter.category !== c) return "";
-        return `<button class="filter-chip ${filter.category === c ? "active" : ""}" data-tf-cat="${escapeAttr(c)}">${c} (${n})</button>`;
-      }).join("")}
+    <!-- Chip temporali (sempre visibili, una riga) — v0.4.2 -->
+    <div class="time-chips-row" role="radiogroup" aria-label="Filtro temporale">
+      <button class="time-chip ${timeFilter === "all" ? "active" : ""}" data-tt="all" role="radio">
+        Tutte
+      </button>
+      <button class="time-chip ${countOverdue > 0 ? "crit" : ""} ${timeFilter === "overdue" ? "active" : ""}" data-tt="overdue" role="radio">
+        ⚠ Scadute <span class="count">${countOverdue}</span>
+      </button>
+      <button class="time-chip ${countToday > 0 ? "warn" : ""} ${timeFilter === "today" ? "active" : ""}" data-tt="today" role="radio">
+        Oggi <span class="count">${countToday}</span>
+      </button>
+      <button class="time-chip ${timeFilter === "tomorrow" ? "active" : ""}" data-tt="tomorrow" role="radio">
+        Domani <span class="count">${countTomorrow}</span>
+      </button>
+      <button class="time-chip ${timeFilter === "thisweek" ? "active" : ""}" data-tt="thisweek" role="radio">
+        Questa settimana <span class="count">${countThisWeek}</span>
+      </button>
+      <button class="time-chip ${timeFilter === "future" ? "active" : ""}" data-tt="future" role="radio">
+        Future <span class="count">${countFuture}</span>
+      </button>
     </div>
 
-    <div class="todo-toolbar">
-      <span class="muted" style="font-size:var(--fs-sm);">Priorità:</span>
-      <button class="filter-chip ${filter.priority === "all" ? "active" : ""}" data-tf-prio="all">Tutte</button>
-      <button class="filter-chip ${filter.priority === "alta" ? "active" : ""}" data-tf-prio="alta">🔴 Alta</button>
-      <button class="filter-chip ${filter.priority === "media" ? "active" : ""}" data-tf-prio="media">🟡 Media</button>
-      <button class="filter-chip ${filter.priority === "bassa" ? "active" : ""}" data-tf-prio="bassa">⚪ Bassa</button>
+    <!-- Filtri avanzati compatti (riga unica + chip per attivi) — v0.4.2 -->
+    <div class="filters-compact">
+      <button class="filters-trigger ${activeAdvancedCount > 0 ? "has-active" : ""}" id="filters-trigger-btn" aria-haspopup="true" aria-expanded="false">
+        <span>Filtri</span>
+        ${activeAdvancedCount > 0 ? `<span class="badge">${activeAdvancedCount}</span>` : ""}
+        <span style="font-size:10px;">▾</span>
+      </button>
+      ${filter.category !== "all" ? `<span class="active-filter-chip">Categoria: ${escapeHTML(filter.category)}<button data-clear-filter="category" title="Rimuovi filtro">✕</button></span>` : ""}
+      ${filter.priority !== "all" ? `<span class="active-filter-chip">Priorità: ${filter.priority === "alta" ? "🔴 Alta" : filter.priority === "media" ? "🟡 Media" : "⚪ Bassa"}<button data-clear-filter="priority" title="Rimuovi filtro">✕</button></span>` : ""}
+      ${filter.vessel !== "all" ? `<span class="active-filter-chip">Nave: ${escapeHTML(VESSELS.find(v => v.vesselId === filter.vessel)?.displayName || filter.vessel)}<button data-clear-filter="vessel" title="Rimuovi filtro">✕</button></span>` : ""}
     </div>
 
-    ${VESSELS.length > 0 ? `
-    <div class="todo-toolbar">
-      <span class="muted" style="font-size:var(--fs-sm);">Nave:</span>
-      <button class="filter-chip ${filter.vessel === "all" ? "active" : ""}" data-tf-ves="all">Tutte</button>
-      ${VESSELS.map(v => {
-        const n = state.todos.filter(t => !t.done && t.vessel === v.vesselId).length;
-        if (n === 0 && filter.vessel !== v.vesselId) return "";
-        return `<button class="filter-chip ${filter.vessel === v.vesselId ? "active" : ""}" data-tf-ves="${escapeAttr(v.vesselId)}">${v.displayName} (${n})</button>`;
-      }).join("")}
-    </div>` : ""}
+    <!-- Popover dei filtri avanzati (nascosto per default) -->
+    <div class="filters-popover" id="filters-popover" role="dialog" aria-labelledby="filters-popover-title">
+      <div class="pop-section">
+        <div class="pop-label" id="filters-popover-title">Categoria</div>
+        <div class="pop-options">
+          <button class="pop-opt ${filter.category === "all" ? "active" : ""}" data-pop-cat="all">Tutte</button>
+          ${CATEGORIES.map(c => {
+            const n = state.todos.filter(t => !t.done && t.category === c).length;
+            if (n === 0 && filter.category !== c) return "";
+            return `<button class="pop-opt ${filter.category === c ? "active" : ""}" data-pop-cat="${escapeAttr(c)}">${c} (${n})</button>`;
+          }).join("")}
+        </div>
+      </div>
+      <div class="pop-section">
+        <div class="pop-label">Priorità</div>
+        <div class="pop-options">
+          <button class="pop-opt ${filter.priority === "all" ? "active" : ""}" data-pop-prio="all">Tutte</button>
+          <button class="pop-opt ${filter.priority === "alta" ? "active" : ""}" data-pop-prio="alta">🔴 Alta</button>
+          <button class="pop-opt ${filter.priority === "media" ? "active" : ""}" data-pop-prio="media">🟡 Media</button>
+          <button class="pop-opt ${filter.priority === "bassa" ? "active" : ""}" data-pop-prio="bassa">⚪ Bassa</button>
+        </div>
+      </div>
+      ${VESSELS.length > 0 ? `
+      <div class="pop-section">
+        <div class="pop-label">Nave</div>
+        <div class="pop-options">
+          <button class="pop-opt ${filter.vessel === "all" ? "active" : ""}" data-pop-ves="all">Tutte</button>
+          ${VESSELS.map(v => {
+            const n = state.todos.filter(t => !t.done && t.vessel === v.vesselId).length;
+            if (n === 0 && filter.vessel !== v.vesselId) return "";
+            return `<button class="pop-opt ${filter.vessel === v.vesselId ? "active" : ""}" data-pop-ves="${escapeAttr(v.vesselId)}">${v.displayName} (${n})</button>`;
+          }).join("")}
+        </div>
+      </div>` : ""}
+      <div class="pop-actions">
+        ${activeAdvancedCount > 0 ? `<button class="btn btn-sm" id="filters-reset-btn">Azzera tutti</button>` : ""}
+        <button class="btn btn-primary btn-sm" id="filters-close-btn">Chiudi</button>
+      </div>
+    </div>
 
     <div class="todo-section-divider">
       <span class="chevron">▾</span>
@@ -3798,23 +4091,80 @@ function renderTodosPage() {
     renderTodosPage();
   });
 
-  document.querySelectorAll("[data-tf-cat]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      state._todoFilter.category = btn.dataset.tfCat;
+  // Chip temporali (radio: una sola attiva alla volta)
+  document.querySelectorAll("[data-tt]").forEach(chip => {
+    chip.addEventListener("click", () => {
+      state._todoTimeFilter = chip.dataset.tt;
       renderTodosPage();
     });
   });
-  document.querySelectorAll("[data-tf-prio]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      state._todoFilter.priority = btn.dataset.tfPrio;
+
+  // Popover filtri avanzati: apertura/chiusura + posizionamento
+  const triggerBtn = document.getElementById("filters-trigger-btn");
+  const popover = document.getElementById("filters-popover");
+  if (triggerBtn && popover) {
+    triggerBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      const isOpen = popover.classList.contains("open");
+      if (isOpen) {
+        popover.classList.remove("open");
+        triggerBtn.setAttribute("aria-expanded", "false");
+        return;
+      }
+      // Posiziona il popover sotto il trigger
+      const rect = triggerBtn.getBoundingClientRect();
+      popover.style.top = (rect.bottom + 6) + "px";
+      popover.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+      popover.classList.add("open");
+      triggerBtn.setAttribute("aria-expanded", "true");
+    });
+    // Close popover quando si clicca fuori
+    document.addEventListener("click", e => {
+      if (!e.target.closest("#filters-popover") && !e.target.closest("#filters-trigger-btn")) {
+        popover.classList.remove("open");
+        triggerBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  // Opzioni dentro il popover
+  document.querySelectorAll("[data-pop-cat]").forEach(b => {
+    b.addEventListener("click", () => {
+      state._todoFilter.category = b.dataset.popCat;
       renderTodosPage();
     });
   });
-  document.querySelectorAll("[data-tf-ves]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      state._todoFilter.vessel = btn.dataset.tfVes;
+  document.querySelectorAll("[data-pop-prio]").forEach(b => {
+    b.addEventListener("click", () => {
+      state._todoFilter.priority = b.dataset.popPrio;
       renderTodosPage();
     });
+  });
+  document.querySelectorAll("[data-pop-ves]").forEach(b => {
+    b.addEventListener("click", () => {
+      state._todoFilter.vessel = b.dataset.popVes;
+      renderTodosPage();
+    });
+  });
+
+  // Chip "X" per rimuovere singolo filtro attivo
+  document.querySelectorAll("[data-clear-filter]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const k = btn.dataset.clearFilter;
+      state._todoFilter[k] = "all";
+      renderTodosPage();
+    });
+  });
+
+  // Azzera tutti e Chiudi (dentro popover)
+  document.getElementById("filters-reset-btn")?.addEventListener("click", () => {
+    state._todoFilter = { category: "all", vessel: "all", priority: "all" };
+    renderTodosPage();
+  });
+  document.getElementById("filters-close-btn")?.addEventListener("click", () => {
+    popover?.classList.remove("open");
+    triggerBtn?.setAttribute("aria-expanded", "false");
   });
 
   // Collapse/expand sezione completate
@@ -4146,6 +4496,7 @@ function goTodos() {
   state.view = "todos";
   state._todoFilter = state._todoFilter || { category: "all", vessel: "all", priority: "all" };
   state._todoSearch = state._todoSearch || "";
+  state._todoTimeFilter = state._todoTimeFilter || "all";
   state._todoShowCompleted = state._todoShowCompleted ?? false;
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
