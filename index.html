@@ -1857,6 +1857,252 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+
+/* === PROGRESS BAR (colonna pipeline a 4 segmenti) v0.5 ================== */
+.progress-bar {
+  display: inline-flex;
+  gap: 3px;
+  align-items: stretch;
+  height: 22px;
+  min-width: 180px;
+}
+.pseg {
+  flex: 1;
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 38px;
+  background: var(--bg-muted);
+  border: 0.5px solid var(--border);
+  transition: transform 0.12s;
+}
+.pseg:hover { transform: translateY(-1px); }
+.pseg-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  z-index: 2; pointer-events: none;
+  color: var(--text-faint);
+}
+.pseg-fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 0;
+  transition: width 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pseg.done {
+  background: var(--c-green-bg);
+  border-color: var(--c-green-dot);
+}
+.pseg.done .pseg-label { color: var(--c-green-fg); }
+
+.pseg.partial {
+  background: var(--bg-muted);
+  border-color: var(--c-blue-dot);
+}
+.pseg.partial .pseg-fill { background: var(--c-blue-bg); }
+.pseg.partial .pseg-label { color: var(--c-blue-fg); }
+
+.pseg.empty {
+  background: var(--bg-surface);
+  border-color: var(--border);
+}
+.pseg.empty .pseg-label { color: var(--text-faint); }
+
+.pseg.cancelled {
+  background: var(--c-red-bg);
+  border-color: var(--c-red-dot);
+  opacity: 0.55;
+}
+.pseg.cancelled .pseg-label {
+  color: var(--c-red-fg);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* === COLONNA N° DOC ====================================================== */
+.docnum-cell {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 130px;
+}
+.docnum-cell .docnum-line {
+  display: block;
+  margin-bottom: 1px;
+}
+.docnum-cell .docnum-label {
+  display: inline-block;
+  width: 26px;
+  color: var(--text-faint);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.docnum-cell .docnum-multi {
+  color: var(--c-blue-fg);
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+.docnum-cell .docnum-multi:hover { text-decoration: underline; }
+
+/* === POPOVER (lista RFQ multiple) ======================================== */
+.docnum-popover {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  min-width: 240px;
+  max-width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: none;
+}
+.docnum-popover.open { display: block; }
+.docnum-popover-header {
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.docnum-popover-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.docnum-popover-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+.docnum-popover-item:hover { background: var(--bg-muted); }
+.docnum-popover-item .copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-faint);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.docnum-popover-item .copy-btn:hover {
+  color: var(--c-blue-fg);
+  background: var(--c-blue-bg);
+}
+
+/* === TAG DEPARTMENT (accanto a descrizione) ============================== */
+.dept-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: 8px;
+  vertical-align: middle;
+  background: var(--c-slate-bg);
+  color: var(--c-slate-fg);
+}
+.dept-tag[data-dept*="ENGINE"], .dept-tag[data-dept*="engine"] {
+  background: var(--c-teal-bg);
+  color: var(--c-teal-fg);
+}
+.dept-tag[data-dept*="DECK"], .dept-tag[data-dept*="deck"] {
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+}
+.dept-tag[data-dept*="SAFETY"], .dept-tag[data-dept*="safety"] {
+  background: var(--c-red-bg);
+  color: var(--c-red-fg);
+}
+.dept-tag[data-dept*="BRIDGE"], .dept-tag[data-dept*="bridge"] {
+  background: var(--c-purple-bg);
+  color: var(--c-purple-fg);
+}
+.dept-tag[data-dept*="GALLEY"], .dept-tag[data-dept*="galley"] {
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+}
+
+/* === BOTTONE TO-DO PER RIGA TABELLA ====================================== */
+.row-todo-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 14px;
+  transition: all 0.12s;
+}
+.row-todo-btn:hover {
+  border-color: var(--c-blue-dot);
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+}
+
+/* === TOOLTIP RFQ status summary ========================================= */
+.progress-tooltip {
+  position: fixed;
+  z-index: 300;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 8px 12px;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  pointer-events: none;
+  display: none;
+  max-width: 280px;
+}
+.progress-tooltip.open { display: block; }
+.progress-tooltip .tt-stage {
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.progress-tooltip .tt-detail {
+  color: var(--text-muted);
+}
+.progress-tooltip .tt-status-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.progress-tooltip .tt-status-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+
 </style>
 </head>
 <body>
@@ -2177,6 +2423,18 @@ a:hover { text-decoration: underline; }
     <div id="heatmap-detail-body"></div>
   </div>
 </div>
+
+<!-- Popover RFQ multipli (lista cliccabile, copia) -->
+<div class="docnum-popover" id="docnum-popover">
+  <div class="docnum-popover-header">
+    <span id="docnum-popover-title">RFQ</span>
+    <button class="copy-btn" data-close-popover style="font-size:14px;">✕</button>
+  </div>
+  <div class="docnum-popover-list" id="docnum-popover-list"></div>
+</div>
+
+<!-- Tooltip Progress bar al hover -->
+<div class="progress-tooltip" id="progress-tooltip"></div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
@@ -3495,7 +3753,7 @@ function renderVesselDetail() {
         <span class="section-meta">${(v.items || []).length} totali ${state.pipelineFilter ? "· filtro: " + state.pipelineFilter : ""}</span>
       </div>
       <div class="items-toolbar">
-        <input type="search" class="search-input" id="items-search" placeholder="Cerca per descrizione o fornitore…" value="${escapeHTML(state.searchQuery)}">
+        <input type="search" class="search-input" id="items-search" placeholder="Cerca per descrizione, fornitore, N° REQ/RFQ/PO/DN…" value="${escapeHTML(state.searchQuery)}">
         <select class="filter-select" id="supplier-filter">
           <option value="">Tutti i fornitori</option>
           ${uniqueSuppliers(v.items).map(s => `<option value="${escapeHTML(s)}" ${s === state.supplierFilter ? "selected" : ""}>${escapeHTML(s)}</option>`).join("")}
@@ -3506,13 +3764,13 @@ function renderVesselDetail() {
         <table class="items-table as-cards" id="items-table">
           <thead>
             <tr>
-              <th data-sort="description">Descrizione</th>
-              <th data-sort="supplier">Fornitore</th>
-              <th data-sort="rfqStatus">Stato</th>
-              <th data-sort="rfqDays">Giorni</th>
+              <th data-sort="description" style="min-width: 220px;">Descrizione</th>
+              <th>N° doc</th>
+              <th style="min-width: 200px;">Progress</th>
+              <th data-sort="rfqDays">Età</th>
               <th data-sort="deliveryDate">Consegna</th>
-              <th>ETA</th>
-              <th>Note</th>
+              <th>Nota</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="items-tbody"></tbody>
@@ -3678,10 +3936,20 @@ function renderItemsTable(v) {
   }
   const q = state.searchQuery.toLowerCase();
   if (q) {
-    items = items.filter(it =>
-      (it.description || "").toLowerCase().includes(q) ||
-      (it.supplier || "").toLowerCase().includes(q)
-    );
+    items = items.filter(it => {
+      // Cerca in descrizione + fornitore + tutti i numeri documento (REQ, RFQ multi, PO, DN, Infoship ID)
+      const hay = [
+        it.description || "",
+        it.supplier || "",
+        it.reqNumber || "",
+        it.poNumber || "",
+        it.dnNumber || "",
+        it.dnInfoshipId || "",
+        ...(Array.isArray(it.rfqNumbers) ? it.rfqNumbers : []),
+        it.department || ""
+      ].join(" ").toLowerCase();
+      return hay.includes(q);
+    });
   }
   if (state.supplierFilter) {
     items = items.filter(it => it.supplier === state.supplierFilter);
@@ -3713,23 +3981,42 @@ function renderItemsTable(v) {
     return;
   }
 
-  const trk = v.tracking;
   tbody.innerHTML = items.slice(0, 200).map(it => {
     const note = state.notes[it.id] || "";
-    const status = bestStatus(it);
-    const daysToETA = computeDaysToETA(it, trk);
+    const dept = it.department || "";
+    const deptTag = dept ?
+      `<span class="dept-tag" data-dept="${escapeAttr(dept)}">${escapeHTML(dept.replace(/ ?Department$/i, ""))}</span>` :
+      "";
+    const supplier = it.supplier && it.supplier !== "—" ?
+      `<span class="muted" style="font-size: 11px;">${escapeHTML(it.supplier)}</span>` : "";
     return `<tr>
-      <td data-label="Descrizione"><strong>${escapeHTML(truncate(it.description || "", 80))}</strong></td>
-      <td data-label="Fornitore" class="muted">${escapeHTML(it.supplier || "—")}</td>
-      <td data-label="Stato"><span class="tag ${statusClass(status.kind)}">${escapeHTML(status.label)}</span></td>
-      <td data-label="Giorni" class="days-cell">${it.rfqDays != null ? it.rfqDays + "g" : "—"}</td>
+      <td data-label="Descrizione">
+        <strong>${escapeHTML(truncate(it.description || "", 80))}</strong>${deptTag}
+        ${supplier ? `<br>${supplier}` : ""}
+      </td>
+      <td data-label="N° doc">${docNumbersHTML(it)}</td>
+      <td data-label="Progress">${progressBarHTML(it)}</td>
+      <td data-label="Età" class="days-cell">${it.rfqDays != null ? it.rfqDays + "g" : "—"}</td>
       <td data-label="Consegna" class="num">${formatDate(it.deliveryDate)}</td>
-      <td data-label="ETA" class="days-cell ${daysToETA.cls}">${daysToETA.label}</td>
       <td data-label="Nota">
         <textarea class="notes-input ${note ? "has-content" : ""}" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
       </td>
+      <td data-label="" style="text-align: right;">
+        <button class="row-todo-btn" data-row-todo="${escapeAttr(it.id)}" title="Crea to-do per questo item">+</button>
+      </td>
     </tr>`;
   }).join("");
+
+  // Attiva l'animazione di fill della Progress bar (al prossimo tick, dopo il paint iniziale a width=0)
+  setTimeout(() => {
+    tbody.querySelectorAll(".pseg.partial .pseg-fill").forEach((fill, i) => {
+      // Già impostato inline, ma forzo un reflow per garantire l'animazione
+      const w = fill.style.width;
+      fill.style.width = "0";
+      void fill.offsetWidth;  // reflow trick
+      setTimeout(() => { fill.style.width = w; }, i * 20);
+    });
+  }, 50);
 
   // Note autosave + toggle stile has-content
   tbody.querySelectorAll(".notes-input").forEach(ta => {
@@ -3739,11 +4026,228 @@ function renderItemsTable(v) {
       if (val) state.notes[id] = val;
       else delete state.notes[id];
       saveNotes();
-      // Toggle classe
       if (val) e.target.classList.add("has-content");
       else e.target.classList.remove("has-content");
     });
   });
+
+  // Bottone "+ to-do" per riga: apre la modale to-do pre-compilata con item
+  tbody.querySelectorAll("[data-row-todo]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = btn.dataset.rowTodo;
+      const it = items.find(x => x.id === id);
+      if (!it) return;
+      openTodoModal(null, v.vesselId, it);
+    });
+  });
+
+  // Click su "N RFQ ▾" multi-valore: apre popover con la lista dei numeri RFQ
+  tbody.querySelectorAll("[data-rfq-multi]").forEach(link => {
+    link.addEventListener("click", e => {
+      e.stopPropagation();
+      const id = link.dataset.rfqMulti;
+      const it = items.find(x => x.id === id);
+      if (!it) return;
+      openRfqMultiPopover(link, it);
+    });
+  });
+
+  // Tooltip al hover sui segmenti Progress (uso title nativo per semplicità,
+  // più informativo del solo stage)
+  tbody.querySelectorAll(".pseg").forEach(seg => {
+    const stage = seg.dataset.stage;
+    const detail = seg.dataset.detail || "";
+    seg.title = `${stage}: ${detail}`;
+  });
+}
+
+// ============================================================================
+// === RFQ MULTI-NUMBER POPOVER ==============================================
+// ============================================================================
+// Apre un piccolo popover ancorato al link "N RFQ ▾" che mostra tutti i numeri
+// RFQ associati all'item. Ogni numero ha un piccolo bottone "copia".
+function openRfqMultiPopover(anchor, it) {
+  // Chiudo eventuali popover esistenti
+  document.querySelectorAll(".docnum-popover.open").forEach(p => p.classList.remove("open"));
+
+  const rfqs = Array.isArray(it.rfqNumbers) ? it.rfqNumbers : [];
+  const summary = Array.isArray(it.rfqStatusSummary) ? it.rfqStatusSummary : [];
+
+  // Costruisco (o riuso) il popover globale
+  let pop = document.getElementById("rfq-multi-popover");
+  if (!pop) {
+    pop = document.createElement("div");
+    pop.id = "rfq-multi-popover";
+    pop.className = "docnum-popover";
+    document.body.appendChild(pop);
+  }
+
+  pop.innerHTML = `
+    <div class="docnum-popover-header">
+      <span><strong>${rfqs.length} RFQ</strong> per ${escapeHTML(truncate(it.description || "", 40))}</span>
+      <button class="close" data-pop-close>✕</button>
+    </div>
+    ${summary.length > 0 ? `<div style="padding: 6px 12px; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid var(--border);">
+      Stati: ${summary.map(s => escapeHTML(s)).join(" · ")}
+    </div>` : ""}
+    <div class="docnum-popover-list">
+      ${rfqs.map(n => `
+        <div class="docnum-popover-item">
+          <span style="font-family: var(--font-mono); font-size: 12px;">${escapeHTML(n)}</span>
+          <button class="copy-btn" data-copy-rfq="${escapeAttr(n)}" title="Copia">⎘</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  // Posiziono il popover sotto l'anchor
+  const rect = anchor.getBoundingClientRect();
+  pop.style.top = (rect.bottom + 6 + window.scrollY) + "px";
+  pop.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+  pop.classList.add("open");
+
+  // Click su Copia → copia negli appunti
+  pop.querySelectorAll("[data-copy-rfq]").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copyRfq);
+        showToast("Numero RFQ copiato");
+      } catch {
+        showToast("Impossibile copiare");
+      }
+    });
+  });
+
+  // Close
+  pop.querySelector("[data-pop-close]")?.addEventListener("click", () => pop.classList.remove("open"));
+
+  // Click fuori chiude (registrato una sola volta)
+  if (!pop.dataset.outsideHandler) {
+    document.addEventListener("click", e => {
+      if (!e.target.closest("#rfq-multi-popover") && !e.target.closest("[data-rfq-multi]")) {
+        pop.classList.remove("open");
+      }
+    });
+    pop.dataset.outsideHandler = "1";
+  }
+}
+
+// ============================================================================
+// === PROGRESS BAR HELPERS (v0.5) ============================================
+// ============================================================================
+// Calcola lo stato dei 4 segmenti della pipeline REQ → RFQ → PO → DN.
+// Ritorna un array di 4 oggetti: { stage, state, pct, detail }
+// state può essere: "done" (completato), "partial" (in corso, con %), "empty" (non iniziato), "cancelled"
+function computeProgressSegments(it) {
+  const segs = [];
+
+  // --- REQ ---
+  // Logica: se c'è qualunque cosa dopo (rfq/po/dn) → REQ è implicitamente completata
+  // Se reqStatus è Cancelled → cancellato
+  // Altrimenti basata su reqStatus
+  const hasDownstream = (it.rfqStatus && it.rfqStatus !== "") ||
+                         (it.poStatus && it.poStatus !== "") ||
+                         (it.dnStatus && it.dnStatus !== "");
+  if (it.reqStatus === "REQ Cancelled" && !hasDownstream) {
+    segs.push({ stage: "REQ", state: "cancelled", pct: 0, detail: "REQ Cancelled" });
+  } else if (it.reqStatus === "REQ Ordered" || hasDownstream) {
+    segs.push({ stage: "REQ", state: "done", pct: 100, detail: it.reqStatus || "Avanzata" });
+  } else if (it.reqStatus && it.reqStatus !== "") {
+    // Stati intermedi: Price Sourcing, Endorsed, Approved, ...
+    const pct = it.reqStatus === "REQ Approved" ? 75 :
+                it.reqStatus === "REQ Endorsed" ? 50 :
+                it.reqStatus === "REQ Price Sourcing" ? 25 : 30;
+    segs.push({ stage: "REQ", state: "partial", pct, detail: it.reqStatus });
+  } else {
+    segs.push({ stage: "REQ", state: "empty", pct: 0, detail: "Non iniziato" });
+  }
+
+  // --- RFQ ---
+  // Cancellato se rfqStatus === "RFQ Cancelled" o "RFQ Refused" (consideriamo Refused come fine percorso)
+  // Done se "RFQ Offer Acknowledged" o se c'è già PO (avanti)
+  // Partial se "RFQ Sent to Vendor" (con % = rfqClosed/rfqIssued)
+  // Partial se "RFQ Created" → 10%
+  if (it.rfqStatus === "RFQ Cancelled") {
+    segs.push({ stage: "RFQ", state: "cancelled", pct: 0, detail: "RFQ Cancelled" });
+  } else if (it.rfqStatus === "RFQ Refused") {
+    segs.push({ stage: "RFQ", state: "cancelled", pct: 0, detail: "RFQ Refused" });
+  } else if (it.rfqStatus === "RFQ Offer Acknowledged" || (it.poStatus && it.poStatus !== "")) {
+    segs.push({ stage: "RFQ", state: "done", pct: 100, detail: it.rfqStatus || "Completata" });
+  } else if (it.rfqStatus === "RFQ Sent to Vendor") {
+    const pct = it.rfqPct || (it.rfqIssued > 0 ? Math.round((it.rfqClosed / it.rfqIssued) * 100) : 30);
+    segs.push({ stage: "RFQ", state: "partial", pct: Math.max(pct, 15), detail: `${it.rfqClosed || 0}/${it.rfqIssued || 0} risposte` });
+  } else if (it.rfqStatus === "RFQ Created") {
+    segs.push({ stage: "RFQ", state: "partial", pct: 10, detail: "Appena creata" });
+  } else {
+    segs.push({ stage: "RFQ", state: "empty", pct: 0, detail: "Non iniziata" });
+  }
+
+  // --- PO ---
+  if (it.poStatus === "PO Cancelled") {
+    segs.push({ stage: "PO", state: "cancelled", pct: 0, detail: "PO Cancelled" });
+  } else if (it.poStatus === "PO Finalized") {
+    segs.push({ stage: "PO", state: "done", pct: 100, detail: "PO Finalized" });
+  } else if (it.poStatus === "PO Published" || it.poStatus === "PO Confirmed" || it.poStatus === "PO Approved") {
+    segs.push({ stage: "PO", state: "partial", pct: 70, detail: it.poStatus });
+  } else if (it.poStatus && it.poStatus !== "") {
+    segs.push({ stage: "PO", state: "partial", pct: 50, detail: it.poStatus });
+  } else {
+    segs.push({ stage: "PO", state: "empty", pct: 0, detail: "Non emesso" });
+  }
+
+  // --- DN ---
+  if (it.dnStatus === "DN Received on Board") {
+    segs.push({ stage: "DN", state: "done", pct: 100, detail: "Ricevuto a bordo" });
+  } else if (it.dnStatus === "DN Shipped to Vessel") {
+    segs.push({ stage: "DN", state: "partial", pct: 75, detail: "Spedito alla nave" });
+  } else if (it.dnStatus === "DN Ready for Shipment") {
+    segs.push({ stage: "DN", state: "partial", pct: 50, detail: "Pronto per spedizione" });
+  } else if (it.dnStatus === "DN Delivery Tracking Open") {
+    segs.push({ stage: "DN", state: "partial", pct: 25, detail: "Tracking aperto" });
+  } else if (it.dnStatus && it.dnStatus !== "") {
+    segs.push({ stage: "DN", state: "partial", pct: 30, detail: it.dnStatus });
+  } else {
+    segs.push({ stage: "DN", state: "empty", pct: 0, detail: "Non spedito" });
+  }
+
+  return segs;
+}
+
+// HTML della barra Progress per un item.
+// Ogni segmento ha data attributes per il tooltip al hover.
+function progressBarHTML(it) {
+  const segs = computeProgressSegments(it);
+  // Stato dell'array rfqStatusSummary (multi-fornitore)
+  const rfqSummary = Array.isArray(it.rfqStatusSummary) ? it.rfqStatusSummary : [];
+  return `<div class="progress-bar" data-progress-item="${escapeAttr(it.id)}">
+    ${segs.map(s => {
+      const detailExt = s.stage === "RFQ" && rfqSummary.length > 1 ?
+        ` · ${rfqSummary.join(", ")}` : "";
+      const label = s.state === "cancelled" ? "×" :
+                    (s.state === "partial" ? `${s.stage} ${s.pct}%` : s.stage);
+      return `<div class="pseg ${s.state}" data-stage="${s.stage}" data-pct="${s.pct}" data-detail="${escapeAttr(s.detail + detailExt)}">
+        ${s.state === "partial" ? `<div class="pseg-fill" style="width: ${s.pct}%"></div>` : ""}
+        <span class="pseg-label">${escapeHTML(label)}</span>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+// HTML della colonna numeri documento (compatta).
+// REQ N° in alto, sotto RFQ (se multi → conteggio cliccabile), poi PO e DN.
+function docNumbersHTML(it) {
+  const rfqs = Array.isArray(it.rfqNumbers) ? it.rfqNumbers : [];
+  const rfqDisplay = rfqs.length === 0 ? "—" :
+                     rfqs.length === 1 ? `<span>${escapeHTML(rfqs[0])}</span>` :
+                     `<a class="docnum-multi" data-rfq-multi="${escapeAttr(it.id)}" title="Mostra ${rfqs.length} RFQ">${rfqs.length} RFQ ▾</a>`;
+  return `<div class="docnum-cell">
+    <span class="docnum-line"><span class="docnum-label">REQ</span>${escapeHTML(it.reqNumber || "—")}</span>
+    <span class="docnum-line"><span class="docnum-label">RFQ</span>${rfqDisplay}</span>
+    <span class="docnum-line"><span class="docnum-label">PO</span>${escapeHTML(it.poNumber || "—")}</span>
+    <span class="docnum-line"><span class="docnum-label">DN</span>${escapeHTML(it.dnNumber || "—")}</span>
+  </div>`;
 }
 
 function bestStatus(it) {
@@ -4432,16 +4936,35 @@ function renderPaletteResults(q) {
       results.push({ type: "vessel", id: v.vesselId, title: v.displayName, sub: "Vai alla scheda nave" });
     }
   }
-  // Match item
+  // Match item (cerca estesa: descrizione, supplier, REQ N°, RFQ N° multi, PO N°, DN N°, Infoship ID)
   if (state.data) {
     for (const v of state.data.vessels) {
       for (const it of (v.items || [])) {
-        if ((it.description || "").toLowerCase().includes(q) || (it.supplier || "").toLowerCase().includes(q)) {
+        const haystack = [
+          it.description || "",
+          it.supplier || "",
+          it.reqNumber || "",
+          it.poNumber || "",
+          it.dnNumber || "",
+          it.dnInfoshipId || "",
+          ...(Array.isArray(it.rfqNumbers) ? it.rfqNumbers : []),
+          it.department || ""
+        ].join(" ").toLowerCase();
+        if (haystack.includes(q)) {
           const cfg = VESSELS.find(c => c.vesselId === v.vesselId);
+          // Se il match è su un numero documento, lo mostro nel sub per chiarezza
+          let matchedDoc = "";
+          if ((it.reqNumber || "").toLowerCase().includes(q)) matchedDoc = it.reqNumber;
+          else if ((it.poNumber || "").toLowerCase().includes(q)) matchedDoc = it.poNumber;
+          else if ((it.dnNumber || "").toLowerCase().includes(q)) matchedDoc = it.dnNumber;
+          else if (Array.isArray(it.rfqNumbers)) {
+            const m = it.rfqNumbers.find(n => n.toLowerCase().includes(q));
+            if (m) matchedDoc = m;
+          }
           results.push({
             type: "item", vesselId: v.vesselId,
             title: it.description || "(no description)",
-            sub: `${cfg ? cfg.displayName : v.vesselName} · ${it.supplier || "—"}`
+            sub: `${cfg ? cfg.displayName : v.vesselName} · ${it.supplier || "—"}${matchedDoc ? " · " + matchedDoc : ""}`
           });
           if (results.length > 25) break;
         }
@@ -5473,7 +5996,7 @@ function openEOD() {
 let editingTodoId = null;
 let modalCurrentTags = [];  // tag attualmente selezionati nella modale
 
-function openTodoModal(todoId, prefillVesselId) {
+function openTodoModal(todoId, prefillVesselId, prefillItem) {
   editingTodoId = todoId || null;
   modalCurrentTags = [];
   const modal = document.getElementById("modal-todo");
@@ -5504,8 +6027,35 @@ function openTodoModal(todoId, prefillVesselId) {
     document.getElementById("todo-date-row").style.display = "";
     document.getElementById("todo-note").value = t.note || "";
     modalCurrentTags = Array.isArray(t.tags) ? [...t.tags] : [];
+  } else if (prefillItem) {
+    // Nuovo con pre-compilazione da item della tabella
+    title.textContent = "Nuova to-do dall'item";
+    document.getElementById("todo-category").value = "Nave";
+    document.getElementById("todo-priority").value = "media";
+    vesselSelect.value = prefillVesselId || (state.view === "vessel" ? state.selectedVesselId : "") || "";
+    document.getElementById("todo-action").value = "Sollecitare";
+
+    // Costruisco un riferimento ricco: descrizione + supplier + numero principale
+    let refParts = [];
+    if (prefillItem.description) refParts.push(prefillItem.description.length > 60 ? prefillItem.description.slice(0, 60) + "…" : prefillItem.description);
+    if (prefillItem.supplier && prefillItem.supplier !== "—") refParts.push(prefillItem.supplier);
+    // Aggiungo il numero più "avanzato" della pipeline (DN > PO > REQ)
+    const mainDoc = prefillItem.dnNumber || prefillItem.poNumber || prefillItem.reqNumber || "";
+    if (mainDoc) refParts.push(mainDoc);
+    document.getElementById("todo-reference").value = refParts.join(" · ");
+
+    // Tag: department + stato corrente (compatto)
+    if (prefillItem.department) {
+      const deptClean = prefillItem.department.replace(/ ?Department$/i, "").toLowerCase();
+      if (deptClean) modalCurrentTags.push(deptClean);
+    }
+
+    document.getElementById("todo-when").value = "today";
+    document.getElementById("todo-date").value = "";
+    document.getElementById("todo-date-row").style.display = "none";
+    document.getElementById("todo-note").value = "";
   } else {
-    // Nuovo
+    // Nuovo (default)
     title.textContent = "Nuova to-do";
     const prefillVessel = prefillVesselId || (state.view === "vessel" ? state.selectedVesselId : "") || "";
     document.getElementById("todo-category").value = prefillVessel ? "Nave" : "Nave";
