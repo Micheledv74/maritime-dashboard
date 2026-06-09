@@ -2636,20 +2636,51 @@ function saveNotes() {
   driveSchedulePush();
 }
 function loadTodos() {
+  // === v0.5.1 — caricamento DIFENSIVO ===
+  // Bug v0.5: se UNA SOLA to-do era corrotta (es. null), il map crashava,
+  // il catch tornava [] e tutte le to-do venivano cancellate al primo save.
+  // Ora: parsing robusto + migrazione per elemento + skip dei corrotti.
+  let raw;
   try {
-    const arr = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
-    // Retrocompatibilità: porto le to-do vecchie al nuovo schema
-    return arr.map(t => ({
-      category: t.category || (t.vessel ? "Nave" : "Altro"),
-      priority: t.priority || "media",
-      reference: t.reference || t.target || "",
-      tags: Array.isArray(t.tags) ? t.tags : [],
-      ...t,
-      // Forza i nuovi default se mancanti (l'ordine matters)
-      category: t.category || (t.vessel ? "Nave" : "Altro"),
-      priority: t.priority || "media"
-    }));
-  } catch { return []; }
+    raw = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
+  } catch (e) {
+    console.error("[Todos] localStorage corrotto, restituisco array vuoto:", e);
+    return [];
+  }
+  if (!Array.isArray(raw)) {
+    console.error("[Todos] localStorage non è un array, lo ignoro:", typeof raw);
+    return [];
+  }
+
+  const result = [];
+  let skipped = 0;
+  for (const t of raw) {
+    // Skip elementi null/undefined/non-oggetti
+    if (!t || typeof t !== "object") { skipped++; continue; }
+    // Skip elementi senza id (sono inutilizzabili)
+    if (!t.id) { skipped++; continue; }
+    try {
+      result.push({
+        // Default per campi mancanti
+        category: t.category || (t.vessel ? "Nave" : "Altro"),
+        priority: t.priority || "media",
+        reference: t.reference || t.target || "",
+        tags: Array.isArray(t.tags) ? t.tags : [],
+        // Spread sovrascrive solo le proprietà ESISTENTI in t
+        ...t,
+        // Re-applico i default per le proprietà che potrebbero essere undefined/null in t
+        category: t.category || (t.vessel ? "Nave" : "Altro"),
+        priority: t.priority || "media",
+        tags: Array.isArray(t.tags) ? t.tags : []
+      });
+    } catch (e) {
+      console.warn("[Todos] elemento corrotto skippato:", t, e);
+      skipped++;
+    }
+  }
+  if (skipped > 0) console.warn(`[Todos] caricate ${result.length} to-do, ${skipped} corrotte saltate`);
+  else console.log(`[Todos] caricate ${result.length} to-do`);
+  return result;
 }
 
 // Restituisce tutti i tag mai usati nelle to-do (per autocomplete)
@@ -2661,8 +2692,14 @@ function getAllTags() {
   return [...s].sort();
 }
 function saveTodos() {
+  // === v0.5.1 — safeguard: traccia ogni save per diagnosi ===
+  if (!Array.isArray(state.todos)) {
+    console.error("[Todos] state.todos non è un array! Save abortito.", state.todos);
+    return;
+  }
+  console.log(`[Todos] save: ${state.todos.length} to-do salvate in localStorage`);
   localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos));
-  driveSchedulePush();  // sync su Drive (debounced)
+  driveSchedulePush();
 }
 function loadArchivedActions() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS.archivedActions) || "{}"); } catch { return {}; }
@@ -5437,6 +5474,9 @@ async function driveInit() {
     driveSetStatus("connected");
     driveStartPolling();
     renderDriveConnectRow();
+
+    // Backup giornaliero su Drive (best-effort, non blocca)
+    driveDailyBackup().catch(e => console.warn("[Drive] daily backup error:", e));
   } catch (err) {
     console.error("Drive init error:", err);
     driveSetStatus("error", err.message);
@@ -5485,6 +5525,8 @@ async function drivePull() {
   if (!contentRes.ok) throw new Error("Errore download: HTTP " + contentRes.status);
   const remote = await contentRes.json();
 
+  console.log(`[Drive] pull: ricevuti ${(remote.todos||[]).length} to-do, ${Object.keys(remote.notes||{}).length} note dal file (modifiedTime: ${meta.modifiedTime})`);
+
   // Merge con dati locali
   mergeRemoteIntoLocal(remote);
 
@@ -5505,6 +5547,9 @@ async function drivePull() {
 function mergeRemoteIntoLocal(remote) {
   if (!remote || typeof remote !== "object") return;
 
+  const beforeCount = state.todos.length;
+  console.log(`[Drive] merge: remote ha ${(remote.todos||[]).length} to-do, locale ${beforeCount}`);
+
   // --- TODOS ---
   if (Array.isArray(remote.todos)) {
     const localById = {};
@@ -5522,6 +5567,7 @@ function mergeRemoteIntoLocal(remote) {
         }
       }
     }
+    console.log(`[Drive] merge completato: ${state.todos.length} to-do (era ${beforeCount})`);
     saveTodos();
   }
 
@@ -5545,28 +5591,72 @@ function mergeRemoteIntoLocal(remote) {
   }
 }
 
-// === PUSH (upload su Drive) ================================================
+// === PUSH (upload su Drive) — v0.5.1 con safeguard anti-svuotamento ===
 async function drivePush() {
   if (!state.drive.token) return;
   driveSetStatus("syncing");
 
+  // === SAFEGUARD 1: ricarico to-do da localStorage prima di pushare ===
+  // Se state.todos è 0 ma localStorage ne contiene di più, ripristino state
+  // (succede se qualcosa ha sovrascritto state.todos in memoria per errore).
+  try {
+    const lsRaw = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
+    if (Array.isArray(lsRaw) && lsRaw.length > (state.todos?.length || 0)) {
+      console.warn(`[Drive] state.todos (${state.todos?.length || 0}) < localStorage (${lsRaw.length}). Ricarico da localStorage prima del push.`);
+      state.todos = loadTodos();
+    }
+  } catch (e) { console.warn("[Drive] errore lettura localStorage:", e); }
+
+  // === SAFEGUARD 2: confronto con Drive prima di sovrascrivere ===
+  // Se Drive contiene N to-do e state locale ne ha 0, NON pushare.
+  if (state.drive.fileId && (!state.todos || state.todos.length === 0)) {
+    try {
+      console.log("[Drive] state.todos vuoto, verifica contenuto remoto prima di push");
+      const checkUrl = `https://www.googleapis.com/drive/v3/files/${state.drive.fileId}?alt=media`;
+      const checkRes = await driveFetch(checkUrl);
+      if (checkRes.ok) {
+        const remote = await checkRes.json();
+        if (remote && Array.isArray(remote.todos) && remote.todos.length > 0) {
+          // ABORT! Drive ha to-do, locale è vuoto. Non sovrascrivere.
+          console.error(`[Drive] ⚠ PUSH ABORTITO: Drive contiene ${remote.todos.length} to-do, locale ha 0. Probabile errore.`);
+          driveSetStatus("error", `Push annullato: Drive ha ${remote.todos.length} to-do, locale 0. Usa "Recupera da Drive".`);
+          showToast(`⚠ Push annullato! Drive ha ${remote.todos.length} to-do ma locale è vuoto. Apri Impostazioni > "Recupera da Drive".`, 8000);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("[Drive] errore check remoto pre-push:", e);
+      // In caso di errore di verifica, sono prudente: abort
+      driveSetStatus("error", "Verifica pre-push fallita, abort");
+      return;
+    }
+  }
+
+  // === SAFEGUARD 3: backup pre-push del file precedente ===
+  // Prima di sovrascrivere mpd-data.json, salvo una copia in mpd-data-prev.json
+  // (best-effort, non blocca il push se fallisce)
+  if (state.drive.fileId && state.drive.token) {
+    drivePreviousBackup().catch(e => console.warn("[Drive] backup pre-push fallito:", e));
+  }
+
   const payload = {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     deviceId: getDeviceId(),
     pushedAt: new Date().toISOString(),
+    todosCount: state.todos.length,  // diagnostico
     todos: state.todos,
     notes: state.notes,
     archivedActions: state.archivedActions
   };
   const body = JSON.stringify(payload, null, 2);
 
+  console.log(`[Drive] push: ${state.todos.length} to-do, ${Object.keys(state.notes).length} note, ${Object.keys(state.archivedActions).length} archived actions`);
+
   try {
     let res;
     if (state.drive.fileId) {
-      // Update file esistente (multipart per metadati + contenuto)
       res = await driveUploadMultipart(state.drive.fileId, body, false);
     } else {
-      // Create file nuovo
       res = await driveUploadMultipart(null, body, true);
     }
     if (!res.ok) throw new Error("Upload HTTP " + res.status);
@@ -5587,9 +5677,10 @@ async function drivePush() {
   }
 }
 
-async function driveUploadMultipart(fileId, content, isNew) {
+async function driveUploadMultipart(fileId, content, isNew, customName) {
   const boundary = "mpd_boundary_" + Date.now();
-  const metadata = isNew ? { name: DRIVE_CONFIG.filename, mimeType: "application/json" } : {};
+  const fname = customName || DRIVE_CONFIG.filename;
+  const metadata = isNew ? { name: fname, mimeType: "application/json" } : {};
   const metadataPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}`;
   const contentPart = `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
   const body = metadataPart + contentPart;
@@ -5620,6 +5711,132 @@ async function driveFetch(url, options) {
     showToast("Sessione Drive scaduta, riconnetti dalle Impostazioni");
   }
   return res;
+}
+
+// === BACKUP PRE-PUSH: copia mpd-data.json in mpd-data-prev.json ==========
+// Best-effort: se fallisce non blocca il push principale.
+// Permette recupero veloce se mpd-data.json viene corrotto.
+async function drivePreviousBackup() {
+  if (!state.drive.token || !state.drive.fileId) return;
+
+  // Leggo il contenuto attuale di mpd-data.json
+  const readUrl = `https://www.googleapis.com/drive/v3/files/${state.drive.fileId}?alt=media`;
+  const readRes = await driveFetch(readUrl);
+  if (!readRes.ok) throw new Error("Read failed: " + readRes.status);
+  const content = await readRes.text();
+
+  // Cerco se esiste già mpd-data-prev.json
+  const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='mpd-data-prev.json' and trashed=false&fields=files(id)&spaces=drive`;
+  const searchRes = await driveFetch(searchUrl);
+  let prevFileId = null;
+  if (searchRes.ok) {
+    const data = await searchRes.json();
+    if (data.files && data.files.length > 0) prevFileId = data.files[0].id;
+  }
+
+  // Upload (create o update)
+  if (prevFileId) {
+    await driveUploadMultipart(prevFileId, content, false, "mpd-data-prev.json");
+  } else {
+    await driveUploadMultipart(null, content, true, "mpd-data-prev.json");
+  }
+  console.log("[Drive] backup pre-push completato (mpd-data-prev.json)");
+}
+
+// === BACKUP GIORNALIERO SU DRIVE: mpd-todos-backup-AAAA-MM-GG.json =======
+// Una volta al giorno, alla prima apertura, salva una copia delle to-do
+// su Drive con nome versionato. Mantiene gli ultimi 7 file.
+async function driveDailyBackup() {
+  if (!state.drive.token || !state.todos || state.todos.length === 0) return;
+
+  const today = todayISO();
+  const lastDriveBackup = localStorage.getItem("mpd.lastDriveBackupDate");
+  if (lastDriveBackup === today) return;  // già fatto oggi
+
+  const fname = `mpd-todos-backup-${today}.json`;
+  const content = JSON.stringify({
+    backupDate: new Date().toISOString(),
+    todosCount: state.todos.length,
+    todos: state.todos,
+    notes: state.notes,
+    archivedActions: state.archivedActions
+  }, null, 2);
+
+  try {
+    await driveUploadMultipart(null, content, true, fname);
+    localStorage.setItem("mpd.lastDriveBackupDate", today);
+    console.log(`[Drive] backup giornaliero su Drive: ${fname}`);
+
+    // Cleanup: mantengo solo gli ultimi 7 backup
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name contains 'mpd-todos-backup-' and trashed=false&fields=files(id,name,createdTime)&orderBy=createdTime desc&spaces=drive`;
+    const searchRes = await driveFetch(searchUrl);
+    if (searchRes.ok) {
+      const data = await searchRes.json();
+      const files = (data.files || []).filter(f => /^mpd-todos-backup-\d{4}-\d{2}-\d{2}\.json$/.test(f.name));
+      if (files.length > 7) {
+        const toDelete = files.slice(7);  // i più vecchi
+        for (const f of toDelete) {
+          try {
+            await driveFetch(`https://www.googleapis.com/drive/v3/files/${f.id}`, { method: "DELETE" });
+            console.log(`[Drive] eliminato backup vecchio: ${f.name}`);
+          } catch (e) { console.warn("[Drive] cleanup fallito per", f.name); }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("[Drive] backup giornaliero fallito:", e);
+  }
+}
+
+// === RECUPERA TUTTO DA DRIVE (sovrascrive locale) ========================
+// Funzione esplicita richiamata dal bottone "Recupera da Drive" nelle Impostazioni.
+// Quando la UI è vuota ma Drive è pieno, questa ripristina lo state locale.
+async function driveRecoverFromDrive() {
+  if (!state.drive.token) {
+    showToast("Non connesso a Drive");
+    return;
+  }
+  if (!state.drive.fileId) {
+    // Riprova a trovare il file
+    const fid = await driveFindFile();
+    if (!fid) {
+      showToast("File mpd-data.json non trovato su Drive");
+      return;
+    }
+    state.drive.fileId = fid;
+    localStorage.setItem(LS_KEYS.driveFileId, fid);
+  }
+
+  driveSetStatus("syncing");
+  try {
+    const url = `https://www.googleapis.com/drive/v3/files/${state.drive.fileId}?alt=media`;
+    const res = await driveFetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const remote = await res.json();
+
+    if (!confirm(`Drive contiene ${(remote.todos||[]).length} to-do, ${Object.keys(remote.notes||{}).length} note. Sovrascrivere lo stato locale? (operazione non reversibile)`)) {
+      driveSetStatus("connected");
+      return;
+    }
+
+    // Sovrascrive completamente
+    state.todos = Array.isArray(remote.todos) ? remote.todos : [];
+    state.notes = (remote.notes && typeof remote.notes === "object") ? remote.notes : {};
+    state.archivedActions = (remote.archivedActions && typeof remote.archivedActions === "object") ? remote.archivedActions : {};
+
+    localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos));
+    localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes));
+    localStorage.setItem(LS_KEYS.archivedActions, JSON.stringify(state.archivedActions));
+
+    console.log(`[Drive] recuperate ${state.todos.length} to-do, ${Object.keys(state.notes).length} note da Drive`);
+    showToast(`Recuperate ${state.todos.length} to-do da Drive`);
+    driveSetStatus("connected");
+    render();
+  } catch (e) {
+    console.error("[Drive] recupero fallito:", e);
+    driveSetStatus("error", e.message);
+    showToast("Recupero fallito: " + e.message);
+  }
 }
 
 // === DEBOUNCED PUSH (chiamato a ogni modifica locale) =====================
@@ -5661,12 +5878,16 @@ function renderDriveConnectRow() {
   const lastSync = state.drive.lastSyncAt ? new Date(state.drive.lastSyncAt).toLocaleString("it-IT") : "mai";
 
   row.innerHTML = connected ? `
-    <div class="status connected">
+    <div class="status connected" style="flex:1;min-width:200px;">
       ✓ Connesso a Google Drive<br>
       <span style="font-size:var(--fs-xs);color:var(--text-muted);">Ultimo sync: ${lastSync}</span>
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">State locale: ${state.todos.length} to-do</span>
     </div>
-    <button class="btn btn-sm" id="drive-sync-now-btn">Sincronizza ora</button>
-    <button class="btn btn-sm" id="drive-disconnect-btn">Disconnetti</button>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <button class="btn btn-sm" id="drive-sync-now-btn">Sincronizza ora</button>
+      <button class="btn btn-sm" id="drive-recover-btn" title="Sovrascrive lo stato locale con il contenuto di Drive">📥 Recupera da Drive</button>
+      <button class="btn btn-sm" id="drive-disconnect-btn">Disconnetti</button>
+    </div>
   ` : `
     <div class="status">
       ☁ Drive non connesso<br>
@@ -5678,10 +5899,12 @@ function renderDriveConnectRow() {
   document.getElementById("drive-connect-btn")?.addEventListener("click", driveConnect);
   document.getElementById("drive-disconnect-btn")?.addEventListener("click", driveDisconnect);
   document.getElementById("drive-sync-now-btn")?.addEventListener("click", async () => {
-    await drivePush();
+    // Prima pull poi push: così se Drive ha cose nuove non le sovrascriviamo
     await drivePull();
+    await drivePush();
     showToast("Sync manuale completato");
   });
+  document.getElementById("drive-recover-btn")?.addEventListener("click", driveRecoverFromDrive);
 }
 
 
