@@ -2441,10 +2441,103 @@ a:hover { text-decoration: underline; }
 
 <script>
 /* ========================================================================
- * MARITIME PROCUREMENT DASHBOARD v0.1
+ * MARITIME PROCUREMENT DASHBOARD
  * Vessel-centric operational dashboard for ship purchasing.
- * Data: data-procurement.json + data-tracking.json from this repo.
  * ====================================================================== */
+
+// ============================================================================
+// === STORAGE KEYS — DICHIARATO PER PRIMA COSA (FIX TDZ) ====================
+// ============================================================================
+// MUST stare PRIMA di qualsiasi altra dichiarazione. Le funzioni loadXxx()
+// chiamate durante l'inizializzazione di `state` usano LS_KEYS. Se LS_KEYS è
+// dichiarato dopo, viene crashato con "Cannot access 'LS_KEYS' before
+// initialization" (temporal dead zone) → load*() falliscono → state vuoto →
+// saveTodos sovrascrive localStorage con [] → drivePush svuota Drive.
+// (Bug v0.5/v0.5.1 — fix definitivo v0.5.1.1)
+const LS_KEYS = {
+  settings: "mpd.settings",
+  snoozed: "mpd.snoozed",
+  notes: "mpd.notes",
+  snapshot: "mpd.morningSnapshot",
+  lastVisit: "mpd.lastVisit",
+  lastSnapshotDate: "mpd.lastSnapshotDate",
+  onbDone: "mpd.onboardingDone",
+  cache: "mpd.cache",
+  todos: "mpd.todos",
+  archivedActions: "mpd.archivedActions",
+  lastBackupDate: "mpd.lastBackupDate",
+  lastExcelDate: "mpd.lastExcelDate",
+  driveToken: "mpd.driveToken",
+  driveFileId: "mpd.driveFileId",
+  driveLastModified: "mpd.driveLastModified",
+  driveWasConnected: "mpd.driveWasConnected"
+};
+
+// ============================================================================
+// === LOAD FUNCTIONS — anche queste prima di state ===========================
+// ============================================================================
+// Hardcoded fallback: anche se LS_KEYS per qualche ragione fallisce, le chiavi
+// sono note. Usiamo questa "doppia rete di sicurezza" per non perdere mai dati.
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(LS_KEYS?.settings || "mpd.settings");
+    return raw ? { ...(typeof DEFAULT_SETTINGS !== "undefined" ? DEFAULT_SETTINGS : {}), ...JSON.parse(raw) } : { ...(typeof DEFAULT_SETTINGS !== "undefined" ? DEFAULT_SETTINGS : {}) };
+  } catch { return { ...(typeof DEFAULT_SETTINGS !== "undefined" ? DEFAULT_SETTINGS : {}) }; }
+}
+function loadSnoozed() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS?.snoozed || "mpd.snoozed") || "{}"); } catch { return {}; }
+}
+function loadNotes() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS?.notes || "mpd.notes") || "{}"); } catch { return {}; }
+}
+function loadTodos() {
+  // === v0.5.1.1 — caricamento blindato ===
+  // Usa chiave hardcoded come fallback se LS_KEYS non disponibile.
+  // Caricamento per-elemento: una to-do corrotta non blocca le altre.
+  const KEY = (typeof LS_KEYS !== "undefined" && LS_KEYS?.todos) ? LS_KEYS.todos : "mpd.todos";
+  let raw;
+  try {
+    raw = JSON.parse(localStorage.getItem(KEY) || "[]");
+  } catch (e) {
+    console.error("[Todos] localStorage corrotto, restituisco array vuoto:", e);
+    return [];
+  }
+  if (!Array.isArray(raw)) {
+    console.error("[Todos] localStorage non è un array, lo ignoro:", typeof raw);
+    return [];
+  }
+  const result = [];
+  let skipped = 0;
+  for (const t of raw) {
+    if (!t || typeof t !== "object") { skipped++; continue; }
+    if (!t.id) { skipped++; continue; }
+    try {
+      result.push({
+        category: t.category || (t.vessel ? "Nave" : "Altro"),
+        priority: t.priority || "media",
+        reference: t.reference || t.target || "",
+        tags: Array.isArray(t.tags) ? t.tags : [],
+        ...t,
+        category: t.category || (t.vessel ? "Nave" : "Altro"),
+        priority: t.priority || "media",
+        tags: Array.isArray(t.tags) ? t.tags : []
+      });
+    } catch (e) {
+      console.warn("[Todos] elemento corrotto skippato:", t, e);
+      skipped++;
+    }
+  }
+  if (skipped > 0) console.warn(`[Todos] caricate ${result.length} to-do, ${skipped} corrotte saltate`);
+  else console.log(`[Todos] caricate ${result.length} to-do da localStorage (key: ${KEY})`);
+  return result;
+}
+function loadArchivedActions() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS?.archivedActions || "mpd.archivedActions") || "{}"); } catch { return {}; }
+}
+function loadSnapshot() {
+  try { return JSON.parse(localStorage.getItem(LS_KEYS?.snapshot || "mpd.morningSnapshot") || "null"); } catch { return null; }
+}
 
 // ============================================================================
 // === CONFIG ==================================================================
@@ -2558,6 +2651,25 @@ const ALERT_CONFIG = {
 
 const TEST_PATTERN = /^(test|asdf|qwer|asdg|zxcv)/i;
 
+// (LS_KEYS spostato in cima, vedi inizio <script>)
+
+
+// === Funzioni di caricamento dichiarate in cima a <script> (vedi fix TDZ) ===
+// Qui rimangono solo le funzioni di salvataggio e le helper non-load.
+
+function defaultSettings() {
+  return {
+    overdueDays: 7,
+    showSnoozed: false,
+    morningSnapshotEnabled: true,
+    morningSnapshotHour: 8,
+    morningSnapshotMin: 0,
+    theme: "light",
+    layout: "compact",
+    todosViewMode: "byDate"
+  };
+}
+
 // ============================================================================
 // === STATE ==================================================================
 // ============================================================================
@@ -2579,8 +2691,6 @@ const state = {
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
   morningSnapshot: loadSnapshot(),
   drive: {
-    // Hardcoded perché LS_KEYS è dichiarato dopo state nel file (temporal dead zone).
-    // Le chiavi sono fisse, non c'è rischio di drift con LS_KEYS.
     token: null,                  // token di accesso OAuth (in memoria, non in localStorage)
     fileId: localStorage.getItem("mpd.driveFileId") || null,
     status: "disconnected",       // disconnected | connected | syncing | error
@@ -2592,95 +2702,16 @@ const state = {
   }
 };
 
-// ============================================================================
-// === STORAGE / SETTINGS =====================================================
-// ============================================================================
+// (LS_KEYS e load functions dichiarati in cima a <script>)
+// Qui solo le save functions (devono stare dopo state perché usano state.xxx).
 
-const LS_KEYS = {
-  settings: "mpd.settings",
-  snoozed: "mpd.snoozed",
-  notes: "mpd.notes",
-  snapshot: "mpd.morningSnapshot",
-  lastVisit: "mpd.lastVisit",
-  lastSnapshotDate: "mpd.lastSnapshotDate",
-  onbDone: "mpd.onboardingDone",
-  cache: "mpd.cache",
-  todos: "mpd.todos",
-  archivedActions: "mpd.archivedActions",
-  lastBackupDate: "mpd.lastBackupDate",
-  lastExcelDate: "mpd.lastExcelDate",
-  driveToken: "mpd.driveToken",
-  driveFileId: "mpd.driveFileId",
-  driveLastModified: "mpd.driveLastModified",
-  driveWasConnected: "mpd.driveWasConnected"  // flag persistente: l'utente ha già autorizzato
-};
-
-function loadSettings() {
-  try {
-    const raw = localStorage.getItem(LS_KEYS.settings);
-    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
-  } catch { return { ...DEFAULT_SETTINGS }; }
-}
 function saveSettings() {
   localStorage.setItem(LS_KEYS.settings, JSON.stringify(state.settings));
 }
-function loadSnoozed() {
-  try { return JSON.parse(localStorage.getItem(LS_KEYS.snoozed) || "{}"); } catch { return {}; }
-}
 function saveSnoozed() { localStorage.setItem(LS_KEYS.snoozed, JSON.stringify(state.snoozed)); }
-function loadNotes() {
-  try { return JSON.parse(localStorage.getItem(LS_KEYS.notes) || "{}"); } catch { return {}; }
-}
 function saveNotes() {
   localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes));
   driveSchedulePush();
-}
-function loadTodos() {
-  // === v0.5.1 — caricamento DIFENSIVO ===
-  // Bug v0.5: se UNA SOLA to-do era corrotta (es. null), il map crashava,
-  // il catch tornava [] e tutte le to-do venivano cancellate al primo save.
-  // Ora: parsing robusto + migrazione per elemento + skip dei corrotti.
-  let raw;
-  try {
-    raw = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
-  } catch (e) {
-    console.error("[Todos] localStorage corrotto, restituisco array vuoto:", e);
-    return [];
-  }
-  if (!Array.isArray(raw)) {
-    console.error("[Todos] localStorage non è un array, lo ignoro:", typeof raw);
-    return [];
-  }
-
-  const result = [];
-  let skipped = 0;
-  for (const t of raw) {
-    // Skip elementi null/undefined/non-oggetti
-    if (!t || typeof t !== "object") { skipped++; continue; }
-    // Skip elementi senza id (sono inutilizzabili)
-    if (!t.id) { skipped++; continue; }
-    try {
-      result.push({
-        // Default per campi mancanti
-        category: t.category || (t.vessel ? "Nave" : "Altro"),
-        priority: t.priority || "media",
-        reference: t.reference || t.target || "",
-        tags: Array.isArray(t.tags) ? t.tags : [],
-        // Spread sovrascrive solo le proprietà ESISTENTI in t
-        ...t,
-        // Re-applico i default per le proprietà che potrebbero essere undefined/null in t
-        category: t.category || (t.vessel ? "Nave" : "Altro"),
-        priority: t.priority || "media",
-        tags: Array.isArray(t.tags) ? t.tags : []
-      });
-    } catch (e) {
-      console.warn("[Todos] elemento corrotto skippato:", t, e);
-      skipped++;
-    }
-  }
-  if (skipped > 0) console.warn(`[Todos] caricate ${result.length} to-do, ${skipped} corrotte saltate`);
-  else console.log(`[Todos] caricate ${result.length} to-do`);
-  return result;
 }
 
 // Restituisce tutti i tag mai usati nelle to-do (per autocomplete)
@@ -2692,24 +2723,32 @@ function getAllTags() {
   return [...s].sort();
 }
 function saveTodos() {
-  // === v0.5.1 — safeguard: traccia ogni save per diagnosi ===
+  // === v0.5.1.1 — safeguard rinforzato ===
   if (!Array.isArray(state.todos)) {
     console.error("[Todos] state.todos non è un array! Save abortito.", state.todos);
     return;
+  }
+  // SAFEGUARD: se sto per salvare 0 to-do ma localStorage ne ha di più,
+  // rifiuto il save (è probabilmente un load fallito o uno stato inconsistente).
+  if (state.todos.length === 0) {
+    try {
+      const lsRaw = JSON.parse(localStorage.getItem(LS_KEYS.todos) || "[]");
+      if (Array.isArray(lsRaw) && lsRaw.length > 0) {
+        console.error(`[Todos] ⚠ SAVE ABORTITO: state vuoto ma localStorage ha ${lsRaw.length} to-do. Probabile errore di caricamento.`);
+        if (typeof showToast === "function") {
+          showToast(`⚠ Save annullato: state vuoto ma localStorage ha ${lsRaw.length} to-do.`, 6000);
+        }
+        return;
+      }
+    } catch {}
   }
   console.log(`[Todos] save: ${state.todos.length} to-do salvate in localStorage`);
   localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos));
   driveSchedulePush();
 }
-function loadArchivedActions() {
-  try { return JSON.parse(localStorage.getItem(LS_KEYS.archivedActions) || "{}"); } catch { return {}; }
-}
 function saveArchivedActions() {
   localStorage.setItem(LS_KEYS.archivedActions, JSON.stringify(state.archivedActions));
   driveSchedulePush();
-}
-function loadSnapshot() {
-  try { return JSON.parse(localStorage.getItem(LS_KEYS.snapshot) || "null"); } catch { return null; }
 }
 function saveSnapshot(snap) {
   localStorage.setItem(LS_KEYS.snapshot, JSON.stringify(snap));
