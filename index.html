@@ -1176,6 +1176,31 @@ a:hover { text-decoration: underline; }
   align-items: center;
   margin-bottom: 12px;
 }
+/* v0.6 — Reminder item nella modale to-do */
+.todo-item-reminder {
+  background: var(--bg-muted);
+  border-left: 3px solid var(--c-blue-dot);
+  padding: 10px 14px;
+  margin: 0 0 12px 0;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.todo-item-reminder .reminder-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+.todo-item-reminder #todo-item-reminder-text {
+  color: var(--text);
+  font-weight: 500;
+}
+
 @media (max-width: 480px) {
   .todo-form-row { grid-template-columns: 1fr; gap: 4px; }
 }
@@ -1862,29 +1887,37 @@ a:hover { text-decoration: underline; }
 /* === PROGRESS BAR (colonna pipeline a 4 segmenti) v0.5 ================== */
 .progress-bar {
   display: inline-flex;
-  gap: 3px;
+  gap: 4px;
   align-items: stretch;
-  height: 22px;
-  min-width: 180px;
+  height: 30px;             /* v0.6 più alta (era 22) */
+  min-width: 240px;         /* v0.6 più larga (era 180) */
+  width: 100%;
 }
 .pseg {
   flex: 1;
   position: relative;
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
-  min-width: 38px;
+  min-width: 52px;          /* v0.6 più largo (era 38) */
   background: var(--bg-muted);
   border: 0.5px solid var(--border);
   transition: transform 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .pseg:hover { transform: translateY(-1px); }
 .pseg-label {
-  position: absolute; inset: 0;
+  position: relative;
   display: flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 500;
-  letter-spacing: 0.05em; text-transform: uppercase;
+  font-size: 11px; font-weight: 600;        /* v0.6: più grande e più visibile */
+  letter-spacing: 0.04em; text-transform: uppercase;
   z-index: 2; pointer-events: none;
-  color: var(--text-faint);
+  color: var(--text-muted);
+  width: 100%;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .pseg-fill {
   position: absolute; left: 0; top: 0; bottom: 0;
@@ -1915,6 +1948,29 @@ a:hover { text-decoration: underline; }
   background: var(--c-red-bg);
   border-color: var(--c-red-dot);
   opacity: 0.55;
+}
+/* v0.6 — colori label per stato (più leggibili) */
+.pseg.done .pseg-label { color: var(--c-green-fg); }
+.pseg.partial .pseg-label { color: var(--c-blue-fg); }
+.pseg.cancelled .pseg-label { color: var(--c-red-fg); }
+.pseg.empty .pseg-label { color: var(--text-faint); }
+
+/* v0.6 — Refused: non drammatico come cancelled. Tinta neutra-arancio. */
+.pseg.refused {
+  background: var(--c-amber-bg);
+  border-color: var(--c-amber-dot);
+  opacity: 0.85;
+}
+.pseg.refused .pseg-label { color: var(--c-amber-fg); }
+/* Caso critico: 100% refused (tutti i fornitori rifiutano) — più visibile */
+.pseg.refused-all {
+  background: var(--c-orange-bg, #ffe4cc);
+  border: 1.5px solid var(--c-orange-dot, #ff8c42);
+  opacity: 1;
+}
+.pseg.refused-all .pseg-label {
+  color: var(--c-orange-fg, #b54e0a);
+  font-weight: 700;
 }
 .pseg.cancelled .pseg-label {
   color: var(--c-red-fg);
@@ -1951,6 +2007,76 @@ a:hover { text-decoration: underline; }
   font-weight: 500;
 }
 .docnum-cell .docnum-multi:hover { text-decoration: underline; }
+/* v0.6 — Click-to-copy sui numeri documento */
+.docnum-copy {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 3px;
+  margin: -1px -3px;
+  transition: background 0.1s;
+}
+.docnum-copy:hover {
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+}
+.docnum-copy:active {
+  background: var(--c-blue-dot);
+  color: white;
+}
+/* v0.6 — Multi-RFQ bottone (era <a>, ora <button> più robusto) */
+.docnum-cell .docnum-multi {
+  background: transparent;
+  border: 1px solid var(--c-blue-dot);
+  color: var(--c-blue-fg);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 500;
+}
+.docnum-cell .docnum-multi:hover {
+  background: var(--c-blue-bg);
+}
+
+
+
+/* v0.6 — Toggle bar completati/cancellati */
+.items-visibility-toggles {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.items-visibility-toggles:empty { display: none; }
+.items-visibility-toggles .toggle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-surface);
+  transition: all 0.15s;
+}
+.items-visibility-toggles .toggle-chip:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-muted);
+}
+.items-visibility-toggles .toggle-chip.on {
+  background: var(--c-blue-bg);
+  border-color: var(--c-blue-dot);
+  color: var(--c-blue-fg);
+}
+.items-visibility-toggles .toggle-chip .count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
 
 /* === POPOVER (lista RFQ multiple) ======================================== */
 .docnum-popover {
@@ -2336,6 +2462,11 @@ a:hover { text-decoration: underline; }
     <div class="modal-header">
       <h2 id="modal-todo-title">Nuova to-do</h2>
       <button class="close" data-close-modal>✕</button>
+    </div>
+    <!-- v0.6: reminder visivo per to-do pre-compilate dall'item -->
+    <div id="todo-item-reminder" class="todo-item-reminder" style="display: none;">
+      <span class="reminder-label">Item:</span>
+      <span id="todo-item-reminder-text"></span>
     </div>
     <div class="todo-form-row">
       <label for="todo-category">Categoria</label>
@@ -3836,6 +3967,9 @@ function renderVesselDetail() {
         </select>
         ${state.pipelineFilter || state._kpiFilter ? `<button class="btn btn-sm" onclick="clearPipelineFilter()">Pulisci filtri</button>` : ""}
       </div>
+      <div class="items-visibility-toggles" id="items-visibility-toggles">
+        <!-- Popolato dinamicamente da updateVisibilityToggles() dopo renderItemsTable -->
+      </div>
       <div class="items-table-wrap as-cards">
         <table class="items-table as-cards" id="items-table">
           <thead>
@@ -4002,6 +4136,38 @@ function computePipeline(v) {
   };
 }
 
+
+// v0.6 — Aggiorna i toggle "Mostra completati" / "Mostra cancellati"
+// Chiamato dopo renderItemsTable per riflettere i conteggi correnti.
+function updateVisibilityToggles() {
+  const el = document.getElementById("items-visibility-toggles");
+  if (!el) return;
+  const hc = state._lastHiddenCompleted || 0;
+  const hx = state._lastHiddenCancelled || 0;
+  // Se non c'è nulla da nascondere/mostrare, lascia vuoto
+  if (hc === 0 && hx === 0 && !state._showCompletedItems && !state._showCancelledItems) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = `
+    <span style="color: var(--text-faint);">Visibilità:</span>
+    <span class="toggle-chip ${state._showCompletedItems ? "on" : ""}" id="toggle-completed">
+      ${state._showCompletedItems ? "✓" : "○"} Completati <span class="count">${hc || (state._showCompletedItems ? "✓" : 0)}</span>
+    </span>
+    <span class="toggle-chip ${state._showCancelledItems ? "on" : ""}" id="toggle-cancelled">
+      ${state._showCancelledItems ? "✓" : "○"} Cancellati <span class="count">${hx || (state._showCancelledItems ? "✓" : 0)}</span>
+    </span>
+  `;
+  document.getElementById("toggle-completed")?.addEventListener("click", () => {
+    state._showCompletedItems = !state._showCompletedItems;
+    render();
+  });
+  document.getElementById("toggle-cancelled")?.addEventListener("click", () => {
+    state._showCancelledItems = !state._showCancelledItems;
+    render();
+  });
+}
+
 function renderItemsTable(v) {
   const tbody = document.getElementById("items-tbody");
   if (!tbody) return;
@@ -4030,6 +4196,24 @@ function renderItemsTable(v) {
   if (state.supplierFilter) {
     items = items.filter(it => it.supplier === state.supplierFilter);
   }
+
+  // v0.6 — Filtro completati/cancellati (di default nascosti)
+  const showCompleted = !!state._showCompletedItems;
+  const showCancelled = !!state._showCancelledItems;
+  let hiddenCompleted = 0, hiddenCancelled = 0;
+  items = items.filter(it => {
+    // Cancellato: REQ Cancelled o PO Cancelled
+    const isCancelled = it.reqStatus === "REQ Cancelled" || it.poStatus === "PO Cancelled";
+    // Completato: DN Received on Board (ciclo chiuso)
+    const isCompleted = it.dnStatus === "DN Received on Board" && !isCancelled;
+    if (isCancelled && !showCancelled) { hiddenCancelled++; return false; }
+    if (isCompleted && !showCompleted) { hiddenCompleted++; return false; }
+    return true;
+  });
+  // Memorizzo i conteggi per il rendering del toggle bar
+  state._lastHiddenCompleted = hiddenCompleted;
+  state._lastHiddenCancelled = hiddenCancelled;
+
   if (state._sortBy) {
     items = [...items].sort((a, b) => {
       const av = a[state._sortBy] ?? "";
@@ -4072,7 +4256,7 @@ function renderItemsTable(v) {
       </td>
       <td data-label="N° doc">${docNumbersHTML(it)}</td>
       <td data-label="Progress">${progressBarHTML(it)}</td>
-      <td data-label="Età" class="days-cell">${it.rfqDays != null ? it.rfqDays + "g" : "—"}</td>
+      <td data-label="Età" class="days-cell">${ageOrCompletionHTML(it)}</td>
       <td data-label="Consegna" class="num">${formatDate(it.deliveryDate)}</td>
       <td data-label="Nota">
         <textarea class="notes-input ${note ? "has-content" : ""}" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
@@ -4082,6 +4266,9 @@ function renderItemsTable(v) {
       </td>
     </tr>`;
   }).join("");
+
+  // v0.6: aggiorna toggle bar dopo render
+  updateVisibilityToggles();
 
   // Attiva l'animazione di fill della Progress bar (al prossimo tick, dopo il paint iniziale a width=0)
   setTimeout(() => {
@@ -4107,27 +4294,55 @@ function renderItemsTable(v) {
     });
   });
 
-  // Bottone "+ to-do" per riga: apre la modale to-do pre-compilata con item
-  tbody.querySelectorAll("[data-row-todo]").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const id = btn.dataset.rowTodo;
-      const it = items.find(x => x.id === id);
-      if (!it) return;
-      openTodoModal(null, v.vesselId, it);
+  // v0.6 — EVENT DELEGATION su tbody (più robusto del per-element listener).
+  // Un solo listener cattura tutti i click di interesse e li dispatcha per target.
+  // Sopravvive a re-render della tabella senza bisogno di re-registrare.
+  if (!tbody.dataset.delegationAttached) {
+    tbody.addEventListener("click", async (e) => {
+      // === Click su numero documento (copia) ===
+      const copyEl = e.target.closest("[data-copy-num]");
+      if (copyEl) {
+        e.stopPropagation();
+        const num = copyEl.dataset.copyNum;
+        try {
+          await navigator.clipboard.writeText(num);
+          showToast(`📋 Copiato: ${num}`);
+          // Feedback visivo: lampeggio
+          copyEl.style.background = "var(--c-green-bg)";
+          setTimeout(() => { copyEl.style.background = ""; }, 350);
+        } catch {
+          showToast("Copia non riuscita");
+        }
+        return;
+      }
+      // === Click su "N RFQ ▾" multi-valore (popover) ===
+      const rfqBtn = e.target.closest("[data-rfq-multi]");
+      if (rfqBtn) {
+        e.stopPropagation();
+        const id = rfqBtn.dataset.rfqMulti;
+        // Cerco l'item — uso una ricerca CORRENTE perché items potrebbe essere cambiato
+        const allItems = (state.data?.vessels || []).flatMap(vv => vv.items || []);
+        const it = allItems.find(x => x.id === id);
+        if (!it) { console.warn("[RFQ popover] item non trovato:", id); return; }
+        openRfqMultiPopover(rfqBtn, it);
+        return;
+      }
+      // === Click su bottone "+ to-do" per riga ===
+      const todoBtn = e.target.closest("[data-row-todo]");
+      if (todoBtn) {
+        e.stopPropagation();
+        const id = todoBtn.dataset.rowTodo;
+        const allItems = (state.data?.vessels || []).flatMap(vv => vv.items || []);
+        const it = allItems.find(x => x.id === id);
+        if (!it) return;
+        // vesselId del riga: vado a cercare la nave dell'item
+        const vId = (state.data?.vessels || []).find(vv => (vv.items || []).some(i => i.id === id))?.vesselId;
+        openTodoModal(null, vId, it);
+        return;
+      }
     });
-  });
-
-  // Click su "N RFQ ▾" multi-valore: apre popover con la lista dei numeri RFQ
-  tbody.querySelectorAll("[data-rfq-multi]").forEach(link => {
-    link.addEventListener("click", e => {
-      e.stopPropagation();
-      const id = link.dataset.rfqMulti;
-      const it = items.find(x => x.id === id);
-      if (!it) return;
-      openRfqMultiPopover(link, it);
-    });
-  });
+    tbody.dataset.delegationAttached = "1";
+  }
 
   // Tooltip al hover sui segmenti Progress (uso title nativo per semplicità,
   // più informativo del solo stage)
@@ -4248,7 +4463,16 @@ function computeProgressSegments(it) {
   if (it.rfqStatus === "RFQ Cancelled") {
     segs.push({ stage: "RFQ", state: "cancelled", pct: 0, detail: "RFQ Cancelled" });
   } else if (it.rfqStatus === "RFQ Refused") {
-    segs.push({ stage: "RFQ", state: "cancelled", pct: 0, detail: "RFQ Refused" });
+    // v0.6: distinguo "alcuni refused" da "tutti refused (critico)"
+    const summary = Array.isArray(it.rfqStatusSummary) ? it.rfqStatusSummary : [];
+    // Se RFQ Status Summary contiene SOLO "RFQ Refused" → tutti i fornitori contattati
+    // hanno rifiutato (caso critico). Altrimenti è un mix e qualcuno potrebbe ancora rispondere.
+    const allRefused = summary.length === 1 && summary[0] === "RFQ Refused";
+    if (allRefused) {
+      segs.push({ stage: "RFQ", state: "refused-all", pct: 0, detail: `Tutti ${it.rfqIssued || ""} fornitori hanno rifiutato` });
+    } else {
+      segs.push({ stage: "RFQ", state: "refused", pct: 0, detail: "RFQ Refused (parziale)" });
+    }
   } else if (it.rfqStatus === "RFQ Offer Acknowledged" || (it.poStatus && it.poStatus !== "")) {
     segs.push({ stage: "RFQ", state: "done", pct: 100, detail: it.rfqStatus || "Completata" });
   } else if (it.rfqStatus === "RFQ Sent to Vendor") {
@@ -4313,16 +4537,37 @@ function progressBarHTML(it) {
 
 // HTML della colonna numeri documento (compatta).
 // REQ N° in alto, sotto RFQ (se multi → conteggio cliccabile), poi PO e DN.
+
+// v0.6 — Per item con DN ricevuto a bordo (ciclo chiuso), mostra la data dnDate
+// formattata come "✓ 28 apr" invece dell'età RFQ. Per gli altri, età RFQ.
+function ageOrCompletionHTML(it) {
+  if (it.dnStatus === "DN Received on Board" && it.dnDate) {
+    const d = new Date(it.dnDate);
+    if (!isNaN(d.getTime())) {
+      const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+      return `<span style="color: var(--c-green-fg); font-size: 11px;">✓ ${d.getDate()} ${months[d.getMonth()]}</span>`;
+    }
+  }
+  return it.rfqDays != null ? it.rfqDays + "g" : "—";
+}
+
 function docNumbersHTML(it) {
+  // v0.6 — Ogni numero documento è ora un <span class="docnum-copy"> cliccabile:
+  // click → copia negli appunti + toast. Pattern uniforme per REQ/PO/DN/single-RFQ.
+  // Multi-RFQ resta un <button> (più robusto del <a>) che apre il popover.
   const rfqs = Array.isArray(it.rfqNumbers) ? it.rfqNumbers : [];
+  function copyableNum(num) {
+    if (!num || num === "—") return "—";
+    return `<span class="docnum-copy" data-copy-num="${escapeAttr(num)}" title="Click per copiare">${escapeHTML(num)}</span>`;
+  }
   const rfqDisplay = rfqs.length === 0 ? "—" :
-                     rfqs.length === 1 ? `<span>${escapeHTML(rfqs[0])}</span>` :
-                     `<a class="docnum-multi" data-rfq-multi="${escapeAttr(it.id)}" title="Mostra ${rfqs.length} RFQ">${rfqs.length} RFQ ▾</a>`;
+                     rfqs.length === 1 ? copyableNum(rfqs[0]) :
+                     `<button type="button" class="docnum-multi" data-rfq-multi="${escapeAttr(it.id)}" title="Mostra ${rfqs.length} RFQ">${rfqs.length} RFQ ▾</button>`;
   return `<div class="docnum-cell">
-    <span class="docnum-line"><span class="docnum-label">REQ</span>${escapeHTML(it.reqNumber || "—")}</span>
+    <span class="docnum-line"><span class="docnum-label">REQ</span>${copyableNum(it.reqNumber)}</span>
     <span class="docnum-line"><span class="docnum-label">RFQ</span>${rfqDisplay}</span>
-    <span class="docnum-line"><span class="docnum-label">PO</span>${escapeHTML(it.poNumber || "—")}</span>
-    <span class="docnum-line"><span class="docnum-label">DN</span>${escapeHTML(it.dnNumber || "—")}</span>
+    <span class="docnum-line"><span class="docnum-label">PO</span>${copyableNum(it.poNumber)}</span>
+    <span class="docnum-line"><span class="docnum-label">DN</span>${copyableNum(it.dnNumber)}</span>
   </div>`;
 }
 
@@ -6274,6 +6519,10 @@ function openTodoModal(todoId, prefillVesselId, prefillItem) {
     vesselSelect.appendChild(opt);
   }
 
+  // v0.6: nascondi reminder by default (mostro solo se prefillItem)
+  const reminderEl0 = document.getElementById("todo-item-reminder");
+  if (reminderEl0) reminderEl0.style.display = "none";
+
   if (todoId) {
     // Edit
     const t = state.todos.find(x => x.id === todoId);
@@ -6292,6 +6541,16 @@ function openTodoModal(todoId, prefillVesselId, prefillItem) {
   } else if (prefillItem) {
     // Nuovo con pre-compilazione da item della tabella
     title.textContent = "Nuova to-do dall'item";
+    // v0.6: reminder visivo dell'item di origine
+    const reminderEl = document.getElementById("todo-item-reminder");
+    const reminderText = document.getElementById("todo-item-reminder-text");
+    if (reminderEl && reminderText) {
+      const desc = (prefillItem.description || "").length > 60 ?
+                   prefillItem.description.slice(0, 60) + "…" : (prefillItem.description || "");
+      const sup = prefillItem.supplier && prefillItem.supplier !== "—" ? prefillItem.supplier : "";
+      reminderText.textContent = sup ? `${desc} — ${sup}` : desc;
+      reminderEl.style.display = "block";
+    }
     document.getElementById("todo-category").value = "Nave";
     document.getElementById("todo-priority").value = "media";
     vesselSelect.value = prefillVesselId || (state.view === "vessel" ? state.selectedVesselId : "") || "";
