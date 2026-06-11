@@ -1945,9 +1945,14 @@ a:hover { text-decoration: underline; }
 .pseg.empty .pseg-label { color: var(--text-faint); }
 
 .pseg.cancelled {
-  background: var(--c-red-bg);
-  border-color: var(--c-red-dot);
+  /* v0.6.1: niente più rosso drammatico. Cancellato = decisione consapevole, non errore. */
+  background: var(--bg-muted);
+  border-color: var(--border);
   opacity: 0.55;
+}
+.pseg.cancelled .pseg-label {
+  color: var(--text-faint);
+  font-style: italic;
 }
 /* v0.6 — colori label per stato (più leggibili) */
 .pseg.done .pseg-label { color: var(--c-green-fg); }
@@ -2135,6 +2140,86 @@ a:hover { text-decoration: underline; }
 .docnum-popover-item .copy-btn:hover {
   color: var(--c-blue-fg);
   background: var(--c-blue-bg);
+}
+
+
+/* v0.6.1 — Legenda Progress bar */
+.progress-legend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: help;
+  vertical-align: middle;
+  font-family: var(--font-mono);
+  transition: all 0.15s;
+}
+.progress-legend-btn:hover {
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border-color: var(--c-blue-dot);
+}
+.progress-legend-popover {
+  position: fixed;
+  z-index: 250;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 14px 16px;
+  max-width: 380px;
+  font-size: 13px;
+  line-height: 1.5;
+  display: none;
+}
+.progress-legend-popover.open { display: block; }
+.progress-legend-popover h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+}
+.progress-legend-popover .legend-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.progress-legend-popover .legend-sample {
+  flex-shrink: 0;
+  width: 56px;
+  height: 22px;
+  border-radius: 4px;
+  border: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.progress-legend-popover .legend-text {
+  flex: 1;
+}
+.progress-legend-popover .legend-text strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 1px;
+}
+.progress-legend-popover .legend-text span {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 /* === TAG DEPARTMENT (accanto a descrizione) ============================== */
@@ -3976,7 +4061,7 @@ function renderVesselDetail() {
             <tr>
               <th data-sort="description" style="min-width: 220px;">Descrizione</th>
               <th>N° doc</th>
-              <th style="min-width: 200px;">Progress</th>
+              <th style="min-width: 240px;">Progress <button class="progress-legend-btn" type="button" onclick="window.toggleProgressLegend()" title="Cosa significano i colori?">?</button></th>
               <th data-sort="rfqDays">Età</th>
               <th data-sort="deliveryDate">Consegna</th>
               <th>Nota</th>
@@ -4087,7 +4172,18 @@ function renderVesselDetail() {
 function computePipeline(v) {
   const items = v.items || [];
   const stage = { REQ: [], RFQ: [], PO: [], DN: [] };
+  let cancelledCount = 0;
+  let completedCount = 0;
   for (const it of items) {
+    // v0.6.1 — Escludo cancellati e completati dai KPI di fase.
+    // I cancellati non hanno senso nei "RFQ Aperte" o "PO in corso".
+    // I completati (DN Received on Board) li conto separatamente.
+    const isCancelled = it.reqStatus === "REQ Cancelled"
+                     || it.rfqStatus === "RFQ Cancelled"
+                     || it.poStatus === "PO Cancelled";
+    if (isCancelled) { cancelledCount++; continue; }
+    const isCompleted = it.dnStatus === "DN Received on Board";
+    if (isCompleted) { completedCount++; continue; }
     // logica stadio: DN se ha dnStatus non vuoto, altrimenti PO se ha poStatus, altrimenti RFQ, altrimenti REQ
     if (it.dnStatus && it.dnStatus !== "") stage.DN.push(it);
     else if (it.poStatus && it.poStatus !== "") stage.PO.push(it);
@@ -4132,7 +4228,8 @@ function computePipeline(v) {
     REQ: { total: stage.REQ.length, sub: reqSub, items: stage.REQ },
     RFQ: { total: stage.RFQ.length, sub: rfqSub, items: stage.RFQ },
     PO:  { total: stage.PO.length,  sub: poSub,  items: stage.PO },
-    DN:  { total: stage.DN.length,  sub: dnSub,  items: stage.DN }
+    DN:  { total: stage.DN.length,  sub: dnSub,  items: stage.DN },
+    _meta: { cancelled: cancelledCount, completed: completedCount }
   };
 }
 
@@ -4262,7 +4359,7 @@ function renderItemsTable(v) {
         <textarea class="notes-input ${note ? "has-content" : ""}" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
       </td>
       <td data-label="" style="text-align: right;">
-        <button class="row-todo-btn" data-row-todo="${escapeAttr(it.id)}" title="Crea to-do per questo item">+</button>
+        <button class="row-todo-btn" onclick="window.openTodoFromButton('${escapeAttr(it.id)}')" title="Crea to-do per questo item">+</button>
       </td>
     </tr>`;
   }).join("");
@@ -4358,6 +4455,104 @@ function renderItemsTable(v) {
 // ============================================================================
 // Apre un piccolo popover ancorato al link "N RFQ ▾" che mostra tutti i numeri
 // RFQ associati all'item. Ogni numero ha un piccolo bottone "copia".
+
+// v0.6.1 — Wrapper globale per onclick inline (più affidabile della event delegation).
+// Espone openRfqMultiPopover sul window perché onclick="..." deve usare funzioni globali.
+
+// v0.6.1 — Wrapper globale per il bottone "+to-do" su ogni riga.
+window.openTodoFromButton = function(itemId) {
+  console.log("[+todo] click per item:", itemId);
+  const allItems = (state.data?.vessels || []).flatMap(vv => vv.items || []);
+  const it = allItems.find(x => x.id === itemId);
+  if (!it) { console.warn("[+todo] item non trovato:", itemId); return; }
+  const vId = (state.data?.vessels || []).find(vv => (vv.items || []).some(i => i.id === itemId))?.vesselId;
+  openTodoModal(null, vId, it);
+};
+
+// v0.6.1 — Wrapper globale per il click-to-copy sui numeri documento.
+window.copyDocNum = async function(num, el) {
+  console.log("[copy] numero:", num);
+  try {
+    await navigator.clipboard.writeText(num);
+    if (typeof showToast === "function") showToast(`📋 Copiato: ${num}`);
+    if (el) {
+      el.style.background = "var(--c-green-bg)";
+      setTimeout(() => { el.style.background = ""; }, 350);
+    }
+  } catch {
+    if (typeof showToast === "function") showToast("Copia non riuscita");
+  }
+};
+
+
+// v0.6.1 — Toggle del popover legenda Progress bar
+window.toggleProgressLegend = function() {
+  let pop = document.getElementById("progress-legend-popover");
+  if (!pop) {
+    pop = document.createElement("div");
+    pop.id = "progress-legend-popover";
+    pop.className = "progress-legend-popover";
+    pop.innerHTML = `
+      <h4>Stati della Progress bar <button onclick="document.getElementById('progress-legend-popover').classList.remove('open')" style="background: none; border: none; cursor: pointer; color: var(--text-faint); font-size: 14px;">✕</button></h4>
+      <div class="legend-row">
+        <div class="legend-sample" style="background: var(--c-green-bg); border-color: var(--c-green-dot); color: var(--c-green-fg);">DN</div>
+        <div class="legend-text"><strong>Verde — Completata</strong><span>La fase è andata a buon fine</span></div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-sample" style="background: var(--c-blue-bg); border-color: var(--c-blue-dot); color: var(--c-blue-fg);">RFQ 60%</div>
+        <div class="legend-text"><strong>Blu — In corso</strong><span>Fase iniziata, fill = percentuale di completamento</span></div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-sample" style="background: var(--bg-muted); border-color: var(--border); color: var(--text-faint);">PO</div>
+        <div class="legend-text"><strong>Grigio scuro — Non iniziata</strong><span>Questa fase deve ancora cominciare</span></div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-sample" style="background: var(--c-amber-bg); border-color: var(--c-amber-dot); color: var(--c-amber-fg);">RFQ ↻</div>
+        <div class="legend-text"><strong>Arancio chiaro — Qualche rifiuto</strong><span>Almeno un fornitore ha rifiutato, ma altri possono ancora rispondere</span></div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-sample" style="background: var(--c-orange-bg, #ffe4cc); border: 1.5px solid var(--c-orange-dot, #ff8c42); color: var(--c-orange-fg, #b54e0a); font-weight: 700;">RFQ ⚠</div>
+        <div class="legend-text"><strong>Arancio carico — Tutti rifiutati</strong><span>Caso critico: tutti i fornitori hanno declinato, serve nuova ricerca</span></div>
+      </div>
+      <div class="legend-row">
+        <div class="legend-sample" style="background: var(--bg-muted); border-color: var(--border); color: var(--text-faint); font-style: italic; opacity: 0.55;">PO ⏸</div>
+        <div class="legend-text"><strong>Grigio chiaro — Cancellata</strong><span>La pratica è stata annullata consapevolmente</span></div>
+      </div>
+    `;
+    document.body.appendChild(pop);
+  }
+  // Posiziona al centro-alto della pagina
+  const isOpen = pop.classList.contains("open");
+  if (isOpen) {
+    pop.classList.remove("open");
+  } else {
+    pop.style.top = "120px";
+    pop.style.right = "30px";
+    pop.classList.add("open");
+    // Click fuori chiude
+    setTimeout(() => {
+      const closeHandler = (e) => {
+        if (!e.target.closest("#progress-legend-popover") && !e.target.closest(".progress-legend-btn")) {
+          pop.classList.remove("open");
+          document.removeEventListener("click", closeHandler);
+        }
+      };
+      document.addEventListener("click", closeHandler);
+    }, 50);
+  }
+};
+
+window.openRfqFromButton = function(buttonEl, itemId) {
+  console.log("[RFQ popover] click button per item:", itemId);
+  const allItems = (state.data?.vessels || []).flatMap(vv => vv.items || []);
+  const it = allItems.find(x => x.id === itemId);
+  if (!it) {
+    console.warn("[RFQ popover] item non trovato:", itemId);
+    return;
+  }
+  openRfqMultiPopover(buttonEl, it);
+};
+
 function openRfqMultiPopover(anchor, it) {
   // Chiudo eventuali popover esistenti
   document.querySelectorAll(".docnum-popover.open").forEach(p => p.classList.remove("open"));
@@ -4525,8 +4720,11 @@ function progressBarHTML(it) {
     ${segs.map(s => {
       const detailExt = s.stage === "RFQ" && rfqSummary.length > 1 ?
         ` · ${rfqSummary.join(", ")}` : "";
-      const label = s.state === "cancelled" ? "×" :
-                    (s.state === "partial" ? `${s.stage} ${s.pct}%` : s.stage);
+      // v0.6.1: niente più × drammatiche. Pause per cancellato.
+      const label = s.state === "cancelled" ? `${s.stage} ⏸` :
+                    (s.state === "refused-all" ? `${s.stage} ⚠` :
+                    (s.state === "refused" ? `${s.stage} ↻` :
+                    (s.state === "partial" ? `${s.stage} ${s.pct}%` : s.stage)));
       return `<div class="pseg ${s.state}" data-stage="${s.stage}" data-pct="${s.pct}" data-detail="${escapeAttr(s.detail + detailExt)}">
         ${s.state === "partial" ? `<div class="pseg-fill" style="width: ${s.pct}%"></div>` : ""}
         <span class="pseg-label">${escapeHTML(label)}</span>
@@ -4558,11 +4756,13 @@ function docNumbersHTML(it) {
   const rfqs = Array.isArray(it.rfqNumbers) ? it.rfqNumbers : [];
   function copyableNum(num) {
     if (!num || num === "—") return "—";
-    return `<span class="docnum-copy" data-copy-num="${escapeAttr(num)}" title="Click per copiare">${escapeHTML(num)}</span>`;
+    // v0.6.1: onclick inline (più affidabile di event delegation)
+    return `<span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(num)}', this)" title="Click per copiare">${escapeHTML(num)}</span>`;
   }
+  // v0.6.1: onclick inline (approccio diretto, garantito di funzionare)
   const rfqDisplay = rfqs.length === 0 ? "—" :
                      rfqs.length === 1 ? copyableNum(rfqs[0]) :
-                     `<button type="button" class="docnum-multi" data-rfq-multi="${escapeAttr(it.id)}" title="Mostra ${rfqs.length} RFQ">${rfqs.length} RFQ ▾</button>`;
+                     `<button type="button" class="docnum-multi" onclick="window.openRfqFromButton(this, '${escapeAttr(it.id)}')" title="Mostra ${rfqs.length} RFQ">${rfqs.length} RFQ ▾</button>`;
   return `<div class="docnum-cell">
     <span class="docnum-line"><span class="docnum-label">REQ</span>${copyableNum(it.reqNumber)}</span>
     <span class="docnum-line"><span class="docnum-label">RFQ</span>${rfqDisplay}</span>
