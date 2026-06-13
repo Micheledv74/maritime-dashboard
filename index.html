@@ -2285,6 +2285,196 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+/* ============================================================================ */
+/* === ACTIONS TODAY v0.10 ===================================================== */
+/* ============================================================================ */
+
+/* Barra filtri per nave */
+.actions-filter-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 0 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.action-filter-chip {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.12s;
+}
+.action-filter-chip:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+}
+.action-filter-chip.active {
+  background: var(--c-blue-bg);
+  border-color: var(--c-blue-dot);
+  color: var(--c-blue-fg);
+  font-weight: 600;
+}
+
+/* Gruppo (Urgente / Settimana / Quando puoi) */
+.actions-group {
+  margin-bottom: 18px;
+}
+.actions-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.actions-group-title.clickable {
+  cursor: pointer;
+  padding: 6px 0;
+  user-select: none;
+}
+.actions-group-title.clickable:hover { color: var(--c-blue-fg); }
+
+/* Riga riassuntiva di gruppo omogeneo */
+.action-group-summary {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.action-group-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.action-group-summary-row:hover {
+  background: var(--bg-muted);
+}
+.action-group-summary.expanded .action-group-summary-row {
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border);
+}
+.action-group-summary .group-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.action-group-summary .group-label {
+  flex: 1;
+  font-size: 13px;
+}
+.action-group-summary .group-label strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  margin-right: 4px;
+}
+.action-group-summary .group-toggle {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.action-group-expanded {
+  padding: 4px 14px 8px;
+  background: var(--bg-muted);
+}
+.action-group-expanded .action-row {
+  background: var(--bg-surface);
+  margin: 4px 0;
+  border-radius: 4px;
+}
+
+/* Tag "personale" per to-do utente */
+.kind-tag-todo {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 4px;
+}
+
+
+/* Archivio completionsHistory */
+.archive-day-section {
+  margin-bottom: 22px;
+}
+.archive-day-header {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  padding: 6px 10px;
+  background: var(--bg-muted);
+  border-radius: 4px;
+}
+
+/* "Fatte oggi" — sezione collassata di default */
+.completed-today-group {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 18px;
+}
+.completed-today-group .actions-group-title {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.completed-list {
+  padding: 4px 0;
+}
+.completed-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 2fr;
+  gap: 12px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.completed-row:last-child { border-bottom: none; }
+.completed-row .completed-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.completed-row .completed-label {
+  color: var(--text);
+  font-weight: 500;
+}
+.completed-row .completed-context {
+  font-size: 11px;
+}
+
+/* Su mobile compatta layout fatte */
+@media (max-width: 600px) {
+  .completed-row {
+    grid-template-columns: 40px 1fr;
+    gap: 6px;
+  }
+  .completed-row .completed-context {
+    grid-column: 2;
+    display: block;
+    margin-top: 2px;
+  }
+}
+
 /* === WORLD CLOCK WIDGET (v0.9.1) ========================================== */
 .world-clock-strip {
   display: grid;
@@ -3247,7 +3437,8 @@ const LS_KEYS = {
   driveFileId: "mpd.driveFileId",
   driveLastModified: "mpd.driveLastModified",
   driveWasConnected: "mpd.driveWasConnected",
-  supplierTimezones: "mpd.supplierTimezones"
+  supplierTimezones: "mpd.supplierTimezones",
+  completionsHistory: "mpd.completionsHistory"
 };
 
 // ============================================================================
@@ -3314,6 +3505,13 @@ function loadArchivedActions() {
 }
 function loadSnapshot() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS?.snapshot || "mpd.morningSnapshot") || "null"); } catch { return null; }
+}
+// v0.10 — Archivio storico delle azioni completate
+function loadCompletionsHistory() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.completionsHistory || "mpd.completionsHistory") || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch { return []; }
 }
 
 // v0.8 — Mappa fornitore → fuso orario IANA (es. "SSS0030" → "Asia/Singapore")
@@ -3477,6 +3675,7 @@ const state = {
   notes: loadNotes(),           // { itemId: "text" }
   todos: loadTodos(),           // [{ id, vessel, action, target, when, note, done, createdAt }]
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
+  completionsHistory: loadCompletionsHistory(),  // v0.10: [{ key, label, vesselId, ..., completedAt }]
   morningSnapshot: loadSnapshot(),
   supplierTimezones: loadSupplierTimezones(),  // v0.8: { "SUPPLIER NAME": "Asia/Singapore" }
   drive: {
@@ -3543,6 +3742,15 @@ function saveSnapshot(snap) {
   localStorage.setItem(LS_KEYS.snapshot, JSON.stringify(snap));
   localStorage.setItem(LS_KEYS.lastSnapshotDate, todayISO());
   state.morningSnapshot = snap;
+}
+function saveCompletionsHistory() {
+  if (!Array.isArray(state.completionsHistory)) return;
+  // Limito a 2000 entry per evitare crescita illimitata (≈ 6 mesi di lavoro intenso)
+  if (state.completionsHistory.length > 2000) {
+    state.completionsHistory = state.completionsHistory.slice(-2000);
+  }
+  localStorage.setItem(LS_KEYS.completionsHistory, JSON.stringify(state.completionsHistory));
+  driveSchedulePush();  // sync via Drive
 }
 // v0.8
 function saveSupplierTimezones() {
@@ -3826,7 +4034,18 @@ function isArchivedAndUnchanged(action) {
 }
 
 // Marca un'azione come "fatto" (la nasconde finché Infoship non cambia stato)
-function archiveAction(actionKey, actionLabel) {
+function archiveAction(actionKey, actionLabel, actionContext) {
+  // v0.10: registro anche nello storico permanente con timestamp
+  const completedAt = new Date().toISOString();
+  const entry = {
+    key: actionKey,
+    label: actionLabel || "",
+    completedAt,
+    ...(actionContext || {})  // vesselName, description, supplier, level se forniti
+  };
+  state.completionsHistory.push(entry);
+  saveCompletionsHistory();
+
   state.archivedActions[actionKey] = {
     archivedAt: new Date().toISOString(),
     lastSeenStatus: actionLabel
@@ -4277,13 +4496,9 @@ function renderOverview() {
     </div>`;
   }
 
-  const allActions = generateAllActions().slice(0, 8);
-  let actionsHTML = "";
-  if (allActions.length === 0) {
-    actionsHTML = `<div class="empty-state" style="padding: 24px;">✓ Nessuna azione critica al momento.</div>`;
-  } else {
-    actionsHTML = `<div class="actions-list">${allActions.map(actionRowHTML).join("")}</div>`;
-  }
+  // v0.10 — Azioni oggi rifatte: raggruppamento per priorità, raggruppamento intelligente per tipo,
+  // filtro per nave, sezione "Fatte oggi" in fondo
+  const actionsHTML = renderActionsTodayV2();
 
   let cardsHTML = "";
   for (const cfg of VESSELS) {
@@ -4358,7 +4573,10 @@ function renderOverview() {
     <section>
       <div class="section-title">
         <h2>Azioni oggi</h2>
-        <span class="section-meta">${allActions.length} di ${generateAllActions().length}</span>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <span class="section-meta" id="actions-today-meta"></span>
+          <button class="btn-mini-link" onclick="window.openCompletionsArchive()" title="Archivio completo delle azioni completate">📚 Archivio</button>
+        </div>
       </div>
       ${actionsHTML}
     </section>
@@ -6500,6 +6718,386 @@ function renderDebug() {
 }
 
 // ----- ACTION ROW HTML & HANDLERS ----------------------------------------
+
+// ============================================================================
+// === ACTIONS TODAY v0.10 — render rifatto con raggruppamento ===============
+// ============================================================================
+// Filtro per nave persistente in state._actionsTodayVesselFilter
+// Stato espansione gruppi in state._actionsTodayExpanded (Set di chiavi gruppo)
+
+function renderActionsTodayV2() {
+  if (!state.data) return `<div class="empty-state">Caricamento…</div>`;
+
+  // Setup state se mancante
+  if (!state._actionsTodayExpanded) state._actionsTodayExpanded = new Set();
+  const vesselFilter = state._actionsTodayVesselFilter || "all";
+
+  // === Raccolta azioni sistema + to-do utente ===
+  let systemActions = generateAllActions();
+  // Filtra per nave
+  if (vesselFilter !== "all") {
+    systemActions = systemActions.filter(a => a.vesselId === vesselFilter);
+  }
+
+  // Aggiungo le to-do utente non completate come "azioni" (con classificazione per scadenza)
+  const today = todayISO();
+  const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); })();
+  const weekEnd = (() => { const d = new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
+
+  const userTodos = (state.todos || []).filter(t => !t.done);
+  const userTodosFiltered = vesselFilter === "all" ? userTodos :
+    userTodos.filter(t => t.vessel === vesselFilter);
+
+  // Classifico ogni azione in una delle 3 fasce
+  // - URGENTE: critical + to-do scadute o scadenza oggi
+  // - SETTIMANA: warning + to-do scadenza domani-7gg + to-do senza scadenza ma create di recente
+  // - QUANDO PUOI: info + to-do senza scadenza più vecchie
+  const urgent = [];
+  const week = [];
+  const someday = [];
+
+  for (const a of systemActions) {
+    if (a.level === "critical") urgent.push({ ...a, _kind: "system" });
+    else if (a.level === "warning") week.push({ ...a, _kind: "system" });
+    else someday.push({ ...a, _kind: "system" });
+  }
+  for (const t of userTodosFiltered) {
+    const ta = todoToActionAdapter(t);
+    if (t.dueDate && t.dueDate <= today) urgent.push(ta);
+    else if (t.dueDate && t.dueDate <= weekEnd) week.push(ta);
+    else if (t.priority === "alta") urgent.push(ta);
+    else if (t.priority === "media") week.push(ta);
+    else someday.push(ta);
+  }
+
+  // === Rendering ===
+  const filterBar = renderVesselFilterBar(vesselFilter, urgent.length + week.length + someday.length);
+
+  let body = "";
+
+  if (urgent.length + week.length + someday.length === 0) {
+    body = `<div class="empty-state" style="padding: 24px;">✓ Nessuna azione al momento${vesselFilter !== "all" ? " (per questa nave)" : ""}.</div>`;
+  } else {
+    if (urgent.length > 0) {
+      body += renderActionGroup("urgent", "🔴 Urgente", urgent);
+    }
+    if (week.length > 0) {
+      body += renderActionGroup("week", "🟡 Questa settimana", week);
+    }
+    if (someday.length > 0) {
+      body += renderActionGroup("someday", "🔵 Quando puoi", someday);
+    }
+  }
+
+  // Sezione "Fatte oggi"
+  body += renderCompletedToday();
+
+  // Aggiorno il meta del titolo (totale)
+  setTimeout(() => {
+    const m = document.getElementById("actions-today-meta");
+    if (m) {
+      const total = urgent.length + week.length + someday.length;
+      const completed = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today).length;
+      m.innerHTML = `<span style="color: var(--text-muted);">${total} aperte · ${completed} fatte oggi</span>`;
+    }
+  }, 10);
+
+  return filterBar + body;
+}
+
+// Filtri per nave (chips in cima)
+function renderVesselFilterBar(currentFilter, totalCount) {
+  const vessels = VESSELS.map(v => ({ id: v.vesselId, label: v.displayName }));
+  const chips = [
+    { id: "all", label: "Tutte" },
+    ...vessels
+  ].map(c => {
+    const active = c.id === currentFilter;
+    return `<button class="action-filter-chip ${active ? "active" : ""}" onclick="window.setActionsTodayVesselFilter('${escapeAttr(c.id)}')">${escapeHTML(c.label)}</button>`;
+  }).join("");
+  return `<div class="actions-filter-bar">${chips}</div>`;
+}
+
+// Adatta una to-do utente al formato "azione" per la lista unificata
+function todoToActionAdapter(t) {
+  const v = VESSELS.find(c => c.vesselId === t.vessel);
+  return {
+    key: "todo:" + t.id,
+    level: t.priority === "alta" ? "critical" : t.priority === "media" ? "warning" : "info",
+    label: `📝 ${t.action || "To-do"}`,
+    description: t.reference || t.note || "",
+    vesselId: t.vessel || "",
+    vesselName: v ? v.displayName : "",
+    supplier: "",
+    todoId: t.id,
+    todoData: t,
+    dueDate: t.dueDate,
+    _kind: "todo",
+    action: { label: "Apri", type: "todo-edit", payload: t.id }
+  };
+}
+
+
+// v0.10 — Archivio completo delle azioni completate (modale full screen)
+window.openCompletionsArchive = function() {
+  let bd = document.getElementById("completions-archive-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "completions-archive-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+
+  const all = (state.completionsHistory || []).slice().reverse();  // più recenti in cima
+  const total = all.length;
+
+  // Raggruppo per data
+  const byDate = {};
+  for (const e of all) {
+    const date = (e.completedAt || "").slice(0, 10);
+    if (!byDate[date]) byDate[date] = [];
+    byDate[date].push(e);
+  }
+  const dates = Object.keys(byDate).sort().reverse();
+
+  // Formatter data leggibile
+  const formatDateLabel = (iso) => {
+    if (!iso) return "?";
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d.getTime())) return iso;
+    const today = todayISO();
+    const yesterday = (() => { const x = new Date(); x.setDate(x.getDate()-1); return x.toISOString().slice(0,10); })();
+    if (iso === today) return "Oggi";
+    if (iso === yesterday) return "Ieri";
+    const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+    const days = ["dom","lun","mar","mer","gio","ven","sab"];
+    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  };
+
+  const sections = dates.map(date => {
+    const entries = byDate[date];
+    const rows = entries.map(e => {
+      const time = (e.completedAt || "").slice(11, 16);
+      return `
+        <div class="completed-row">
+          <span class="completed-time">${escapeHTML(time)}</span>
+          <span class="completed-label">${escapeHTML(e.label || "")}</span>
+          <span class="completed-context muted">${escapeHTML(e.vesselName || "")} · ${escapeHTML(truncate(e.description || "", 80))}</span>
+        </div>
+      `;
+    }).join("");
+    return `
+      <div class="archive-day-section">
+        <h4 class="archive-day-header">${formatDateLabel(date)} <span class="muted" style="font-weight: 400;">· ${entries.length} azion${entries.length === 1 ? "e" : "i"}</span></h4>
+        <div class="completed-list">${rows}</div>
+      </div>
+    `;
+  }).join("");
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 720px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Archivio azioni completate</h2>
+          <div class="item-detail-meta">
+            <span class="muted">${total} totali · sincronizzato con Drive</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeCompletionsArchive()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        ${total === 0 ?
+          '<div class="empty-state" style="padding: 32px;">Nessuna azione ancora completata. Quando segni una to-do o azione come "fatta", apparirà qui.</div>' :
+          sections
+        }
+      </div>
+    </div>
+  `;
+  bd.classList.add("open");
+
+  // Esc per chiudere
+  const escHandler = (e) => {
+    if (e.key === "Escape") {
+      window.closeCompletionsArchive();
+      document.removeEventListener("keydown", escHandler);
+    }
+  };
+  document.addEventListener("keydown", escHandler);
+};
+
+window.closeCompletionsArchive = function() {
+  const bd = document.getElementById("completions-archive-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+// Render di un gruppo (urgente/settimana/quando puoi)
+function renderActionGroup(groupId, title, actions) {
+  if (actions.length === 0) return "";
+
+  // Raggruppo gli omogenei: stesso "ruleType" + (opzionale) stesso fornitore
+  // ruleType è inferito dal prefisso della key (es. "overdue:...", "readyPO:...", "batch:...")
+  const homogeneous = {};
+  const singles = [];
+  for (const a of actions) {
+    const ruleType = (a.key || "").split(":")[0];
+    // To-do utente: non raggruppo (sono troppo eterogenee per natura)
+    if (a._kind === "todo") {
+      singles.push(a);
+      continue;
+    }
+    // Batch già è di per sé una "riga riassuntiva", non lo aggregare ulteriormente
+    if (ruleType === "batch") {
+      singles.push(a);
+      continue;
+    }
+    if (!homogeneous[ruleType]) homogeneous[ruleType] = [];
+    homogeneous[ruleType].push(a);
+  }
+
+  // Soglia: se ≥3 dello stesso tipo, raggruppa
+  const groupedRows = [];
+  for (const [ruleType, items] of Object.entries(homogeneous)) {
+    if (items.length >= 3) {
+      groupedRows.push(renderHomogeneousGroup(groupId, ruleType, items));
+    } else {
+      singles.push(...items);
+    }
+  }
+
+  // Renderizzo singles + groupedRows
+  const singlesHTML = singles.map(a => actionRowHTMLv2(a)).join("");
+
+  return `
+    <div class="actions-group" data-group="${escapeAttr(groupId)}">
+      <div class="actions-group-title">${title} <span class="muted">(${actions.length})</span></div>
+      ${groupedRows.join("")}
+      ${singlesHTML}
+    </div>
+  `;
+}
+
+// Render della riga "riassunto + espansione" per gruppi omogenei
+function renderHomogeneousGroup(parentGroup, ruleType, items) {
+  const groupKey = parentGroup + ":" + ruleType;
+  const isExpanded = state._actionsTodayExpanded.has(groupKey);
+  // Etichette per i tipi
+  const labels = {
+    overdue: { icon: "📞", verb: "RFQ da sollecitare" },
+    refused: { icon: "🔴", verb: "RFQ rifiutate" },
+    readyPO: { icon: "📋", verb: "pronti per PO" },
+    outwindow: { icon: "⚠", verb: "consegne fuori finestra" }
+  };
+  const l = labels[ruleType] || { icon: "•", verb: ruleType };
+
+  const rowsExpanded = isExpanded ? items.map(a => actionRowHTMLv2(a, true)).join("") : "";
+
+  return `
+    <div class="action-group-summary ${isExpanded ? 'expanded' : ''}">
+      <div class="action-group-summary-row" onclick="window.toggleActionGroup('${escapeAttr(groupKey)}')">
+        <span class="group-icon">${l.icon}</span>
+        <span class="group-label"><strong>${items.length}</strong> ${l.verb}</span>
+        <span class="group-toggle">${isExpanded ? "▼" : "▶"}</span>
+      </div>
+      ${isExpanded ? `<div class="action-group-expanded">${rowsExpanded}</div>` : ""}
+    </div>
+  `;
+}
+
+// Action row v2: simile a actionRowHTML ma con (a) tag "to-do" se è una to-do utente,
+// (b) compatibilità con expanded sub-rows
+function actionRowHTMLv2(a, isInGroup) {
+  const cfg = (typeof ALERT_CONFIG !== "undefined" && ALERT_CONFIG[a.level]) ?
+              ALERT_CONFIG[a.level] :
+              { color: "grey" };
+  const desc = a.description || a.body || "";
+  const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
+  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag">${escapeHTML(a.vesselName)}</span>` : "";
+  const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
+  const todoTag = a._kind === "todo" ? `<span class="kind-tag-todo">personale</span>` : "";
+
+  let actionBtn = "";
+  if (a.action) {
+    if (a.action.type === "link") {
+      actionBtn = `<button class="btn btn-sm" onclick="window.open('${escapeAttr(a.action.payload)}', '_blank')">${escapeHTML(a.action.label)} →</button>`;
+    } else if (a.action.type === "mailto") {
+      const p = a.action.payload;
+      const href = `mailto:${encodeURIComponent(p.to || "")}?subject=${encodeURIComponent(p.subject || "")}&body=${encodeURIComponent(p.body || "")}`;
+      actionBtn = `<a class="btn btn-sm" href="${href}">${escapeHTML(a.action.label)} →</a>`;
+    } else if (a.action.type === "todo-edit") {
+      actionBtn = `<button class="btn btn-sm" onclick="openTodoModal('${escapeAttr(a.action.payload)}')">Apri →</button>`;
+    }
+  }
+
+  return `<div class="action-row ${isInGroup ? "in-group" : ""}" data-action-key="${escapeAttr(a.key)}">
+    <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
+    <div class="action-body">
+      ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag} ${todoTag}
+    </div>
+    <div class="action-btns">
+      ${actionBtn}
+      <button class="btn-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" data-vessel-name="${escapeAttr(a.vesselName || "")}" data-description="${escapeAttr(desc)}" data-supplier="${escapeAttr(a.supplier || "")}" data-level="${escapeAttr(a.level || "")}" title="Segna come fatto">✓</button>
+      <button class="btn-snooze" data-snooze-key="${escapeAttr(a.key)}" title="Rimanda">⏰</button>
+    </div>
+  </div>`;
+}
+
+// Sezione "Fatte oggi" in fondo
+function renderCompletedToday() {
+  const today = todayISO();
+  const completed = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today);
+  if (completed.length === 0) return "";
+
+  // Filtra per nave se attivo
+  const vesselFilter = state._actionsTodayVesselFilter || "all";
+  const filtered = vesselFilter === "all" ? completed :
+    completed.filter(e => e.vesselId === vesselFilter);
+
+  if (filtered.length === 0) return "";
+
+  const isExpanded = state._completedTodayExpanded === true;
+  const rows = isExpanded ? filtered.slice().reverse().map(e => {
+    const time = (e.completedAt || "").slice(11, 16);
+    return `
+      <div class="completed-row">
+        <span class="completed-time">${escapeHTML(time)}</span>
+        <span class="completed-label">${escapeHTML(e.label || "")}</span>
+        <span class="completed-context muted">${escapeHTML(e.vesselName || "")} · ${escapeHTML(truncate(e.description || "", 60))}</span>
+      </div>
+    `;
+  }).join("") : "";
+
+  return `
+    <div class="actions-group completed-today-group">
+      <div class="actions-group-title clickable" onclick="window.toggleCompletedToday()">
+        <span>✓ Fatte oggi <span class="muted">(${filtered.length})</span></span>
+        <span class="group-toggle">${isExpanded ? "▼" : "▶"}</span>
+      </div>
+      ${isExpanded ? `<div class="completed-list">${rows}</div>` : ""}
+    </div>
+  `;
+}
+
+// Window-exposed handlers
+window.setActionsTodayVesselFilter = function(vesselId) {
+  state._actionsTodayVesselFilter = vesselId;
+  state._actionsTodayExpanded = new Set();  // collassa tutto al cambio filtro
+  render();
+};
+window.toggleActionGroup = function(groupKey) {
+  if (!state._actionsTodayExpanded) state._actionsTodayExpanded = new Set();
+  if (state._actionsTodayExpanded.has(groupKey)) {
+    state._actionsTodayExpanded.delete(groupKey);
+  } else {
+    state._actionsTodayExpanded.add(groupKey);
+  }
+  render();
+};
+window.toggleCompletedToday = function() {
+  state._completedTodayExpanded = !state._completedTodayExpanded;
+  render();
+};
+
+
 function actionRowHTML(a) {
   const cfg = ALERT_CONFIG[a.level] || ALERT_CONFIG.info;
   const desc = a.description || a.body || "";
@@ -6539,7 +7137,13 @@ function attachActionHandlers(root) {
   root.querySelectorAll("[data-done-key]").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      archiveAction(btn.dataset.doneKey, btn.dataset.doneLabel);
+      // v0.10: passa contesto arricchito per registrazione in completionsHistory
+      archiveAction(btn.dataset.doneKey, btn.dataset.doneLabel, {
+        vesselName: btn.dataset.vesselName || "",
+        description: btn.dataset.description || "",
+        supplier: btn.dataset.supplier || "",
+        level: btn.dataset.level || ""
+      });
     });
   });
 }
@@ -7332,6 +7936,21 @@ function mergeRemoteIntoLocal(remote) {
   }
 
   // --- SUPPLIER TIMEZONES (v0.8) ---
+  // v0.10: merge completionsHistory (union by key+completedAt per evitare duplicati)
+  if (Array.isArray(remote.completionsHistory)) {
+    const existingKeys = new Set(state.completionsHistory.map(e => e.key + "|" + e.completedAt));
+    for (const remoteEntry of remote.completionsHistory) {
+      const k = remoteEntry.key + "|" + remoteEntry.completedAt;
+      if (!existingKeys.has(k)) {
+        state.completionsHistory.push(remoteEntry);
+        existingKeys.add(k);
+      }
+    }
+    // Ordino per data crescente
+    state.completionsHistory.sort((a, b) => a.completedAt.localeCompare(b.completedAt));
+    saveCompletionsHistory();
+  }
+
   if (remote.supplierTimezones && typeof remote.supplierTimezones === "object") {
     // Merge additivo: per chiavi solo remote, aggiungo. Locale ha precedenza.
     for (const supplier of Object.keys(remote.supplierTimezones)) {
@@ -7410,6 +8029,7 @@ async function drivePush() {
     todos: state.todos,
     notes: state.notes,
     archivedActions: state.archivedActions,
+    completionsHistory: state.completionsHistory || [],  // v0.10
     supplierTimezones: state.supplierTimezones  // v0.8
   };
   const body = JSON.stringify(payload, null, 2);
