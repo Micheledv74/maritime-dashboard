@@ -2285,72 +2285,117 @@ a:hover { text-decoration: underline; }
 }
 
 
-/* === WORLD CLOCK WIDGET (v0.9) ============================================ */
+/* === WORLD CLOCK WIDGET (v0.9.1) ========================================== */
 .world-clock-strip {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
   gap: 10px;
   padding: 4px 0;
 }
+
 .wc-tile {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 12px;
-  text-align: left;
+  position: relative;
+  border-radius: 8px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
 }
 .wc-tile:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.10);
 }
+
+/* Riga superiore: codice IATA a sinistra + icona stato a destra */
+.wc-tile .wc-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.wc-tile .wc-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.10);
+  text-transform: uppercase;
+}
+.wc-tile .wc-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* Ora (componente principale, ben visibile) */
+.wc-tile .wc-time {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin: 2px 0 1px;
+}
+
+/* Nome città */
 .wc-tile .wc-label {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-weight: 500;
+  opacity: 0.85;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.wc-tile .wc-flag {
-  font-size: 14px;
-  line-height: 1;
-}
-.wc-tile .wc-time {
-  font-size: 16px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
 
-/* Colori in base allo stato (lavorativo/notte/fuori orario) */
+/* === Stato GIORNO (orario lavorativo, "chiamabile") === */
 .wc-tile.wc-day {
-  background: var(--c-green-bg);
-  border-color: var(--c-green-dot);
+  background: linear-gradient(135deg, #d4f4dd 0%, #a8e6b8 100%);
+  border-color: #4caf50;
+  color: #1b5e20;
 }
-.wc-tile.wc-day .wc-time { color: var(--c-green-fg); }
-.wc-tile.wc-day .wc-label { color: var(--c-green-fg); }
-
-.wc-tile.wc-night {
-  background: var(--bg-muted);
-  border-color: var(--border);
-  opacity: 0.65;
+.wc-tile.wc-day .wc-code {
+  background: rgba(27, 94, 32, 0.15);
+  color: #1b5e20;
 }
-.wc-tile.wc-night .wc-time { color: var(--text-muted); }
+.wc-tile.wc-day .wc-time {
+  color: #2e7d32;
+}
 
+/* === Stato OFF-HOUR (alba/tramonto) === */
 .wc-tile.wc-offhour {
-  background: var(--c-amber-bg);
-  border-color: var(--c-amber-dot);
+  background: linear-gradient(135deg, #ffe5cc 0%, #ffb87a 100%);
+  border-color: #ff9248;
+  color: #8b3a00;
 }
-.wc-tile.wc-offhour .wc-time { color: var(--c-amber-fg); }
-.wc-tile.wc-offhour .wc-label { color: var(--c-amber-fg); }
+.wc-tile.wc-offhour .wc-code {
+  background: rgba(139, 58, 0, 0.18);
+  color: #8b3a00;
+}
+.wc-tile.wc-offhour .wc-time {
+  color: #b04500;
+}
+
+/* === Stato NOTTE === */
+.wc-tile.wc-night {
+  background: linear-gradient(135deg, #2a3548 0%, #1a2332 100%);
+  border-color: #3d4a63;
+  color: #b8c5d6;
+}
+.wc-tile.wc-night .wc-code {
+  background: rgba(255,255,255,0.10);
+  color: #d4dde9;
+}
+.wc-tile.wc-night .wc-time {
+  color: #ffffff;
+}
+.wc-tile.wc-night .wc-label {
+  opacity: 0.7;
+}
 
 .wc-tile.wc-error {
   background: var(--bg-muted);
@@ -2359,7 +2404,7 @@ a:hover { text-decoration: underline; }
   opacity: 0.7;
 }
 
-/* Bottone "modifica città" piccolo nel section-meta */
+/* Bottone "modifica città" piccolo */
 .btn-mini-link {
   background: none;
   border: none;
@@ -2369,14 +2414,12 @@ a:hover { text-decoration: underline; }
   padding: 2px 6px;
   border-radius: 3px;
 }
-.btn-mini-link:hover {
-  background: var(--c-blue-bg);
-}
+.btn-mini-link:hover { background: var(--c-blue-bg); }
 
 /* Settings rows per modificare le città */
 .wc-settings-row {
   display: grid;
-  grid-template-columns: 50px 1fr 1.4fr 40px;
+  grid-template-columns: 60px 1fr 1.4fr 40px;
   gap: 8px;
   padding: 6px 0;
   align-items: center;
@@ -2395,9 +2438,13 @@ a:hover { text-decoration: underline; }
   outline: none;
   border-color: var(--c-blue-dot);
 }
-.wc-settings-row input.wc-flag-input {
+.wc-settings-row input.wc-code-input {
   text-align: center;
-  font-size: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .wc-settings-row input.wc-tz-input {
   font-family: var(--font-mono);
@@ -2418,16 +2465,17 @@ a:hover { text-decoration: underline; }
   border-color: var(--c-red-dot);
 }
 
-/* Su mobile compatta */
+/* Mobile compatto */
 @media (max-width: 600px) {
   .world-clock-strip {
-    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
     gap: 8px;
   }
   .wc-tile {
-    padding: 8px 10px;
+    padding: 9px 11px;
   }
-  .wc-tile .wc-time { font-size: 15px; }
+  .wc-tile .wc-time { font-size: 19px; }
+  .wc-tile .wc-code { font-size: 10px; padding: 1px 5px; }
 }
 
 /* === ITEM DETAIL POPOVER (v0.7) ============================================ */
@@ -5102,22 +5150,24 @@ window.toggleProgressLegend = function() {
 // Lista default di città (ordinate ovest → est per seguire il sole).
 // L'utente può modificarle dalle Impostazioni del widget.
 const DEFAULT_WORLD_CLOCK_CITIES = [
-  { label: "Los Angeles", tz: "America/Los_Angeles", flag: "🇺🇸" },
-  { label: "Houston",     tz: "America/Chicago",     flag: "🇺🇸" },
-  { label: "New York",    tz: "America/New_York",    flag: "🇺🇸" },
-  { label: "Caracas",     tz: "America/Caracas",     flag: "🇻🇪" },
-  { label: "San Paolo",   tz: "America/Sao_Paulo",   flag: "🇧🇷" },
-  { label: "Dakar",       tz: "Africa/Dakar",        flag: "🇸🇳" },
-  { label: "Londra",      tz: "Europe/London",       flag: "🇬🇧" },
-  { label: "Napoli",      tz: "Europe/Rome",         flag: "🇮🇹" },
-  { label: "Istanbul",    tz: "Europe/Istanbul",     flag: "🇹🇷" },
-  { label: "Cipro",       tz: "Asia/Nicosia",        flag: "🇨🇾" },
-  { label: "Dubai",       tz: "Asia/Dubai",          flag: "🇦🇪" },
-  { label: "Mumbai",      tz: "Asia/Kolkata",        flag: "🇮🇳" },
-  { label: "Singapore",   tz: "Asia/Singapore",      flag: "🇸🇬" },
-  { label: "Shanghai",    tz: "Asia/Shanghai",       flag: "🇨🇳" },
-  { label: "Seoul",       tz: "Asia/Seoul",          flag: "🇰🇷" },
-  { label: "Tokyo",       tz: "Asia/Tokyo",          flag: "🇯🇵" },
+  // v0.9.1 — Codici IATA delle città (più professionali e uniformi delle bandiere emoji,
+  // che su Windows non rendono). "flag" mantenuto per compatibilità ma non più usato.
+  { label: "Los Angeles", tz: "America/Los_Angeles", code: "LAX" },
+  { label: "Houston",     tz: "America/Chicago",     code: "HOU" },
+  { label: "New York",    tz: "America/New_York",    code: "NYC" },
+  { label: "Caracas",     tz: "America/Caracas",     code: "CCS" },
+  { label: "San Paolo",   tz: "America/Sao_Paulo",   code: "SAO" },
+  { label: "Dakar",       tz: "Africa/Dakar",        code: "DKR" },
+  { label: "Londra",      tz: "Europe/London",       code: "LON" },
+  { label: "Napoli",      tz: "Europe/Rome",         code: "NAP" },
+  { label: "Istanbul",    tz: "Europe/Istanbul",     code: "IST" },
+  { label: "Cipro",       tz: "Asia/Nicosia",        code: "LCA" },
+  { label: "Dubai",       tz: "Asia/Dubai",          code: "DXB" },
+  { label: "Mumbai",      tz: "Asia/Kolkata",        code: "BOM" },
+  { label: "Singapore",   tz: "Asia/Singapore",      code: "SIN" },
+  { label: "Shanghai",    tz: "Asia/Shanghai",       code: "SHA" },
+  { label: "Seoul",       tz: "Asia/Seoul",          code: "SEL" },
+  { label: "Tokyo",       tz: "Asia/Tokyo",          code: "TYO" },
 ];
 
 function loadWorldClockCities() {
@@ -5134,6 +5184,13 @@ function saveWorldClockCities(cities) {
   localStorage.setItem("mpd.worldClockCities", JSON.stringify(cities));
 }
 
+// v0.9.1 — SVG icons stilizzate (più pulite delle emoji, uniformi su tutti i browser)
+const WC_ICONS = {
+  day: `<svg class="wc-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/></svg>`,
+  dusk: `<svg class="wc-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0" fill="currentColor"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="8 6 12 2 16 6"/></svg>`,
+  night: `<svg class="wc-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+};
+
 function renderWorldClock() {
   const cities = loadWorldClockCities();
   const tiles = cities.map(c => {
@@ -5142,12 +5199,20 @@ function renderWorldClock() {
       const hour = parseInt(t.split(":")[0], 10);
       const isWorkingHours = hour >= 9 && hour < 18;
       const isNight = hour < 7 || hour >= 22;
+      const isOffHour = !isWorkingHours && !isNight;  // alba/tramonto
       const cls = isWorkingHours ? "wc-tile wc-day" : isNight ? "wc-tile wc-night" : "wc-tile wc-offhour";
-      const icon = isNight ? "🌙" : isWorkingHours ? "☀" : "🌆";
+      const icon = isNight ? WC_ICONS.night : isWorkingHours ? WC_ICONS.day : WC_ICONS.dusk;
+      const stateLabel = isWorkingHours ? "orario lavorativo" : isNight ? "notte" : "fuori orario";
+      // Codice IATA come "badge" identificativo (fallback su flag emoji se vecchio formato salvato)
+      const code = c.code || c.flag || "•••";
       return `
-        <div class="${cls}" title="${escapeAttr(c.tz)} — ${isWorkingHours ? 'orario lavorativo' : isNight ? 'notte' : 'fuori orario'}">
-          <div class="wc-label"><span class="wc-flag">${c.flag || ""}</span>${escapeHTML(c.label)}</div>
-          <div class="wc-time">${icon} ${escapeHTML(t)}</div>
+        <div class="${cls}" title="${escapeAttr(c.tz)} — ${stateLabel}">
+          <div class="wc-top-row">
+            <span class="wc-code">${escapeHTML(code)}</span>
+            ${icon}
+          </div>
+          <div class="wc-time">${escapeHTML(t)}</div>
+          <div class="wc-label">${escapeHTML(c.label)}</div>
         </div>
       `;
     } catch (e) {
@@ -5185,7 +5250,7 @@ function renderWorldClockSettings(bd) {
   const cities = loadWorldClockCities();
   const rows = cities.map((c, i) => `
     <div class="wc-settings-row" data-idx="${i}">
-      <input type="text" value="${escapeAttr(c.flag || "")}" placeholder="🌍" class="wc-flag-input" maxlength="4" data-field="flag">
+      <input type="text" value="${escapeAttr(c.code || c.flag || "")}" placeholder="LAX" class="wc-code-input" maxlength="4" data-field="code">
       <input type="text" value="${escapeAttr(c.label)}" placeholder="Nome città" class="wc-label-input" data-field="label">
       <input type="text" value="${escapeAttr(c.tz)}" placeholder="Es. Asia/Singapore" class="wc-tz-input" data-field="tz">
       <button class="wc-row-delete" onclick="window.deleteWorldClockRow(${i})" title="Rimuovi">🗑</button>
@@ -5233,7 +5298,7 @@ window.closeWorldClockSettings = function() {
 
 window.addWorldClockRow = function() {
   const cities = loadWorldClockCities();
-  cities.push({ label: "", tz: "", flag: "" });
+  cities.push({ label: "", tz: "", code: "" });
   saveWorldClockCities(cities);
   const bd = document.getElementById("worldclock-settings-backdrop");
   renderWorldClockSettings(bd);
@@ -5259,7 +5324,7 @@ window.saveWorldClockSettings = function() {
   const cities = [];
   let invalidTz = [];
   for (const r of rows) {
-    const flag = r.querySelector('[data-field="flag"]').value.trim();
+    const code = r.querySelector('[data-field="code"]').value.trim().toUpperCase();
     const label = r.querySelector('[data-field="label"]').value.trim();
     const tz = r.querySelector('[data-field="tz"]').value.trim();
     if (!label || !tz) continue;  // skip righe vuote
@@ -5270,7 +5335,7 @@ window.saveWorldClockSettings = function() {
       invalidTz.push(label + " (" + tz + ")");
       continue;
     }
-    cities.push({ flag, label, tz });
+    cities.push({ code, label, tz });
   }
   if (invalidTz.length > 0) {
     showToast(`⚠ Fusi non validi: ${invalidTz.join(", ")}`, 6000);
