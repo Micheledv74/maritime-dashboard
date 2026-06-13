@@ -2265,6 +2265,25 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+/* Bottone "modifica fuso orario" nel popover */
+.btn-tz-edit {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 11px;
+  margin-left: 6px;
+  padding: 0 4px;
+}
+.btn-tz-edit:hover { color: var(--c-blue-fg); }
+/* Detail-logistics-grid: stessa struttura delle altre detail-row */
+.detail-logistics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 /* === ITEM DETAIL POPOVER (v0.7) ============================================ */
 .item-detail-backdrop {
   position: fixed;
@@ -2498,6 +2517,75 @@ a:hover { text-decoration: underline; }
   .item-detail-body { padding: 14px 16px; }
   .item-detail-footer { padding: 12px 16px; }
   .item-detail-title h2 { font-size: 16px; }
+}
+
+
+/* v0.8 — Badge Origin / Transport Mode nella tabella */
+.log-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.log-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.log-badge.log-origin {
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border-color: var(--c-blue-dot);
+}
+.log-badge.log-transport {
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+  border-color: var(--c-amber-dot);
+}
+/* v0.8 — Badge timezone fornitore nella tabella */
+.log-badge.log-tz {
+  cursor: help;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.log-badge.log-tz-ok {
+  background: var(--c-green-bg);
+  border-color: var(--c-green-dot);
+  color: var(--c-green-fg);
+}
+.log-badge.log-tz-warn {
+  background: var(--c-amber-bg);
+  border-color: var(--c-amber-dot);
+  color: var(--c-amber-fg);
+}
+
+.detail-logistics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.btn-tz-edit {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 11px;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+.btn-tz-edit:hover {
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border-color: var(--c-blue-dot);
 }
 
 /* === TAG DEPARTMENT (accanto a descrizione) ============================== */
@@ -2964,7 +3052,8 @@ const LS_KEYS = {
   driveToken: "mpd.driveToken",
   driveFileId: "mpd.driveFileId",
   driveLastModified: "mpd.driveLastModified",
-  driveWasConnected: "mpd.driveWasConnected"
+  driveWasConnected: "mpd.driveWasConnected",
+  supplierTimezones: "mpd.supplierTimezones"
 };
 
 // ============================================================================
@@ -3031,6 +3120,17 @@ function loadArchivedActions() {
 }
 function loadSnapshot() {
   try { return JSON.parse(localStorage.getItem(LS_KEYS?.snapshot || "mpd.morningSnapshot") || "null"); } catch { return null; }
+}
+
+// v0.8 — Mappa fornitore → fuso orario IANA (es. "SSS0030" → "Asia/Singapore")
+function loadSupplierTimezones() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.supplierTimezones || "mpd.supplierTimezones") || "{}");
+    return (raw && typeof raw === "object" && !Array.isArray(raw)) ? raw : {};
+  } catch (e) {
+    console.error("[SupplierTz] localStorage corrotto:", e);
+    return {};
+  }
 }
 
 // ============================================================================
@@ -3184,6 +3284,7 @@ const state = {
   todos: loadTodos(),           // [{ id, vessel, action, target, when, note, done, createdAt }]
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
   morningSnapshot: loadSnapshot(),
+  supplierTimezones: loadSupplierTimezones(),  // v0.8: { "SUPPLIER NAME": "Asia/Singapore" }
   drive: {
     token: null,                  // token di accesso OAuth (in memoria, non in localStorage)
     fileId: localStorage.getItem("mpd.driveFileId") || null,
@@ -3248,6 +3349,16 @@ function saveSnapshot(snap) {
   localStorage.setItem(LS_KEYS.snapshot, JSON.stringify(snap));
   localStorage.setItem(LS_KEYS.lastSnapshotDate, todayISO());
   state.morningSnapshot = snap;
+}
+// v0.8
+function saveSupplierTimezones() {
+  if (!state.supplierTimezones || typeof state.supplierTimezones !== "object") {
+    console.error("[SupplierTz] state.supplierTimezones non è un oggetto, abort save");
+    return;
+  }
+  localStorage.setItem(LS_KEYS.supplierTimezones, JSON.stringify(state.supplierTimezones));
+  driveSchedulePush();
+  console.log(`[SupplierTz] salvati ${Object.keys(state.supplierTimezones).length} fornitori`);
 }
 
 // ============================================================================
@@ -4343,7 +4454,6 @@ function renderVesselDetail() {
               <th data-sort="rfqDays">Età</th>
               <th data-sort="deliveryDate">Consegna</th>
               <th>Nota</th>
-              <th></th>
             </tr>
           </thead>
           <tbody id="items-tbody"></tbody>
@@ -4624,10 +4734,28 @@ function renderItemsTable(v) {
       "";
     const supplier = it.supplier && it.supplier !== "—" ?
       `<span class="muted" style="font-size: 11px;">${escapeHTML(it.supplier)}</span>` : "";
+    // v0.8: badge Origin / Transport mode / Fuso orario fornitore
+    const logBadges = [];
+    if (it.origin) logBadges.push(`<span class="log-badge log-origin" title="Origine: ${escapeAttr(it.origin)}">🌍 ${escapeHTML(it.origin)}</span>`);
+    if (it.transportMode) logBadges.push(`<span class="log-badge log-transport" title="Trasporto: ${escapeAttr(it.transportMode)}">✈️ ${escapeHTML(it.transportMode)}</span>`);
+    // Timezone fornitore (se mappato in Impostazioni o via popover)
+    const supTz = it.supplier && state.supplierTimezones ? state.supplierTimezones[it.supplier] : null;
+    if (supTz) {
+      try {
+        const tStr = new Date().toLocaleTimeString("it-IT", { timeZone: supTz, hour: "2-digit", minute: "2-digit" });
+        const hour = parseInt(tStr.split(":")[0], 10);
+        const isDay = hour >= 7 && hour < 20;
+        const callable = hour >= 9 && hour < 18;  // orario lavorativo "telefonabile"
+        logBadges.push(`<span class="log-badge log-tz ${callable ? 'log-tz-ok' : 'log-tz-warn'}" title="Ora locale fornitore (${escapeAttr(supTz)}) — ${callable ? 'orario lavorativo' : 'fuori orario'}">${isDay ? "☀" : "🌙"} ${escapeHTML(tStr)}</span>`);
+      } catch {}
+    }
+    const logBadgesHTML = logBadges.length > 0 ? `<div class="log-badges-row">${logBadges.join("")}</div>` : "";
+
     return `<tr ondblclick="window.openItemDetailPopover('${escapeAttr(it.id)}')" class="item-row" title="Doppio click per aprire la scheda completa">
       <td data-label="Descrizione">
         <strong>${escapeHTML(truncate(it.description || "", 80))}</strong>${deptTag}
         ${supplier ? `<br>${supplier}` : ""}
+        ${logBadgesHTML}
       </td>
       <td data-label="N° doc">${docNumbersHTML(it)}</td>
       <td data-label="Progress">${progressBarHTML(it)}</td>
@@ -4635,9 +4763,6 @@ function renderItemsTable(v) {
       <td data-label="Consegna" class="num">${formatDate(it.deliveryDate)}</td>
       <td data-label="Nota">
         <textarea class="notes-input ${note ? "has-content" : ""}" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
-      </td>
-      <td data-label="" style="text-align: right;">
-        <button class="row-todo-btn" onclick="window.openTodoFromButton('${escapeAttr(it.id)}')" title="Crea to-do per questo item">+</button>
       </td>
     </tr>`;
   }).join("");
@@ -4968,7 +5093,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
     </div>
   `;
 
-  // To-do collegate (cerco nelle to-do quelle che hanno reference che contiene la descrizione o un numero documento)
+// To-do collegate (cerco nelle to-do quelle che hanno reference che contiene la descrizione o un numero documento)
   const relatedTodos = state.todos.filter(t => {
     if (!t.reference) return false;
     const ref = t.reference.toLowerCase();
@@ -4989,6 +5114,30 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
         </div>
       `).join("")}
     </div>` : "";
+
+  // === v0.8 — Sezione Logistica (Origin / Transport Mode / Supplier Timezone) ===
+  const hasLogistics = !!(it.origin || it.transportMode || it.supplier);
+  let logisticsSection = "";
+  if (hasLogistics) {
+    // Timezone supplier (se mappato dall'utente nelle impostazioni)
+    const supplierTz = it.supplier && state.supplierTimezones ?
+                       state.supplierTimezones[it.supplier] : null;
+    const tzInfo = supplierTz ? supplierTimezoneHTML(it.supplier, supplierTz) : "";
+    const setTzBtn = it.supplier && !supplierTz ?
+      `<button class="btn btn-sm" onclick="window.openSupplierTzPicker('${escapeAttr(it.supplier)}')" style="font-size: 11px;">🕐 Imposta fuso orario</button>` : "";
+
+    logisticsSection = `
+      <div class="detail-section">
+        <h4>Logistica</h4>
+        <div class="detail-logistics-grid">
+          ${it.origin ? `<div class="detail-row"><span class="detail-label">🌍 Origine</span><span class="detail-value">${escapeHTML(it.origin)}</span></div>` : ""}
+          ${it.transportMode ? `<div class="detail-row"><span class="detail-label">✈️ Trasporto</span><span class="detail-value">${escapeHTML(it.transportMode)}</span></div>` : ""}
+          ${tzInfo}
+        </div>
+        ${setTzBtn ? `<div style="margin-top: 8px;">${setTzBtn}</div>` : ""}
+      </div>
+    `;
+  }
 
   // Nota locale editabile
   const noteValue = state.notes[it.id] || "";
@@ -5028,6 +5177,8 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
           </div>
         </div>
 
+        ${logisticsSection}
+
         ${todosSection}
 
         ${noteSection}
@@ -5043,6 +5194,155 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       </div>
     </div>
   `;
+}
+
+
+// v0.8 — Calcola e formatta l'ora corrente in un fuso orario.
+// Restituisce un blocco "🕐 Singapore — 14:32 (☀ +6h)" pronto per il popover.
+
+// ============================================================================
+// === SUPPLIER TIMEZONE PICKER (v0.8) ========================================
+// ============================================================================
+// Lista di fusi orari comuni per fornitori marittimi. L'utente può scegliere
+// dal menu o digitare un IANA timezone arbitrario (es. "Europe/Athens").
+window.SUPPLIER_TIMEZONES = [
+  { label: "Italia (Roma)",          tz: "Europe/Rome" },
+  { label: "Regno Unito (Londra)",   tz: "Europe/London" },
+  { label: "Germania (Berlino)",     tz: "Europe/Berlin" },
+  { label: "Grecia (Atene)",         tz: "Europe/Athens" },
+  { label: "Turchia (Istanbul)",     tz: "Europe/Istanbul" },
+  { label: "EAU (Dubai)",            tz: "Asia/Dubai" },
+  { label: "India (Mumbai)",         tz: "Asia/Kolkata" },
+  { label: "Singapore",              tz: "Asia/Singapore" },
+  { label: "Hong Kong",              tz: "Asia/Hong_Kong" },
+  { label: "Cina (Shanghai)",        tz: "Asia/Shanghai" },
+  { label: "Corea del Sud (Seoul)",  tz: "Asia/Seoul" },
+  { label: "Giappone (Tokyo)",       tz: "Asia/Tokyo" },
+  { label: "USA Est (New York)",     tz: "America/New_York" },
+  { label: "USA Ovest (Los Angeles)",tz: "America/Los_Angeles" },
+  { label: "Panama",                 tz: "America/Panama" },
+  { label: "Brasile (San Paolo)",    tz: "America/Sao_Paulo" },
+];
+
+window.openSupplierTzPicker = function(supplierName) {
+  console.log("[SupplierTz] picker per", supplierName);
+  // Backdrop riusabile
+  let bd = document.getElementById("tz-picker-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "tz-picker-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+  const currentTz = state.supplierTimezones[supplierName] || "";
+  const options = window.SUPPLIER_TIMEZONES.map(o =>
+    `<option value="${escapeAttr(o.tz)}" ${o.tz === currentTz ? "selected" : ""}>${escapeHTML(o.label)} — ${escapeHTML(o.tz)}</option>`
+  ).join("");
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 460px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Fuso orario fornitore</h2>
+          <div class="item-detail-meta">
+            <span class="muted">${escapeHTML(supplierName)}</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeTzPicker()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        <div class="detail-section">
+          <h4>Seleziona dalla lista</h4>
+          <select id="tz-picker-select" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px;">
+            <option value="">— Nessun fuso —</option>
+            ${options}
+          </select>
+        </div>
+        <div class="detail-section">
+          <h4>Oppure inserisci manualmente (IANA)</h4>
+          <input id="tz-picker-custom" type="text" placeholder="Es. Europe/Athens" value="${currentTz && !window.SUPPLIER_TIMEZONES.some(o => o.tz === currentTz) ? escapeAttr(currentTz) : ""}"
+                 style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: var(--font-mono);">
+          <div class="muted" style="font-size: 11px; margin-top: 4px;">Esempi validi: Asia/Manila, Europe/Athens, America/Mexico_City</div>
+        </div>
+      </div>
+      <div class="item-detail-footer">
+        ${currentTz ? `<button class="btn btn-sm" onclick="window.removeSupplierTz('${escapeAttr(supplierName)}')" style="color: var(--c-red-fg);">🗑 Rimuovi</button>` : ""}
+        <div style="flex: 1;"></div>
+        <button class="btn btn-sm" onclick="window.closeTzPicker()">Annulla</button>
+        <button class="btn btn-sm btn-primary" onclick="window.saveSupplierTz('${escapeAttr(supplierName)}')">Salva</button>
+      </div>
+    </div>
+  `;
+  bd.classList.add("open");
+};
+
+window.closeTzPicker = function() {
+  const bd = document.getElementById("tz-picker-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+window.saveSupplierTz = function(supplierName) {
+  const customTz = document.getElementById("tz-picker-custom")?.value.trim();
+  const selectTz = document.getElementById("tz-picker-select")?.value;
+  const tz = customTz || selectTz;
+  if (!tz) {
+    window.closeTzPicker();
+    return;
+  }
+  // Validazione: provo a formattare la data con il tz
+  try {
+    new Date().toLocaleTimeString("it-IT", { timeZone: tz });
+  } catch (e) {
+    showToast(`Fuso "${tz}" non valido`);
+    return;
+  }
+  if (!state.supplierTimezones) state.supplierTimezones = {};
+  state.supplierTimezones[supplierName] = tz;
+  saveSupplierTimezones();
+  showToast(`Fuso salvato: ${supplierName} → ${tz}`);
+  window.closeTzPicker();
+  render();
+};
+
+window.removeSupplierTz = function(supplierName) {
+  if (!state.supplierTimezones) return;
+  delete state.supplierTimezones[supplierName];
+  saveSupplierTimezones();
+  showToast(`Fuso rimosso per ${supplierName}`);
+  window.closeTzPicker();
+  render();
+};
+
+function supplierTimezoneHTML(supplier, tz) {
+  try {
+    const now = new Date();
+    // Ora locale del fornitore
+    const supplierTimeStr = now.toLocaleTimeString("it-IT", {
+      timeZone: tz, hour: "2-digit", minute: "2-digit"
+    });
+    // Differenza ore vs utente
+    const supplierDate = new Date(now.toLocaleString("en-US", { timeZone: tz }));
+    const userDate = new Date(now.toLocaleString("en-US"));
+    const diffHours = Math.round((supplierDate - userDate) / (1000 * 60 * 60));
+    const diffStr = diffHours === 0 ? "stesso fuso" :
+                    diffHours > 0 ? `+${diffHours}h` : `${diffHours}h`;
+    // Giorno o notte (ora locale del fornitore, range 7-19 = giorno)
+    const supplierHour = parseInt(supplierTimeStr.split(":")[0], 10);
+    const dayNight = (supplierHour >= 7 && supplierHour < 20) ? "☀" : "🌙";
+    // Nome città leggibile (estraggo l'ultimo segmento del tz)
+    const cityName = tz.split("/").pop().replace(/_/g, " ");
+    return `<div class="detail-row">
+      <span class="detail-label">🕐 Ora fornitore</span>
+      <span class="detail-value">
+        ${escapeHTML(cityName)} <strong>${supplierTimeStr}</strong>
+        <span class="muted" style="font-size: 11px;">${dayNight} ${diffStr}</span>
+        <button class="btn-tz-edit" onclick="window.openSupplierTzPicker('${escapeAttr(supplier)}')" title="Cambia fuso orario">✎</button>
+      </span>
+    </div>`;
+  } catch (e) {
+    console.warn("[Timezone] errore per", tz, e);
+    return `<div class="detail-row"><span class="detail-label">🕐 Fuso orario</span><span class="detail-value muted">${escapeHTML(tz)} (errore)</span></div>`;
+  }
 }
 
 // Stato visivo della singola fase (verde/blu/grigio/arancio)
@@ -6628,6 +6928,17 @@ function mergeRemoteIntoLocal(remote) {
     saveNotes();
   }
 
+  // --- SUPPLIER TIMEZONES (v0.8) ---
+  if (remote.supplierTimezones && typeof remote.supplierTimezones === "object") {
+    // Merge additivo: per chiavi solo remote, aggiungo. Locale ha precedenza.
+    for (const supplier of Object.keys(remote.supplierTimezones)) {
+      if (!(supplier in state.supplierTimezones)) {
+        state.supplierTimezones[supplier] = remote.supplierTimezones[supplier];
+      }
+    }
+    saveSupplierTimezones();
+  }
+
   // --- ARCHIVED ACTIONS ---
   if (remote.archivedActions && typeof remote.archivedActions === "object") {
     for (const [key, val] of Object.entries(remote.archivedActions)) {
@@ -6689,13 +7000,14 @@ async function drivePush() {
   }
 
   const payload = {
-    schemaVersion: "1.1",
+    schemaVersion: "1.2",
     deviceId: getDeviceId(),
     pushedAt: new Date().toISOString(),
     todosCount: state.todos.length,  // diagnostico
     todos: state.todos,
     notes: state.notes,
-    archivedActions: state.archivedActions
+    archivedActions: state.archivedActions,
+    supplierTimezones: state.supplierTimezones  // v0.8
   };
   const body = JSON.stringify(payload, null, 2);
 
