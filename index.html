@@ -2284,6 +2284,152 @@ a:hover { text-decoration: underline; }
   gap: 0;
 }
 
+
+/* === WORLD CLOCK WIDGET (v0.9) ============================================ */
+.world-clock-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  gap: 10px;
+  padding: 4px 0;
+}
+.wc-tile {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.wc-tile:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+.wc-tile .wc-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wc-tile .wc-flag {
+  font-size: 14px;
+  line-height: 1;
+}
+.wc-tile .wc-time {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Colori in base allo stato (lavorativo/notte/fuori orario) */
+.wc-tile.wc-day {
+  background: var(--c-green-bg);
+  border-color: var(--c-green-dot);
+}
+.wc-tile.wc-day .wc-time { color: var(--c-green-fg); }
+.wc-tile.wc-day .wc-label { color: var(--c-green-fg); }
+
+.wc-tile.wc-night {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  opacity: 0.65;
+}
+.wc-tile.wc-night .wc-time { color: var(--text-muted); }
+
+.wc-tile.wc-offhour {
+  background: var(--c-amber-bg);
+  border-color: var(--c-amber-dot);
+}
+.wc-tile.wc-offhour .wc-time { color: var(--c-amber-fg); }
+.wc-tile.wc-offhour .wc-label { color: var(--c-amber-fg); }
+
+.wc-tile.wc-error {
+  background: var(--bg-muted);
+  border-color: var(--c-red-dot);
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* Bottone "modifica città" piccolo nel section-meta */
+.btn-mini-link {
+  background: none;
+  border: none;
+  color: var(--c-blue-fg);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.btn-mini-link:hover {
+  background: var(--c-blue-bg);
+}
+
+/* Settings rows per modificare le città */
+.wc-settings-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 1.4fr 40px;
+  gap: 8px;
+  padding: 6px 0;
+  align-items: center;
+}
+.wc-settings-row input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-surface);
+  color: var(--text);
+  min-width: 0;
+}
+.wc-settings-row input:focus {
+  outline: none;
+  border-color: var(--c-blue-dot);
+}
+.wc-settings-row input.wc-flag-input {
+  text-align: center;
+  font-size: 16px;
+}
+.wc-settings-row input.wc-tz-input {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.wc-row-delete {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.wc-row-delete:hover {
+  background: var(--c-red-bg);
+  color: var(--c-red-fg);
+  border-color: var(--c-red-dot);
+}
+
+/* Su mobile compatta */
+@media (max-width: 600px) {
+  .world-clock-strip {
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    gap: 8px;
+  }
+  .wc-tile {
+    padding: 8px 10px;
+  }
+  .wc-tile .wc-time { font-size: 15px; }
+}
+
 /* === ITEM DETAIL POPOVER (v0.7) ============================================ */
 .item-detail-backdrop {
   position: fixed;
@@ -3944,7 +4090,7 @@ function render() {
   renderSwitcher();
   if (state.error && !state.data) { renderError(); return; }
   if (state.loading && !state.data) { renderLoading(); return; }
-  if (state.view === "overview") renderOverview();
+  if (state.view === "overview") { renderOverview(); startWorldClockTimer(); }
   else if (state.view === "vessel") renderVesselDetail();
   else if (state.view === "supplier") renderSupplierPulse();
   else if (state.view === "debug") renderDebug();
@@ -4149,6 +4295,16 @@ function renderOverview() {
         <span class="section-meta">${VESSELS.length} navi · clicca per dettaglio</span>
       </div>
       <div class="vessel-grid">${cardsHTML}</div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Orologio mondiale</h2>
+        <span class="section-meta">
+          <button class="btn-mini-link" onclick="window.openWorldClockSettings()" title="Modifica le città mostrate">⚙ Modifica città</button>
+        </span>
+      </div>
+      <div class="world-clock-strip" id="world-clock-strip">${renderWorldClock()}</div>
     </section>
 
     <section>
@@ -4453,7 +4609,7 @@ function renderVesselDetail() {
               <th style="min-width: 240px;">Progress <button class="progress-legend-btn" type="button" onclick="window.toggleProgressLegend()" title="Cosa significano i colori?">?</button></th>
               <th data-sort="rfqDays">Età</th>
               <th data-sort="deliveryDate">Consegna</th>
-              <th>Nota</th>
+              <th>Nota</th><th style="width: 1%;"></th>
             </tr>
           </thead>
           <tbody id="items-tbody"></tbody>
@@ -4734,21 +4890,10 @@ function renderItemsTable(v) {
       "";
     const supplier = it.supplier && it.supplier !== "—" ?
       `<span class="muted" style="font-size: 11px;">${escapeHTML(it.supplier)}</span>` : "";
-    // v0.8: badge Origin / Transport mode / Fuso orario fornitore
+    // v0.9 — Badge logistici (Origin / Transport mode) — il chip orario è ora nel widget mondiale Overview
     const logBadges = [];
     if (it.origin) logBadges.push(`<span class="log-badge log-origin" title="Origine: ${escapeAttr(it.origin)}">🌍 ${escapeHTML(it.origin)}</span>`);
     if (it.transportMode) logBadges.push(`<span class="log-badge log-transport" title="Trasporto: ${escapeAttr(it.transportMode)}">✈️ ${escapeHTML(it.transportMode)}</span>`);
-    // Timezone fornitore (se mappato in Impostazioni o via popover)
-    const supTz = it.supplier && state.supplierTimezones ? state.supplierTimezones[it.supplier] : null;
-    if (supTz) {
-      try {
-        const tStr = new Date().toLocaleTimeString("it-IT", { timeZone: supTz, hour: "2-digit", minute: "2-digit" });
-        const hour = parseInt(tStr.split(":")[0], 10);
-        const isDay = hour >= 7 && hour < 20;
-        const callable = hour >= 9 && hour < 18;  // orario lavorativo "telefonabile"
-        logBadges.push(`<span class="log-badge log-tz ${callable ? 'log-tz-ok' : 'log-tz-warn'}" title="Ora locale fornitore (${escapeAttr(supTz)}) — ${callable ? 'orario lavorativo' : 'fuori orario'}">${isDay ? "☀" : "🌙"} ${escapeHTML(tStr)}</span>`);
-      } catch {}
-    }
     const logBadgesHTML = logBadges.length > 0 ? `<div class="log-badges-row">${logBadges.join("")}</div>` : "";
 
     return `<tr ondblclick="window.openItemDetailPopover('${escapeAttr(it.id)}')" class="item-row" title="Doppio click per aprire la scheda completa">
@@ -4763,6 +4908,9 @@ function renderItemsTable(v) {
       <td data-label="Consegna" class="num">${formatDate(it.deliveryDate)}</td>
       <td data-label="Nota">
         <textarea class="notes-input ${note ? "has-content" : ""}" data-item-id="${escapeHTML(it.id)}" rows="1" placeholder="Nota locale…">${escapeHTML(note)}</textarea>
+      </td>
+      <td data-label="" style="text-align: right; width: 1%;">
+        <button class="row-todo-btn" onclick="window.openTodoFromButton('${escapeAttr(it.id)}'); event.stopPropagation();" ondblclick="event.stopPropagation();" title="Crea to-do per questo item">+</button>
       </td>
     </tr>`;
   }).join("");
@@ -4947,6 +5095,196 @@ window.toggleProgressLegend = function() {
 
 
 // ============================================================================
+
+// ============================================================================
+// === WORLD CLOCK (v0.9) — panoramica fusi orari nella Overview =============
+// ============================================================================
+// Lista default di città (ordinate ovest → est per seguire il sole).
+// L'utente può modificarle dalle Impostazioni del widget.
+const DEFAULT_WORLD_CLOCK_CITIES = [
+  { label: "Los Angeles", tz: "America/Los_Angeles", flag: "🇺🇸" },
+  { label: "Houston",     tz: "America/Chicago",     flag: "🇺🇸" },
+  { label: "New York",    tz: "America/New_York",    flag: "🇺🇸" },
+  { label: "Caracas",     tz: "America/Caracas",     flag: "🇻🇪" },
+  { label: "San Paolo",   tz: "America/Sao_Paulo",   flag: "🇧🇷" },
+  { label: "Dakar",       tz: "Africa/Dakar",        flag: "🇸🇳" },
+  { label: "Londra",      tz: "Europe/London",       flag: "🇬🇧" },
+  { label: "Napoli",      tz: "Europe/Rome",         flag: "🇮🇹" },
+  { label: "Istanbul",    tz: "Europe/Istanbul",     flag: "🇹🇷" },
+  { label: "Cipro",       tz: "Asia/Nicosia",        flag: "🇨🇾" },
+  { label: "Dubai",       tz: "Asia/Dubai",          flag: "🇦🇪" },
+  { label: "Mumbai",      tz: "Asia/Kolkata",        flag: "🇮🇳" },
+  { label: "Singapore",   tz: "Asia/Singapore",      flag: "🇸🇬" },
+  { label: "Shanghai",    tz: "Asia/Shanghai",       flag: "🇨🇳" },
+  { label: "Seoul",       tz: "Asia/Seoul",          flag: "🇰🇷" },
+  { label: "Tokyo",       tz: "Asia/Tokyo",          flag: "🇯🇵" },
+];
+
+function loadWorldClockCities() {
+  try {
+    const raw = localStorage.getItem("mpd.worldClockCities");
+    if (!raw) return DEFAULT_WORLD_CLOCK_CITIES;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_WORLD_CLOCK_CITIES;
+  } catch { return DEFAULT_WORLD_CLOCK_CITIES; }
+}
+
+function saveWorldClockCities(cities) {
+  if (!Array.isArray(cities)) return;
+  localStorage.setItem("mpd.worldClockCities", JSON.stringify(cities));
+}
+
+function renderWorldClock() {
+  const cities = loadWorldClockCities();
+  const tiles = cities.map(c => {
+    try {
+      const t = new Date().toLocaleTimeString("it-IT", { timeZone: c.tz, hour: "2-digit", minute: "2-digit" });
+      const hour = parseInt(t.split(":")[0], 10);
+      const isWorkingHours = hour >= 9 && hour < 18;
+      const isNight = hour < 7 || hour >= 22;
+      const cls = isWorkingHours ? "wc-tile wc-day" : isNight ? "wc-tile wc-night" : "wc-tile wc-offhour";
+      const icon = isNight ? "🌙" : isWorkingHours ? "☀" : "🌆";
+      return `
+        <div class="${cls}" title="${escapeAttr(c.tz)} — ${isWorkingHours ? 'orario lavorativo' : isNight ? 'notte' : 'fuori orario'}">
+          <div class="wc-label"><span class="wc-flag">${c.flag || ""}</span>${escapeHTML(c.label)}</div>
+          <div class="wc-time">${icon} ${escapeHTML(t)}</div>
+        </div>
+      `;
+    } catch (e) {
+      return `<div class="wc-tile wc-error" title="${escapeAttr(c.tz)}">${escapeHTML(c.label)}<br><span class="muted">— err</span></div>`;
+    }
+  }).join("");
+  return tiles;
+}
+
+// Auto-refresh orologi ogni minuto
+let worldClockInterval = null;
+function startWorldClockTimer() {
+  if (worldClockInterval) clearInterval(worldClockInterval);
+  worldClockInterval = setInterval(() => {
+    const strip = document.getElementById("world-clock-strip");
+    if (strip) strip.innerHTML = renderWorldClock();
+  }, 60000);  // ogni minuto
+}
+
+// === Settings modal per modificare le città dell'orologio ===
+window.openWorldClockSettings = function() {
+  console.log("[WorldClock] apertura settings");
+  let bd = document.getElementById("worldclock-settings-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "worldclock-settings-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+  renderWorldClockSettings(bd);
+  bd.classList.add("open");
+};
+
+function renderWorldClockSettings(bd) {
+  const cities = loadWorldClockCities();
+  const rows = cities.map((c, i) => `
+    <div class="wc-settings-row" data-idx="${i}">
+      <input type="text" value="${escapeAttr(c.flag || "")}" placeholder="🌍" class="wc-flag-input" maxlength="4" data-field="flag">
+      <input type="text" value="${escapeAttr(c.label)}" placeholder="Nome città" class="wc-label-input" data-field="label">
+      <input type="text" value="${escapeAttr(c.tz)}" placeholder="Es. Asia/Singapore" class="wc-tz-input" data-field="tz">
+      <button class="wc-row-delete" onclick="window.deleteWorldClockRow(${i})" title="Rimuovi">🗑</button>
+    </div>
+  `).join("");
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 560px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Orologio mondiale</h2>
+          <div class="item-detail-meta">
+            <span class="muted">Configura le città da mostrare nell'Overview</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeWorldClockSettings()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        <div class="detail-section">
+          <h4>Città (in ordine di visualizzazione)</h4>
+          <div id="wc-settings-rows">${rows}</div>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button class="btn btn-sm" onclick="window.addWorldClockRow()">+ Aggiungi città</button>
+            <button class="btn btn-sm" onclick="window.resetWorldClockToDefaults()" style="color: var(--text-muted);">↺ Ripristina default</button>
+          </div>
+          <div class="muted" style="font-size: 11px; margin-top: 10px; line-height: 1.5;">
+            Il fuso orario deve essere in formato IANA (es. <code>Europe/Rome</code>, <code>Asia/Singapore</code>).
+            La <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones" target="_blank" style="color: var(--c-blue-fg);">lista completa è qui</a>.
+          </div>
+        </div>
+      </div>
+      <div class="item-detail-footer">
+        <div style="flex: 1;"></div>
+        <button class="btn btn-sm" onclick="window.closeWorldClockSettings()">Annulla</button>
+        <button class="btn btn-sm btn-primary" onclick="window.saveWorldClockSettings()">Salva</button>
+      </div>
+    </div>
+  `;
+}
+
+window.closeWorldClockSettings = function() {
+  const bd = document.getElementById("worldclock-settings-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+window.addWorldClockRow = function() {
+  const cities = loadWorldClockCities();
+  cities.push({ label: "", tz: "", flag: "" });
+  saveWorldClockCities(cities);
+  const bd = document.getElementById("worldclock-settings-backdrop");
+  renderWorldClockSettings(bd);
+};
+
+window.deleteWorldClockRow = function(idx) {
+  const cities = loadWorldClockCities();
+  cities.splice(idx, 1);
+  saveWorldClockCities(cities);
+  const bd = document.getElementById("worldclock-settings-backdrop");
+  renderWorldClockSettings(bd);
+};
+
+window.resetWorldClockToDefaults = function() {
+  if (!confirm("Ripristinare la lista di default? Le tue modifiche andranno perse.")) return;
+  saveWorldClockCities(DEFAULT_WORLD_CLOCK_CITIES);
+  const bd = document.getElementById("worldclock-settings-backdrop");
+  renderWorldClockSettings(bd);
+};
+
+window.saveWorldClockSettings = function() {
+  const rows = document.querySelectorAll("#wc-settings-rows .wc-settings-row");
+  const cities = [];
+  let invalidTz = [];
+  for (const r of rows) {
+    const flag = r.querySelector('[data-field="flag"]').value.trim();
+    const label = r.querySelector('[data-field="label"]').value.trim();
+    const tz = r.querySelector('[data-field="tz"]').value.trim();
+    if (!label || !tz) continue;  // skip righe vuote
+    // Validazione tz
+    try {
+      new Date().toLocaleTimeString("it-IT", { timeZone: tz });
+    } catch {
+      invalidTz.push(label + " (" + tz + ")");
+      continue;
+    }
+    cities.push({ flag, label, tz });
+  }
+  if (invalidTz.length > 0) {
+    showToast(`⚠ Fusi non validi: ${invalidTz.join(", ")}`, 6000);
+    return;
+  }
+  saveWorldClockCities(cities);
+  showToast(`Salvate ${cities.length} città`);
+  window.closeWorldClockSettings();
+  // Aggiorna immediatamente la strip
+  const strip = document.getElementById("world-clock-strip");
+  if (strip) strip.innerHTML = renderWorldClock();
+};
+
+
 // === ITEM DETAIL POPOVER (v0.7) — scheda completa dell'item =================
 // ============================================================================
 // Apre un popover modale (centrato, con sfondo dietro) che mostra TUTTO quello
