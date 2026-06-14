@@ -2475,6 +2475,205 @@ a:hover { text-decoration: underline; }
   }
 }
 
+
+/* ============================================================================ */
+/* === v0.10.2 — NUOVI STILI ================================================== */
+/* ============================================================================ */
+
+/* Bottone +to-do sulla riga azione (trasforma azione in to-do) */
+.btn-action-to-todo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: all 0.12s;
+}
+.btn-action-to-todo:hover {
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border-color: var(--c-blue-dot);
+}
+
+/* Bottone pin */
+.btn-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-faint);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.12s;
+  opacity: 0.5;
+}
+.btn-pin:hover {
+  opacity: 1;
+  background: var(--bg-muted);
+}
+.btn-pin.pinned {
+  opacity: 1;
+  background: var(--c-amber-bg);
+  border-color: var(--c-amber-dot);
+  color: var(--c-amber-fg);
+}
+
+/* Riga fissata: piccolo bordo a sinistra */
+.action-row.is-pinned {
+  border-left: 3px solid var(--c-amber-dot);
+  padding-left: 6px;
+}
+
+/* Sezione Fissate */
+.pinned-group .actions-group-title {
+  color: var(--c-amber-fg);
+}
+
+/* Badge lingua memorizzata accanto al bottone Sollecita */
+.lang-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 3px;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  vertical-align: middle;
+}
+.lang-badge.lang-it {
+  background: #e8f5e8;
+  color: #2e7d32;
+  border-color: #4caf50;
+}
+.lang-badge.lang-en {
+  background: #e3f2fd;
+  color: #1565c0;
+  border-color: #2196f3;
+}
+
+/* Picker lingua */
+.lang-picker-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 8px 0;
+}
+.lang-picker-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 16px;
+  border: 2px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lang-picker-btn:hover {
+  border-color: var(--c-blue-dot);
+  background: var(--c-blue-bg);
+  transform: translateY(-2px);
+}
+.lang-picker-btn.primary {
+  border-color: var(--c-blue-dot);
+  background: var(--c-blue-bg);
+}
+.lang-picker-btn .lang-flag {
+  font-size: 36px;
+  line-height: 1;
+}
+.lang-picker-btn .lang-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.lang-picker-btn .lang-hint {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Sub-grouping per fornitore (dentro gruppo omogeneo) */
+.supplier-subgroup {
+  background: var(--bg-surface);
+  border-radius: 6px;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.supplier-subgroup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.supplier-subgroup-header .supplier-name {
+  font-weight: 600;
+  color: var(--text);
+}
+.supplier-subgroup-header .supplier-count {
+  font-size: 11px;
+}
+.btn-batch {
+  margin-left: auto;
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border: 1px solid var(--c-blue-dot);
+  font-weight: 500;
+  font-size: 11.5px;
+}
+.btn-batch:hover {
+  background: var(--c-blue-dot);
+  color: white;
+}
+.supplier-subgroup .action-row {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+.supplier-subgroup .action-row:last-child {
+  border-bottom: none;
+}
+
+/* Banner "tempo dall'ultima visita" */
+.last-visit-banner {
+  background: var(--c-blue-bg);
+  border-left: 3px solid var(--c-blue-dot);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--c-blue-fg);
+}
+.last-visit-banner strong {
+  font-weight: 700;
+}
+
+
 /* === WORLD CLOCK WIDGET (v0.9.1) ========================================== */
 .world-clock-strip {
   display: grid;
@@ -3438,7 +3637,10 @@ const LS_KEYS = {
   driveLastModified: "mpd.driveLastModified",
   driveWasConnected: "mpd.driveWasConnected",
   supplierTimezones: "mpd.supplierTimezones",
-  completionsHistory: "mpd.completionsHistory"
+  completionsHistory: "mpd.completionsHistory",
+  supplierLanguages: "mpd.supplierLanguages",   // v0.10.2: fornitore → "it"|"en"
+  pinnedActions: "mpd.pinnedActions",           // v0.10.2: chiavi azioni fissate
+  lastVisitTs: "mpd.lastVisitTs"                // v0.10.2: timestamp ultima visita (per "novità da ieri")
 };
 
 // ============================================================================
@@ -3510,6 +3712,18 @@ function loadSnapshot() {
 function loadCompletionsHistory() {
   try {
     const raw = JSON.parse(localStorage.getItem(LS_KEYS?.completionsHistory || "mpd.completionsHistory") || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch { return []; }
+}
+function loadSupplierLanguages() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.supplierLanguages || "mpd.supplierLanguages") || "{}");
+    return (raw && typeof raw === "object") ? raw : {};
+  } catch { return {}; }
+}
+function loadPinnedActions() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.pinnedActions || "mpd.pinnedActions") || "[]");
     return Array.isArray(raw) ? raw : [];
   } catch { return []; }
 }
@@ -3675,7 +3889,9 @@ const state = {
   notes: loadNotes(),           // { itemId: "text" }
   todos: loadTodos(),           // [{ id, vessel, action, target, when, note, done, createdAt }]
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
-  completionsHistory: loadCompletionsHistory(),  // v0.10: [{ key, label, vesselId, ..., completedAt }]
+  completionsHistory: loadCompletionsHistory(),  // v0.10
+  supplierLanguages: loadSupplierLanguages(),    // v0.10.2 — { supplier: "it"|"en" }
+  pinnedActions: loadPinnedActions(),            // v0.10.2 — array di chiavi azioni fissate
   morningSnapshot: loadSnapshot(),
   supplierTimezones: loadSupplierTimezones(),  // v0.8: { "SUPPLIER NAME": "Asia/Singapore" }
   drive: {
@@ -3745,12 +3961,21 @@ function saveSnapshot(snap) {
 }
 function saveCompletionsHistory() {
   if (!Array.isArray(state.completionsHistory)) return;
-  // Limito a 2000 entry per evitare crescita illimitata (≈ 6 mesi di lavoro intenso)
   if (state.completionsHistory.length > 2000) {
     state.completionsHistory = state.completionsHistory.slice(-2000);
   }
   localStorage.setItem(LS_KEYS.completionsHistory, JSON.stringify(state.completionsHistory));
-  driveSchedulePush();  // sync via Drive
+  driveSchedulePush();
+}
+function saveSupplierLanguages() {
+  if (!state.supplierLanguages || typeof state.supplierLanguages !== "object") return;
+  localStorage.setItem(LS_KEYS.supplierLanguages, JSON.stringify(state.supplierLanguages));
+  driveSchedulePush();
+}
+function savePinnedActions() {
+  if (!Array.isArray(state.pinnedActions)) return;
+  localStorage.setItem(LS_KEYS.pinnedActions, JSON.stringify(state.pinnedActions));
+  driveSchedulePush();
 }
 // v0.8
 function saveSupplierTimezones() {
@@ -3909,9 +4134,12 @@ const priorityRules = [
         key: "outwindow:" + item.id,
         level: "critical",
         label: "Consegna fuori finestra",
-        action: { label: "Email fornitore", type: "mailto",
-                  payload: { to: "", subject: "Sollecito consegna " + (item.description || ""),
-                             body: `Buongiorno,\n\nl'ordine "${item.description}" risulta in consegna ${item.deliveryDate}, dopo la partenza prevista della ${vessel.vesselName} (ETD ${vessel.tracking.etd.slice(0,10)}).\nPer cortesia conferma se è possibile anticipare la consegna o se necessitiamo di un riallineamento del porto di consegna.\n\nGrazie,\nMichele` } }
+        action: {
+          label: "Email fornitore",
+          type: "mailto-bilingual",
+          template: "delivery-out-of-window",
+          context: { description: item.description || "", deliveryDate: item.deliveryDate, vesselName: vessel.vesselName, etd: vessel.tracking.etd.slice(0,10), supplier: item.supplier }
+        }
       };
     }
     return null;
@@ -3923,14 +4151,19 @@ const priorityRules = [
     if (item.rfqDays && item.rfqDays > threshold &&
         item.rfqStatus && item.rfqStatus !== "RFQ Offer Acknowledged" &&
         item.rfqStatus !== "RFQ Refused") {
+      // v0.10.2: i template sono ora costruiti dinamicamente in base alla lingua
+      // del fornitore (action.type === "mailto-bilingual" → handler resolve lingua)
       return {
         key: "overdue:" + item.id,
         level: "warning",
         label: `In attesa · ${item.rfqDays}g`,
         ageDays: item.rfqDays,
-        action: { label: "Sollecita", type: "mailto",
-                  payload: { to: "", subject: "Sollecito offerta " + (item.description || ""),
-                             body: `Buongiorno,\n\nin attesa di vostra cortese offerta per "${item.description}" inviata ${item.rfqDays} giorni fa.\nÈ possibile ricevere un riscontro?\n\nGrazie,\nMichele` } }
+        action: {
+          label: "Sollecita",
+          type: "mailto-bilingual",
+          template: "rfq-overdue",
+          context: { description: item.description || "", days: item.rfqDays, supplier: item.supplier }
+        }
       };
     }
     return null;
@@ -3975,9 +4208,12 @@ function batchSupplierRule(vessel) {
         label: `Batch · ${items.length} item`,
         body: `${items.length} RFQ pendenti da ${supplier} su ${vessel.displayName || vessel.vesselName}`,
         supplier: supplier,
-        action: { label: "Sollecita in batch", type: "mailto",
-                  payload: { to: "", subject: `Sollecito offerte multiple - ${vessel.displayName || vessel.vesselName}`,
-                             body: `Buongiorno,\n\nin attesa delle seguenti offerte:\n\n${items.map(i => "• " + i.description + " (" + (i.rfqDays || "?") + "g)").join("\n")}\n\nGrazie per il riscontro,\nMichele` } }
+        action: {
+          label: "Sollecita in batch",
+          type: "mailto-bilingual",
+          template: "rfq-batch",
+          context: { vesselName: vessel.displayName || vessel.vesselName, supplier: supplier, items: items.map(i => ({ description: i.description, days: i.rfqDays })) }
+        }
       });
     }
   }
@@ -4200,17 +4436,81 @@ function buildEODReport() {
     r += "(Nessuna baseline mattutina salvata: domani aprila al mattino.)\n\n";
   }
 
+  // v0.10.2 — Riepilogo azioni COMPLETATE oggi (dal completionsHistory)
+  const today = todayISO();
+  const completedToday = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today);
+  if (completedToday.length > 0) {
+    r += "FATTE OGGI (" + completedToday.length + ")\n" + "-".repeat(40) + "\n";
+    // Raggruppo per nave per leggibilità
+    const byVessel = {};
+    for (const e of completedToday) {
+      const v = e.vesselName || "—";
+      if (!byVessel[v]) byVessel[v] = [];
+      byVessel[v].push(e);
+    }
+    for (const [vn, entries] of Object.entries(byVessel)) {
+      r += `\n${vn}:\n`;
+      for (const e of entries) {
+        const time = (e.completedAt || "").slice(11, 16);
+        const desc = (e.description || "").substring(0, 60);
+        r += `  ${time} · ${e.label} · ${desc}\n`;
+      }
+    }
+    r += "\n";
+  }
+
+  // To-do create oggi (utili come "ho aperto N nuove pratiche")
+  const todosCreatedToday = (state.todos || []).filter(t => {
+    if (!t.createdAt) return false;
+    return t.createdAt.slice(0, 10) === today;
+  });
+  if (todosCreatedToday.length > 0) {
+    r += "NUOVE TO-DO CREATE OGGI (" + todosCreatedToday.length + ")\n" + "-".repeat(40) + "\n";
+    for (const t of todosCreatedToday.slice(0, 10)) {
+      const ref = (t.reference || t.note || "").substring(0, 60);
+      r += `  • ${t.action || "(senza azione)"} · ${ref}\n`;
+    }
+    if (todosCreatedToday.length > 10) r += `  ... e altre ${todosCreatedToday.length - 10}\n`;
+    r += "\n";
+  }
+
   // Azioni ancora aperte
   r += "ANCORA APERTO\n" + "-".repeat(40) + "\n";
   const actions = generateAllActions();
   if (actions.length === 0) r += "  Nessuna azione aperta. Buon lavoro!\n";
   else {
-    for (const a of actions.slice(0, 20)) {
-      const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
-      const descShort = (a.description || "").substring(0, 70);
-      r += `  [${a.level.toUpperCase()}] ${vshort} · ${descShort}\n`;
+    // Raggruppo per livello
+    const byLevel = { critical: [], warning: [], info: [] };
+    for (const a of actions) {
+      if (byLevel[a.level]) byLevel[a.level].push(a);
     }
-    if (actions.length > 20) r += `  ... e altri ${actions.length - 20}\n`;
+    if (byLevel.critical.length > 0) {
+      r += `\n[URGENTE - ${byLevel.critical.length}]\n`;
+      for (const a of byLevel.critical.slice(0, 15)) {
+        const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
+        const descShort = (a.description || "").substring(0, 60);
+        r += `  ${vshort} · ${descShort}\n`;
+      }
+      if (byLevel.critical.length > 15) r += `  ... e altre ${byLevel.critical.length - 15}\n`;
+    }
+    if (byLevel.warning.length > 0) {
+      r += `\n[QUESTA SETTIMANA - ${byLevel.warning.length}]\n`;
+      for (const a of byLevel.warning.slice(0, 10)) {
+        const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
+        const descShort = (a.description || "").substring(0, 60);
+        r += `  ${vshort} · ${descShort}\n`;
+      }
+      if (byLevel.warning.length > 10) r += `  ... e altre ${byLevel.warning.length - 10}\n`;
+    }
+    if (byLevel.info.length > 0) {
+      r += `\n[QUANDO PUOI - ${byLevel.info.length}]\n`;
+      for (const a of byLevel.info.slice(0, 8)) {
+        const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
+        const descShort = (a.description || "").substring(0, 60);
+        r += `  ${vshort} · ${descShort}\n`;
+      }
+      if (byLevel.info.length > 8) r += `  ... e altre ${byLevel.info.length - 8}\n`;
+    }
   }
   r += "\n";
 
@@ -4482,6 +4782,30 @@ function renderError() {
 // ----- OVERVIEW VIEW -----------------------------------------------------
 function renderOverview() {
   const root = document.getElementById("view-root");
+  // v0.10.2 — Indicatore "tempo dall'ultima visita"
+  const lastVisitTs = parseInt(localStorage.getItem(LS_KEYS.lastVisitTs) || "0", 10);
+  const now = Date.now();
+  let lastVisitHTML = "";
+  if (lastVisitTs > 0) {
+    const diffMs = now - lastVisitTs;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin >= 60 && diffMin < 60*24*7) {  // tra 1 ora e 1 settimana
+      let timeAgo;
+      if (diffMin < 60*24) {
+        const h = Math.floor(diffMin / 60);
+        timeAgo = h === 1 ? "1 ora" : `${h} ore`;
+      } else {
+        const d = Math.floor(diffMin / (60*24));
+        timeAgo = d === 1 ? "1 giorno" : `${d} giorni`;
+      }
+      lastVisitHTML = `<div class="last-visit-banner">
+        <span>📊 <strong>${timeAgo}</strong> dall'ultimo accesso. Hai 30 secondi? Dai un'occhiata se è cambiato qualcosa.</span>
+      </div>`;
+    }
+  }
+  // Aggiorno timestamp ultima visita
+  localStorage.setItem(LS_KEYS.lastVisitTs, String(now));
+
   const whatsNew = state.whatsNew;
   let whatsNewHTML = "";
   if (whatsNew && (whatsNew.refused + whatsNew.dn + whatsNew.po + whatsNew.ack > 0)) {
@@ -4551,6 +4875,7 @@ function renderOverview() {
   // Le to-do sono accessibili dalla pill "To-do" in alto e via badge sulle vessel-card.
 
   root.innerHTML = `
+    ${lastVisitHTML}
     ${whatsNewHTML}
     <section>
       <div class="section-title">
@@ -6719,6 +7044,161 @@ function renderDebug() {
 
 // ----- ACTION ROW HTML & HANDLERS ----------------------------------------
 
+
+// ============================================================================
+// === EMAIL TEMPLATES IT/EN (v0.10.2) =======================================
+// ============================================================================
+// Sistema:
+// 1. Ogni action di tipo "mailto-bilingual" ha { template, context }
+// 2. Al click: se la lingua del fornitore è memorizzata → genera subito mail
+//    Altrimenti → mini picker "🇮🇹 Italiano / 🇬🇧 English" → memorizza scelta
+// 3. La scelta è salvata in state.supplierLanguages[supplier] e sincronizzata via Drive
+
+const EMAIL_TEMPLATES = {
+  "rfq-overdue": {
+    it: (ctx) => ({
+      subject: `Sollecito offerta ${ctx.description}`,
+      body: `Buongiorno,\n\nin attesa di vostra cortese offerta per "${ctx.description}" inviata ${ctx.days} giorni fa.\nÈ possibile ricevere un riscontro?\n\nGrazie,\nMichele`
+    }),
+    en: (ctx) => ({
+      subject: `Quotation reminder: ${ctx.description}`,
+      body: `Good morning,\n\nwe are still awaiting your kind quotation for "${ctx.description}", which was sent ${ctx.days} days ago.\nCould you please let us know the status?\n\nThank you,\nMichele`
+    })
+  },
+  "rfq-batch": {
+    it: (ctx) => ({
+      subject: `Sollecito offerte multiple - ${ctx.vesselName}`,
+      body: `Buongiorno,\n\nin attesa delle seguenti offerte:\n\n${(ctx.items || []).map(i => "• " + i.description + " (" + (i.days || "?") + "g)").join("\n")}\n\nGrazie per il riscontro,\nMichele`
+    }),
+    en: (ctx) => ({
+      subject: `Multiple quotation reminder - ${ctx.vesselName}`,
+      body: `Good morning,\n\nwe are still awaiting the following quotations:\n\n${(ctx.items || []).map(i => "• " + i.description + " (" + (i.days || "?") + "d)").join("\n")}\n\nThank you for your reply,\nMichele`
+    })
+  },
+  "delivery-out-of-window": {
+    it: (ctx) => ({
+      subject: `Sollecito consegna ${ctx.description}`,
+      body: `Buongiorno,\n\nl'ordine "${ctx.description}" risulta in consegna ${ctx.deliveryDate}, dopo la partenza prevista della ${ctx.vesselName} (ETD ${ctx.etd}).\nPer cortesia conferma se è possibile anticipare la consegna o se necessitiamo di un riallineamento del porto di consegna.\n\nGrazie,\nMichele`
+    }),
+    en: (ctx) => ({
+      subject: `Delivery follow-up: ${ctx.description}`,
+      body: `Good morning,\n\nthe order "${ctx.description}" is scheduled for delivery on ${ctx.deliveryDate}, which is after the planned departure of ${ctx.vesselName} (ETD ${ctx.etd}).\nCould you please confirm if it is possible to anticipate the delivery, or if we need to realign the delivery port?\n\nThank you,\nMichele`
+    })
+  }
+};
+
+// Risolve il template + lingua → torna { subject, body, mailtoHref }
+function resolveEmailTemplate(templateKey, context, lang) {
+  const tpl = EMAIL_TEMPLATES[templateKey];
+  if (!tpl) {
+    console.warn("[Email] template sconosciuto:", templateKey);
+    return null;
+  }
+  const fn = tpl[lang] || tpl.en;  // fallback inglese se lingua sconosciuta
+  const result = fn(context);
+  const mailtoHref = `mailto:?subject=${encodeURIComponent(result.subject)}&body=${encodeURIComponent(result.body)}`;
+  return { ...result, mailtoHref };
+}
+
+// Click handler: se lingua memorizzata → vai subito; altrimenti chiedi
+window.handleMailtoBilingualClick = function(actionKey, supplier, templateKey, contextJson) {
+  let context;
+  try { context = JSON.parse(decodeURIComponent(contextJson)); }
+  catch (e) { console.error("[Email] context non valido:", e); return; }
+
+  // Lingua memorizzata?
+  const storedLang = supplier && state.supplierLanguages ? state.supplierLanguages[supplier] : null;
+  if (storedLang === "it" || storedLang === "en") {
+    const r = resolveEmailTemplate(templateKey, context, storedLang);
+    if (!r) return;
+    window.location.href = r.mailtoHref;
+    return;
+  }
+  // Altrimenti: mini picker
+  openLangPicker(supplier, templateKey, context);
+};
+
+function openLangPicker(supplier, templateKey, context) {
+  let bd = document.getElementById("lang-picker-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "lang-picker-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+  // Default proposto: inglese (per richiesta utente — la maggior parte dei fornitori sono internazionali)
+  const proposed = "en";
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 420px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Lingua per ${escapeHTML(supplier || "fornitore")}</h2>
+          <div class="item-detail-meta">
+            <span class="muted">In che lingua scrivi a questo fornitore? La scelta sarà memorizzata.</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeLangPicker()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        <div class="lang-picker-row">
+          <button class="lang-picker-btn ${proposed === "en" ? "primary" : ""}" onclick="window.chooseLanguageAndSend('${escapeAttr(supplier)}', '${escapeAttr(templateKey)}', '${escapeAttr(JSON.stringify(context))}', 'en')">
+            <span class="lang-flag">🇬🇧</span>
+            <span class="lang-name">English</span>
+            <span class="lang-hint muted">${proposed === "en" ? "consigliato" : ""}</span>
+          </button>
+          <button class="lang-picker-btn ${proposed === "it" ? "primary" : ""}" onclick="window.chooseLanguageAndSend('${escapeAttr(supplier)}', '${escapeAttr(templateKey)}', '${escapeAttr(JSON.stringify(context))}', 'it')">
+            <span class="lang-flag">🇮🇹</span>
+            <span class="lang-name">Italiano</span>
+            <span class="lang-hint muted">${proposed === "it" ? "consigliato" : ""}</span>
+          </button>
+        </div>
+        <div class="muted" style="font-size: 11px; margin-top: 14px; text-align: center;">
+          Puoi modificare la lingua di un fornitore in qualsiasi momento dal popover dell'item (sezione Logistica).
+        </div>
+      </div>
+    </div>
+  `;
+  bd.classList.add("open");
+}
+
+window.closeLangPicker = function() {
+  const bd = document.getElementById("lang-picker-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+window.chooseLanguageAndSend = function(supplier, templateKey, contextJson, lang) {
+  // Memorizzo per il fornitore
+  if (supplier && supplier !== "—" && supplier !== "undefined" && supplier !== "null") {
+    state.supplierLanguages[supplier] = lang;
+    saveSupplierLanguages();
+    showToast(`Lingua "${lang === "it" ? "Italiano" : "English"}" memorizzata per ${supplier}`);
+  }
+  // Apro la mail
+  let context;
+  try { context = JSON.parse(contextJson); } catch { context = {}; }
+  const r = resolveEmailTemplate(templateKey, context, lang);
+  window.closeLangPicker();
+  if (r) {
+    window.location.href = r.mailtoHref;
+  }
+};
+
+// UI per cambiare lingua di un fornitore (richiamata dal popover scheda item)
+window.changeSupplierLanguage = function(supplier) {
+  const current = state.supplierLanguages[supplier];
+  const newLang = prompt(`Lingua per "${supplier}" (it / en):`, current || "");
+  if (!newLang) return;
+  const v = newLang.toLowerCase().trim();
+  if (v !== "it" && v !== "en") {
+    showToast("Inserisci 'it' o 'en'");
+    return;
+  }
+  state.supplierLanguages[supplier] = v;
+  saveSupplierLanguages();
+  showToast(`Lingua "${v}" salvata per ${supplier}`);
+  render();
+};
+
 // ============================================================================
 // === ACTIONS TODAY v0.10 — render rifatto con raggruppamento ===============
 // ============================================================================
@@ -6748,21 +7228,32 @@ function renderActionsTodayV2() {
   const userTodosFiltered = vesselFilter === "all" ? userTodos :
     userTodos.filter(t => t.vessel === vesselFilter);
 
-  // Classifico ogni azione in una delle 3 fasce
-  // - URGENTE: critical + to-do scadute o scadenza oggi
-  // - SETTIMANA: warning + to-do scadenza domani-7gg + to-do senza scadenza ma create di recente
-  // - QUANDO PUOI: info + to-do senza scadenza più vecchie
+  // v0.10.2 — Separo PRIMA le azioni fissate (vanno in una sezione dedicata in cima)
+  const pinnedKeys = new Set(state.pinnedActions || []);
+  const pinned = [];
+  const unpinnedSystem = [];
+  for (const a of systemActions) {
+    if (pinnedKeys.has(a.key)) pinned.push({ ...a, _kind: "system", _isPinned: true });
+    else unpinnedSystem.push({ ...a, _kind: "system" });
+  }
+
+  // Classifico ogni azione non-fissata in una delle 3 fasce
   const urgent = [];
   const week = [];
   const someday = [];
 
-  for (const a of systemActions) {
-    if (a.level === "critical") urgent.push({ ...a, _kind: "system" });
-    else if (a.level === "warning") week.push({ ...a, _kind: "system" });
-    else someday.push({ ...a, _kind: "system" });
+  for (const a of unpinnedSystem) {
+    if (a.level === "critical") urgent.push(a);
+    else if (a.level === "warning") week.push(a);
+    else someday.push(a);
   }
   for (const t of userTodosFiltered) {
     const ta = todoToActionAdapter(t);
+    // Le to-do fissate? Le mettiamo nelle pinned solo se la to-do stessa è in pinnedActions
+    if (pinnedKeys.has(ta.key)) {
+      pinned.push({ ...ta, _isPinned: true });
+      continue;
+    }
     if (t.dueDate && t.dueDate <= today) urgent.push(ta);
     else if (t.dueDate && t.dueDate <= weekEnd) week.push(ta);
     else if (t.priority === "alta") urgent.push(ta);
@@ -6775,7 +7266,15 @@ function renderActionsTodayV2() {
 
   let body = "";
 
-  if (urgent.length + week.length + someday.length === 0) {
+  // v0.10.2: prima le fissate, poi le tre fasce
+  if (pinned.length > 0) {
+    body += `<div class="actions-group pinned-group">
+      <div class="actions-group-title">📌 Fissate da te <span class="muted">(${pinned.length})</span></div>
+      ${pinned.map(a => actionRowHTMLv2(a)).join("")}
+    </div>`;
+  }
+
+  if (urgent.length + week.length + someday.length === 0 && pinned.length === 0) {
     body = `<div class="empty-state" style="padding: 24px;">✓ Nessuna azione al momento${vesselFilter !== "all" ? " (per questa nave)" : ""}.</div>`;
   } else {
     if (urgent.length > 0) {
@@ -6977,10 +7476,10 @@ function renderActionGroup(groupId, title, actions) {
 }
 
 // Render della riga "riassunto + espansione" per gruppi omogenei
+// v0.10.2 — Sub-grouping per fornitore (batch sollecito ha senso solo per stesso supplier)
 function renderHomogeneousGroup(parentGroup, ruleType, items) {
   const groupKey = parentGroup + ":" + ruleType;
   const isExpanded = state._actionsTodayExpanded.has(groupKey);
-  // Etichette per i tipi
   const labels = {
     overdue: { icon: "📞", verb: "RFQ da sollecitare" },
     refused: { icon: "🔴", verb: "RFQ rifiutate" },
@@ -6989,7 +7488,54 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
   };
   const l = labels[ruleType] || { icon: "•", verb: ruleType };
 
-  const rowsExpanded = isExpanded ? items.map(a => actionRowHTMLv2(a, true)).join("") : "";
+  // Sub-grouping per fornitore (solo se ruleType è "sollecitabile" — overdue/refused)
+  const groupableByVendor = (ruleType === "overdue" || ruleType === "refused");
+  let supplierSubgroups = null;
+  if (groupableByVendor) {
+    const bySupplier = {};
+    for (const a of items) {
+      const sup = a.supplier || "(senza fornitore)";
+      if (!bySupplier[sup]) bySupplier[sup] = [];
+      bySupplier[sup].push(a);
+    }
+    supplierSubgroups = Object.entries(bySupplier)
+      .sort((a, b) => b[1].length - a[1].length);  // più voluminosi in cima
+  }
+
+  let expandedHTML = "";
+  if (isExpanded) {
+    if (supplierSubgroups) {
+      // Per ogni fornitore: una mini-card con sollecito batch + items
+      expandedHTML = supplierSubgroups.map(([sup, supItems]) => {
+        // Bottone "Sollecita tutti" applicabile solo se ci sono 2+ items e il fornitore è noto
+        const canBatch = sup !== "(senza fornitore)" && supItems.length >= 2;
+        let batchBtn = "";
+        if (canBatch) {
+          // Costruisco context per batch
+          const ctx = {
+            vesselName: supItems[0].vesselName || "",
+            supplier: sup,
+            items: supItems.map(i => ({ description: i.description || "", days: i.ageDays || "?" }))
+          };
+          const ctxJson = encodeURIComponent(JSON.stringify(ctx));
+          batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')">📨 Sollecita tutti (${supItems.length}) →</button>`;
+        }
+        return `
+          <div class="supplier-subgroup">
+            <div class="supplier-subgroup-header">
+              <span class="supplier-name">${escapeHTML(sup)}</span>
+              <span class="supplier-count muted">${supItems.length} item${supItems.length === 1 ? "" : "s"}</span>
+              ${batchBtn}
+            </div>
+            ${supItems.map(a => actionRowHTMLv2(a, true)).join("")}
+          </div>
+        `;
+      }).join("");
+    } else {
+      // Senza sub-grouping
+      expandedHTML = items.map(a => actionRowHTMLv2(a, true)).join("");
+    }
+  }
 
   return `
     <div class="action-group-summary ${isExpanded ? 'expanded' : ''}">
@@ -6998,13 +7544,12 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
         <span class="group-label"><strong>${items.length}</strong> ${l.verb}</span>
         <span class="group-toggle">${isExpanded ? "▼" : "▶"}</span>
       </div>
-      ${isExpanded ? `<div class="action-group-expanded">${rowsExpanded}</div>` : ""}
+      ${isExpanded ? `<div class="action-group-expanded">${expandedHTML}</div>` : ""}
     </div>
   `;
 }
 
-// Action row v2: simile a actionRowHTML ma con (a) tag "to-do" se è una to-do utente,
-// (b) compatibilità con expanded sub-rows
+// Action row v2 — v0.10.2 con bottone +to-do, picker lingua, pin, rimanda intelligente
 function actionRowHTMLv2(a, isInGroup) {
   const cfg = (typeof ALERT_CONFIG !== "undefined" && ALERT_CONFIG[a.level]) ?
               ALERT_CONFIG[a.level] :
@@ -7015,31 +7560,103 @@ function actionRowHTMLv2(a, isInGroup) {
   const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   const todoTag = a._kind === "todo" ? `<span class="kind-tag-todo">personale</span>` : "";
 
+  // Lingua memorizzata del fornitore (per badge visivo accanto al bottone Sollecita)
+  const supLang = a.supplier && state.supplierLanguages ? state.supplierLanguages[a.supplier] : null;
+  const langBadge = supLang ? `<span class="lang-badge lang-${supLang}" title="Lingua memorizzata">${supLang.toUpperCase()}</span>` : "";
+
   let actionBtn = "";
   if (a.action) {
     if (a.action.type === "link") {
       actionBtn = `<button class="btn btn-sm" onclick="window.open('${escapeAttr(a.action.payload)}', '_blank')">${escapeHTML(a.action.label)} →</button>`;
     } else if (a.action.type === "mailto") {
+      // Legacy: vecchio formato hard-coded italiano
       const p = a.action.payload;
       const href = `mailto:${encodeURIComponent(p.to || "")}?subject=${encodeURIComponent(p.subject || "")}&body=${encodeURIComponent(p.body || "")}`;
       actionBtn = `<a class="btn btn-sm" href="${href}">${escapeHTML(a.action.label)} →</a>`;
+    } else if (a.action.type === "mailto-bilingual") {
+      // v0.10.2 — handler smart con scelta lingua memorizzata o picker
+      const ctxJson = encodeURIComponent(JSON.stringify(a.action.context || {}));
+      actionBtn = `<button class="btn btn-sm" onclick="window.handleMailtoBilingualClick('${escapeAttr(a.key)}', '${escapeAttr(a.supplier || "")}', '${escapeAttr(a.action.template)}', '${ctxJson}')">${escapeHTML(a.action.label)} →</button>${langBadge}`;
     } else if (a.action.type === "todo-edit") {
       actionBtn = `<button class="btn btn-sm" onclick="openTodoModal('${escapeAttr(a.action.payload)}')">Apri →</button>`;
     }
   }
 
-  return `<div class="action-row ${isInGroup ? "in-group" : ""}" data-action-key="${escapeAttr(a.key)}">
+  // v0.10.2 — Bottone "+to-do" su ogni azione (trasforma azione in to-do programmata)
+  // (non per azioni che SONO già to-do utente)
+  const todoBtn = a._kind !== "todo" ? `
+    <button class="btn-action-to-todo" data-action-todo="${escapeAttr(a.key)}" title="Crea to-do da questa azione">+</button>
+  ` : "";
+
+  // v0.10.2 — Bottone "📌 pin"
+  const isPinned = (state.pinnedActions || []).includes(a.key);
+  const pinBtn = `<button class="btn-pin ${isPinned ? "pinned" : ""}" data-pin-key="${escapeAttr(a.key)}" title="${isPinned ? "Sfissa" : "Fissa in cima"}">📌</button>`;
+
+  return `<div class="action-row ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}">
     <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
     <div class="action-body">
       ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag} ${todoTag}
     </div>
     <div class="action-btns">
       ${actionBtn}
+      ${todoBtn}
       <button class="btn-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" data-vessel-name="${escapeAttr(a.vesselName || "")}" data-description="${escapeAttr(desc)}" data-supplier="${escapeAttr(a.supplier || "")}" data-level="${escapeAttr(a.level || "")}" title="Segna come fatto">✓</button>
-      <button class="btn-snooze" data-snooze-key="${escapeAttr(a.key)}" title="Rimanda">⏰</button>
+      <button class="btn-snooze" data-snooze-key="${escapeAttr(a.key)}" data-action-json="${escapeAttr(JSON.stringify({label: a.label, vesselId: a.vesselId, vesselName: a.vesselName, description: desc, supplier: a.supplier}))}" title="Rimanda">⏰</button>
+      ${pinBtn}
     </div>
   </div>`;
 }
+
+// === Handler per +to-do, pin, rimanda intelligente ===
+window.actionToTodo = function(actionKey) {
+  // Trovo l'azione corrente per estrarre dati
+  const allActions = generateAllActions();
+  const a = allActions.find(x => x.key === actionKey);
+  if (!a) {
+    showToast("Azione non trovata");
+    return;
+  }
+  // Apro la modale to-do con prefill ricavato dall'azione
+  modalCurrentTags = [];
+  const fakeItem = {
+    description: a.description || a.label,
+    supplier: a.supplier,
+    department: "",
+    reqNumber: "", poNumber: "", dnNumber: ""
+  };
+  openTodoModal(null, a.vesselId, fakeItem);
+  // Sovrascrivo l'azione default con quella suggerita
+  setTimeout(() => {
+    const actionEl = document.getElementById("todo-action");
+    if (actionEl) {
+      // Inferisco azione dal tipo
+      const ruleType = (actionKey || "").split(":")[0];
+      const actionMap = {
+        "overdue": "Sollecitare",
+        "refused": "Telefonare",
+        "readyPO": "Verificare",
+        "outwindow": "Telefonare",
+        "batch": "Sollecitare"
+      };
+      if (actionMap[ruleType]) actionEl.value = actionMap[ruleType];
+    }
+  }, 30);
+};
+
+window.togglePinAction = function(actionKey) {
+  if (!state.pinnedActions) state.pinnedActions = [];
+  const idx = state.pinnedActions.indexOf(actionKey);
+  if (idx >= 0) {
+    state.pinnedActions.splice(idx, 1);
+    showToast("Azione sfissata");
+  } else {
+    state.pinnedActions.push(actionKey);
+    showToast("📌 Fissata in cima");
+  }
+  savePinnedActions();
+  render();
+};
+
 
 // Sezione "Fatte oggi" in fondo
 function renderCompletedToday() {
@@ -7137,13 +7754,26 @@ function attachActionHandlers(root) {
   root.querySelectorAll("[data-done-key]").forEach(btn => {
     btn.addEventListener("click", e => {
       e.stopPropagation();
-      // v0.10: passa contesto arricchito per registrazione in completionsHistory
       archiveAction(btn.dataset.doneKey, btn.dataset.doneLabel, {
         vesselName: btn.dataset.vesselName || "",
         description: btn.dataset.description || "",
         supplier: btn.dataset.supplier || "",
         level: btn.dataset.level || ""
       });
+    });
+  });
+  // v0.10.2 — bottone "+to-do" che trasforma azione in to-do
+  root.querySelectorAll("[data-action-todo]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      window.actionToTodo(btn.dataset.actionTodo);
+    });
+  });
+  // v0.10.2 — bottone pin
+  root.querySelectorAll("[data-pin-key]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      window.togglePinAction(btn.dataset.pinKey);
     });
   });
 }
@@ -7951,6 +8581,18 @@ function mergeRemoteIntoLocal(remote) {
     saveCompletionsHistory();
   }
 
+  // v0.10.2 — merge supplierLanguages (last-write-wins per chiave)
+  if (remote.supplierLanguages && typeof remote.supplierLanguages === "object") {
+    state.supplierLanguages = { ...state.supplierLanguages, ...remote.supplierLanguages };
+    saveSupplierLanguages();
+  }
+  // v0.10.2 — merge pinnedActions (union dei due array)
+  if (Array.isArray(remote.pinnedActions)) {
+    const set = new Set([...(state.pinnedActions || []), ...remote.pinnedActions]);
+    state.pinnedActions = [...set];
+    savePinnedActions();
+  }
+
   if (remote.supplierTimezones && typeof remote.supplierTimezones === "object") {
     // Merge additivo: per chiavi solo remote, aggiungo. Locale ha precedenza.
     for (const supplier of Object.keys(remote.supplierTimezones)) {
@@ -8030,7 +8672,9 @@ async function drivePush() {
     notes: state.notes,
     archivedActions: state.archivedActions,
     completionsHistory: state.completionsHistory || [],  // v0.10
-    supplierTimezones: state.supplierTimezones  // v0.8
+    supplierTimezones: state.supplierTimezones,             // v0.8
+    supplierLanguages: state.supplierLanguages || {},        // v0.10.2
+    pinnedActions: state.pinnedActions || []                 // v0.10.2
   };
   const body = JSON.stringify(payload, null, 2);
 
