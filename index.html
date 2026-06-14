@@ -2042,6 +2042,45 @@ a:hover { text-decoration: underline; }
   font-weight: 500;
 }
 .docnum-cell .docnum-multi:hover { text-decoration: underline; }
+
+/* v0.10.4 — N° doc nelle azioni (cliccabile per copia) */
+.action-doc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  margin-left: 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  vertical-align: middle;
+}
+.action-doc-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-right: 4px;
+  border-right: 1px solid var(--border);
+}
+.action-doc-more {
+  background: transparent;
+  border: none;
+  color: var(--c-blue-fg);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-family: inherit;
+}
+.action-doc-more:hover {
+  background: var(--c-blue-bg);
+}
+
 /* v0.6 — Click-to-copy sui numeri documento */
 .docnum-copy {
   cursor: pointer;
@@ -2688,6 +2727,70 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
 }
 
+
+
+/* v0.10.4 — World Clock compatto sopra la flotta */
+.world-clock-section-compact {
+  margin-bottom: 14px;
+}
+.section-title-compact h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.world-clock-strip-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 6px;
+  padding: 2px 0;
+}
+.world-clock-strip-compact .wc-tile {
+  padding: 6px 8px;
+  border-radius: 5px;
+  gap: 2px;
+}
+.world-clock-strip-compact .wc-tile .wc-top-row {
+  margin-bottom: 0;
+}
+.world-clock-strip-compact .wc-tile .wc-code {
+  font-size: 9px;
+  padding: 0 4px;
+  letter-spacing: 0.05em;
+}
+.world-clock-strip-compact .wc-tile .wc-icon {
+  width: 11px;
+  height: 11px;
+}
+.world-clock-strip-compact .wc-tile .wc-time {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+.world-clock-strip-compact .wc-tile .wc-label {
+  font-size: 9.5px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+.world-clock-strip-compact .wc-tile:hover {
+  transform: none;  /* niente hover lift per la versione compatta */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Mobile: ancora più compatto */
+@media (max-width: 600px) {
+  .world-clock-strip-compact {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 4px;
+  }
+  .world-clock-strip-compact .wc-tile {
+    padding: 5px 6px;
+  }
+  .world-clock-strip-compact .wc-tile .wc-time {
+    font-size: 12px;
+  }
+}
 
 /* === WORLD CLOCK WIDGET (v0.9.1) ========================================== */
 .world-clock-strip {
@@ -4127,11 +4230,18 @@ const priorityRules = [
     if (item.rfqStatus !== "RFQ Refused") return null;
     const days = item.rfqDays || 0;
     if (days > (state.settings.refusedTTL || 14)) return null;
+    // v0.10.4 — primo RFQ N° rilevante per questa azione
+    const rfqs = Array.isArray(item.rfqNumbers) ? item.rfqNumbers : [];
     return {
       key: "refused:" + item.id,
       level: "critical",
       label: `RFQ refused · ${days}g`,
       ageDays: days,
+      docNumber: rfqs[0] || item.reqNumber || "",
+      docLabel: rfqs.length > 0 ? "RFQ" : "REQ",
+      docExtraCount: rfqs.length > 1 ? rfqs.length - 1 : 0,
+      docAllNumbers: rfqs,
+      itemId: item.id,
       action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
     };
   },
@@ -4149,11 +4259,21 @@ const priorityRules = [
         key: "outwindow:" + item.id,
         level: "critical",
         label: "Consegna fuori finestra",
+        docNumber: item.poNumber || "",
+        docLabel: "PO",
+        itemId: item.id,
         action: {
           label: "Email fornitore",
           type: "mailto-bilingual",
           template: "delivery-out-of-window",
-          context: { description: item.description || "", deliveryDate: item.deliveryDate, vesselName: vessel.vesselName, etd: vessel.tracking.etd.slice(0,10), supplier: item.supplier }
+          context: {
+            description: item.description || "",
+            deliveryDate: item.deliveryDate,
+            vesselName: vessel.vesselName,
+            etd: vessel.tracking.etd.slice(0,10),
+            supplier: item.supplier,
+            poNumber: item.poNumber || ""    // v0.10.4 — incluso nel template
+          }
         }
       };
     }
@@ -4168,16 +4288,28 @@ const priorityRules = [
         item.rfqStatus !== "RFQ Refused") {
       // v0.10.2: i template sono ora costruiti dinamicamente in base alla lingua
       // del fornitore (action.type === "mailto-bilingual" → handler resolve lingua)
+      const rfqsOv = Array.isArray(item.rfqNumbers) ? item.rfqNumbers : [];
       return {
         key: "overdue:" + item.id,
         level: "warning",
         label: `In attesa · ${item.rfqDays}g`,
         ageDays: item.rfqDays,
+        docNumber: rfqsOv[0] || item.reqNumber || "",
+        docLabel: rfqsOv.length > 0 ? "RFQ" : "REQ",
+        docExtraCount: rfqsOv.length > 1 ? rfqsOv.length - 1 : 0,
+        docAllNumbers: rfqsOv,
+        itemId: item.id,
         action: {
           label: "Sollecita",
           type: "mailto-bilingual",
           template: "rfq-overdue",
-          context: { description: item.description || "", days: item.rfqDays, supplier: item.supplier }
+          context: {
+            description: item.description || "",
+            days: item.rfqDays,
+            supplier: item.supplier,
+            rfqNumber: rfqsOv[0] || "",        // v0.10.4 — incluso nel template
+            rfqAllNumbers: rfqsOv              // tutti i numeri (per template avanzati)
+          }
         }
       };
     }
@@ -4193,11 +4325,16 @@ const priorityRules = [
     if (!item.reqStatus || item.reqStatus === "REQ Cancelled") return null;
     const days = item.rfqDays || 0;
     if (days > (state.settings.readyForPOTTL || 60)) return null;
+    // v0.10.4 — Per ready-for-PO il PO ancora non c'è, mostro REQ N° o RFQ accettato
+    const rfqsRdy = Array.isArray(item.rfqNumbers) ? item.rfqNumbers : [];
     return {
       key: "readyPO:" + item.id,
       level: "info",
       label: "Pronto per PO",
       ageDays: days,
+      docNumber: item.reqNumber || rfqsRdy[0] || "",
+      docLabel: item.reqNumber ? "REQ" : "RFQ",
+      itemId: item.id,
       action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
     };
   }
@@ -4227,7 +4364,16 @@ function batchSupplierRule(vessel) {
           label: "Sollecita in batch",
           type: "mailto-bilingual",
           template: "rfq-batch",
-          context: { vesselName: vessel.displayName || vessel.vesselName, supplier: supplier, items: items.map(i => ({ description: i.description, days: i.rfqDays })) }
+          context: {
+            vesselName: vessel.displayName || vessel.vesselName,
+            supplier: supplier,
+            // v0.10.4 — ogni item del batch ora include rfqNumber per il riferimento nel template
+            items: items.map(i => ({
+              description: i.description,
+              days: i.rfqDays,
+              rfqNumber: (Array.isArray(i.rfqNumbers) && i.rfqNumbers[0]) || i.reqNumber || ""
+            }))
+          }
         }
       });
     }
@@ -4898,22 +5044,23 @@ function renderOverview() {
   root.innerHTML = `
     ${lastVisitHTML}
     ${whatsNewHTML}
+
+    <section class="world-clock-section-compact">
+      <div class="section-title section-title-compact">
+        <h2>Orologio mondiale</h2>
+        <span class="section-meta">
+          <button class="btn-mini-link" onclick="window.openWorldClockSettings()" title="Modifica le città mostrate">⚙</button>
+        </span>
+      </div>
+      <div class="world-clock-strip world-clock-strip-compact" id="world-clock-strip">${renderWorldClock()}</div>
+    </section>
+
     <section>
       <div class="section-title">
         <h2>Flotta</h2>
         <span class="section-meta">${VESSELS.length} navi · clicca per dettaglio</span>
       </div>
       <div class="vessel-grid">${cardsHTML}</div>
-    </section>
-
-    <section>
-      <div class="section-title">
-        <h2>Orologio mondiale</h2>
-        <span class="section-meta">
-          <button class="btn-mini-link" onclick="window.openWorldClockSettings()" title="Modifica le città mostrate">⚙ Modifica città</button>
-        </span>
-      </div>
-      <div class="world-clock-strip" id="world-clock-strip">${renderWorldClock()}</div>
     </section>
 
     <section>
@@ -7093,34 +7240,46 @@ function renderDebug() {
 
 const EMAIL_TEMPLATES = {
   "rfq-overdue": {
-    it: (ctx) => ({
-      subject: `Sollecito offerta ${ctx.description}`,
-      body: `Buongiorno,\n\nin attesa di vostra cortese offerta per "${ctx.description}" inviata ${ctx.days} giorni fa.\nÈ possibile ricevere un riscontro?\n\nGrazie,\nMichele`
-    }),
-    en: (ctx) => ({
-      subject: `Quotation reminder: ${ctx.description}`,
-      body: `Good morning,\n\nwe are still awaiting your kind quotation for "${ctx.description}", which was sent ${ctx.days} days ago.\nCould you please let us know the status?\n\nThank you,\nMichele`
-    })
+    it: (ctx) => {
+      const ref = ctx.rfqNumber ? ` (rif. nostra RFQ ${ctx.rfqNumber})` : "";
+      return {
+        subject: `Sollecito offerta ${ctx.description}${ctx.rfqNumber ? ' - ' + ctx.rfqNumber : ''}`,
+        body: `Buongiorno,\n\nin attesa di vostra cortese offerta per "${ctx.description}"${ref} inviata ${ctx.days} giorni fa.\nÈ possibile ricevere un riscontro?\n\nGrazie,\nMichele`
+      };
+    },
+    en: (ctx) => {
+      const ref = ctx.rfqNumber ? ` (ref. our RFQ ${ctx.rfqNumber})` : "";
+      return {
+        subject: `Quotation reminder: ${ctx.description}${ctx.rfqNumber ? ' - ' + ctx.rfqNumber : ''}`,
+        body: `Good morning,\n\nwe are still awaiting your kind quotation for "${ctx.description}"${ref}, which was sent ${ctx.days} days ago.\nCould you please let us know the status?\n\nThank you,\nMichele`
+      };
+    }
   },
   "rfq-batch": {
     it: (ctx) => ({
       subject: `Sollecito offerte multiple - ${ctx.vesselName}`,
-      body: `Buongiorno,\n\nin attesa delle seguenti offerte:\n\n${(ctx.items || []).map(i => "• " + i.description + " (" + (i.days || "?") + "g)").join("\n")}\n\nGrazie per il riscontro,\nMichele`
+      body: `Buongiorno,\n\nin attesa delle seguenti offerte:\n\n${(ctx.items || []).map(i => "• " + (i.rfqNumber ? i.rfqNumber + " - " : "") + i.description + " (" + (i.days || "?") + "g)").join("\n")}\n\nGrazie per il riscontro,\nMichele`
     }),
     en: (ctx) => ({
       subject: `Multiple quotation reminder - ${ctx.vesselName}`,
-      body: `Good morning,\n\nwe are still awaiting the following quotations:\n\n${(ctx.items || []).map(i => "• " + i.description + " (" + (i.days || "?") + "d)").join("\n")}\n\nThank you for your reply,\nMichele`
+      body: `Good morning,\n\nwe are still awaiting the following quotations:\n\n${(ctx.items || []).map(i => "• " + (i.rfqNumber ? i.rfqNumber + " - " : "") + i.description + " (" + (i.days || "?") + "d)").join("\n")}\n\nThank you for your reply,\nMichele`
     })
   },
   "delivery-out-of-window": {
-    it: (ctx) => ({
-      subject: `Sollecito consegna ${ctx.description}`,
-      body: `Buongiorno,\n\nl'ordine "${ctx.description}" risulta in consegna ${ctx.deliveryDate}, dopo la partenza prevista della ${ctx.vesselName} (ETD ${ctx.etd}).\nPer cortesia conferma se è possibile anticipare la consegna o se necessitiamo di un riallineamento del porto di consegna.\n\nGrazie,\nMichele`
-    }),
-    en: (ctx) => ({
-      subject: `Delivery follow-up: ${ctx.description}`,
-      body: `Good morning,\n\nthe order "${ctx.description}" is scheduled for delivery on ${ctx.deliveryDate}, which is after the planned departure of ${ctx.vesselName} (ETD ${ctx.etd}).\nCould you please confirm if it is possible to anticipate the delivery, or if we need to realign the delivery port?\n\nThank you,\nMichele`
-    })
+    it: (ctx) => {
+      const ref = ctx.poNumber ? ` (nostro PO ${ctx.poNumber})` : "";
+      return {
+        subject: `Sollecito consegna ${ctx.description}${ctx.poNumber ? ' - ' + ctx.poNumber : ''}`,
+        body: `Buongiorno,\n\nl'ordine "${ctx.description}"${ref} risulta in consegna ${ctx.deliveryDate}, dopo la partenza prevista della ${ctx.vesselName} (ETD ${ctx.etd}).\nPer cortesia conferma se è possibile anticipare la consegna o se necessitiamo di un riallineamento del porto di consegna.\n\nGrazie,\nMichele`
+      };
+    },
+    en: (ctx) => {
+      const ref = ctx.poNumber ? ` (our PO ${ctx.poNumber})` : "";
+      return {
+        subject: `Delivery follow-up: ${ctx.description}${ctx.poNumber ? ' - ' + ctx.poNumber : ''}`,
+        body: `Good morning,\n\nthe order "${ctx.description}"${ref} is scheduled for delivery on ${ctx.deliveryDate}, which is after the planned departure of ${ctx.vesselName} (ETD ${ctx.etd}).\nCould you please confirm if it is possible to anticipate the delivery, or if we need to realign the delivery port?\n\nThank you,\nMichele`
+      };
+    }
   }
 };
 
@@ -7640,10 +7799,31 @@ function actionRowHTMLv2(a, isInGroup) {
   const isPinned = (state.pinnedActions || []).includes(a.key);
   const pinBtn = `<button class="btn-pin ${isPinned ? "pinned" : ""}" data-pin-key="${escapeAttr(a.key)}" title="${isPinned ? "Sfissa" : "Fissa in cima"}">📌</button>`;
 
+  // v0.10.4 — Riga doc number (cliccabile per copia, popover se multi)
+  let docHTML = "";
+  if (a.docNumber) {
+    if (a.docExtraCount && a.docExtraCount > 0 && Array.isArray(a.docAllNumbers)) {
+      // Multi-RFQ: numero principale + "(+N)" cliccabile per popover lista completa
+      const ctxJson = encodeURIComponent(JSON.stringify({ numbers: a.docAllNumbers, label: a.docLabel || "RFQ", itemId: a.itemId || "" }));
+      docHTML = `<span class="action-doc">
+        <span class="action-doc-label">${escapeHTML(a.docLabel || "DOC")}</span>
+        <span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(a.docNumber)}', this); event.stopPropagation();" title="Copia">${escapeHTML(a.docNumber)}</span>
+        <button class="action-doc-more" onclick="window.showActionDocMulti(this, '${ctxJson}'); event.stopPropagation();" title="Mostra gli altri ${a.docExtraCount} numeri">+${a.docExtraCount}</button>
+      </span>`;
+    } else {
+      // Singolo numero
+      docHTML = `<span class="action-doc">
+        <span class="action-doc-label">${escapeHTML(a.docLabel || "DOC")}</span>
+        <span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(a.docNumber)}', this); event.stopPropagation();" title="Click per copiare">${escapeHTML(a.docNumber)}</span>
+      </span>`;
+    }
+  }
+
   return `<div class="action-row ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}">
     <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
     <div class="action-body">
       ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag} ${todoTag} ${returnedTag}
+      ${docHTML}
     </div>
     <div class="action-btns">
       ${actionBtn}
@@ -7654,6 +7834,42 @@ function actionRowHTMLv2(a, isInGroup) {
     </div>
   </div>`;
 }
+
+// v0.10.4 — Popover per mostrare TUTTI i numeri RFQ multipli su un'azione
+window.showActionDocMulti = function(anchorBtn, ctxJson) {
+  let ctx;
+  try { ctx = JSON.parse(decodeURIComponent(ctxJson)); }
+  catch (e) { console.error("[ActionDoc] context invalido", e); return; }
+
+  // Riuso il popover docnum-popover che esiste già nel sistema
+  let pop = document.getElementById("rfq-multi-popover");
+  if (!pop) {
+    pop = document.createElement("div");
+    pop.id = "rfq-multi-popover";
+    pop.className = "docnum-popover";
+    document.body.appendChild(pop);
+  }
+
+  pop.innerHTML = `
+    <div class="docnum-popover-header">
+      <span><strong>${(ctx.numbers || []).length} ${escapeHTML(ctx.label || "DOC")}</strong> su questa azione</span>
+      <button class="close" onclick="document.getElementById('rfq-multi-popover').classList.remove('open')">✕</button>
+    </div>
+    <div class="docnum-popover-list">
+      ${(ctx.numbers || []).map(n => `
+        <div class="docnum-popover-item">
+          <span style="font-family: var(--font-mono); font-size: 12px;">${escapeHTML(n)}</span>
+          <button class="copy-btn" onclick="window.copyDocNum('${escapeAttr(n)}', this)" title="Copia">⎘</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const rect = anchorBtn.getBoundingClientRect();
+  pop.style.top = (rect.bottom + 6 + window.scrollY) + "px";
+  pop.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+  pop.classList.add("open");
+};
 
 // === Handler per +to-do, pin, rimanda intelligente ===
 window.actionToTodo = function(actionKey) {
