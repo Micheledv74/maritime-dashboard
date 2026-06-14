@@ -2480,6 +2480,21 @@ a:hover { text-decoration: underline; }
 /* === v0.10.2 — NUOVI STILI ================================================== */
 /* ============================================================================ */
 
+
+/* v0.10.2 fix — Tag azione rientrata dal rimando */
+.returned-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-left: 6px;
+  border-radius: 3px;
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* Bottone +to-do sulla riga azione (trasforma azione in to-do) */
 .btn-action-to-todo {
   display: inline-flex;
@@ -2512,18 +2527,18 @@ a:hover { text-decoration: underline; }
   width: 28px;
   height: 28px;
   border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-faint);
+  background: var(--bg-surface);
+  color: var(--text-muted);
   border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
   padding: 0;
   transition: all 0.12s;
-  opacity: 0.5;
 }
 .btn-pin:hover {
-  opacity: 1;
-  background: var(--bg-muted);
+  background: var(--c-amber-bg);
+  border-color: var(--c-amber-dot);
+  color: var(--c-amber-fg);
 }
 .btn-pin.pinned {
   opacity: 1;
@@ -4782,24 +4797,30 @@ function renderError() {
 // ----- OVERVIEW VIEW -----------------------------------------------------
 function renderOverview() {
   const root = document.getElementById("view-root");
-  // v0.10.2 — Indicatore "tempo dall'ultima visita"
+  // v0.10.2 fix — Indicatore "tempo dall'ultima visita" — soglia ridotta a 30 minuti
   const lastVisitTs = parseInt(localStorage.getItem(LS_KEYS.lastVisitTs) || "0", 10);
   const now = Date.now();
   let lastVisitHTML = "";
   if (lastVisitTs > 0) {
     const diffMs = now - lastVisitTs;
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin >= 60 && diffMin < 60*24*7) {  // tra 1 ora e 1 settimana
+    // Mostro il banner se è passata più di mezz'ora (era 1h, troppo restrittivo)
+    if (diffMin >= 30) {
       let timeAgo;
-      if (diffMin < 60*24) {
+      if (diffMin < 60) {
+        timeAgo = `${diffMin} minuti`;
+      } else if (diffMin < 60*24) {
         const h = Math.floor(diffMin / 60);
         timeAgo = h === 1 ? "1 ora" : `${h} ore`;
-      } else {
+      } else if (diffMin < 60*24*30) {
         const d = Math.floor(diffMin / (60*24));
         timeAgo = d === 1 ? "1 giorno" : `${d} giorni`;
+      } else {
+        const m = Math.floor(diffMin / (60*24*30));
+        timeAgo = `${m} mes${m === 1 ? "e" : "i"}`;
       }
       lastVisitHTML = `<div class="last-visit-banner">
-        <span>📊 <strong>${timeAgo}</strong> dall'ultimo accesso. Hai 30 secondi? Dai un'occhiata se è cambiato qualcosa.</span>
+        <span>📊 <strong>${timeAgo}</strong> dall'ultimo accesso</span>
       </div>`;
     }
   }
@@ -6061,14 +6082,29 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       `).join("")}
     </div>` : "";
 
-  // === v0.8 — Sezione Logistica (Origin / Transport Mode / Supplier Timezone) ===
+  // === v0.8/v0.10.2 — Sezione Logistica (Origin / Transport / Timezone / Lingua) ===
   const hasLogistics = !!(it.origin || it.transportMode || it.supplier);
   let logisticsSection = "";
   if (hasLogistics) {
-    // Timezone supplier (se mappato dall'utente nelle impostazioni)
+    // Timezone supplier
     const supplierTz = it.supplier && state.supplierTimezones ?
                        state.supplierTimezones[it.supplier] : null;
     const tzInfo = supplierTz ? supplierTimezoneHTML(it.supplier, supplierTz) : "";
+
+    // v0.10.2 — Lingua memorizzata per il fornitore
+    const supplierLang = it.supplier && state.supplierLanguages ?
+                         state.supplierLanguages[it.supplier] : null;
+    const langRow = it.supplier ? `
+      <div class="detail-row">
+        <span class="detail-label">🌐 Lingua per email</span>
+        <span class="detail-value">
+          ${supplierLang ? `<span class="lang-badge lang-${supplierLang}">${supplierLang.toUpperCase()}</span>` : '<span class="muted">non impostata</span>'}
+          <button class="btn-tz-edit" onclick="window.changeSupplierLanguage('${escapeAttr(it.supplier)}')" title="${supplierLang ? 'Cambia' : 'Imposta'} lingua">${supplierLang ? '✎' : '+ imposta'}</button>
+        </span>
+      </div>
+    ` : "";
+
+    // Buttons riga
     const setTzBtn = it.supplier && !supplierTz ?
       `<button class="btn btn-sm" onclick="window.openSupplierTzPicker('${escapeAttr(it.supplier)}')" style="font-size: 11px;">🕐 Imposta fuso orario</button>` : "";
 
@@ -6079,6 +6115,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
           ${it.origin ? `<div class="detail-row"><span class="detail-label">🌍 Origine</span><span class="detail-value">${escapeHTML(it.origin)}</span></div>` : ""}
           ${it.transportMode ? `<div class="detail-row"><span class="detail-label">✈️ Trasporto</span><span class="detail-value">${escapeHTML(it.transportMode)}</span></div>` : ""}
           ${tzInfo}
+          ${langRow}
         </div>
         ${setTzBtn ? `<div style="margin-top: 8px;">${setTzBtn}</div>` : ""}
       </div>
@@ -7559,6 +7596,17 @@ function actionRowHTMLv2(a, isInGroup) {
   const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag">${escapeHTML(a.vesselName)}</span>` : "";
   const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   const todoTag = a._kind === "todo" ? `<span class="kind-tag-todo">personale</span>` : "";
+  // v0.10.2 fix — Etichetta "rimandata da te" se l'azione era snoozed e oggi è tornata
+  let returnedTag = "";
+  if (a.key && state.snoozed && state.snoozed[a.key]) {
+    // Era snoozed: la sua data di rientro è ≤ oggi (altrimenti isSnoozedNow l'avrebbe nascosta)
+    const snoozeDate = state.snoozed[a.key];
+    const today = todayISO();
+    if (snoozeDate <= today) {
+      // Data scaduta: è "tornata dal rimando"
+      returnedTag = `<span class="returned-tag" title="Rimandata da te al ${snoozeDate}, ora rientrata">⏰ rientrata</span>`;
+    }
+  }
 
   // Lingua memorizzata del fornitore (per badge visivo accanto al bottone Sollecita)
   const supLang = a.supplier && state.supplierLanguages ? state.supplierLanguages[a.supplier] : null;
@@ -7595,7 +7643,7 @@ function actionRowHTMLv2(a, isInGroup) {
   return `<div class="action-row ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}">
     <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
     <div class="action-body">
-      ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag} ${todoTag}
+      ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag} ${todoTag} ${returnedTag}
     </div>
     <div class="action-btns">
       ${actionBtn}
