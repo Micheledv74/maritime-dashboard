@@ -2476,6 +2476,26 @@ a:hover { text-decoration: underline; }
 .completed-list {
   padding: 4px 0;
 }
+
+/* v0.10.5 — Multi-day grouping in "Fatte negli ultimi N giorni" */
+.completed-day-block {
+  margin-bottom: 14px;
+}
+.completed-day-block:last-child {
+  margin-bottom: 0;
+}
+.completed-day-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 6px 10px;
+  background: var(--bg-muted);
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
 .completed-row {
   display: grid;
   grid-template-columns: 50px 1fr 2fr;
@@ -2503,7 +2523,27 @@ a:hover { text-decoration: underline; }
 
 /* Su mobile compatta layout fatte */
 @media (max-width: 600px) {
-  .completed-row {
+  
+/* v0.10.5 — Multi-day grouping in "Fatte negli ultimi N giorni" */
+.completed-day-block {
+  margin-bottom: 14px;
+}
+.completed-day-block:last-child {
+  margin-bottom: 0;
+}
+.completed-day-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 6px 10px;
+  background: var(--bg-muted);
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.completed-row {
     grid-template-columns: 40px 1fr;
     gap: 6px;
   }
@@ -5292,10 +5332,11 @@ function renderVesselDetail() {
   // Pipeline counts per state
   const pipeline = computePipeline(v);
 
-  // Actions on this vessel
-  const actionsHTML = actions.length === 0
-    ? `<div class="empty-state" style="padding: 24px;">✓ Nessuna azione aperta su questa nave.</div>`
-    : `<div class="actions-list">${actions.map(actionRowHTML).join("")}</div>`;
+  // v0.10.5 — Uso renderActionsTodayV2 per uniformità con la home (con vessel forzato e lookback 7g)
+  const actionsHTML = renderActionsTodayV2({
+    forcedVesselId: v.vesselId,
+    completedLookbackDays: 7  // scheda nave: vedi anche fatte ultimi 7 giorni
+  });
 
   document.getElementById("view-root").innerHTML = `
     <header class="vessel-detail-head">
@@ -5313,7 +5354,10 @@ function renderVesselDetail() {
     <section class="todo-section" id="vessel-todo-section"></section>
 
     <section>
-      <div class="section-title"><h2>Azioni oggi su questa nave</h2></div>
+      <div class="section-title">
+        <h2>Azioni oggi</h2>
+        <span class="section-meta" id="actions-today-meta"></span>
+      </div>
       ${actionsHTML}
     </section>
 
@@ -7401,12 +7445,16 @@ window.changeSupplierLanguage = function(supplier) {
 // Filtro per nave persistente in state._actionsTodayVesselFilter
 // Stato espansione gruppi in state._actionsTodayExpanded (Set di chiavi gruppo)
 
-function renderActionsTodayV2() {
+function renderActionsTodayV2(opts) {
   if (!state.data) return `<div class="empty-state">Caricamento…</div>`;
+  opts = opts || {};
+  const forcedVesselId = opts.forcedVesselId || null;
+  const completedLookbackDays = opts.completedLookbackDays || 1;
 
   // Setup state se mancante
   if (!state._actionsTodayExpanded) state._actionsTodayExpanded = new Set();
-  const vesselFilter = state._actionsTodayVesselFilter || "all";
+  // Se vesselId è forzato (scheda nave), uso quello e nascondo la filter bar
+  const vesselFilter = forcedVesselId || state._actionsTodayVesselFilter || "all";
 
   // === Raccolta azioni sistema + to-do utente ===
   let systemActions = generateAllActions();
@@ -7458,7 +7506,8 @@ function renderActionsTodayV2() {
   }
 
   // === Rendering ===
-  const filterBar = renderVesselFilterBar(vesselFilter, urgent.length + week.length + someday.length);
+  // Niente filter bar se il vessel è forzato (siamo nella scheda nave)
+  const filterBar = forcedVesselId ? "" : renderVesselFilterBar(vesselFilter, urgent.length + week.length + someday.length);
 
   let body = "";
 
@@ -7484,8 +7533,8 @@ function renderActionsTodayV2() {
     }
   }
 
-  // Sezione "Fatte oggi"
-  body += renderCompletedToday();
+  // Sezione "Fatte" (oggi nella home, ultimi 7 giorni nella scheda nave)
+  body += renderCompletedToday(completedLookbackDays, forcedVesselId);
 
   // Aggiorno il meta del titolo (totale)
   setTimeout(() => {
@@ -7922,38 +7971,96 @@ window.togglePinAction = function(actionKey) {
 };
 
 
-// Sezione "Fatte oggi" in fondo
-function renderCompletedToday() {
+// Sezione "Fatte" — oggi (home) o ultimi N giorni (scheda nave)
+function renderCompletedToday(lookbackDays, forcedVesselId) {
+  lookbackDays = lookbackDays || 1;
   const today = todayISO();
-  const completed = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today);
+  // Cutoff: data minima da includere (oggi - lookbackDays giorni)
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - (lookbackDays - 1));
+  cutoffDate.setHours(0, 0, 0, 0);
+  const cutoffISO = cutoffDate.toISOString().slice(0, 10);
+
+  const completed = (state.completionsHistory || []).filter(e => {
+    const d = (e.completedAt || "").slice(0, 10);
+    return d >= cutoffISO;
+  });
   if (completed.length === 0) return "";
 
-  // Filtra per nave se attivo
-  const vesselFilter = state._actionsTodayVesselFilter || "all";
+  // Filtra per nave
+  const vesselFilter = forcedVesselId || state._actionsTodayVesselFilter || "all";
   const filtered = vesselFilter === "all" ? completed :
     completed.filter(e => e.vesselId === vesselFilter);
 
   if (filtered.length === 0) return "";
 
+  // Titolo dinamico in base al lookback
+  const sectionTitle = lookbackDays === 1 ? "✓ Fatte oggi" : `✓ Fatte negli ultimi ${lookbackDays} giorni`;
+
   const isExpanded = state._completedTodayExpanded === true;
-  const rows = isExpanded ? filtered.slice().reverse().map(e => {
-    const time = (e.completedAt || "").slice(11, 16);
-    return `
-      <div class="completed-row">
-        <span class="completed-time">${escapeHTML(time)}</span>
-        <span class="completed-label">${escapeHTML(e.label || "")}</span>
-        <span class="completed-context muted">${escapeHTML(e.vesselName || "")} · ${escapeHTML(truncate(e.description || "", 60))}</span>
-      </div>
-    `;
-  }).join("") : "";
+  // Raggruppo per data se lookback > 1
+  let rowsHTML = "";
+  if (isExpanded) {
+    if (lookbackDays === 1) {
+      // Una sola giornata: lista piatta come prima
+      rowsHTML = filtered.slice().reverse().map(e => {
+        const time = (e.completedAt || "").slice(11, 16);
+        return `
+          <div class="completed-row">
+            <span class="completed-time">${escapeHTML(time)}</span>
+            <span class="completed-label">${escapeHTML(e.label || "")}</span>
+            <span class="completed-context muted">${escapeHTML(e.vesselName || "")} · ${escapeHTML(truncate(e.description || "", 60))}</span>
+          </div>
+        `;
+      }).join("");
+    } else {
+      // Multi-giorno: raggruppo per data
+      const byDate = {};
+      for (const e of filtered) {
+        const d = (e.completedAt || "").slice(0, 10);
+        if (!byDate[d]) byDate[d] = [];
+        byDate[d].push(e);
+      }
+      const dates = Object.keys(byDate).sort().reverse();
+      const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+      const days = ["dom","lun","mar","mer","gio","ven","sab"];
+      const yesterdayISO = (() => { const x = new Date(); x.setDate(x.getDate()-1); return x.toISOString().slice(0,10); })();
+      const formatDay = (iso) => {
+        if (iso === today) return "Oggi";
+        if (iso === yesterdayISO) return "Ieri";
+        const d = new Date(iso + "T00:00:00");
+        if (isNaN(d.getTime())) return iso;
+        return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+      };
+      rowsHTML = dates.map(date => {
+        const entries = byDate[date].slice().reverse();
+        const dayRows = entries.map(e => {
+          const time = (e.completedAt || "").slice(11, 16);
+          return `
+            <div class="completed-row">
+              <span class="completed-time">${escapeHTML(time)}</span>
+              <span class="completed-label">${escapeHTML(e.label || "")}</span>
+              <span class="completed-context muted">${escapeHTML(e.vesselName || "")} · ${escapeHTML(truncate(e.description || "", 60))}</span>
+            </div>
+          `;
+        }).join("");
+        return `
+          <div class="completed-day-block">
+            <div class="completed-day-header">${formatDay(date)} <span class="muted" style="font-weight: 400;">· ${entries.length}</span></div>
+            ${dayRows}
+          </div>
+        `;
+      }).join("");
+    }
+  }
 
   return `
     <div class="actions-group completed-today-group">
       <div class="actions-group-title clickable" onclick="window.toggleCompletedToday()">
-        <span>✓ Fatte oggi <span class="muted">(${filtered.length})</span></span>
+        <span>${sectionTitle} <span class="muted">(${filtered.length})</span></span>
         <span class="group-toggle">${isExpanded ? "▼" : "▶"}</span>
       </div>
-      ${isExpanded ? `<div class="completed-list">${rows}</div>` : ""}
+      ${isExpanded ? `<div class="completed-list">${rowsHTML}</div>` : ""}
     </div>
   `;
 }
