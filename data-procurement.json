@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-06-15T11:22:56.948Z",
+  "lastSync": "2026-06-15T11:56:46.809Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -17,7 +17,7 @@
       "delivery": "delayed",
       "deliveryColor": "red",
       "pctReqToPO": 97,
-      "pctPOToDN": 97,
+      "pctPOToDN": 98,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -74,8 +74,8 @@
           "rfqDays": 342,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
-          "dnStatus": "",
-          "reqStatus": "",
+          "dnStatus": "DN Received on Board",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -1107,7 +1107,9 @@
           "supplier": "—",
           "department": "ENGINE Department",
           "reqNumber": "2025-MDT-SHPR-00010",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2025-MDT-HQRQ-00027"
+          ],
           "poNumber": "2025-MDT-HQPO-00025",
           "dnNumber": "2025-MDT-HQDN-00011",
           "dnInfoshipId": "",
@@ -1115,7 +1117,7 @@
           "rfqClosed": 0,
           "rfqPct": 0,
           "rfqDays": null,
-          "rfqStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
           "dnStatus": "DN Received on Board",
           "reqStatus": "REQ Ordered",
