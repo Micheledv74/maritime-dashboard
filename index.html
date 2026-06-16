@@ -7799,9 +7799,12 @@ async function parseCertificateExcel(file) {
   }
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
-  const sheetName = wb.SheetNames[0];  // primo foglio
+  const sheetName = wb.SheetNames[0];
   const sheet = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" });
+  // v0.11.1 fix: raw:true mantiene le Date come oggetti Date JS reali
+  // (con raw:false + dateNF venivano formattate "M/D/YY" e il regex le perdeva)
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+  console.log("[Cert] Parsing file:", file.name, "righe totali:", rows.length);
 
   // Header riga: cerco la riga che contiene "N°" e "Expiry" (di solito è la riga 1)
   let headerRowIdx = -1;
@@ -7829,17 +7832,33 @@ async function parseCertificateExcel(file) {
     if (!n && sectionHeaders.includes(name.toUpperCase())) continue;
 
     // Estraggo date — possono essere Date objects o stringhe
+    // v0.11.1 — parseDate tollerante: Date obj, ISO, dd/mm/yyyy, dd-mm-yyyy, dd/mm/yy
     const parseDate = (v) => {
-      if (!v) return "";
+      if (!v && v !== 0) return "";
+      // 1. Date object reale (SheetJS con cellDates:true)
       if (v instanceof Date) {
-        return v.toISOString().slice(0, 10);
+        if (isNaN(v.getTime())) return "";
+        // Uso componenti locali (non UTC) per evitare shift di un giorno per tz
+        const y = v.getFullYear();
+        const m = String(v.getMonth() + 1).padStart(2, "0");
+        const d = String(v.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
       }
       const s = String(v).trim();
-      // Provo formati comuni: "yyyy-mm-dd", "dd/mm/yyyy", "dd-mm-yyyy"
-      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      if (!s) return "";
+      // 2. ISO yyyy-mm-dd (anche con time)
+      let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+      // 3. dd/mm/yyyy o dd-mm-yyyy (formato italiano, 4 cifre anno)
       m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
       if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+      // 4. dd/mm/yy o dd-mm-yy (2 cifre anno — interpretiamo 00-50 come 2000-2050)
+      m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/);
+      if (m) {
+        const yr = parseInt(m[3], 10);
+        const fullYr = yr < 50 ? 2000 + yr : 1900 + yr;
+        return `${fullYr}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+      }
       return "";
     };
 
@@ -7862,6 +7881,16 @@ async function parseCertificateExcel(file) {
       isPermanent: !expiryDate && (notes.toLowerCase().includes("permanent") || /permanente|permanent/i.test(notes))
     });
   }
+  // v0.11.1 — Diagnostica: log distribuzione date parsate
+  const withExpiry = items.filter(it => it.expiry).length;
+  const permanent = items.filter(it => !it.expiry).length;
+  console.log(`[Cert] Estratti ${items.length} record: ${withExpiry} con scadenza, ${permanent} permanent/senza data`);
+  if (items.length > 0 && items[0].expiry) {
+    console.log("[Cert] Esempio prima voce:", items[0]);
+  } else if (items.length > 0) {
+    console.warn("[Cert] ATTENZIONE: nessuna data scadenza parsata. Prima voce:", items[0]);
+  }
+
   return items;
 }
 
