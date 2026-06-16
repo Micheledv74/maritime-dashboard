@@ -3026,6 +3026,249 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+
+/* ============================================================================ */
+/* === EMAIL CAPTURE v0.13 ==================================================== */
+/* ============================================================================ */
+
+/* Modale email capture: textarea grande + preview live */
+.email-capture-popover .item-detail-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.email-capture-popover textarea {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  background: var(--bg-surface);
+  color: var(--text);
+  resize: vertical;
+  min-height: 220px;
+}
+.email-capture-popover textarea:focus {
+  outline: none;
+  border-color: var(--c-blue-dot);
+}
+
+/* Preview campi parsati */
+.email-preview-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  align-items: baseline;
+}
+.email-preview-row:last-child { border-bottom: none; }
+.email-preview-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.email-preview-detected {
+  background: var(--c-green-bg);
+  color: var(--c-green-fg);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.email-doc-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 4px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* ============================================================================ */
+/* === VOYAGE v0.12 ========================================================== */
+/* ============================================================================ */
+
+/* Widget voyage compatto (nella scheda nave, sopra cert widget) */
+.voyage-widget {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fb 100%);
+  border: 1px solid #b6d4f7;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+}
+.voyage-widget-empty {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  border-style: dashed;
+  align-items: center;
+}
+.voyage-widget-empty .voyage-widget-text {
+  flex: 1;
+}
+.voyage-widget-icon {
+  font-size: 22px;
+  line-height: 1;
+  padding-top: 2px;
+}
+.voyage-widget-empty .voyage-widget-icon { opacity: 0.5; }
+.voyage-widget-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.voyage-widget-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.voyage-widget-title {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.voyage-widget-subtitle {
+  font-size: 11.5px;
+}
+.voyage-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13px;
+}
+.voyage-status {
+  font-weight: 600;
+  font-size: 12px;
+  padding: 2px 8px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.voyage-route {
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+}
+.voyage-eta {
+  font-size: 12px;
+  color: #1d4ed8;
+  font-variant-numeric: tabular-nums;
+}
+.voyage-eta-days {
+  font-weight: 600;
+  margin-left: 4px;
+}
+.voyage-eta-days.soon {
+  color: #c2410c;
+}
+.voyage-eta-days.past {
+  color: #b91c1c;
+}
+.voyage-next-line {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  padding-left: 10px;
+  border-left: 2px solid #b6d4f7;
+}
+.voyage-next-label {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  margin-right: 4px;
+}
+.voyage-notes-line {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.voyage-widget-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* Editor modale */
+.voyage-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.voyage-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.voyage-form-row label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.voyage-form-row input,
+.voyage-form-row select {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-surface);
+  color: var(--text);
+}
+.voyage-form-row input:focus,
+.voyage-form-row select:focus {
+  outline: none;
+  border-color: var(--c-blue-dot);
+}
+
+/* Vessel foot con voyage manuale */
+.vessel-foot-voyage {
+  background: #eff6ff;
+  border-top: 1px solid #b6d4f7;
+  color: #1e3a8a;
+  padding: 6px 12px;
+}
+.vessel-foot-voyage strong {
+  color: #1d4ed8;
+}
+.eta-urgent {
+  color: #c2410c;
+  font-weight: 600;
+}
+
+/* Mobile: form grid → 1 colonna */
+@media (max-width: 600px) {
+  .voyage-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .voyage-widget {
+    grid-template-columns: auto 1fr;
+  }
+  .voyage-widget-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+}
+
 /* ============================================================================ */
 /* === CERTIFICATI v0.11 ===================================================== */
 /* ============================================================================ */
@@ -3757,6 +4000,7 @@ a:hover { text-decoration: underline; }
       <button data-mm-action="eod"><span class="icon">☾</span>Fine giornata</button>
       <div class="divider"></div>
       <button data-mm-action="todo-new"><span class="icon">＋</span>Nuova to-do</button>
+      <button data-mm-action="todo-from-email"><span class="icon">📧</span>To-do da email</button>
       <button data-mm-action="palette"><span class="icon">⌕</span>Cerca</button>
       <div class="divider"></div>
       <button data-mm-action="settings"><span class="icon">⚙</span>Impostazioni</button>
@@ -4092,8 +4336,9 @@ const LS_KEYS = {
   supplierLanguages: "mpd.supplierLanguages",
   pinnedActions: "mpd.pinnedActions",
   lastVisitTs: "mpd.lastVisitTs",
-  certificates: "mpd.certificates",             // v0.11: { vesselId: [ {n, name, issue, expiry, ...} ] }
-  certificatesMeta: "mpd.certificatesMeta"      // v0.11: { vesselId: { fileName, importedAt } }
+  certificates: "mpd.certificates",             // v0.11
+  certificatesMeta: "mpd.certificatesMeta",     // v0.11
+  voyages: "mpd.voyages"                        // v0.12 — voyage manuale per nave
 };
 
 // ============================================================================
@@ -4190,6 +4435,13 @@ function loadCertificates() {
 function loadCertificatesMeta() {
   try {
     const raw = JSON.parse(localStorage.getItem(LS_KEYS?.certificatesMeta || "mpd.certificatesMeta") || "{}");
+    return (raw && typeof raw === "object") ? raw : {};
+  } catch { return {}; }
+}
+// v0.12 — Voyage in corso per ogni nave (compilato manualmente da Michele)
+function loadVoyages() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.voyages || "mpd.voyages") || "{}");
     return (raw && typeof raw === "object") ? raw : {};
   } catch { return {}; }
 }
@@ -4358,8 +4610,9 @@ const state = {
   completionsHistory: loadCompletionsHistory(),  // v0.10
   supplierLanguages: loadSupplierLanguages(),    // v0.10.2 — { supplier: "it"|"en" }
   pinnedActions: loadPinnedActions(),            // v0.10.2
-  certificates: loadCertificates(),               // v0.11 — { vesselId: [items] }
-  certificatesMeta: loadCertificatesMeta(),       // v0.11 — { vesselId: {fileName, importedAt} }
+  certificates: loadCertificates(),               // v0.11
+  certificatesMeta: loadCertificatesMeta(),       // v0.11
+  voyages: loadVoyages(),                          // v0.12 — voyage manuale per nave
   morningSnapshot: loadSnapshot(),
   supplierTimezones: loadSupplierTimezones(),  // v0.8: { "SUPPLIER NAME": "Asia/Singapore" }
   drive: {
@@ -4449,6 +4702,11 @@ function saveCertificates() {
   if (!state.certificates || typeof state.certificates !== "object") return;
   localStorage.setItem(LS_KEYS.certificates, JSON.stringify(state.certificates));
   localStorage.setItem(LS_KEYS.certificatesMeta, JSON.stringify(state.certificatesMeta || {}));
+  driveSchedulePush();
+}
+function saveVoyages() {
+  if (!state.voyages || typeof state.voyages !== "object") return;
+  localStorage.setItem(LS_KEYS.voyages, JSON.stringify(state.voyages));
   driveSchedulePush();
 }
 // v0.8
@@ -5412,10 +5670,22 @@ function renderOverview() {
         <div class="kpi clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
         <div class="kpi clickable" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
       </div>
-      <div class="vessel-foot">
-        <span>Prossimo porto</span>
-        <span>${eta}</span>
-      </div>
+      ${(() => {
+        // v0.12 — Se c'è un voyage manuale, lo mostro al posto del prossimo porto da AIS
+        const voySumm = getVoyageSummaryForCard(cfg.vesselId);
+        if (voySumm && voySumm.nextPort) {
+          const statusLabel = voySumm.status ? VOYAGE_STATUS_LABELS[voySumm.status] || "" : "";
+          return `<div class="vessel-foot vessel-foot-voyage">
+            <span>${statusLabel ? statusLabel + " · " : ""}prossimo: <strong>${escapeHTML(voySumm.nextPort)}</strong></span>
+            <span class="${voySumm.urgent ? 'eta-urgent' : ''}">${voySumm.daysLabel ? "ETA " + voySumm.daysLabel : "ETA —"}</span>
+          </div>`;
+        }
+        // Fallback: prossimo porto da AIS come prima
+        return `<div class="vessel-foot">
+          <span>Prossimo porto</span>
+          <span>${eta}</span>
+        </div>`;
+      })()}
     </div>`;
   }
 
@@ -5695,6 +5965,8 @@ function renderVesselDetail() {
     </header>
 
     <section class="position-panel">${posHTML}</section>
+
+    ${renderVoyageWidget(v.vesselId)}
 
     ${renderCertWidgetForVessel(v.vesselId)}
 
@@ -7390,6 +7662,7 @@ function renderTodosPage() {
       </div>
       <div class="flex gap-2">
         <button class="btn btn-primary" id="todo-new-from-page">+ Nuova to-do</button>
+        <button class="btn" id="todo-new-from-email" onclick="window.openEmailCapture()">📧 Da email</button>
         <button class="btn" id="todo-export-excel">📥 Esporta Excel</button>
       </div>
     </header>
@@ -7792,6 +8065,692 @@ window.changeSupplierLanguage = function(supplier) {
   showToast(`Lingua "${v}" salvata per ${supplier}`);
   render();
 };
+
+
+
+
+// ============================================================================
+// === EMAIL CAPTURE v0.13 — Cattura email Outlook → to-do strutturata =======
+// ============================================================================
+// Modello: l'utente seleziona un'email in Outlook, copia (Ctrl+C copia oggetto +
+// mittente + corpo) e incolla nella textarea. Il parser estrae i campi e
+// pre-compila la modale to-do.
+
+// Parser euristico: cerca pattern comuni in email Outlook
+function parseEmailText(text) {
+  const result = {
+    from: "",
+    fromEmail: "",
+    to: "",
+    subject: "",
+    date: "",
+    body: "",
+    detectedVessel: null,
+    detectedSupplier: null,
+    detectedDocNumbers: [],
+    suggestedAction: "Altro",
+    suggestedPriority: "media"
+  };
+
+  if (!text || text.length < 5) return result;
+
+  const lines = text.split(/\r?\n/);
+
+  // === Estrazione header email (Outlook formato standard) ===
+  // Pattern: "Da: Nome <email@dom.com>" oppure "From: ..."
+  for (let i = 0; i < Math.min(15, lines.length); i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+
+    // Da / From
+    let m = l.match(/^(?:Da|From)[:：]\s*(.+)$/i);
+    if (m && !result.from) {
+      const fromRaw = m[1].trim();
+      // Estraggo email se presente <email@...>
+      const emailMatch = fromRaw.match(/<([^>]+@[^>]+)>/);
+      if (emailMatch) {
+        result.fromEmail = emailMatch[1];
+        result.from = fromRaw.replace(/<[^>]+>/, "").trim().replace(/^[\"\']|[\"\']$/g, "");
+      } else {
+        result.from = fromRaw;
+        // se il from è solo un email
+        const justEmail = fromRaw.match(/^([\w.\-+]+@[\w.\-]+)$/);
+        if (justEmail) result.fromEmail = justEmail[1];
+      }
+      continue;
+    }
+    // A / To
+    m = l.match(/^(?:A|To)[:：]\s*(.+)$/i);
+    if (m && !result.to) {
+      result.to = m[1].trim();
+      continue;
+    }
+    // Oggetto / Subject
+    m = l.match(/^(?:Oggetto|Subject)[:：]\s*(.+)$/i);
+    if (m && !result.subject) {
+      result.subject = m[1].trim();
+      continue;
+    }
+    // Data / Date / Sent
+    m = l.match(/^(?:Data|Date|Inviato|Sent)[:：]\s*(.+)$/i);
+    if (m && !result.date) {
+      result.date = m[1].trim();
+      continue;
+    }
+  }
+
+  // === Corpo email: tutto dopo gli header (cerco la prima riga vuota dopo l'ultima riga header) ===
+  const headerKeys = /^(?:Da|From|A|To|Cc|Ccn|Bcc|Oggetto|Subject|Data|Date|Inviato|Sent|Importanza|Priority)[:：]/i;
+  let bodyStartIdx = 0;
+  let inHeaders = true;
+  for (let i = 0; i < lines.length; i++) {
+    if (inHeaders) {
+      if (headerKeys.test(lines[i])) continue;
+      if (lines[i].trim() === "") {
+        // riga vuota dopo header
+        bodyStartIdx = i + 1;
+        inHeaders = false;
+        break;
+      }
+    }
+  }
+  if (bodyStartIdx === 0 && lines.length > 0) {
+    // Nessun header riconosciuto: tutto è body
+    bodyStartIdx = 0;
+  }
+  result.body = lines.slice(bodyStartIdx).join("\n").trim();
+
+  // === Rilevamenti automatici ===
+  const fullText = text.toUpperCase();
+
+  // Nave?
+  if (typeof VESSELS !== "undefined") {
+    for (const v of VESSELS) {
+      const upper = (v.vesselName || "").toUpperCase();
+      const dispUpper = (v.displayName || "").toUpperCase();
+      // Tolgo prefix M/V per match più flessibile
+      const cleanName = upper.replace(/^M\/?V\s+/, "").trim();
+      if (cleanName && fullText.includes(cleanName)) {
+        result.detectedVessel = v.vesselId;
+        break;
+      }
+      if (dispUpper && fullText.includes(dispUpper)) {
+        result.detectedVessel = v.vesselId;
+        break;
+      }
+    }
+  }
+
+  // Fornitore? Cerca tra fornitori conosciuti (dal data-procurement.json)
+  if (state.data && state.data.vessels) {
+    const knownSuppliers = new Set();
+    for (const v of state.data.vessels) {
+      for (const it of (v.items || [])) {
+        if (it.supplier && it.supplier !== "—") knownSuppliers.add(it.supplier);
+      }
+    }
+    // Match: nome fornitore appare nel testo email (case insensitive)
+    for (const sup of knownSuppliers) {
+      if (sup.length < 4) continue;  // skippa nomi troppo corti che danno falsi positivi
+      const supUpper = sup.toUpperCase();
+      // Match esatto o sostringa significativa
+      if (fullText.includes(supUpper) || fullText.includes(supUpper.split(/[.,]/)[0])) {
+        result.detectedSupplier = sup;
+        break;
+      }
+    }
+    // Fallback: cerca per dominio email del mittente
+    if (!result.detectedSupplier && result.fromEmail) {
+      const domain = result.fromEmail.split("@")[1];
+      if (domain) {
+        const domainKey = domain.split(".")[0].toUpperCase();
+        if (domainKey.length >= 4) {
+          for (const sup of knownSuppliers) {
+            // Confronto "ammorbidito": rimuovo spazi, punti, virgole sia dal nome che dal dominio
+            const supClean = sup.toUpperCase().replace(/[\s.,\-]/g, "");
+            if (supClean.includes(domainKey)) {
+              result.detectedSupplier = sup;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Numeri documento (REQ, RFQ, PO, DN) — pattern aziendale tipico
+  // Ordine: dal più specifico al più generico, poi dedupe per contenimento
+  const docPatterns = [
+    /\b(20\d{2}-[A-Z]{2,4}-[A-Z]{3,5}-\d{4,6})\b/g,  // tipo "2026-PEP-HQRQ-00076"
+    /\b(RFQ[-\s]?\d{6,8})\b/gi,  // 6+ cifre per evitare falsi positivi tipo "RFQ 2026"
+    /\b(PO[-\s]?\d{6,8})\b/gi,
+    /\b(REQ[-\s]?\d{6,8})\b/gi,
+    /\b(DN[-\s]?\d{4,8})\b/gi
+  ];
+  const foundNumbers = new Set();
+  for (const p of docPatterns) {
+    let m;
+    while ((m = p.exec(text)) !== null) {
+      foundNumbers.add(m[1].trim());
+    }
+  }
+  // Dedupe: scarto numeri che sono sostringhe di altri (es. "RFQ 2026" se c'è "2026-PEP-...")
+  const allFound = Array.from(foundNumbers);
+  for (const n of allFound) {
+    const isSubstring = allFound.some(other => other !== n && other.includes(n));
+    if (!isSubstring) result.detectedDocNumbers.push(n);
+  }
+
+  // Suggerisci azione + priorità in base a parole chiave
+  const lowText = (result.subject + " " + result.body).toLowerCase();
+  if (/urgent|asap|immediat|priorit/i.test(lowText)) {
+    result.suggestedPriority = "alta";
+  } else if (/info|fyi|per conoscenza|reminder|sollecito/i.test(lowText)) {
+    result.suggestedPriority = "bassa";
+  }
+  if (/sollecit|reminder|outstanding|pending/i.test(lowText)) result.suggestedAction = "Sollecitare";
+  else if (/offerta|quotation|quote|preventivo/i.test(lowText)) result.suggestedAction = "Verificare";
+  else if (/conferma|confirm/i.test(lowText)) result.suggestedAction = "Verificare";
+  else if (/spedi|delivery|consegna|shipping/i.test(lowText)) result.suggestedAction = "Verificare";
+  else if (/telefon|chiama|call/i.test(lowText)) result.suggestedAction = "Telefonare";
+  else if (/rispond|reply|answer/i.test(lowText)) result.suggestedAction = "Rispondere";
+
+  return result;
+}
+
+// === Apertura modale Email Capture ===
+window.openEmailCapture = function(prefillVesselId) {
+  let bd = document.getElementById("email-capture-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "email-capture-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+  bd.innerHTML = renderEmailCaptureHTML(prefillVesselId);
+  bd.classList.add("open");
+  // Focus sulla textarea
+  setTimeout(() => {
+    const ta = document.getElementById("email-capture-textarea");
+    if (ta) ta.focus();
+  }, 60);
+};
+
+function renderEmailCaptureHTML(prefillVesselId) {
+  return `
+    <div class="item-detail-popover email-capture-popover" role="dialog" aria-modal="true" style="max-width: 720px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Cattura email → to-do</h2>
+          <div class="item-detail-meta">
+            <span class="muted">Da Outlook: seleziona l'email · Ctrl+C · incolla qui sotto · Ctrl+V</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeEmailCapture()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        <div class="detail-section">
+          <h4>Incolla l'email</h4>
+          <textarea id="email-capture-textarea" rows="14"
+            placeholder="Esempio:&#10;Da: Mario Rossi <mario@fornitore.com>&#10;Inviato: lunedì 16 giugno 2026 14:32&#10;A: michele@perseveranza.it&#10;Oggetto: Sollecito offerta Battery module&#10;&#10;Ciao Michele,&#10;ti scrivo per..."
+            style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; line-height: 1.5; resize: vertical;"
+            oninput="window.previewEmailCapture(this.value)"></textarea>
+        </div>
+
+        <div id="email-capture-preview" style="display: none;">
+          <div class="detail-section">
+            <h4>Riconosciuto automaticamente</h4>
+            <div id="email-capture-preview-content"></div>
+          </div>
+        </div>
+
+        <div class="muted" style="font-size: 11px; margin-top: 10px; padding: 8px 12px; background: var(--bg-muted); border-radius: 4px;">
+          <strong>💡 Suggerimento:</strong> in Outlook, click destro sull'email → "Copia" copia tutto. Oppure apri l'email e seleziona tutto il contenuto (Ctrl+A) → Ctrl+C.
+        </div>
+      </div>
+      <div class="item-detail-footer">
+        <button class="btn btn-sm" onclick="window.copyPromptForClaude()" id="email-capture-claude-btn" style="display: none;">📋 Copia prompt per Claude</button>
+        <div style="flex: 1;"></div>
+        <button class="btn btn-sm" onclick="window.closeEmailCapture()">Annulla</button>
+        <button class="btn btn-sm btn-primary" onclick="window.createTodoFromEmail('${escapeAttr(prefillVesselId || "")}')" id="email-capture-create-btn" disabled>Crea to-do →</button>
+      </div>
+    </div>
+  `;
+}
+
+let lastParsedEmail = null;
+
+window.previewEmailCapture = function(text) {
+  const previewEl = document.getElementById("email-capture-preview");
+  const previewContent = document.getElementById("email-capture-preview-content");
+  const createBtn = document.getElementById("email-capture-create-btn");
+  const claudeBtn = document.getElementById("email-capture-claude-btn");
+
+  if (!text || text.trim().length < 10) {
+    previewEl.style.display = "none";
+    createBtn.disabled = true;
+    if (claudeBtn) claudeBtn.style.display = "none";
+    lastParsedEmail = null;
+    return;
+  }
+
+  const parsed = parseEmailText(text);
+  lastParsedEmail = parsed;
+
+  // Costruisco preview
+  const rows = [];
+  if (parsed.from) {
+    rows.push(`<div class="email-preview-row"><span class="email-preview-label">Da</span><span><strong>${escapeHTML(parsed.from)}</strong>${parsed.fromEmail ? ` <span class="muted" style="font-size: 11px;">${escapeHTML(parsed.fromEmail)}</span>` : ""}</span></div>`);
+  }
+  if (parsed.subject) {
+    rows.push(`<div class="email-preview-row"><span class="email-preview-label">Oggetto</span><span>${escapeHTML(parsed.subject)}</span></div>`);
+  }
+  if (parsed.date) {
+    rows.push(`<div class="email-preview-row"><span class="email-preview-label">Data</span><span class="muted">${escapeHTML(parsed.date)}</span></div>`);
+  }
+  if (parsed.detectedVessel) {
+    const vName = (VESSELS.find(v => v.vesselId === parsed.detectedVessel) || {}).displayName || parsed.detectedVessel;
+    rows.push(`<div class="email-preview-row"><span class="email-preview-label">Nave</span><span class="email-preview-detected">🚢 ${escapeHTML(vName)}</span></div>`);
+  }
+  if (parsed.detectedSupplier) {
+    rows.push(`<div class="email-preview-row"><span class="email-preview-label">Fornitore</span><span class="email-preview-detected">🏢 ${escapeHTML(parsed.detectedSupplier)}</span></div>`);
+  }
+  if (parsed.detectedDocNumbers.length > 0) {
+    rows.push(`<div class="email-preview-row"><span class="email-preview-label">N° doc</span><span>${parsed.detectedDocNumbers.map(d => `<span class="email-doc-chip">${escapeHTML(d)}</span>`).join(" ")}</span></div>`);
+  }
+  rows.push(`<div class="email-preview-row"><span class="email-preview-label">Azione suggerita</span><span><span class="email-preview-detected">${escapeHTML(parsed.suggestedAction)}</span> <span class="muted" style="font-size: 11px;">priorità ${parsed.suggestedPriority}</span></span></div>`);
+
+  previewContent.innerHTML = rows.join("");
+  previewEl.style.display = "block";
+  createBtn.disabled = false;
+  if (claudeBtn) claudeBtn.style.display = "inline-flex";
+};
+
+window.closeEmailCapture = function() {
+  const bd = document.getElementById("email-capture-backdrop");
+  if (bd) bd.classList.remove("open");
+  lastParsedEmail = null;
+};
+
+// === Crea to-do dall'email parsata: chiama la modale to-do nativa pre-compilata ===
+window.createTodoFromEmail = function(forcedVesselId) {
+  if (!lastParsedEmail) {
+    showToast("Incolla prima un'email");
+    return;
+  }
+  const p = lastParsedEmail;
+
+  // Costruisco un reference sintetico per la to-do
+  const refParts = [];
+  if (p.subject) refParts.push(p.subject);
+  if (p.fromEmail) refParts.push(`da ${p.fromEmail}`);
+  else if (p.from) refParts.push(`da ${p.from}`);
+  if (p.detectedDocNumbers.length > 0) refParts.push(p.detectedDocNumbers.join(", "));
+  const reference = refParts.join(" · ").slice(0, 200);
+
+  // Nota = primi caratteri del corpo (per contesto)
+  const noteBody = p.body ? p.body.slice(0, 400) : "";
+
+  // Vessel: forzato OR rilevato OR vuoto
+  const vessel = forcedVesselId || p.detectedVessel || "";
+  const category = vessel ? "Nave" : "Altro";
+
+  // Aggiungo automaticamente un tag "email"
+  modalCurrentTags = ["email"];
+  if (p.fromEmail) modalCurrentTags.push(p.fromEmail.split("@")[1] || "email");
+
+  // Chiudo la modale email e apro la modale to-do
+  window.closeEmailCapture();
+
+  // Apro modale to-do con prefill
+  editingTodoId = null;
+  const modal = document.getElementById("modal-todo");
+  const title = document.getElementById("modal-todo-title");
+
+  // Popola dropdown navi
+  const vesselSelect = document.getElementById("todo-vessel");
+  vesselSelect.innerHTML = '<option value="">— Seleziona —</option>';
+  for (const v of VESSELS) {
+    const opt = document.createElement("option");
+    opt.value = v.vesselId;
+    opt.textContent = v.displayName;
+    vesselSelect.appendChild(opt);
+  }
+  vesselSelect.value = vessel;
+
+  title.textContent = "Nuova to-do da email";
+  document.getElementById("todo-category").value = category;
+  document.getElementById("todo-priority").value = p.suggestedPriority || "media";
+  document.getElementById("todo-action").value = p.suggestedAction || "Rispondere";
+  document.getElementById("todo-reference").value = reference;
+  document.getElementById("todo-when").value = "tomorrow";
+  document.getElementById("todo-date").value = "";
+  document.getElementById("todo-note").value = noteBody;
+
+  // Reminder bar nascosta (non c'è item di origine)
+  const reminderEl0 = document.getElementById("todo-item-reminder");
+  if (reminderEl0) reminderEl0.style.display = "none";
+
+  // Aggiorno visibilità campi (la modale ha logica reattiva)
+  document.getElementById("todo-vessel-row").style.display = category === "Nave" ? "" : "none";
+  document.getElementById("todo-date-row").style.display = "none";
+
+  // Rendi tag visibili
+  renderTagsInModal();
+
+  modal.classList.add("open");
+  setTimeout(() => {
+    const focusEl = vessel ? document.getElementById("todo-action") : vesselSelect;
+    if (focusEl) focusEl.focus();
+  }, 50);
+};
+
+// === Copia prompt per Claude (per chi vuole il riassunto AI a parte) ===
+window.copyPromptForClaude = function() {
+  if (!lastParsedEmail) return;
+  const p = lastParsedEmail;
+  const vName = p.detectedVessel ?
+    (VESSELS.find(v => v.vesselId === p.detectedVessel) || {}).displayName || "" :
+    "";
+  const lang = p.detectedSupplier && state.supplierLanguages && state.supplierLanguages[p.detectedSupplier] === "en" ? "inglese" : "italiano";
+
+  const prompt = `Sono Michele, Purchasing Manager di Perseveranza Shipping (Procida, Italia). Gestisco procurement per una flotta di 4 navi.
+
+Ho ricevuto questa email:
+
+---
+${p.from ? "Da: " + p.from + (p.fromEmail ? " <" + p.fromEmail + ">" : "") : ""}
+${p.subject ? "Oggetto: " + p.subject : ""}
+${p.date ? "Data: " + p.date : ""}
+${vName ? "Riferimento nave: " + vName : ""}
+${p.detectedSupplier ? "Fornitore: " + p.detectedSupplier : ""}
+${p.detectedDocNumbers.length > 0 ? "N° documenti citati: " + p.detectedDocNumbers.join(", ") : ""}
+
+${p.body}
+---
+
+Aiutami a:
+1. Riassumere in 2-3 righe cosa chiede questa email
+2. Indicare l'azione che dovrei intraprendere e con che priorità
+3. Proporre una bozza di risposta professionale in ${lang}`;
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    showToast("📋 Prompt copiato — incolla in Claude.ai");
+  }).catch(err => {
+    showToast("Errore copia: " + err);
+  });
+};
+
+
+// ============================================================================
+// === VOYAGE v0.12 — Tracker manuale voyage per nave ========================
+// ============================================================================
+//
+// Modello dati: state.voyages[vesselId] = {
+//   current: { from, to, eta, etd, status },     // voyage in corso
+//   next: { from, to, eta, status },              // voyage successivo (se noto)
+//   notes,                                          // note libere
+//   updatedAt                                       // ISO timestamp ultimo aggiornamento
+// }
+//
+// Status possibili: "in_port" | "at_sea" | "at_anchor" | "drydock" | ""
+
+const VOYAGE_STATUS_LABELS = {
+  "at_sea": "🌊 In navigazione",
+  "in_port": "⚓ In porto",
+  "at_anchor": "⚓ Alla fonda",
+  "drydock": "🛠 In cantiere",
+  "loading": "📦 In carico",
+  "discharging": "📤 In scarico",
+  "": "—"
+};
+
+function getVoyage(vesselId) {
+  return (state.voyages && state.voyages[vesselId]) || {};
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  // Tollera "2026-06-23", "2026-06-23T18:00", ecc
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  const diff = Math.round((d - now) / 86400000);
+  return diff;
+}
+
+function formatVoyageDate(dateStr) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" }) +
+         (dateStr.includes("T") ? " " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "");
+}
+
+// Render compatto del voyage sopra le KPI (nella scheda nave)
+function renderVoyageWidget(vesselId) {
+  const voy = getVoyage(vesselId);
+  const cur = voy.current || {};
+  const nxt = voy.next || {};
+  const hasAnyData = cur.from || cur.to || cur.eta || nxt.to || voy.notes || voy.status;
+
+  if (!hasAnyData) {
+    return `
+      <section class="voyage-widget voyage-widget-empty">
+        <div class="voyage-widget-icon">🚢</div>
+        <div class="voyage-widget-text">
+          <div class="voyage-widget-title">Voyage in corso</div>
+          <div class="voyage-widget-subtitle muted">Nessun dato — compila a mano dalle email</div>
+        </div>
+        <button class="btn-mini-link" onclick="window.openVoyageEditor('${escapeAttr(vesselId)}')">✎ aggiungi</button>
+      </section>
+    `;
+  }
+
+  // Costruisco la "linea voyage"
+  const statusLabel = voy.status ? VOYAGE_STATUS_LABELS[voy.status] || voy.status : "";
+  const curLine = (cur.from || cur.to) ? `${escapeHTML(cur.from || "?")} → <strong>${escapeHTML(cur.to || "?")}</strong>` : "";
+  const etaDays = daysUntil(cur.eta);
+  const etaLabel = cur.eta ?
+    `<span class="voyage-eta">ETA ${formatVoyageDate(cur.eta)}${etaDays != null ? ` <span class="voyage-eta-days ${etaDays < 0 ? 'past' : etaDays <= 2 ? 'soon' : ''}">(${etaDays < 0 ? Math.abs(etaDays) + 'g fa' : etaDays === 0 ? 'oggi' : 'tra ' + etaDays + 'g'})</span>` : ""}</span>` :
+    "";
+
+  // Voyage successivo
+  const nextLine = (nxt.from || nxt.to) ? `
+    <div class="voyage-next-line">
+      <span class="voyage-next-label">poi:</span>
+      ${escapeHTML(nxt.from || "?")} → <strong>${escapeHTML(nxt.to || "?")}</strong>
+      ${nxt.eta ? `<span class="voyage-eta">ETA ${formatVoyageDate(nxt.eta)}</span>` : ""}
+    </div>
+  ` : "";
+
+  const updated = voy.updatedAt ? formatRelative(new Date(voy.updatedAt)) : "";
+
+  return `
+    <section class="voyage-widget">
+      <div class="voyage-widget-icon">🚢</div>
+      <div class="voyage-widget-main">
+        <div class="voyage-status-row">
+          ${statusLabel ? `<span class="voyage-status">${statusLabel}</span>` : ""}
+          ${curLine ? `<span class="voyage-route">${curLine}</span>` : ""}
+          ${etaLabel}
+        </div>
+        ${nextLine}
+        ${voy.notes ? `<div class="voyage-notes-line"><span class="muted">📝</span> ${escapeHTML(voy.notes)}</div>` : ""}
+      </div>
+      <div class="voyage-widget-actions">
+        <span class="muted" style="font-size: 10.5px;">${updated ? `aggiornato ${updated}` : ""}</span>
+        <button class="btn-mini-link" onclick="window.openVoyageEditor('${escapeAttr(vesselId)}')">✎ modifica</button>
+      </div>
+    </section>
+  `;
+}
+
+// Editor modale per compilare/modificare voyage
+window.openVoyageEditor = function(vesselId) {
+  const voy = getVoyage(vesselId);
+  const cur = voy.current || {};
+  const nxt = voy.next || {};
+  const vName = (VESSELS.find(v => v.vesselId === vesselId) || {}).displayName || vesselId;
+
+  let bd = document.getElementById("voyage-editor-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "voyage-editor-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+
+  const statusOptions = ["", "at_sea", "in_port", "at_anchor", "loading", "discharging", "drydock"]
+    .map(s => `<option value="${s}" ${voy.status === s ? "selected" : ""}>${VOYAGE_STATUS_LABELS[s] || s}</option>`).join("");
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 580px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Voyage — ${escapeHTML(vName)}</h2>
+          <div class="item-detail-meta">
+            <span class="muted">Compila i dati che hai sotto mano dalle email</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeVoyageEditor()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+
+        <div class="detail-section">
+          <h4>Stato attuale</h4>
+          <div class="voyage-form-row">
+            <label>Stato</label>
+            <select id="voy-status">${statusOptions}</select>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Voyage in corso</h4>
+          <div class="voyage-form-grid">
+            <div class="voyage-form-row">
+              <label>Da (porto)</label>
+              <input type="text" id="voy-cur-from" value="${escapeAttr(cur.from || "")}" placeholder="Es. Algeciras">
+            </div>
+            <div class="voyage-form-row">
+              <label>A (porto)</label>
+              <input type="text" id="voy-cur-to" value="${escapeAttr(cur.to || "")}" placeholder="Es. Vitoria">
+            </div>
+            <div class="voyage-form-row">
+              <label>ETD (partenza)</label>
+              <input type="datetime-local" id="voy-cur-etd" value="${escapeAttr(cur.etd || "")}">
+            </div>
+            <div class="voyage-form-row">
+              <label>ETA (arrivo)</label>
+              <input type="datetime-local" id="voy-cur-eta" value="${escapeAttr(cur.eta || "")}">
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Voyage successivo (se noto)</h4>
+          <div class="voyage-form-grid">
+            <div class="voyage-form-row">
+              <label>Da</label>
+              <input type="text" id="voy-nxt-from" value="${escapeAttr(nxt.from || "")}" placeholder="Es. Vitoria">
+            </div>
+            <div class="voyage-form-row">
+              <label>A</label>
+              <input type="text" id="voy-nxt-to" value="${escapeAttr(nxt.to || "")}" placeholder="Es. Rotterdam">
+            </div>
+            <div class="voyage-form-row">
+              <label>ETA</label>
+              <input type="datetime-local" id="voy-nxt-eta" value="${escapeAttr(nxt.eta || "")}">
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>Note libere</h4>
+          <textarea id="voy-notes" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 13px;" placeholder="Es. Carico in ritardo di 6h. Pilot booked 23/06 0800LT. Slot di banchina 23/06.">${escapeHTML(voy.notes || "")}</textarea>
+        </div>
+      </div>
+      <div class="item-detail-footer">
+        ${(cur.from || cur.to || nxt.to || voy.notes) ? `<button class="btn btn-sm" onclick="window.clearVoyage('${escapeAttr(vesselId)}')" style="color: var(--c-red-fg);">🗑 Cancella tutto</button>` : ""}
+        <div style="flex: 1;"></div>
+        <button class="btn btn-sm" onclick="window.closeVoyageEditor()">Annulla</button>
+        <button class="btn btn-sm btn-primary" onclick="window.saveVoyageFromEditor('${escapeAttr(vesselId)}')">Salva</button>
+      </div>
+    </div>
+  `;
+  bd.classList.add("open");
+
+  // Auto-focus primo campo
+  setTimeout(() => {
+    const el = document.getElementById("voy-status");
+    if (el) el.focus();
+  }, 50);
+};
+
+window.closeVoyageEditor = function() {
+  const bd = document.getElementById("voyage-editor-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+window.saveVoyageFromEditor = function(vesselId) {
+  if (!state.voyages) state.voyages = {};
+
+  const getVal = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
+  };
+
+  const payload = {
+    status: getVal("voy-status"),
+    current: {
+      from: getVal("voy-cur-from"),
+      to: getVal("voy-cur-to"),
+      etd: getVal("voy-cur-etd"),
+      eta: getVal("voy-cur-eta")
+    },
+    next: {
+      from: getVal("voy-nxt-from"),
+      to: getVal("voy-nxt-to"),
+      eta: getVal("voy-nxt-eta")
+    },
+    notes: getVal("voy-notes"),
+    updatedAt: new Date().toISOString()
+  };
+
+  state.voyages[vesselId] = payload;
+  saveVoyages();
+  showToast(`Voyage salvato`);
+  window.closeVoyageEditor();
+  render();
+};
+
+window.clearVoyage = function(vesselId) {
+  if (!confirm("Cancellare tutti i dati voyage per questa nave?")) return;
+  if (state.voyages && state.voyages[vesselId]) {
+    delete state.voyages[vesselId];
+    saveVoyages();
+    showToast("Voyage cancellato");
+  }
+  window.closeVoyageEditor();
+  render();
+};
+
+// Helper per la card nave home: prossimo porto + giorni a ETA
+function getVoyageSummaryForCard(vesselId) {
+  const voy = getVoyage(vesselId);
+  const cur = voy.current || {};
+  if (!cur.to && !cur.eta) return null;
+  const days = daysUntil(cur.eta);
+  return {
+    nextPort: cur.to,
+    eta: cur.eta,
+    daysLabel: days != null ?
+      (days < 0 ? `${Math.abs(days)}g fa` : days === 0 ? "oggi" : `tra ${days}g`) :
+      null,
+    status: voy.status,
+    urgent: days != null && days <= 2 && days >= 0
+  };
+}
 
 
 // ============================================================================
@@ -9992,6 +10951,11 @@ function mergeRemoteIntoLocal(remote) {
     }
     saveCertificates();
   }
+  // v0.12 — merge voyages (last-write-wins per nave)
+  if (remote.voyages && typeof remote.voyages === "object") {
+    state.voyages = { ...state.voyages, ...remote.voyages };
+    saveVoyages();
+  }
   // v0.10.2 — merge pinnedActions (union dei due array)
   if (Array.isArray(remote.pinnedActions)) {
     const set = new Set([...(state.pinnedActions || []), ...remote.pinnedActions]);
@@ -10082,7 +11046,8 @@ async function drivePush() {
     supplierLanguages: state.supplierLanguages || {},        // v0.10.2
     pinnedActions: state.pinnedActions || [],                // v0.10.2
     certificates: state.certificates || {},                  // v0.11
-    certificatesMeta: state.certificatesMeta || {}           // v0.11
+    certificatesMeta: state.certificatesMeta || {},          // v0.11
+    voyages: state.voyages || {}                             // v0.12
   };
   const body = JSON.stringify(payload, null, 2);
 
@@ -10430,6 +11395,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (a === "refresh") { loadData(); showToast("Aggiornamento…"); }
       else if (a === "eod") openEOD();
       else if (a === "todo-new") openTodoModal(null);
+      else if (a === "todo-from-email") window.openEmailCapture();
       else if (a === "palette") openPalette();
       else if (a === "settings") document.getElementById("modal-settings").classList.add("open");
     });
