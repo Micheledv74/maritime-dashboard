@@ -3099,6 +3099,34 @@ a:hover { text-decoration: underline; }
   transform: translateY(-1px);
 }
 
+
+/* v0.11.2 — Badge cert nelle card flotta home (più piccoli del widget) */
+.vessel-cert-badges {
+  display: inline-flex;
+  gap: 3px;
+  cursor: pointer;
+  user-select: none;
+}
+.vessel-cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  border: 1px solid transparent;
+}
+.vessel-cert-badge.cert-bg-expired { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.vessel-cert-badge.cert-bg-urgent { background: #fef3e6; color: #c2410c; border-color: #fdba74; }
+.vessel-cert-badge.cert-bg-week { background: #fef9c3; color: #854d0e; border-color: #fde047; }
+.vessel-cert-badge.cert-bg-somedays { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.vessel-cert-badges:hover .vessel-cert-badge {
+  filter: brightness(0.95);
+}
+
 /* Vista globale Certificati */
 .cert-view {
   max-width: 1280px;
@@ -5355,14 +5383,25 @@ function renderOverview() {
     const todoBadge = vesselTodos.length > 0 ?
       `<span class="vessel-todo-badge" data-vessel-todos="${cfg.vesselId}" title="${vesselTodos.length} to-do aperte">☐ ${vesselTodos.length}</span>` : "";
 
+    // v0.11.2 — Badge certificati nella card nave (solo se ce ne sono in scadenza ≤ 90gg o scaduti)
+    const cStats = getCertStatsForVessel(cfg.vesselId);
+    const certBadges = [];
+    if (cStats.expired > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-expired" title="${cStats.expired} scaduti">🔴 ${cStats.expired}</span>`);
+    if (cStats.urgent > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-urgent" title="${cStats.urgent} entro 30 giorni">🟠 ${cStats.urgent}</span>`);
+    if (cStats.week > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-week" title="${cStats.week} in 31-60 giorni">🟡 ${cStats.week}</span>`);
+    if (cStats.somedays > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-somedays" title="${cStats.somedays} in 61-90 giorni">🔵 ${cStats.somedays}</span>`);
+    const certBadgesHTML = certBadges.length > 0 ?
+      `<span class="vessel-cert-badges" data-vessel-certs="${cfg.vesselId}" title="Click per aprire i certificati di questa nave">${certBadges.join("")}</span>` : "";
+
     cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}">
       <div class="vessel-card-head">
         <div class="vessel-name">
           <span class="pill-dot ${status === "green" ? "" : status}"></span>
           ${cfg.displayName}
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
           ${todoBadge}
+          ${certBadgesHTML}
           <span class="vessel-meta">${(v.items || []).length} item</span>
         </div>
       </div>
@@ -5397,8 +5436,6 @@ function renderOverview() {
       </div>
       <div class="world-clock-strip world-clock-strip-compact" id="world-clock-strip">${renderWorldClock()}</div>
     </section>
-
-    ${renderCertWidgetCompact()}
 
     <section>
       <div class="section-title">
@@ -5437,6 +5474,13 @@ function renderOverview() {
         e.stopPropagation();
         state._todoFilter = { category: "Nave", vessel: todoBadge.dataset.vesselTodos, priority: "all" };
         goTodos();
+        return;
+      }
+      // v0.11.2 — Click su badge cert → vista cert filtrata su questa nave
+      const certBadge = e.target.closest("[data-vessel-certs]");
+      if (certBadge) {
+        e.stopPropagation();
+        window.goCertificatesForVessel(certBadge.dataset.vesselCerts);
         return;
       }
       // se il click è su un KPI cliccabile, non navigare
@@ -5652,6 +5696,8 @@ function renderVesselDetail() {
 
     <section class="position-panel">${posHTML}</section>
 
+    ${renderCertWidgetForVessel(v.vesselId)}
+
     ${kpiHTML}
 
     ${ageBandsHTML}
@@ -5665,8 +5711,6 @@ function renderVesselDetail() {
       </div>
       ${actionsHTML}
     </section>
-
-    ${renderCertSectionForVessel(v.vesselId)}
 
     <section>
       <div class="section-title"><h2>Pipeline procurement</h2></div>
@@ -5693,6 +5737,9 @@ function renderVesselDetail() {
         </div>
       </div>
     </section>
+
+    ${renderCertSectionForVessel(v.vesselId)}
+
 
     <section>
       <div class="section-title">
@@ -8045,6 +8092,59 @@ function generateCertificateActions() {
 
 
 // === UI Certificati v0.11 ===
+
+
+// v0.11.2 — Riga compatta certificati per una singola nave (sopra le KPI Infoship)
+function renderCertWidgetForVessel(vesselId) {
+  const stats = getCertStatsForVessel(vesselId);
+  const meta = (state.certificatesMeta || {})[vesselId];
+  const vName = (VESSELS.find(v => v.vesselId === vesselId) || {}).displayName || vesselId;
+
+  if (stats.total === 0) {
+    return `
+      <section class="cert-widget-compact cert-widget-empty" style="margin-bottom: 14px;">
+        <div class="cert-widget-icon">🛡️</div>
+        <div class="cert-widget-text">
+          <div class="cert-widget-title">Certificati & Scadenze</div>
+          <div class="cert-widget-subtitle muted">Nessun file importato per ${escapeHTML(vName)}</div>
+        </div>
+        <button class="btn-mini-link" onclick="window.openCertImport('${escapeAttr(vesselId)}')">📁 importa file</button>
+      </section>
+    `;
+  }
+
+  const lastImportFmt = meta ? formatRelative(new Date(meta.importedAt)) : "—";
+  return `
+    <section class="cert-widget-compact" style="margin-bottom: 14px;">
+      <div class="cert-widget-icon">🛡️</div>
+      <div class="cert-widget-text">
+        <div class="cert-widget-title">Certificati & Scadenze</div>
+        <div class="cert-widget-subtitle muted">${stats.total} voci · ultimo import ${escapeHTML(lastImportFmt)}</div>
+      </div>
+      <div class="cert-widget-badges">
+        ${stats.expired > 0 ? `<span class="cert-badge expired" onclick="window.goCertificatesForVessel('${escapeAttr(vesselId)}', 'expired')" title="Scaduti">🔴 ${stats.expired}</span>` : ""}
+        ${stats.urgent > 0 ? `<span class="cert-badge urgent" onclick="window.goCertificatesForVessel('${escapeAttr(vesselId)}', 'urgent')" title="Scadono entro 30 giorni">🟠 ${stats.urgent}</span>` : ""}
+        ${stats.week > 0 ? `<span class="cert-badge week" onclick="window.goCertificatesForVessel('${escapeAttr(vesselId)}', 'week')" title="31-60 giorni">🟡 ${stats.week}</span>` : ""}
+        ${stats.somedays > 0 ? `<span class="cert-badge somedays" onclick="window.goCertificatesForVessel('${escapeAttr(vesselId)}', 'somedays')" title="61-90 giorni">🔵 ${stats.somedays}</span>` : ""}
+        ${(stats.expired + stats.urgent + stats.week + stats.somedays) === 0 ? `<span class="cert-badge ok">✓ tutti regolari</span>` : ""}
+        <button class="btn-mini-link" onclick="window.goCertificatesForVessel('${escapeAttr(vesselId)}')" style="margin-left: 6px;">vedi tutti →</button>
+      </div>
+    </section>
+  `;
+}
+
+// Naviga al tab Certificati globale con filtro pre-impostato sulla nave
+window.goCertificatesForVessel = function(vesselId, filterUrgency) {
+  state.view = "certificates";
+  state.selectedVesselId = null;
+  state._certFilter = {
+    urgency: filterUrgency || "all",
+    vessel: vesselId,
+    category: "all"
+  };
+  render();
+};
+
 
 // Widget compatto in cima alla home (sotto world clock)
 function renderCertWidgetCompact() {
