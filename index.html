@@ -3025,6 +3025,271 @@ a:hover { text-decoration: underline; }
   .wc-tile .wc-code { font-size: 10px; padding: 1px 5px; }
 }
 
+
+/* ============================================================================ */
+/* === CERTIFICATI v0.11 ===================================================== */
+/* ============================================================================ */
+
+/* Widget compact in cima alla home */
+.cert-widget-compact {
+  background: linear-gradient(135deg, #ffffff 0%, #f7f9fc 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+.cert-widget-compact.cert-widget-empty {
+  background: var(--bg-muted);
+  border-style: dashed;
+}
+.cert-widget-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.cert-widget-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+}
+.cert-widget-subtitle {
+  font-size: 11.5px;
+  margin-top: 1px;
+}
+.cert-widget-badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Badge urgenza (riusabile in più posti) */
+.cert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+.cert-badge.expired { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.cert-badge.urgent { background: #fef3e6; color: #c2410c; border-color: #fdba74; }
+.cert-badge.week { background: #fef9c3; color: #854d0e; border-color: #fde047; }
+.cert-badge.somedays { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+.cert-badge.ok, .cert-badge.ok-light {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+.cert-badge.ok-light {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+.cert-badge:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+/* Vista globale Certificati */
+.cert-view {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.cert-view-header {
+  margin-bottom: 18px;
+}
+.cert-view-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+}
+
+.cert-import-toolbar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+.cert-import-toolbar h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.cert-import-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.cert-import-card {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.cert-import-vessel {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.cert-import-status {
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.cert-filters-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.cert-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.cert-filter-row:last-child { margin-bottom: 0; }
+.cert-filter-label {
+  min-width: 80px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.cert-filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cert-filter-chip {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 12px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.12s;
+}
+.cert-filter-chip:hover {
+  background: var(--bg-muted);
+}
+.cert-filter-chip.active {
+  background: var(--c-blue-bg);
+  border-color: var(--c-blue-dot);
+  color: var(--c-blue-fg);
+  font-weight: 600;
+}
+
+/* Tabella certificati */
+.cert-table-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  overflow-x: auto;
+}
+.cert-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.cert-table th {
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--bg-muted);
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  position: sticky; top: 0;
+}
+.cert-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.cert-table tr:hover td { background: var(--bg-muted); }
+.cert-n {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.cert-name-cell {
+  font-weight: 500;
+  line-height: 1.3;
+}
+.cert-notes {
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.cert-cat-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.cert-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cert-pill.expired { background: #fee2e2; color: #b91c1c; }
+.cert-pill.urgent { background: #fef3e6; color: #c2410c; }
+.cert-pill.week { background: #fef9c3; color: #854d0e; }
+.cert-pill.somedays { background: #dbeafe; color: #1d4ed8; }
+.cert-pill.ok { background: #d1fae5; color: #065f46; }
+.cert-pill.permanent { background: var(--bg-muted); color: var(--text-muted); }
+
+/* Riga con border sinistro colorato per urgenza */
+.cert-row-expired { border-left: 3px solid #dc2626; }
+.cert-row-urgent { border-left: 3px solid #ea580c; }
+.cert-row-week { border-left: 3px solid #ca8a04; }
+.cert-row-somedays { border-left: 3px solid #2563eb; }
+
+/* Sezione certificati a piè di scheda nave (più compatta) */
+.cert-vessel-section {
+  margin-top: 24px;
+}
+.cert-stats-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.cert-table-compact th, .cert-table-compact td {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
 /* === ITEM DETAIL POPOVER (v0.7) ============================================ */
 .item-detail-backdrop {
   position: fixed;
@@ -3796,9 +4061,11 @@ const LS_KEYS = {
   driveWasConnected: "mpd.driveWasConnected",
   supplierTimezones: "mpd.supplierTimezones",
   completionsHistory: "mpd.completionsHistory",
-  supplierLanguages: "mpd.supplierLanguages",   // v0.10.2: fornitore → "it"|"en"
-  pinnedActions: "mpd.pinnedActions",           // v0.10.2: chiavi azioni fissate
-  lastVisitTs: "mpd.lastVisitTs"                // v0.10.2: timestamp ultima visita (per "novità da ieri")
+  supplierLanguages: "mpd.supplierLanguages",
+  pinnedActions: "mpd.pinnedActions",
+  lastVisitTs: "mpd.lastVisitTs",
+  certificates: "mpd.certificates",             // v0.11: { vesselId: [ {n, name, issue, expiry, ...} ] }
+  certificatesMeta: "mpd.certificatesMeta"      // v0.11: { vesselId: { fileName, importedAt } }
 };
 
 // ============================================================================
@@ -3884,6 +4151,19 @@ function loadPinnedActions() {
     const raw = JSON.parse(localStorage.getItem(LS_KEYS?.pinnedActions || "mpd.pinnedActions") || "[]");
     return Array.isArray(raw) ? raw : [];
   } catch { return []; }
+}
+// v0.11 — Certificati nave (per ciascuna nave, lista voci dal file Excel)
+function loadCertificates() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.certificates || "mpd.certificates") || "{}");
+    return (raw && typeof raw === "object") ? raw : {};
+  } catch { return {}; }
+}
+function loadCertificatesMeta() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEYS?.certificatesMeta || "mpd.certificatesMeta") || "{}");
+    return (raw && typeof raw === "object") ? raw : {};
+  } catch { return {}; }
 }
 
 // v0.8 — Mappa fornitore → fuso orario IANA (es. "SSS0030" → "Asia/Singapore")
@@ -4049,7 +4329,9 @@ const state = {
   archivedActions: loadArchivedActions(),  // { actionKey: { archivedAt, lastSeenStatus } }
   completionsHistory: loadCompletionsHistory(),  // v0.10
   supplierLanguages: loadSupplierLanguages(),    // v0.10.2 — { supplier: "it"|"en" }
-  pinnedActions: loadPinnedActions(),            // v0.10.2 — array di chiavi azioni fissate
+  pinnedActions: loadPinnedActions(),            // v0.10.2
+  certificates: loadCertificates(),               // v0.11 — { vesselId: [items] }
+  certificatesMeta: loadCertificatesMeta(),       // v0.11 — { vesselId: {fileName, importedAt} }
   morningSnapshot: loadSnapshot(),
   supplierTimezones: loadSupplierTimezones(),  // v0.8: { "SUPPLIER NAME": "Asia/Singapore" }
   drive: {
@@ -4133,6 +4415,12 @@ function saveSupplierLanguages() {
 function savePinnedActions() {
   if (!Array.isArray(state.pinnedActions)) return;
   localStorage.setItem(LS_KEYS.pinnedActions, JSON.stringify(state.pinnedActions));
+  driveSchedulePush();
+}
+function saveCertificates() {
+  if (!state.certificates || typeof state.certificates !== "object") return;
+  localStorage.setItem(LS_KEYS.certificates, JSON.stringify(state.certificates));
+  localStorage.setItem(LS_KEYS.certificatesMeta, JSON.stringify(state.certificatesMeta || {}));
   driveSchedulePush();
 }
 // v0.8
@@ -4858,7 +5146,8 @@ function render() {
   renderSwitcher();
   if (state.error && !state.data) { renderError(); return; }
   if (state.loading && !state.data) { renderLoading(); return; }
-  if (state.view === "overview") { renderOverview(); startWorldClockTimer(); }
+  if (state.view === "certificates") renderCertificatesContainer();
+  else if (state.view === "overview") { renderOverview(); startWorldClockTimer(); }
   else if (state.view === "vessel") renderVesselDetail();
   else if (state.view === "supplier") renderSupplierPulse();
   else if (state.view === "debug") renderDebug();
@@ -4942,6 +5231,20 @@ function renderSwitcher() {
   todoOpt.value = "__todos"; todoOpt.textContent = `☐ To-do${openTodosCount > 0 ? " (" + openTodosCount + ")" : ""}`;
   if (state.view === "todos") todoOpt.selected = true;
   select.appendChild(todoOpt);
+
+  // v0.11 — Pill Certificati (badge con scaduti+urgenti)
+  const certGlobalStats = getCertStatsGlobal();
+  const certUrgent = certGlobalStats.expired + certGlobalStats.urgent;
+  const certPill = makeEl(`<button class="pill ${state.view === "certificates" ? "active" : ""}" data-view="certificates" role="tab">
+    <span>🛡️ Certificati</span>
+    ${certUrgent > 0 ? `<span class="pill-dot crit" style="background: var(--c-red-dot);"></span>` : ""}
+    <span class="pill-key">${certUrgent > 0 ? certUrgent : ""}</span>
+  </button>`);
+  row.appendChild(certPill);
+  const certOpt = document.createElement("option");
+  certOpt.value = "__certificates"; certOpt.textContent = `🛡️ Certificati${certUrgent > 0 ? " (" + certUrgent + ")" : ""}`;
+  if (state.view === "certificates") certOpt.selected = true;
+  select.appendChild(certOpt);
 
   VESSELS.forEach((v, idx) => {
     const dataVessel = state.data ? state.data.vessels.find(x => x.vesselId === v.vesselId) : null;
@@ -5094,6 +5397,8 @@ function renderOverview() {
       </div>
       <div class="world-clock-strip world-clock-strip-compact" id="world-clock-strip">${renderWorldClock()}</div>
     </section>
+
+    ${renderCertWidgetCompact()}
 
     <section>
       <div class="section-title">
@@ -5360,6 +5665,8 @@ function renderVesselDetail() {
       </div>
       ${actionsHTML}
     </section>
+
+    ${renderCertSectionForVessel(v.vesselId)}
 
     <section>
       <div class="section-title"><h2>Pipeline procurement</h2></div>
@@ -7439,6 +7746,589 @@ window.changeSupplierLanguage = function(supplier) {
   render();
 };
 
+
+// ============================================================================
+// === CERTIFICATI v0.11 — Import Excel + Storage + Helpers ==================
+// ============================================================================
+
+// Soglie urgenza scadenza (giorni)
+const CERT_THRESHOLDS = { urgent: 30, week: 60, somedays: 90 };
+
+// Classifica una data di scadenza vs oggi → "expired" | "urgent" | "week" | "somedays" | "ok"
+function classifyCertExpiry(expiryISO) {
+  if (!expiryISO) return "permanent";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expiryISO + "T00:00:00");
+  if (isNaN(exp.getTime())) return "unknown";
+  const days = Math.round((exp - today) / 86400000);
+  if (days < 0) return "expired";
+  if (days <= CERT_THRESHOLDS.urgent) return "urgent";
+  if (days <= CERT_THRESHOLDS.week) return "week";
+  if (days <= CERT_THRESHOLDS.somedays) return "somedays";
+  return "ok";
+}
+
+function daysToExpiry(expiryISO) {
+  if (!expiryISO) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expiryISO + "T00:00:00");
+  if (isNaN(exp.getTime())) return null;
+  return Math.round((exp - today) / 86400000);
+}
+
+// Categorizza un certificato dal suo nome (8 categorie)
+function categorizeCert(name) {
+  const n = (name || "").toUpperCase();
+  if (/INSURANCE|P\s*&\s*I|COFR|CLC|NCWR|ITOPF/.test(n)) return "Insurance/P&I";
+  if (/LIFEBOAT|LIFERAFT|EPIRB|SART|IMMERSION|BREATHING|EEBD|FIRE\s*EXTING|CO2|FOAM|PORTABLE|SMOKE|PARACHUTE|FLARES|LIFEJACKET|PILOT\s*LADDER|FREE\s*FALL|OXYGEN|FIRST\s*AID|LINE\s*THROWING|GAS\s*INSTRUMENT|EMBARK/.test(n)) return "Safety Equipment";
+  if (/CONSTRUCTION|LOAD\s*LINE|TONNAGE|CLASS|IBWM|IOPP|IAPP|ISPP|SEWAGE|BALLAST|ANTI-FOULING|IHM|DCS|IEEC|SEEMP|MARPOL|GARBAGE|ANTI\s*FOULING/.test(n)) return "Statutory/Class";
+  if (/\bSMC\b|\bISM\b|ISSP|ISPS|\bDOC\b|SECURITY|MANNING|REGISTRY|SYNOPSIS/.test(n)) return "ISM/ISPS";
+  if (/\bRADIO\b|\bAIS\b|SSAS|VDR|BNWAS|GMDSS|LRIT|ECDIS|WALKIE/.test(n)) return "Radio/GMDSS";
+  if (/MEDICAL|MLC|DMLC|CREW|MANNING|MEDICINE|ASBESTOS|HEALTH|MEDSCREEN|SANITATION|NOISE|VIBRATION|DRUG/.test(n)) return "Crew/Medical";
+  if (/COMPASS|WINCH|BUNKER|WIRE|CRANE|CHARTS|LOADING|GYRO|GAS|BOAT|SHIP\s*SAN|FRESH\s*WATER/.test(n)) return "Operational";
+  return "Other";
+}
+
+// Parser principale Excel — chiamato dal file picker
+// Restituisce array di voci normalizzate
+async function parseCertificateExcel(file) {
+  if (typeof XLSX === "undefined") {
+    await loadSheetJS();
+  }
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const sheetName = wb.SheetNames[0];  // primo foglio
+  const sheet = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: "yyyy-mm-dd" });
+
+  // Header riga: cerco la riga che contiene "N°" e "Expiry" (di solito è la riga 1)
+  let headerRowIdx = -1;
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    const r = rows[i];
+    if (!r) continue;
+    const rowStr = r.map(c => String(c || "")).join("|").toUpperCase();
+    if (rowStr.includes("N°") && (rowStr.includes("EXPIRY") || rowStr.includes("ISSUE"))) {
+      headerRowIdx = i;
+      break;
+    }
+  }
+  if (headerRowIdx === -1) {
+    throw new Error("Formato file non riconosciuto: manca riga header con 'N°' e 'Expiry'");
+  }
+
+  const items = [];
+  for (let i = headerRowIdx + 1; i < rows.length; i++) {
+    const row = rows[i] || [];
+    const n = row[0] != null ? String(row[0]).trim() : "";
+    const name = row[2] != null ? String(row[2]).trim() : "";
+    if (!name) continue;
+    // Skip righe header intra-foglio (sezioni "BRIDGE", "LIFEBOATS / FREE-FALL", "MASTER CABIN")
+    const sectionHeaders = ["BRIDGE", "LIFEBOATS / FREE-FALL", "MASTER CABIN", "LIFEBOATS", "FREE-FALL"];
+    if (!n && sectionHeaders.includes(name.toUpperCase())) continue;
+
+    // Estraggo date — possono essere Date objects o stringhe
+    const parseDate = (v) => {
+      if (!v) return "";
+      if (v instanceof Date) {
+        return v.toISOString().slice(0, 10);
+      }
+      const s = String(v).trim();
+      // Provo formati comuni: "yyyy-mm-dd", "dd/mm/yyyy", "dd-mm-yyyy"
+      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+      return "";
+    };
+
+    const issueDate = parseDate(row[3]);
+    const expiryDate = parseDate(row[4]);
+    const place = row[7] != null ? String(row[7]).trim() : "";
+    const certNum = row[8] != null ? String(row[8]).trim() : "";
+    const notes = row[9] != null ? String(row[9]).trim() : "";
+
+    items.push({
+      n: n,
+      name: name,
+      issue: issueDate,
+      expiry: expiryDate,
+      place: place,
+      certNum: certNum,
+      notes: notes,
+      category: categorizeCert(name),
+      isChild: !n,  // riga senza N° propria = sub-survey del cert precedente
+      isPermanent: !expiryDate && (notes.toLowerCase().includes("permanent") || /permanente|permanent/i.test(notes))
+    });
+  }
+  return items;
+}
+
+// === Click "Importa file" — handler globale ===
+window.openCertImport = function(vesselId) {
+  // Apre file picker
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".xls,.xlsx";
+  input.style.display = "none";
+  document.body.appendChild(input);
+
+  input.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) { document.body.removeChild(input); return; }
+    try {
+      showToast(`Importazione "${file.name}"…`);
+      const items = await parseCertificateExcel(file);
+      if (items.length === 0) {
+        showToast("Nessuna voce valida trovata nel file");
+        document.body.removeChild(input);
+        return;
+      }
+      if (!state.certificates) state.certificates = {};
+      if (!state.certificatesMeta) state.certificatesMeta = {};
+      state.certificates[vesselId] = items;
+      state.certificatesMeta[vesselId] = {
+        fileName: file.name,
+        importedAt: new Date().toISOString(),
+        count: items.length
+      };
+      saveCertificates();
+      const vName = (VESSELS.find(v => v.vesselId === vesselId) || {}).displayName || vesselId;
+      showToast(`✓ Importati ${items.length} certificati per ${vName}`);
+      render();
+    } catch (err) {
+      console.error("[Cert] errore parsing:", err);
+      showToast("Errore: " + err.message);
+    }
+    document.body.removeChild(input);
+  });
+  input.click();
+};
+
+// === Helper: stats per nave ===
+function getCertStatsForVessel(vesselId) {
+  const items = (state.certificates && state.certificates[vesselId]) || [];
+  const stats = { total: items.length, expired: 0, urgent: 0, week: 0, somedays: 0, ok: 0, permanent: 0 };
+  for (const it of items) {
+    if (it.isPermanent) { stats.permanent++; continue; }
+    const c = classifyCertExpiry(it.expiry);
+    if (stats[c] != null) stats[c]++;
+  }
+  return stats;
+}
+
+// Helper: stats globali (tutte le navi)
+function getCertStatsGlobal() {
+  const stats = { total: 0, expired: 0, urgent: 0, week: 0, somedays: 0, ok: 0, permanent: 0, byVessel: {} };
+  for (const v of VESSELS) {
+    const s = getCertStatsForVessel(v.vesselId);
+    stats.byVessel[v.vesselId] = s;
+    stats.total += s.total;
+    stats.expired += s.expired;
+    stats.urgent += s.urgent;
+    stats.week += s.week;
+    stats.somedays += s.somedays;
+    stats.ok += s.ok;
+    stats.permanent += s.permanent;
+  }
+  return stats;
+}
+
+
+
+
+// v0.11 — Container per il rendering della vista Certificati
+function renderCertificatesContainer() {
+  document.getElementById("view-root").innerHTML = renderCertificatesView();
+  startWorldClockTimer();  // niente da fare ma manteniamo coerenza
+}
+
+
+
+// v0.11 — Handler per link interni (es. da azione certificato → vista certificati)
+window.handleInternalLink = function(payloadJson) {
+  let p;
+  try { p = JSON.parse(decodeURIComponent(payloadJson)); } catch { return; }
+  if (p.view === "certificates") {
+    state.view = "certificates";
+    state.selectedVesselId = null;
+    state._certFilter = {
+      urgency: "all",
+      vessel: p.vesselId || "all",
+      category: "all"
+    };
+    render();
+  }
+};
+
+// v0.11 — Genera azioni nelle Azioni oggi a partire dalle scadenze certificati
+function generateCertificateActions() {
+  const actions = [];
+  if (!state.certificates) return actions;
+
+  for (const v of VESSELS) {
+    const items = state.certificates[v.vesselId] || [];
+    for (const it of items) {
+      if (it.isPermanent || !it.expiry) continue;
+      const days = daysToExpiry(it.expiry);
+      if (days == null || days > CERT_THRESHOLDS.somedays) continue;  // > 90gg: niente azione
+
+      // Livello in base alla soglia
+      let level, label;
+      if (days < 0) {
+        level = "critical";
+        label = `Cert scaduto · ${Math.abs(days)}g fa`;
+      } else if (days <= CERT_THRESHOLDS.urgent) {
+        level = "critical";
+        label = `Cert scade · ${days}g`;
+      } else if (days <= CERT_THRESHOLDS.week) {
+        level = "warning";
+        label = `Cert scade · ${days}g`;
+      } else {
+        level = "info";
+        label = `Cert scade · ${days}g`;
+      }
+
+      actions.push({
+        key: "cert:" + v.vesselId + ":" + (it.n || it.name.slice(0, 20)),
+        level: level,
+        label: label,
+        description: it.name,
+        vesselId: v.vesselId,
+        vesselName: v.displayName,
+        supplier: "",  // i certificati non hanno fornitore di default
+        ageDays: null,
+        docNumber: it.certNum || "",
+        docLabel: "Cert",
+        itemId: null,
+        // Action: aprire la vista Certificati con focus sulla nave
+        action: {
+          label: "Vai a cert.",
+          type: "link-internal",
+          payload: { view: "certificates", vesselId: v.vesselId }
+        }
+      });
+    }
+  }
+  return actions;
+}
+
+
+// === UI Certificati v0.11 ===
+
+// Widget compatto in cima alla home (sotto world clock)
+function renderCertWidgetCompact() {
+  const stats = getCertStatsGlobal();
+  if (stats.total === 0) {
+    // Nessun file ancora importato: invito a caricarli
+    return `
+      <section class="cert-widget-compact cert-widget-empty">
+        <div class="cert-widget-icon">🛡️</div>
+        <div class="cert-widget-text">
+          <div class="cert-widget-title">Certificati & Scadenze</div>
+          <div class="cert-widget-subtitle muted">Nessun file importato — vai alla sezione Certificati per caricare i file Excel di ogni nave</div>
+        </div>
+        <button class="btn-mini-link" onclick="window.goCertificates()">apri →</button>
+      </section>
+    `;
+  }
+  // Vista normale: badges
+  const lastImport = Object.values(state.certificatesMeta || {})
+    .map(m => m.importedAt)
+    .filter(Boolean)
+    .sort()
+    .reverse()[0];
+  const lastImportFmt = lastImport ? formatRelative(new Date(lastImport)) : "—";
+  return `
+    <section class="cert-widget-compact">
+      <div class="cert-widget-icon">🛡️</div>
+      <div class="cert-widget-text">
+        <div class="cert-widget-title">Certificati & Scadenze</div>
+        <div class="cert-widget-subtitle muted">${stats.total} voci · ultimo import ${escapeHTML(lastImportFmt)}</div>
+      </div>
+      <div class="cert-widget-badges">
+        ${stats.expired > 0 ? `<span class="cert-badge expired" onclick="window.goCertificates('expired')" title="Scaduti">🔴 ${stats.expired}</span>` : ""}
+        ${stats.urgent > 0 ? `<span class="cert-badge urgent" onclick="window.goCertificates('urgent')" title="Scadono entro 30 giorni">🟠 ${stats.urgent}</span>` : ""}
+        ${stats.week > 0 ? `<span class="cert-badge week" onclick="window.goCertificates('week')" title="31-60 giorni">🟡 ${stats.week}</span>` : ""}
+        ${stats.somedays > 0 ? `<span class="cert-badge somedays" onclick="window.goCertificates('somedays')" title="61-90 giorni">🔵 ${stats.somedays}</span>` : ""}
+        ${(stats.expired + stats.urgent + stats.week + stats.somedays) === 0 ? `<span class="cert-badge ok">✓ tutti regolari</span>` : ""}
+        <button class="btn-mini-link" onclick="window.goCertificates()" style="margin-left: 6px;">vedi tutti →</button>
+      </div>
+    </section>
+  `;
+}
+
+// Naviga al tab Certificati
+window.goCertificates = function(filterUrgency) {
+  state.view = "certificates";
+  state.selectedVesselId = null;
+  state._certFilter = { urgency: filterUrgency || "all", vessel: "all", category: "all" };
+  render();
+};
+
+// Vista principale "Certificati" (tab globale)
+function renderCertificatesView() {
+  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all" };
+  const filter = state._certFilter;
+
+  // Aggrega tutte le voci da tutte le navi con vesselId di provenienza
+  const allItems = [];
+  for (const v of VESSELS) {
+    const items = (state.certificates && state.certificates[v.vesselId]) || [];
+    for (const it of items) {
+      allItems.push({ ...it, vesselId: v.vesselId, vesselName: v.displayName });
+    }
+  }
+
+  // Filtra
+  let filtered = allItems.slice();
+  if (filter.vessel !== "all") filtered = filtered.filter(it => it.vesselId === filter.vessel);
+  if (filter.category !== "all") filtered = filtered.filter(it => it.category === filter.category);
+  if (filter.urgency !== "all") {
+    if (filter.urgency === "permanent") {
+      filtered = filtered.filter(it => it.isPermanent);
+    } else {
+      filtered = filtered.filter(it => !it.isPermanent && classifyCertExpiry(it.expiry) === filter.urgency);
+    }
+  } else {
+    // Default: nascondo permanent dalla vista principale (sono nello switch dedicato)
+    filtered = filtered.filter(it => !it.isPermanent);
+  }
+
+  // Ordina per scadenza (più vicina in alto), poi per nave
+  filtered.sort((a, b) => {
+    if (!a.expiry && !b.expiry) return 0;
+    if (!a.expiry) return 1;
+    if (!b.expiry) return -1;
+    return a.expiry.localeCompare(b.expiry);
+  });
+
+  // Filter bars
+  const vesselChips = ["all", ...VESSELS.map(v => v.vesselId)].map(vid => {
+    const label = vid === "all" ? "Tutte" : (VESSELS.find(v => v.vesselId === vid) || {}).displayName || vid;
+    const active = filter.vessel === vid;
+    return `<button class="cert-filter-chip ${active ? "active" : ""}" onclick="window.setCertFilter('vessel', '${escapeAttr(vid)}')">${escapeHTML(label)}</button>`;
+  }).join("");
+
+  const categories = ["Statutory/Class", "Safety Equipment", "Insurance/P&I", "ISM/ISPS", "Radio/GMDSS", "Crew/Medical", "Operational", "Other"];
+  const categoryChips = ["all", ...categories].map(c => {
+    const label = c === "all" ? "Tutte cat." : c;
+    const active = filter.category === c;
+    return `<button class="cert-filter-chip ${active ? "active" : ""}" onclick="window.setCertFilter('category', '${escapeAttr(c)}')">${escapeHTML(label)}</button>`;
+  }).join("");
+
+  const urgencyOpts = [
+    { id: "all", label: "Tutte" },
+    { id: "expired", label: "🔴 Scaduti" },
+    { id: "urgent", label: "🟠 ≤ 30 giorni" },
+    { id: "week", label: "🟡 31-60 giorni" },
+    { id: "somedays", label: "🔵 61-90 giorni" },
+    { id: "ok", label: "✓ > 90 giorni" },
+    { id: "permanent", label: "♾ Permanenti" }
+  ];
+  const urgencyChips = urgencyOpts.map(u => {
+    const active = filter.urgency === u.id;
+    return `<button class="cert-filter-chip ${active ? "active" : ""}" onclick="window.setCertFilter('urgency', '${escapeAttr(u.id)}')">${escapeHTML(u.label)}</button>`;
+  }).join("");
+
+  // Toolbar import (un bottone per nave per ricaricare/aggiornare)
+  const importButtons = VESSELS.map(v => {
+    const meta = (state.certificatesMeta || {})[v.vesselId];
+    const count = ((state.certificates || {})[v.vesselId] || []).length;
+    return `<div class="cert-import-card">
+      <div class="cert-import-vessel">${escapeHTML(v.displayName)}</div>
+      <div class="cert-import-status muted">${count > 0 ? `${count} voci · ${meta ? formatRelative(new Date(meta.importedAt)) : ""}` : "<em>nessun file importato</em>"}</div>
+      <button class="btn btn-sm" onclick="window.openCertImport('${escapeAttr(v.vesselId)}')">${count > 0 ? "↻ aggiorna file" : "📁 importa file"}</button>
+    </div>`;
+  }).join("");
+
+  // Tabella certificati
+  const tableHTML = filtered.length === 0
+    ? `<div class="empty-state" style="padding: 32px;">Nessuna voce corrisponde ai filtri. ${allItems.length === 0 ? "Inizia importando i file Excel sopra." : ""}</div>`
+    : `<table class="cert-table">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Certificato</th>
+            <th>Nave</th>
+            <th>Categoria</th>
+            <th>Scadenza</th>
+            <th>Restano</th>
+            <th>N° Cert.</th>
+            <th>Place</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(it => certTableRowHTML(it)).join("")}
+        </tbody>
+      </table>`;
+
+  return `
+    <div class="cert-view">
+      <header class="cert-view-header">
+        <h1>Certificati & Scadenze</h1>
+        <div class="muted">${allItems.length} voci totali · ${filtered.length} visibili coi filtri attuali</div>
+      </header>
+
+      <section class="cert-import-toolbar">
+        <h3>File per nave</h3>
+        <div class="cert-import-grid">${importButtons}</div>
+      </section>
+
+      <section class="cert-filters-section">
+        <div class="cert-filter-row">
+          <span class="cert-filter-label">Nave:</span>
+          <div class="cert-filter-chips">${vesselChips}</div>
+        </div>
+        <div class="cert-filter-row">
+          <span class="cert-filter-label">Categoria:</span>
+          <div class="cert-filter-chips">${categoryChips}</div>
+        </div>
+        <div class="cert-filter-row">
+          <span class="cert-filter-label">Scadenza:</span>
+          <div class="cert-filter-chips">${urgencyChips}</div>
+        </div>
+      </section>
+
+      <section class="cert-table-section">
+        ${tableHTML}
+      </section>
+    </div>
+  `;
+}
+
+function certTableRowHTML(it) {
+  const cls = it.isPermanent ? "permanent" : classifyCertExpiry(it.expiry);
+  const days = daysToExpiry(it.expiry);
+  let daysLabel = "—";
+  if (it.isPermanent) daysLabel = "♾";
+  else if (days != null) daysLabel = days < 0 ? `${Math.abs(days)} gg fa` : `${days} gg`;
+
+  const expFmt = it.expiry ?
+    new Date(it.expiry + "T00:00:00").toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" }) :
+    "—";
+
+  const certNumHTML = it.certNum ?
+    `<span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(it.certNum)}', this); event.stopPropagation();" title="Click per copiare">${escapeHTML(truncate(it.certNum, 22))}</span>` :
+    `<span class="muted">—</span>`;
+
+  return `<tr class="cert-row cert-row-${cls}">
+    <td><span class="cert-n">${escapeHTML(it.n || "")}</span></td>
+    <td>
+      <div class="cert-name-cell">${escapeHTML(truncate(it.name, 60))}</div>
+      ${it.notes ? `<div class="cert-notes muted">${escapeHTML(truncate(it.notes, 80))}</div>` : ""}
+    </td>
+    <td><span class="vessel-tag">${escapeHTML(it.vesselName || "")}</span></td>
+    <td><span class="cert-cat-tag">${escapeHTML(it.category || "")}</span></td>
+    <td>${expFmt}</td>
+    <td><span class="cert-pill ${cls}">${daysLabel}</span></td>
+    <td>${certNumHTML}</td>
+    <td class="muted" style="font-size: 11px;">${escapeHTML(it.place || "—")}</td>
+  </tr>`;
+}
+
+window.setCertFilter = function(key, value) {
+  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all" };
+  state._certFilter[key] = value;
+  render();
+};
+
+// Render sezione certificati a piè della scheda nave
+function renderCertSectionForVessel(vesselId) {
+  const items = (state.certificates && state.certificates[vesselId]) || [];
+  const stats = getCertStatsForVessel(vesselId);
+
+  if (items.length === 0) {
+    return `
+      <section class="cert-vessel-section">
+        <div class="section-title">
+          <h2>Certificati & Scadenze</h2>
+          <span class="section-meta muted">nessun file importato</span>
+        </div>
+        <div class="empty-state" style="padding: 20px;">
+          Nessun certificato caricato per questa nave.
+          <button class="btn btn-sm" onclick="window.openCertImport('${escapeAttr(vesselId)}')" style="margin-left: 8px;">📁 Importa file Excel</button>
+        </div>
+      </section>
+    `;
+  }
+
+  // Mostro solo le voci con scadenza prossima (≤90gg) + scadute, ordinate per scadenza
+  const upcoming = items
+    .filter(it => !it.isPermanent && it.expiry)
+    .map(it => ({ ...it, vesselId, vesselName: (VESSELS.find(v => v.vesselId === vesselId) || {}).displayName || vesselId }))
+    .filter(it => {
+      const c = classifyCertExpiry(it.expiry);
+      return c === "expired" || c === "urgent" || c === "week" || c === "somedays";
+    })
+    .sort((a, b) => a.expiry.localeCompare(b.expiry));
+
+  const allBtnText = `Vedi tutti (${items.length}) →`;
+
+  const meta = (state.certificatesMeta || {})[vesselId];
+  const importedFmt = meta ? formatRelative(new Date(meta.importedAt)) : "—";
+
+  return `
+    <section class="cert-vessel-section">
+      <div class="section-title">
+        <h2>Certificati & Scadenze</h2>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <span class="section-meta muted">${stats.total} voci · ultimo import ${escapeHTML(importedFmt)}</span>
+          <button class="btn-mini-link" onclick="window.openCertImport('${escapeAttr(vesselId)}')" title="Aggiorna file">↻ aggiorna</button>
+          <button class="btn-mini-link" onclick="window.goCertificates()" title="Vista globale">apri vista globale →</button>
+        </div>
+      </div>
+
+      <div class="cert-stats-row">
+        ${stats.expired > 0 ? `<span class="cert-badge expired">🔴 ${stats.expired} scaduti</span>` : ""}
+        ${stats.urgent > 0 ? `<span class="cert-badge urgent">🟠 ${stats.urgent} ≤ 30g</span>` : ""}
+        ${stats.week > 0 ? `<span class="cert-badge week">🟡 ${stats.week} 31-60g</span>` : ""}
+        ${stats.somedays > 0 ? `<span class="cert-badge somedays">🔵 ${stats.somedays} 61-90g</span>` : ""}
+        ${stats.ok > 0 ? `<span class="cert-badge ok-light">${stats.ok} > 90g</span>` : ""}
+        ${stats.permanent > 0 ? `<span class="cert-badge ok-light">♾ ${stats.permanent} permanenti</span>` : ""}
+      </div>
+
+      ${upcoming.length === 0 ? `
+        <div class="empty-state" style="padding: 18px; margin-top: 12px;">
+          ✓ Nessun certificato in scadenza nei prossimi 90 giorni.
+        </div>
+      ` : `
+        <table class="cert-table cert-table-compact" style="margin-top: 10px;">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Certificato</th>
+              <th>Scadenza</th>
+              <th>Restano</th>
+              <th>N° Cert.</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${upcoming.map(it => {
+              const cls = classifyCertExpiry(it.expiry);
+              const days = daysToExpiry(it.expiry);
+              const daysLabel = days < 0 ? `${Math.abs(days)} gg fa` : `${days} gg`;
+              const expFmt = new Date(it.expiry + "T00:00:00").toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" });
+              const certNumHTML = it.certNum ?
+                `<span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(it.certNum)}', this); event.stopPropagation();" title="Click per copiare">${escapeHTML(truncate(it.certNum, 22))}</span>` :
+                `<span class="muted">—</span>`;
+              return `<tr class="cert-row cert-row-${cls}">
+                <td><span class="cert-n">${escapeHTML(it.n || "")}</span></td>
+                <td><div class="cert-name-cell">${escapeHTML(truncate(it.name, 55))}</div></td>
+                <td>${expFmt}</td>
+                <td><span class="cert-pill ${cls}">${daysLabel}</span></td>
+                <td>${certNumHTML}</td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      `}
+    </section>
+  `;
+}
+
+
 // ============================================================================
 // === ACTIONS TODAY v0.10 — render rifatto con raggruppamento ===============
 // ============================================================================
@@ -7456,8 +8346,11 @@ function renderActionsTodayV2(opts) {
   // Se vesselId è forzato (scheda nave), uso quello e nascondo la filter bar
   const vesselFilter = forcedVesselId || state._actionsTodayVesselFilter || "all";
 
-  // === Raccolta azioni sistema + to-do utente ===
+  // === Raccolta azioni sistema + to-do utente + certificati v0.11 ===
   let systemActions = generateAllActions();
+  // v0.11 — aggiungo azioni dalle scadenze certificati (≤ 90 giorni)
+  const certActions = generateCertificateActions();
+  systemActions = systemActions.concat(certActions);
   // Filtra per nave
   if (vesselFilter !== "all") {
     systemActions = systemActions.filter(a => a.vesselId === vesselFilter);
@@ -7835,6 +8728,11 @@ function actionRowHTMLv2(a, isInGroup) {
       actionBtn = `<button class="btn btn-sm" onclick="window.handleMailtoBilingualClick('${escapeAttr(a.key)}', '${escapeAttr(a.supplier || "")}', '${escapeAttr(a.action.template)}', '${ctxJson}')">${escapeHTML(a.action.label)} →</button>${langBadge}`;
     } else if (a.action.type === "todo-edit") {
       actionBtn = `<button class="btn btn-sm" onclick="openTodoModal('${escapeAttr(a.action.payload)}')">Apri →</button>`;
+    } else if (a.action.type === "link-internal") {
+      // v0.11 — link a vista interna (es. certificati di una nave)
+      const p = a.action.payload || {};
+      const json = encodeURIComponent(JSON.stringify(p));
+      actionBtn = `<button class="btn btn-sm" onclick="window.handleInternalLink('${json}')">${escapeHTML(a.action.label)} →</button>`;
     }
   }
 
@@ -8957,6 +9855,14 @@ function mergeRemoteIntoLocal(remote) {
     state.supplierLanguages = { ...state.supplierLanguages, ...remote.supplierLanguages };
     saveSupplierLanguages();
   }
+  // v0.11 — merge certificates (last-write-wins per vessel)
+  if (remote.certificates && typeof remote.certificates === "object") {
+    state.certificates = { ...state.certificates, ...remote.certificates };
+    if (remote.certificatesMeta && typeof remote.certificatesMeta === "object") {
+      state.certificatesMeta = { ...state.certificatesMeta, ...remote.certificatesMeta };
+    }
+    saveCertificates();
+  }
   // v0.10.2 — merge pinnedActions (union dei due array)
   if (Array.isArray(remote.pinnedActions)) {
     const set = new Set([...(state.pinnedActions || []), ...remote.pinnedActions]);
@@ -9045,7 +9951,9 @@ async function drivePush() {
     completionsHistory: state.completionsHistory || [],  // v0.10
     supplierTimezones: state.supplierTimezones,             // v0.8
     supplierLanguages: state.supplierLanguages || {},        // v0.10.2
-    pinnedActions: state.pinnedActions || []                 // v0.10.2
+    pinnedActions: state.pinnedActions || [],                // v0.10.2
+    certificates: state.certificates || {},                  // v0.11
+    certificatesMeta: state.certificatesMeta || {}           // v0.11
   };
   const body = JSON.stringify(payload, null, 2);
 
@@ -9418,12 +10326,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!pill) return;
     if (pill.dataset.view === "overview") goOverview();
     else if (pill.dataset.view === "todos") goTodos();
+    else if (pill.dataset.view === "certificates") window.goCertificates();
     else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
   document.getElementById("vessel-select").addEventListener("change", e => {
     const v = e.target.value;
     if (v === "__overview" || v === "") goOverview();
     else if (v === "__todos") goTodos();
+    else if (v === "__certificates") window.goCertificates();
     else goVessel(v);
   });
 
