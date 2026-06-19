@@ -3034,6 +3034,18 @@ a:hover { text-decoration: underline; }
 /* ============================================================================ */
 
 /* Badge Outlook su to-do importate */
+.badge-count {
+  display: inline-block;
+  background: #f59e0b;
+  color: white;
+  border-radius: 8px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-left: 4px;
+  min-width: 16px;
+  text-align: center;
+}
 .todo-outlook-badge {
   display: inline-block;
   padding: 1px 7px;
@@ -7702,6 +7714,7 @@ function renderTodosPage() {
       <div class="flex gap-2">
         <button class="btn btn-primary" id="todo-new-from-page">+ Nuova to-do</button>
         <button class="btn" id="todo-new-from-email" onclick="window.openEmailCapture()">📧 Da email</button>
+        <button class="btn" id="todo-outlook-export" onclick="window.openOutlookQueueExport()" title="Esporta queue completati Outlook">📤 Queue Outlook <span id="todo-outlook-export-count" class="badge-count" style="display:none;"></span></button>
         <button class="btn" id="todo-export-excel">📥 Esporta Excel</button>
       </div>
     </header>
@@ -7815,6 +7828,7 @@ function renderTodosPage() {
   // Handlers
   document.getElementById("todo-new-from-page").addEventListener("click", () => openTodoModal(null));
   document.getElementById("todo-export-excel").addEventListener("click", () => exportTodosToExcel(false));
+  updateOutlookQueueBadge();
 
   document.getElementById("todo-search").addEventListener("input", e => {
     state._todoSearch = e.target.value;
@@ -8122,6 +8136,134 @@ window.changeSupplierLanguage = function(supplier) {
 // Direzione 2 (Dashboard → Outlook): quando l'utente completa una to-do con
 // outlookTaskId, scrive in state.outlookCompletionQueue (persistito via Drive
 // e via JSON pubblicato su GitHub) per il workflow n8n inverso.
+
+
+// === v0.14.1 — Export queue Outlook per workflow n8n inverso ===
+// Modale che mostra il JSON pronto da incollare su GitHub
+window.openOutlookQueueExport = function() {
+  const queue = state.outlookCompletionQueue || [];
+  const payload = {
+    updatedAt: new Date().toISOString(),
+    completedTaskIds: queue.map(q => q.taskId),
+    details: queue
+  };
+  const json = JSON.stringify(payload, null, 2);
+
+  let bd = document.getElementById("outlook-export-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "outlook-export-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+
+  const githubUrl = "https://github.com/Micheledv74/maritime-dashboard/edit/main/data-completed-from-dashboard.json";
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 720px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>📤 Queue Outlook completati</h2>
+          <div class="item-detail-meta">
+            <span class="muted">${queue.length} task da sincronizzare verso Outlook</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeOutlookExport()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        ${queue.length === 0 ? `
+          <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+            ✓ Nessun task in coda. Tutto già sincronizzato.
+          </div>
+        ` : `
+          <div class="detail-section">
+            <h4>Istruzioni</h4>
+            <ol style="font-size: 13px; line-height: 1.6; margin: 0; padding-left: 20px;">
+              <li>Click <strong>"📋 Copia JSON"</strong> qui sotto</li>
+              <li>Apri il file su GitHub: <a href="${githubUrl}" target="_blank" style="color: var(--c-blue-fg);">data-completed-from-dashboard.json</a></li>
+              <li>Sostituisci tutto il contenuto con quello copiato</li>
+              <li>Commit (in basso)</li>
+              <li>n8n entro 5 min processa la queue e marca i task come "completed" in Outlook</li>
+              <li>Torna qui e click <strong>"🗑 Pulisci queue locale"</strong></li>
+            </ol>
+          </div>
+
+          <div class="detail-section">
+            <h4>JSON da copiare</h4>
+            <textarea id="outlook-export-json" readonly rows="14" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:11.5px;line-height:1.4;background:var(--bg-muted);">${escapeHTML(json)}</textarea>
+          </div>
+
+          <div class="detail-section">
+            <h4>Task in queue (${queue.length})</h4>
+            <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;">
+              ${queue.map(q => `
+                <div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;">
+                  <div><strong>${escapeHTML(q.title || "(senza titolo)")}</strong></div>
+                  <div class="muted" style="font-size:10.5px;margin-top:2px;">Completato ${formatRelative(new Date(q.completedAt))} · taskId ${escapeHTML(q.taskId.substring(0, 24))}…</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `}
+      </div>
+      <div class="item-detail-footer">
+        ${queue.length > 0 ? `
+          <button class="btn btn-sm" onclick="window.copyOutlookExportJSON()">📋 Copia JSON</button>
+          <a href="${githubUrl}" target="_blank" class="btn btn-sm" style="text-decoration:none;">🔗 Apri GitHub</a>
+          <div style="flex:1;"></div>
+          <button class="btn btn-sm" onclick="window.clearOutlookQueueAfterSync()" style="color: var(--c-red-fg);">🗑 Pulisci queue locale</button>
+          <button class="btn btn-sm btn-primary" onclick="window.closeOutlookExport()">Chiudi</button>
+        ` : `
+          <div style="flex:1;"></div>
+          <button class="btn btn-sm btn-primary" onclick="window.closeOutlookExport()">Chiudi</button>
+        `}
+      </div>
+    </div>
+  `;
+  bd.classList.add("open");
+};
+
+window.closeOutlookExport = function() {
+  const bd = document.getElementById("outlook-export-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+window.copyOutlookExportJSON = function() {
+  const ta = document.getElementById("outlook-export-json");
+  if (!ta) return;
+  ta.select();
+  ta.setSelectionRange(0, 999999);
+  navigator.clipboard.writeText(ta.value).then(() => {
+    showToast("📋 JSON copiato — incolla su GitHub");
+  }).catch(() => {
+    // Fallback per browser vecchi
+    document.execCommand("copy");
+    showToast("📋 JSON copiato");
+  });
+};
+
+window.clearOutlookQueueAfterSync = function() {
+  if (!confirm("Conferma: hai già incollato il JSON su GitHub e atteso che n8n lo processi?\n\nSe sì, pulisco la queue locale. Se no, annulla e fai prima il sync.")) return;
+  state.outlookCompletionQueue = [];
+  saveOutlookCompletionQueue();
+  showToast("✓ Queue pulita");
+  window.closeOutlookExport();
+  render();
+};
+
+// Aggiorna il badge counter sul bottone (chiamata da render principale)
+function updateOutlookQueueBadge() {
+  const badge = document.getElementById("todo-outlook-export-count");
+  if (!badge) return;
+  const queue = state.outlookCompletionQueue || [];
+  if (queue.length > 0) {
+    badge.textContent = queue.length;
+    badge.style.display = "inline-block";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
 
 // === Storage: outlookCompletionQueue ===
 function loadOutlookCompletionQueue() {
