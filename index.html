@@ -3028,6 +3028,31 @@ a:hover { text-decoration: underline; }
 
 
 
+
+/* ============================================================================ */
+/* === OUTLOOK SYNC v0.14 ==================================================== */
+/* ============================================================================ */
+
+/* Badge Outlook su to-do importate */
+.todo-outlook-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  margin-right: 4px;
+  background: #d1ecf9;
+  color: #0c5d8a;
+  border: 1px solid #93cce8;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.todo-item.todo-outlook {
+  border-left: 3px solid #0c5d8a;
+}
+.todo-item.todo-outlook.done {
+  border-left-color: var(--text-faint);
+}
+
 /* ============================================================================ */
 /* === EMAIL CAPTURE v0.13 ==================================================== */
 /* ============================================================================ */
@@ -4534,7 +4559,8 @@ const VESSELS = [
 
 const DATA_URLS = {
   procurement: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json",
-  tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json"
+  tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json",
+  outlookTasks: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-tasks.json"  // v0.14
 };
 
 // === Configurazione Google Drive Sync ===
@@ -4613,6 +4639,8 @@ const state = {
   certificates: loadCertificates(),               // v0.11
   certificatesMeta: loadCertificatesMeta(),       // v0.11
   voyages: loadVoyages(),                          // v0.12 — voyage manuale per nave
+  outlookCompletionQueue: loadOutlookCompletionQueue(),  // v0.14 — queue completati per sync n8n
+  outlookTasks: null,                              // v0.14 — task Outlook caricati al fetch
   morningSnapshot: loadSnapshot(),
   supplierTimezones: loadSupplierTimezones(),  // v0.8: { "SUPPLIER NAME": "Asia/Singapore" }
   drive: {
@@ -4755,15 +4783,21 @@ async function loadData() {
   }
 
   try {
-    const [proc, trk] = await Promise.all([
+    const [proc, trk, outlookData] = await Promise.all([
       fetchJSON(DATA_URLS.procurement),
-      fetchJSON(DATA_URLS.tracking).catch(() => null)  // tracking opzionale
+      fetchJSON(DATA_URLS.tracking).catch(() => null),  // tracking opzionale
+      fetchJSON(DATA_URLS.outlookTasks).catch(() => null)  // v0.14: outlook tasks opzionale
     ]);
     state.data = proc;
     state.tracking = trk;
+    state.outlookTasks = outlookData;
     writeCache({ procurement: proc, tracking: trk });
     state.loading = false;
     mergeAndPrepare();
+    // v0.14 — Sincronizza i task Outlook con le to-do della dashboard
+    if (outlookData && Array.isArray(outlookData.tasks)) {
+      syncOutlookTasksToTodos(outlookData);
+    }
   } catch (err) {
     state.error = err.message;
     state.loading = false;
@@ -5350,8 +5384,13 @@ function addTodo(todo) {
 function updateTodo(id, patch) {
   const i = state.todos.findIndex(t => t.id === id);
   if (i < 0) return;
-  state.todos[i] = { ...state.todos[i], ...patch, updatedAt: new Date().toISOString() };
+  const before = state.todos[i];
+  state.todos[i] = { ...before, ...patch, updatedAt: new Date().toISOString() };
   saveTodos();
+  // v0.14 — Se la to-do ha un outlookTaskId e viene marcata done, queue per sync
+  if (before.outlookTaskId && !before.done && state.todos[i].done) {
+    queueOutlookCompletion(state.todos[i]);
+  }
 }
 
 function deleteTodo(id) {
@@ -8069,6 +8108,174 @@ window.changeSupplierLanguage = function(supplier) {
 
 
 
+
+// ============================================================================
+// === OUTLOOK SYNC v0.14 — Sync bidirezionale task Outlook ↔ to-do dashboard
+// ============================================================================
+//
+// Direzione 1 (Outlook → Dashboard): syncOutlookTasksToTodos viene chiamato a
+// ogni loadData. Per ogni task Outlook:
+//   - se nuovo (id mai visto) → crea to-do nella dashboard con tag "outlook"
+//   - se esistente e completato in Outlook → marca fatto in dashboard
+//   - se esistente e re-aperto in Outlook → riapre in dashboard
+//
+// Direzione 2 (Dashboard → Outlook): quando l'utente completa una to-do con
+// outlookTaskId, scrive in state.outlookCompletionQueue (persistito via Drive
+// e via JSON pubblicato su GitHub) per il workflow n8n inverso.
+
+// === Storage: outlookCompletionQueue ===
+function loadOutlookCompletionQueue() {
+  try {
+    const raw = JSON.parse(localStorage.getItem("mpd.outlookCompletionQueue") || "[]");
+    return Array.isArray(raw) ? raw : [];
+  } catch { return []; }
+}
+function saveOutlookCompletionQueue() {
+  if (!Array.isArray(state.outlookCompletionQueue)) return;
+  localStorage.setItem("mpd.outlookCompletionQueue", JSON.stringify(state.outlookCompletionQueue));
+  driveSchedulePush();
+}
+
+// === Sync principale ===
+function syncOutlookTasksToTodos(outlookData) {
+  if (!outlookData || !Array.isArray(outlookData.tasks)) return;
+  if (!state.todos) state.todos = [];
+  if (!state.outlookCompletionQueue) state.outlookCompletionQueue = loadOutlookCompletionQueue();
+
+  let added = 0, updated = 0;
+  const listId = outlookData.listId || "";
+
+  for (const task of outlookData.tasks) {
+    if (!task.id) continue;
+
+    // Cerca to-do esistente con questo outlookTaskId
+    const existing = state.todos.find(t => t.outlookTaskId === task.id);
+
+    if (!existing) {
+      // === NUOVO TASK DA OUTLOOK ===
+      // Skip se già completato in Outlook e creato più di 7 giorni fa
+      // (evita di importare task vecchi già chiusi che riempirebbero la dashboard)
+      const createdDate = new Date(task.createdAt);
+      const ageDays = (Date.now() - createdDate.getTime()) / 86400000;
+      if (task.status === "completed" && ageDays > 7) continue;
+
+      // Parsing intelligente del titolo + body con il parser email v0.13
+      const combinedText = (task.title || "") + "\n\n" + (task.body || "");
+      const parsed = parseEmailText(combinedText);
+
+      // Costruisci la to-do
+      const newTodo = {
+        id: "outlook_" + task.id.slice(-12),  // ID univoco basato sul task ID
+        outlookTaskId: task.id,
+        outlookListId: listId,
+        outlookSourceImported: true,
+        category: parsed.detectedVessel ? "Nave" : "Altro",
+        priority: parsed.suggestedPriority || (task.importance === "high" ? "alta" : "media"),
+        vessel: parsed.detectedVessel || "",
+        action: parsed.suggestedAction || "Verificare",
+        reference: task.title || "",
+        tags: ["outlook"],
+        dueDate: task.dueDate || resolveWhen("tomorrow", null),
+        note: task.body ? task.body.substring(0, 500) : "",
+        createdAt: task.createdAt,
+        done: task.status === "completed",
+        doneAt: task.status === "completed" ? (task.lastModifiedAt || new Date().toISOString()) : null,
+        outlookStatus: task.status  // notStarted | inProgress | completed | waitingOnOthers | deferred
+      };
+
+      // Tag fornitore se rilevato
+      if (parsed.detectedSupplier) {
+        const supTag = "fornitore:" + parsed.detectedSupplier.split(/[\s,]/)[0].toUpperCase();
+        if (!newTodo.tags.includes(supTag)) newTodo.tags.push(supTag);
+      }
+      // Tag stato Outlook se non standard
+      if (task.status === "waitingOnOthers") newTodo.tags.push("in-attesa");
+      if (task.status === "inProgress") newTodo.tags.push("in-corso");
+
+      state.todos.push(newTodo);
+      added++;
+    } else {
+      // === TASK ESISTENTE — aggiorno solo stato done/non-done se cambiato in Outlook ===
+      const outlookCompleted = task.status === "completed";
+      if (outlookCompleted && !existing.done) {
+        // Outlook ha completato dopo: marca fatto anche in dashboard
+        existing.done = true;
+        existing.doneAt = task.lastModifiedAt || new Date().toISOString();
+        existing.outlookStatus = task.status;
+        updated++;
+      } else if (!outlookCompleted && existing.done && existing.outlookStatus === "completed") {
+        // Era stato chiuso in Outlook e poi riaperto: riapro anche in dashboard
+        existing.done = false;
+        existing.doneAt = null;
+        existing.outlookStatus = task.status;
+        updated++;
+      } else if (existing.outlookStatus !== task.status) {
+        existing.outlookStatus = task.status;
+        // Aggiorno tag se cambia stato "speciale"
+        if (Array.isArray(existing.tags)) {
+          existing.tags = existing.tags.filter(t => t !== "in-attesa" && t !== "in-corso");
+          if (task.status === "waitingOnOthers") existing.tags.push("in-attesa");
+          if (task.status === "inProgress") existing.tags.push("in-corso");
+        }
+        updated++;
+      }
+    }
+  }
+
+  if (added > 0 || updated > 0) {
+    saveTodos();
+    console.log(`[Outlook Sync] ${added} nuove, ${updated} aggiornate dalle ` + outlookData.tasks.length + " task Outlook");
+    if (added > 0) showToast(`📧 ${added} nuovi to-do da Outlook`);
+  }
+}
+
+// === Hook: quando completo una to-do con outlookTaskId, aggiungo alla queue ===
+// Viene chiamata da markTodoDone (sotto). Persiste localmente e via Drive.
+function queueOutlookCompletion(todo) {
+  if (!todo || !todo.outlookTaskId) return;
+  if (!state.outlookCompletionQueue) state.outlookCompletionQueue = [];
+
+  // Dedup: se già in queue, aggiorno timestamp
+  state.outlookCompletionQueue = state.outlookCompletionQueue.filter(q => q.taskId !== todo.outlookTaskId);
+  state.outlookCompletionQueue.push({
+    taskId: todo.outlookTaskId,
+    listId: todo.outlookListId || "",
+    completedAt: new Date().toISOString(),
+    todoId: todo.id,
+    title: todo.reference || ""
+  });
+  saveOutlookCompletionQueue();
+  console.log("[Outlook Sync] queued completion for", todo.outlookTaskId);
+}
+
+// === Esportazione queue per debug/upload manuale ===
+window.exportOutlookCompletionQueue = function() {
+  const queue = state.outlookCompletionQueue || [];
+  const payload = {
+    updatedAt: new Date().toISOString(),
+    completedTaskIds: queue.map(q => q.taskId),
+    details: queue
+  };
+  const json = JSON.stringify(payload, null, 2);
+  // Copia negli appunti
+  navigator.clipboard.writeText(json).then(() => {
+    showToast("📋 Queue completamenti copiata (incolla nel JSON GitHub)");
+  });
+  console.log("[Outlook] Queue export:", payload);
+  return payload;
+};
+
+// === Pulisce queue dopo conferma da workflow n8n ===
+// Quando il file data-completed-from-dashboard.json viene processato da n8n,
+// l'utente può chiamare questa per svuotare la queue locale.
+window.clearOutlookCompletionQueue = function() {
+  if (!confirm("Confermi che n8n ha processato i completamenti? Pulisco la queue locale.")) return;
+  state.outlookCompletionQueue = [];
+  saveOutlookCompletionQueue();
+  showToast("Queue pulita");
+};
+
+
 // ============================================================================
 // === EMAIL CAPTURE v0.13 — Cattura email Outlook → to-do strutturata =======
 // ============================================================================
@@ -10156,9 +10363,10 @@ function todoRowHTML(t) {
   if (vesselName) contextParts.push(`<span class="vessel-tag">${escapeHTML(vesselName)}</span>`);
   if (ref) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
 
-  return `<div class="todo-item ${t.done ? "done" : cls}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}">
+  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
+      ${t.outlookTaskId ? `<span class="todo-outlook-badge" title="Importato da Outlook ToDo">📧 Outlook</span>` : ""}
       <span class="todo-cat" data-cat="${escapeAttr(category)}">${escapeHTML(category)}</span>
       <span class="todo-action">${escapeHTML(t.action)}</span>
       ${contextParts.length > 0 ? "· " + contextParts.join(" · ") : ""}
@@ -10956,6 +11164,16 @@ function mergeRemoteIntoLocal(remote) {
     state.voyages = { ...state.voyages, ...remote.voyages };
     saveVoyages();
   }
+  // v0.14 — merge outlookCompletionQueue (union, dedup per taskId)
+  if (Array.isArray(remote.outlookCompletionQueue)) {
+    const localTaskIds = new Set((state.outlookCompletionQueue || []).map(q => q.taskId));
+    for (const item of remote.outlookCompletionQueue) {
+      if (item && item.taskId && !localTaskIds.has(item.taskId)) {
+        state.outlookCompletionQueue.push(item);
+      }
+    }
+    saveOutlookCompletionQueue();
+  }
   // v0.10.2 — merge pinnedActions (union dei due array)
   if (Array.isArray(remote.pinnedActions)) {
     const set = new Set([...(state.pinnedActions || []), ...remote.pinnedActions]);
@@ -11047,7 +11265,8 @@ async function drivePush() {
     pinnedActions: state.pinnedActions || [],                // v0.10.2
     certificates: state.certificates || {},                  // v0.11
     certificatesMeta: state.certificatesMeta || {},          // v0.11
-    voyages: state.voyages || {}                             // v0.12
+    voyages: state.voyages || {},                            // v0.12
+    outlookCompletionQueue: state.outlookCompletionQueue || []  // v0.14
   };
   const body = JSON.stringify(payload, null, 2);
 
