@@ -3029,6 +3029,32 @@ a:hover { text-decoration: underline; }
 
 
 
+
+/* v0.14.2 — Link email Outlook + double click */
+.todo-outlook-link {
+  display: inline-block;
+  padding: 1px 8px;
+  margin-left: 6px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.todo-outlook-link:hover {
+  background: #bae6fd;
+  color: #075985;
+}
+.todo-item.todo-outlook-clickable {
+  cursor: pointer;
+}
+.todo-item.todo-outlook-clickable:hover {
+  background: #f0f9ff;
+}
+
 /* ============================================================================ */
 /* === OUTLOOK SYNC v0.14 ==================================================== */
 /* ============================================================================ */
@@ -7617,6 +7643,7 @@ function renderTodosPage() {
       const sundayISO = sunday.toISOString().slice(0, 10);
       return t.dueDate >= todayISO() && t.dueDate <= sundayISO;
     }
+    if (timeFilter === "outlook") return !!t.outlookTaskId;
     if (timeFilter === "future") {
       // Dopo domenica della settimana corrente
       if (!t.dueDate) return false;
@@ -7689,6 +7716,7 @@ function renderTodosPage() {
   const countTomorrow = allOpen.filter(t => t.dueDate === tomorrowISO).length;
   const countThisWeek = allOpen.filter(t => t.dueDate && t.dueDate >= todayISO() && t.dueDate <= sundayISO).length;
   const countFuture = allOpen.filter(t => t.dueDate && t.dueDate > sundayISO).length;
+  const countOutlook = allOpen.filter(t => t.outlookTaskId).length;  // v0.14.2
 
   // Conta i filtri avanzati attivi (per badge dropdown)
   const activeAdvancedCount =
@@ -7749,6 +7777,9 @@ function renderTodosPage() {
       </button>
       <button class="time-chip ${timeFilter === "future" ? "active" : ""}" data-tt="future" role="radio">
         Future <span class="count">${countFuture}</span>
+      </button>
+      <button class="time-chip ${timeFilter === "outlook" ? "active" : ""}" data-tt="outlook" role="radio" title="Solo to-do importate da Outlook ToDo">
+        📧 Outlook <span class="count">${countOutlook}</span>
       </button>
     </div>
 
@@ -8307,10 +8338,12 @@ function syncOutlookTasksToTodos(outlookData) {
 
       // Costruisci la to-do
       const newTodo = {
-        id: "outlook_" + task.id.slice(-12),  // ID univoco basato sul task ID
+        id: "outlook_" + task.id.slice(-12),
         outlookTaskId: task.id,
         outlookListId: listId,
         outlookSourceImported: true,
+        outlookWebUrl: task.webUrl || "",                       // v0.14.2: link email originale
+        outlookLinkedName: task.linkedDisplayName || "",        // v0.14.2: nome email collegata
         category: parsed.detectedVessel ? "Nave" : "Altro",
         priority: parsed.suggestedPriority || (task.importance === "high" ? "alta" : "media"),
         vessel: parsed.detectedVessel || "",
@@ -8322,7 +8355,7 @@ function syncOutlookTasksToTodos(outlookData) {
         createdAt: task.createdAt,
         done: task.status === "completed",
         doneAt: task.status === "completed" ? (task.lastModifiedAt || new Date().toISOString()) : null,
-        outlookStatus: task.status  // notStarted | inProgress | completed | waitingOnOthers | deferred
+        outlookStatus: task.status
       };
 
       // Tag fornitore se rilevato
@@ -8337,7 +8370,12 @@ function syncOutlookTasksToTodos(outlookData) {
       state.todos.push(newTodo);
       added++;
     } else {
-      // === TASK ESISTENTE — aggiorno solo stato done/non-done se cambiato in Outlook ===
+      // === TASK ESISTENTE — aggiorno stato + webUrl se mancante ===
+      // v0.14.2: aggiungi webUrl/linkedName se mancanti (per to-do importate prima della modifica)
+      if (!existing.outlookWebUrl && task.webUrl) {
+        existing.outlookWebUrl = task.webUrl;
+        existing.outlookLinkedName = task.linkedDisplayName || "";
+      }
       const outlookCompleted = task.status === "completed";
       if (outlookCompleted && !existing.done) {
         // Outlook ha completato dopo: marca fatto anche in dashboard
@@ -10505,13 +10543,17 @@ function todoRowHTML(t) {
   if (vesselName) contextParts.push(`<span class="vessel-tag">${escapeHTML(vesselName)}</span>`);
   if (ref) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
 
-  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}">
+  const outlookLinkHTML = t.outlookWebUrl ?
+    `<a href="${escapeAttr(t.outlookWebUrl)}" target="_blank" class="todo-outlook-link" title="Apri email in Outlook${t.outlookLinkedName ? ': ' + escapeAttr(t.outlookLinkedName) : ''}" onclick="event.stopPropagation();">📧 Apri email →</a>` : "";
+
+  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}${t.outlookWebUrl ? " todo-outlook-clickable" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}"${t.outlookWebUrl ? ` data-outlook-url="${escapeAttr(t.outlookWebUrl)}"` : ""} title="${t.outlookWebUrl ? 'Doppio click per aprire l\'email in Outlook' : ''}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
       ${t.outlookTaskId ? `<span class="todo-outlook-badge" title="Importato da Outlook ToDo">📧 Outlook</span>` : ""}
       <span class="todo-cat" data-cat="${escapeAttr(category)}">${escapeHTML(category)}</span>
       <span class="todo-action">${escapeHTML(t.action)}</span>
       ${contextParts.length > 0 ? "· " + contextParts.join(" · ") : ""}
+      ${outlookLinkHTML}
       ${t.note ? `<span class="todo-note">${escapeHTML(t.note)}</span>` : ""}
       ${tags.length > 0 ? `<div class="todo-tags">${tags.map(tag => `<span class="todo-tag">${escapeHTML(tag)}</span>`).join("")}</div>` : ""}
     </div>
@@ -10525,6 +10567,15 @@ function todoRowHTML(t) {
 }
 
 function attachTodoHandlers(root) {
+  // v0.14.2: doppio click su to-do Outlook apre l'email
+  root.querySelectorAll("[data-outlook-url]").forEach(item => {
+    item.addEventListener("dblclick", (e) => {
+      // Non aprire se il doppio click è su un bottone interno
+      if (e.target.closest("button") || e.target.closest("a")) return;
+      const url = item.dataset.outlookUrl;
+      if (url) window.open(url, "_blank");
+    });
+  });
   root.querySelectorAll("[data-todo-edit]").forEach(btn => {
     btn.addEventListener("click", () => openTodoModal(btn.dataset.todoEdit));
   });
