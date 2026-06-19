@@ -3030,29 +3030,15 @@ a:hover { text-decoration: underline; }
 
 
 
-/* v0.14.2 — Link email Outlook + double click */
-.todo-outlook-link {
-  display: inline-block;
-  padding: 1px 8px;
-  margin-left: 6px;
+/* v0.14.2 — Bottone "📧 Apri" su to-do Outlook */.btn-outlook-open {
   background: #e0f2fe;
+  border-color: #7dd3fc;
   color: #0369a1;
-  border: 1px solid #7dd3fc;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
+  font-weight: 600;
 }
-.todo-outlook-link:hover {
+.btn-outlook-open:hover {
   background: #bae6fd;
   color: #075985;
-}
-.todo-item.todo-outlook-clickable {
-  cursor: pointer;
-}
-.todo-item.todo-outlook-clickable:hover {
-  background: #f0f9ff;
 }
 
 /* ============================================================================ */
@@ -10543,21 +10529,18 @@ function todoRowHTML(t) {
   if (vesselName) contextParts.push(`<span class="vessel-tag">${escapeHTML(vesselName)}</span>`);
   if (ref) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
 
-  const outlookLinkHTML = t.outlookWebUrl ?
-    `<a href="${escapeAttr(t.outlookWebUrl)}" target="_blank" class="todo-outlook-link" title="Apri email in Outlook${t.outlookLinkedName ? ': ' + escapeAttr(t.outlookLinkedName) : ''}" onclick="event.stopPropagation();">📧 Apri email →</a>` : "";
-
-  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}${t.outlookWebUrl ? " todo-outlook-clickable" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}"${t.outlookWebUrl ? ` data-outlook-url="${escapeAttr(t.outlookWebUrl)}"` : ""} title="${t.outlookWebUrl ? 'Doppio click per aprire l\'email in Outlook' : ''}">
+  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
       ${t.outlookTaskId ? `<span class="todo-outlook-badge" title="Importato da Outlook ToDo">📧 Outlook</span>` : ""}
       <span class="todo-cat" data-cat="${escapeAttr(category)}">${escapeHTML(category)}</span>
       <span class="todo-action">${escapeHTML(t.action)}</span>
       ${contextParts.length > 0 ? "· " + contextParts.join(" · ") : ""}
-      ${outlookLinkHTML}
       ${t.note ? `<span class="todo-note">${escapeHTML(t.note)}</span>` : ""}
       ${tags.length > 0 ? `<div class="todo-tags">${tags.map(tag => `<span class="todo-tag">${escapeHTML(tag)}</span>`).join("")}</div>` : ""}
     </div>
     <div class="todo-actions">
+      ${t.outlookWebUrl ? `<button class="btn btn-sm btn-outlook-open" data-outlook-open="${escapeAttr(t.outlookWebUrl)}" title="Apri email in Outlook${t.outlookLinkedName ? ': ' + escapeAttr(t.outlookLinkedName) : ''}">📧 Apri</button>` : ""}
       <button class="btn btn-sm" data-todo-edit="${escapeAttr(t.id)}" title="Modifica">✎</button>
       ${!t.done ? `<button class="btn btn-sm" data-todo-done="${escapeAttr(t.id)}" title="Fatto">✓</button>` :
                   `<button class="btn btn-sm" data-todo-undone="${escapeAttr(t.id)}" title="Riapri">↺</button>`}
@@ -10567,12 +10550,11 @@ function todoRowHTML(t) {
 }
 
 function attachTodoHandlers(root) {
-  // v0.14.2: doppio click su to-do Outlook apre l'email
-  root.querySelectorAll("[data-outlook-url]").forEach(item => {
-    item.addEventListener("dblclick", (e) => {
-      // Non aprire se il doppio click è su un bottone interno
-      if (e.target.closest("button") || e.target.closest("a")) return;
-      const url = item.dataset.outlookUrl;
+  // v0.14.2: click su bottone "📧 Apri" apre l'email Outlook
+  root.querySelectorAll("[data-outlook-open]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const url = btn.dataset.outlookOpen;
       if (url) window.open(url, "_blank");
     });
   });
