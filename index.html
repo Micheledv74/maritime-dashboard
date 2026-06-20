@@ -99,6 +99,17 @@
   --shadow-card: 0 1px 2px rgba(20,30,50,0.04), 0 1px 4px rgba(20,30,50,0.05);
   --shadow-card-alert: 0 0 0 1px var(--c-red-strong), 0 4px 16px rgba(200,34,42,0.12);
 
+  /* v0.16 — Colori navi (tricolore italiano + navy)
+     PEPPINO rosso bandiera · TOSCANA azzurro nazionale · LIGURIA verde bandiera · NORRBOTTEN navy */
+  --c-peppino: #c8362f;
+  --c-peppino-soft: #fef1ef;
+  --c-toscana: #1565c0;
+  --c-toscana-soft: #e3f0fc;
+  --c-liguria: #117a3a;
+  --c-liguria-soft: #ecf6ef;
+  --c-norrbotten: #1a2c5e;
+  --c-norrbotten-soft: #e6e9f2;
+
   --header-h: 60px;
   --switcher-h: 56px;
   --max-w: 1400px;
@@ -4879,6 +4890,305 @@ a:hover { text-decoration: underline; }
 }
 
 
+/* =============================================================================
+   v0.16 — CONTROL ROOM (v4 — colori navi tricolore + KPI strip)
+   ============================================================================= */
+
+/* ===== BRAND CIRCOLARE in header ===== */
+.brand-circle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a6f93, #2a8fb8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(42,143,184,0.25);
+  margin-right: 6px;
+}
+.brand-circle svg { width: 20px; height: 20px; }
+/* Nascondo l'icona ship "inline" del v0.15 quando c'è il circle */
+.brand-icon-svg.with-circle { display: none; }
+
+/* ===== KPI STRIP CONTROL ROOM (Lead-style) ===== */
+.control-room-section {
+  margin-bottom: var(--sp-5);
+}
+.kpi-strip-cr {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.kpi-cr {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-cr:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+.kpi-cr .kpi-cr-label {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.kpi-cr .kpi-cr-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  letter-spacing: -0.02em;
+}
+.kpi-cr-bubble.red { background: var(--c-red-dot); }
+.kpi-cr-bubble.orange { background: var(--c-amber-dot); }
+.kpi-cr-bubble.blue { background: var(--c-blue-dot); }
+.kpi-cr-bubble.green { background: var(--c-green-active); }
+.kpi-cr-bubble.purple { background: var(--c-purple-dot); }
+.kpi-cr-bubble.grey { background: var(--text-faint); }
+
+.kpi-cr .kpi-cr-sublabel {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* ===== COLORI NAVI nelle pill di switcher ===== */
+.switcher-tab[data-vid="peppino"] .pill-dot { background: var(--c-peppino); }
+.switcher-tab[data-vid="medtoscana"] .pill-dot { background: var(--c-toscana); }
+.switcher-tab[data-vid="medliguria"] .pill-dot { background: var(--c-liguria); }
+.switcher-tab[data-vid="norrbotten"] .pill-dot { background: var(--c-norrbotten); }
+.pill[data-vid="peppino"] .pill-dot { background: var(--c-peppino); }
+.pill[data-vid="medtoscana"] .pill-dot { background: var(--c-toscana); }
+.pill[data-vid="medliguria"] .pill-dot { background: var(--c-liguria); }
+.pill[data-vid="norrbotten"] .pill-dot { background: var(--c-norrbotten); }
+.pill[data-vid="peppino"].active { border-color: var(--c-peppino); }
+.pill[data-vid="medtoscana"].active { border-color: var(--c-toscana); }
+.pill[data-vid="medliguria"].active { border-color: var(--c-liguria); }
+.pill[data-vid="norrbotten"].active { border-color: var(--c-norrbotten); }
+
+/* ===== VESSEL CARD v0.16 — header pieno colorato per nave ===== */
+.vessel-card[data-vid="peppino"] {
+  border-color: var(--c-peppino-soft);
+}
+.vessel-card[data-vid="medtoscana"] {
+  border-color: var(--c-toscana-soft);
+}
+.vessel-card[data-vid="medliguria"] {
+  border-color: var(--c-liguria-soft);
+}
+.vessel-card[data-vid="norrbotten"] {
+  border-color: var(--c-norrbotten-soft);
+}
+.vessel-card[data-vid="peppino"]::before { background: var(--c-peppino) !important; width: 5px !important; }
+.vessel-card[data-vid="medtoscana"]::before { background: var(--c-toscana) !important; width: 5px !important; }
+.vessel-card[data-vid="medliguria"]::before { background: var(--c-liguria) !important; width: 5px !important; }
+.vessel-card[data-vid="norrbotten"]::before { background: var(--c-norrbotten) !important; width: 5px !important; }
+
+/* Header card con sfondo tinto chiaro nel colore nave */
+.vessel-card[data-vid="peppino"] .vessel-card-head {
+  background: var(--c-peppino-soft);
+  border-bottom-color: var(--c-peppino);
+}
+.vessel-card[data-vid="medtoscana"] .vessel-card-head {
+  background: var(--c-toscana-soft);
+  border-bottom-color: var(--c-toscana);
+}
+.vessel-card[data-vid="medliguria"] .vessel-card-head {
+  background: var(--c-liguria-soft);
+  border-bottom-color: var(--c-liguria);
+}
+.vessel-card[data-vid="norrbotten"] .vessel-card-head {
+  background: var(--c-norrbotten-soft);
+  border-bottom-color: var(--c-norrbotten);
+}
+
+/* Vessel-status-icon dentro card prende il colore nave */
+.vessel-card[data-vid="peppino"] .vessel-status-icon {
+  background: white;
+  color: var(--c-peppino);
+  border: 1.5px solid var(--c-peppino);
+}
+.vessel-card[data-vid="medtoscana"] .vessel-status-icon {
+  background: white;
+  color: var(--c-toscana);
+  border: 1.5px solid var(--c-toscana);
+}
+.vessel-card[data-vid="medliguria"] .vessel-status-icon {
+  background: white;
+  color: var(--c-liguria);
+  border: 1.5px solid var(--c-liguria);
+}
+.vessel-card[data-vid="norrbotten"] .vessel-status-icon {
+  background: white;
+  color: var(--c-norrbotten);
+  border: 1.5px solid var(--c-norrbotten);
+}
+
+/* Override per stato critico — preserva il rosso warning */
+.vessel-card[data-status="crit"] {
+  box-shadow: var(--shadow-card-alert);
+}
+.vessel-card[data-status="crit"] .vessel-status-icon {
+  background: var(--c-red-bg);
+  color: var(--c-red-fg);
+  border-color: var(--c-red-dot);
+}
+
+/* Nome nave nel colore nave */
+.vessel-card[data-vid="peppino"] .vessel-name-text { color: var(--c-peppino); }
+.vessel-card[data-vid="medtoscana"] .vessel-name-text { color: var(--c-toscana); }
+.vessel-card[data-vid="medliguria"] .vessel-name-text { color: var(--c-liguria); }
+.vessel-card[data-vid="norrbotten"] .vessel-name-text { color: var(--c-norrbotten); }
+
+/* ===== VESSEL BADGE colorato per nave nelle azioni ===== */
+.vessel-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.vessel-tag-badge.peppino { background: var(--c-peppino); }
+.vessel-tag-badge.medtoscana { background: var(--c-toscana); }
+.vessel-tag-badge.medliguria { background: var(--c-liguria); }
+.vessel-tag-badge.norrbotten { background: var(--c-norrbotten); }
+
+/* Override .vessel-tag esistente nelle azioni per usare il colore nave */
+.action-row .vessel-tag-colored {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  margin-left: 6px;
+  vertical-align: 1px;
+  text-transform: uppercase;
+}
+.action-row .vessel-tag-colored[data-vid="peppino"] { background: var(--c-peppino); }
+.action-row .vessel-tag-colored[data-vid="medtoscana"] { background: var(--c-toscana); }
+.action-row .vessel-tag-colored[data-vid="medliguria"] { background: var(--c-liguria); }
+.action-row .vessel-tag-colored[data-vid="norrbotten"] { background: var(--c-norrbotten); }
+
+/* ===== STATUS PILL colorate piene "stile Lead" per action-row ===== */
+.status-pill-cr {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.status-pill-cr.urgent { background: var(--c-red-dot); }
+.status-pill-cr.warn { background: var(--c-amber-dot); }
+.status-pill-cr.attesa { background: #d4a017; color: #4a3700; }
+.status-pill-cr.info { background: var(--c-blue-dot); }
+.status-pill-cr.ok { background: var(--c-green-active); }
+.status-pill-cr.neutral { background: var(--text-faint); }
+
+/* Action-verb v0.15 mantenuto per backward compat ma override stile */
+.action-row.is-urgent .action-verb,
+.action-row[data-urgent="1"] .action-verb,
+.action-row[data-priority="urgent"] .action-verb {
+  background: var(--c-red-dot);
+  color: white;
+  border-color: var(--c-red-fg);
+}
+.action-row[data-priority="warn"] .action-verb {
+  background: var(--c-amber-dot);
+  color: white;
+  border-color: var(--c-amber-fg);
+}
+
+/* ===== HEATMAP — color dot delle navi ===== */
+.heatmap-vessel-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.heatmap-vessel-dot[data-vid="peppino"] { background: var(--c-peppino); }
+.heatmap-vessel-dot[data-vid="medtoscana"] { background: var(--c-toscana); }
+.heatmap-vessel-dot[data-vid="medliguria"] { background: var(--c-liguria); }
+.heatmap-vessel-dot[data-vid="norrbotten"] { background: var(--c-norrbotten); }
+
+/* ===== HEADER SEARCH BAR centrale stile control room ===== */
+.cr-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 420px;
+  margin: 0 var(--sp-4);
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 10px;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+}
+.cr-search-bar:hover { background: white; border-color: var(--border-strong); }
+.cr-search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: white;
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text-faint);
+  margin-left: auto;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+  .kpi-strip-cr { grid-template-columns: repeat(3, 1fr); }
+  .cr-search-bar { max-width: 280px; }
+}
+@media (max-width: 700px) {
+  .kpi-strip-cr { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi-cr { padding: 10px 12px; }
+  .kpi-cr .kpi-cr-bubble { font-size: 22px; height: 34px; min-width: 34px; padding: 0 11px; }
+  .cr-search-bar { display: none; }
+}
+
+
 </style>
 </head>
 <body>
@@ -6794,9 +7104,78 @@ function renderOverview() {
   // l'Overview deve restare una panoramica veloce, non una lista lunga.
   // Le to-do sono accessibili dalla pill "To-do" in alto e via badge sulle vessel-card.
 
+  // v0.16 — Control Room KPI Strip: aggrega i 6 numeri chiave da tutte le navi
+  const crStats = (() => {
+    let urgent = 0, certExpired = 0, rfqOverdue = 0, readyPO = 0, dnPending = 0;
+    for (const cfg of VESSELS) {
+      const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
+      if (!v) continue;
+      rfqOverdue += (v.rfqOverdue7 || 0);
+      readyPO += (v.readyForPO || 0);
+      dnPending += (v.dnPending || 0);
+    }
+    // Urgenti = somma azioni urgent (priorità urgent) + scaduti
+    try {
+      const allActions = (typeof getActionsForOverview === "function") ? getActionsForOverview() : [];
+      urgent = allActions.filter(a => a.priority === "urgent").length;
+    } catch(_) { urgent = rfqOverdue; }
+    // Certificati scaduti
+    try {
+      const cgs = getCertStatsGlobal();
+      certExpired = cgs.expired || 0;
+    } catch(_) { certExpired = 0; }
+    // Fatte oggi (verde)
+    const today = new Date().toISOString().slice(0, 10);
+    const doneToday = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0, 10) === today).length;
+    return { urgent, certExpired, rfqOverdue, readyPO, dnPending, doneToday };
+  })();
+
+  const controlRoomHTML = `
+    <section class="control-room-section">
+      <div class="section-title">
+        <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Control Room</h2>
+        <span class="section-meta">${VESSELS.length} navi attive · panoramica al ${new Date().toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit"})}</span>
+      </div>
+      <div class="kpi-strip-cr">
+        <div class="kpi-cr" data-cr-kpi="urgent" title="Azioni urgenti — click per filtrare">
+          <div class="kpi-cr-label">Azioni urgenti</div>
+          <div class="kpi-cr-bubble ${crStats.urgent > 0 ? 'red' : 'green'}">${crStats.urgent}</div>
+          <div class="kpi-cr-sublabel">scadute o critiche</div>
+        </div>
+        <div class="kpi-cr" data-cr-kpi="certExpired" title="Certificati scaduti">
+          <div class="kpi-cr-label">Cert. scaduti</div>
+          <div class="kpi-cr-bubble ${crStats.certExpired > 0 ? 'red' : 'green'}">${crStats.certExpired}</div>
+          <div class="kpi-cr-sublabel">richiedono rinnovo</div>
+        </div>
+        <div class="kpi-cr" data-cr-kpi="rfqOverdue" title="RFQ da sollecitare">
+          <div class="kpi-cr-label">RFQ sollecito</div>
+          <div class="kpi-cr-bubble ${crStats.rfqOverdue > 0 ? 'orange' : 'green'}">${crStats.rfqOverdue}</div>
+          <div class="kpi-cr-sublabel">in attesa risposta</div>
+        </div>
+        <div class="kpi-cr" data-cr-kpi="readyPO" title="Pronte per PO">
+          <div class="kpi-cr-label">Pronte PO</div>
+          <div class="kpi-cr-bubble ${crStats.readyPO > 0 ? 'blue' : 'grey'}">${crStats.readyPO}</div>
+          <div class="kpi-cr-sublabel">offerte da chiudere</div>
+        </div>
+        <div class="kpi-cr" data-cr-kpi="dnPending" title="Consegne pendenti">
+          <div class="kpi-cr-label">DN pendenti</div>
+          <div class="kpi-cr-bubble ${crStats.dnPending > 10 ? 'red' : crStats.dnPending > 0 ? 'purple' : 'grey'}">${crStats.dnPending}</div>
+          <div class="kpi-cr-sublabel">consegne in arrivo</div>
+        </div>
+        <div class="kpi-cr" data-cr-kpi="doneToday" title="Completate oggi">
+          <div class="kpi-cr-label">Fatte oggi</div>
+          <div class="kpi-cr-bubble ${crStats.doneToday > 0 ? 'green' : 'grey'}">${crStats.doneToday}</div>
+          <div class="kpi-cr-sublabel">${crStats.doneToday > 0 ? 'ottimo lavoro' : 'iniziamo'}</div>
+        </div>
+      </div>
+    </section>
+  `;
+
   root.innerHTML = `
     ${lastVisitHTML}
     ${whatsNewHTML}
+
+    ${controlRoomHTML}
 
     <section class="world-clock-section-compact">
       <div class="section-title section-title-compact">
@@ -6942,7 +7321,7 @@ function renderHeatmap() {
 
   for (const cfg of VESSELS) {
     const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
-    html += `<div class="heatmap-vname">${cfg.displayName}</div>`;
+    html += `<div class="heatmap-vname"><span class="heatmap-vessel-dot" data-vid="${escapeAttr(cfg.vesselId)}"></span>${cfg.displayName}</div>`;
     weekDays.forEach(d => {
       let count = 0;
       if (v && v.items) {
@@ -11212,7 +11591,9 @@ function actionRowHTMLv2(a, isInGroup) {
               { color: "grey" };
   const desc = a.description || a.body || "";
   const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
-  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag">${escapeHTML(a.vesselName)}</span>` : "";
+  // v0.16 — Badge nave colorato (colore stabile del faldone)
+  const vesselTag = a.vesselName && state.view === "overview" ?
+    `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>` : "";
   const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   const todoTag = a._kind === "todo" ? `<span class="kind-tag-todo">personale</span>` : "";
   // v0.10.2 fix — Etichetta "rimandata da te" se l'azione era snoozed e oggi è tornata
@@ -11506,7 +11887,9 @@ function actionRowHTML(a) {
   const cfg = ALERT_CONFIG[a.level] || ALERT_CONFIG.info;
   const desc = a.description || a.body || "";
   const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
-  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag">${escapeHTML(a.vesselName)}</span>` : "";
+  // v0.16 — Badge nave colorato (colore stabile del faldone)
+  const vesselTag = a.vesselName && state.view === "overview" ?
+    `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>` : "";
   const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   let actionBtn = "";
   if (a.action) {
