@@ -11,56 +11,93 @@
 <!-- Google Identity Services per sync Drive (caricato in modalità defer per non bloccare il render iniziale) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-/* === DESIGN TOKENS ====================================================== */
+/* === DESIGN TOKENS v0.15 — Operative Professional ====================== */
 :root {
-  --font-sans: 'Lexend', system-ui, -apple-system, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --font-sans: 'Inter', 'Lexend', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
 
-  --fs-xs: 12px;
-  --fs-sm: 14px;
-  --fs-base: 17px;
-  --fs-lg: 19px;
-  --fs-xl: 24px;
-  --fs-2xl: 32px;
+  /* Scala tipografica v3 — armonica a 7 taglie */
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 14px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
+  --fs-2xl: 30px;
+  --fs-3xl: 42px;
 
-  --bg: #fafaf9;
+  /* Spaziatura v3 — generosa */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 18px;
+  --sp-5: 24px;
+  --sp-6: 36px;
+  --sp-7: 48px;
+
+  /* Neutri v3 */
+  --bg: #f4f6f9;
   --bg-surface: #ffffff;
-  --bg-muted: #f5f5f4;
+  --bg-muted: #f7f9fb;
   --bg-elevated: #ffffff;
-  --border: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.16);
-  --text: #0f172a;
-  --text-muted: #475569;
-  --text-faint: #94a3b8;
+  --border: #d8dee5;
+  --border-strong: #b3bcc6;
+  --text: #14181f;
+  --text-muted: #4b5563;
+  --text-faint: #7a8290;
 
-  --accent: #0f172a;
+  --accent: #0e54c1;
   --accent-fg: #ffffff;
+  --accent-2: #0a3f93;
 
-  --c-red-bg: #fef2f2;
-  --c-red-fg: #991b1b;
-  --c-red-dot: #dc2626;
-  --c-amber-bg: #fef3c7;
-  --c-amber-fg: #92400e;
+  /* Palette semantica — backward compatible col vecchio sistema */
+  --c-red-bg: #fce8ea;
+  --c-red-fg: #a01b22;
+  --c-red-dot: #c8222a;
+  --c-red-soft: rgba(200,34,42,0.08);
+  --c-red-strong: #c8222a;
+
+  --c-amber-bg: #fef0db;
+  --c-amber-fg: #b15800;
   --c-amber-dot: #d97706;
-  --c-blue-bg: #eff6ff;
-  --c-blue-fg: #1e40af;
-  --c-blue-dot: #2563eb;
-  --c-green-bg: #ecfdf5;
-  --c-green-fg: #065f46;
-  --c-green-dot: #059669;
+  --c-amber-soft: rgba(217,119,6,0.08);
+  --c-orange-soft: rgba(217,119,6,0.08);
+
+  --c-blue-bg: #e2edff;
+  --c-blue-fg: #0a3f93;
+  --c-blue-dot: #0e54c1;
+  --c-blue-soft: rgba(14,84,193,0.08);
+
+  /* Verde tranquillità + verde successo */
+  --c-green-bg: #e3f3e6;
+  --c-green-fg: #145f1f;
+  --c-green-dot: #1f7a2a;
+  --c-green-soft: rgba(31,122,42,0.08);
+  --c-green-active: #16a34a;
+
   --c-purple-bg: #f5f3ff;
   --c-purple-fg: #5b21b6;
   --c-purple-dot: #7c3aed;
+
   --c-slate-bg: #f1f5f9;
   --c-slate-fg: #334155;
 
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
+  --c-yellow-bg: #fef6d4;
+  --c-yellow-fg: #854d0e;
 
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10);
+  --radius-sm: 5px;
+  --radius: 8px;
+  --radius-lg: 10px;
+
+  /* Ombre v3 — bottoni "premibili" */
+  --shadow-sm: 0 1px 2px rgba(20,30,50,0.04);
+  --shadow: 0 1px 2px rgba(20,30,50,0.04), 0 1px 4px rgba(20,30,50,0.05);
+  --shadow-lg: 0 4px 12px rgba(20,30,50,0.08);
+  --shadow-btn: 0 1px 0 rgba(20,30,50,0.12), 0 1px 2px rgba(20,30,50,0.06);
+  --shadow-btn-hover: 0 1px 0 rgba(20,30,50,0.16), 0 3px 6px rgba(20,30,50,0.10);
+  --shadow-btn-active: inset 0 1px 2px rgba(20,30,50,0.15);
+  --shadow-card: 0 1px 2px rgba(20,30,50,0.04), 0 1px 4px rgba(20,30,50,0.05);
+  --shadow-card-alert: 0 0 0 1px var(--c-red-strong), 0 4px 16px rgba(200,34,42,0.12);
 
   --header-h: 60px;
   --switcher-h: 56px;
@@ -4000,9 +4037,845 @@ a:hover { text-decoration: underline; }
   margin-top: 2px;
 }
 .progress-tooltip .tt-status-dot {
-  display: inline-block;
-  width: 6px; height: 6px;
+
+
+/* =============================================================================
+   v0.15 — REDESIGN HOME "Operative Professional"
+   ============================================================================= */
+
+/* HEADER */
+.app-header {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.brand {
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text);
+}
+.brand-icon-svg { color: var(--accent); display:inline-flex; align-items:center; }
+.brand .brand-sub {
+  color: var(--text-faint);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  margin-left: var(--sp-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.sync-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--c-green-bg);
+  color: var(--c-green-fg);
+  border: 1px solid var(--c-green-dot);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sync-dot {
+  width: 7px; height: 7px;
+  background: var(--c-green-dot);
   border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--c-green-soft);
+}
+
+/* BOTTONI v3 */
+.btn {
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  box-shadow: var(--shadow-btn);
+  transition: all 0.08s ease-out;
+  line-height: 1.2;
+}
+.btn:hover:not(:disabled) {
+  background: var(--bg-muted);
+  box-shadow: var(--shadow-btn-hover);
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  background: #e6e9ee;
+  box-shadow: var(--shadow-btn-active);
+  transform: translateY(0);
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent-2);
+  color: white;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-2); color: white; }
+.btn-success {
+  background: var(--c-green-active);
+  border-color: var(--c-green-fg);
+  color: white;
+}
+.btn-sm {
+  padding: 5px 10px;
+  font-size: var(--fs-xs);
+}
+
+/* SECTION TITLES v3 */
+.section-title h2 {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title h2 .icon { color: var(--text-faint); }
+
+/* WORLD CLOCK v3 */
+.world-clock-strip-compact .wc-tile {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: var(--sp-3);
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.world-clock-strip-compact .wc-tile.wc-night {
+  background: #18202c;
+  color: #ffffff;
+  border-color: #0a0e16;
+}
+.world-clock-strip-compact .wc-tile.wc-night .wc-label,
+.world-clock-strip-compact .wc-tile.wc-night .wc-code {
+  color: rgba(255,255,255,0.55);
+}
+.world-clock-strip-compact .wc-tile.wc-offhour {
+  background: #fff8e6;
+  border-color: #f5e6b8;
+}
+.world-clock-strip-compact .wc-tile .wc-code {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.world-clock-strip-compact .wc-tile .wc-time {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 3px 0;
+}
+.world-clock-strip-compact .wc-tile .wc-label {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+/* FLEET CARDS v3 — barra sinistra colorata + icona stato */
+.vessel-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.vessel-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border);
+}
+.vessel-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--c-green-dot);
+}
+.vessel-card[data-status="warn"]::before { background: var(--c-amber-dot); }
+.vessel-card[data-status="crit"]::before { background: var(--c-red-dot); }
+.vessel-card[data-status="crit"] {
+  border-color: var(--c-red-dot);
+  box-shadow: var(--shadow-card-alert);
+}
+.vessel-card[data-status="drydock"]::before { background: var(--text-faint); }
+.vessel-card[data-status="ok"]::before { background: var(--c-green-dot); }
+
+.vessel-card-head {
+  padding: var(--sp-3) var(--sp-4);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-3);
+  align-items: center;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.vessel-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--c-green-bg);
+  color: var(--c-green-fg);
+  flex-shrink: 0;
+}
+.vessel-card[data-status="warn"] .vessel-status-icon { background: var(--c-amber-bg); color: var(--c-amber-fg); }
+.vessel-card[data-status="crit"] .vessel-status-icon { background: var(--c-red-bg); color: var(--c-red-fg); }
+.vessel-card[data-status="drydock"] .vessel-status-icon { background: var(--bg-muted); color: var(--text-muted); }
+
+.vessel-name {
+  display: flex; flex-direction: column; gap: 1px;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+.vessel-name-text {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.2;
+}
+.vessel-meta {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.vessel-meta .icon { color: currentColor; }
+
+/* KPI ROW v3 */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin: 0;
+  background: var(--bg-surface);
+}
+.kpi {
+  padding: var(--sp-4) var(--sp-2);
+  text-align: center;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-surface);
+  position: relative;
+}
+.kpi:last-child { border-right: none; }
+.kpi-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: var(--sp-2);
+  opacity: 1;
+}
+.kpi-value {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+/* Zero "ok" - verde tranquillo */
+.kpi-value.zero-ok,
+.kpi[data-zero-ok="1"] .kpi-value {
+  color: var(--c-green-dot);
+  font-weight: 600;
+}
+/* Zero neutro */
+.kpi-value.zero,
+.kpi[data-zero="1"] .kpi-value {
+  color: var(--text-faint);
+  font-weight: 600;
+}
+/* WARN: sfondo tinto + numero arancio */
+.kpi.amber, .kpi.warn {
+  background: var(--c-amber-soft);
+  color: var(--c-amber-fg);
+}
+.kpi.amber .kpi-label, .kpi.warn .kpi-label { color: var(--c-amber-fg); }
+.kpi.amber .kpi-value, .kpi.warn .kpi-value { color: var(--c-amber-fg); }
+/* ALERT: sfondo rosso soft + numero rosso + "!" */
+.kpi.red, .kpi.alert {
+  background: var(--c-red-soft);
+}
+.kpi.red .kpi-label, .kpi.alert .kpi-label { color: var(--c-red-fg); }
+.kpi.red .kpi-value, .kpi.alert .kpi-value { color: var(--c-red-dot); }
+.kpi.alert .kpi-value::after {
+  content: "!";
+  display: inline-block;
+  margin-left: 4px;
+  background: var(--c-red-dot);
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  vertical-align: 8px;
+  font-weight: 800;
+}
+/* OK positivo: verde tinto */
+.kpi.green, .kpi.ok {
+  background: var(--c-green-soft);
+}
+.kpi.green .kpi-label, .kpi.ok .kpi-label { color: var(--c-green-fg); }
+.kpi.green .kpi-value, .kpi.ok .kpi-value { color: var(--c-green-fg); }
+/* BLUE info: discreto */
+.kpi.blue { background: var(--c-blue-soft); }
+.kpi.blue .kpi-label { color: var(--c-blue-fg); }
+.kpi.blue .kpi-value { color: var(--c-blue-fg); }
+
+.vessel-foot {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-muted);
+  font-size: var(--fs-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.vessel-foot .route-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+.vessel-foot .route-info .icon { color: var(--text-faint); }
+.vessel-foot .route-info strong { color: var(--text); font-weight: 700; }
+.vessel-foot .eta-badge {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 3px 9px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.vessel-foot .eta-badge.ok {
+  color: var(--c-green-fg);
+  background: var(--c-green-bg);
+  border-color: var(--c-green-dot);
+}
+.vessel-foot .eta-badge.urgent {
+  color: white;
+  background: var(--c-amber-dot);
+  border-color: var(--c-amber-fg);
+}
+.vessel-foot .eta-badge.past {
+  color: white;
+  background: var(--c-red-dot);
+  border-color: var(--c-red-fg);
+}
+
+/* CERTIFICATI MINI PILLS v3 */
+.cert-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1.5px solid;
+  background: white;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.cert-pill.red { color: var(--c-red-dot); border-color: var(--c-red-dot); }
+.cert-pill.orange, .cert-pill.amber { color: var(--c-amber-dot); border-color: var(--c-amber-dot); }
+.cert-pill.yellow { color: var(--c-yellow-fg); border-color: var(--c-yellow-fg); }
+.cert-pill.blue { color: var(--c-blue-dot); border-color: var(--c-blue-dot); }
+.cert-pill.green { color: var(--c-green-fg); border-color: var(--c-green-dot); }
+
+/* AZIONI GROUPS v3 - bordo sx colorato + sfondo tinto chiaro nell'header */
+.action-group-summary {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: var(--sp-3);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.action-group-summary-row {
+  padding: 10px var(--sp-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid var(--text-faint);
+}
+.action-group-summary[data-priority="urgent"] {
+  border-color: var(--c-red-dot);
+}
+.action-group-summary[data-priority="urgent"] .action-group-summary-row {
+  background: var(--c-red-bg);
+  color: var(--c-red-fg);
+  border-bottom-color: var(--c-red-dot);
+  border-left-color: var(--c-red-dot);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.action-group-summary[data-priority="week"] .action-group-summary-row,
+.action-group-summary[data-priority="warn"] .action-group-summary-row {
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+  border-bottom-color: var(--c-amber-dot);
+  border-left-color: var(--c-amber-dot);
+}
+.action-group-summary[data-priority="whenever"] .action-group-summary-row,
+.action-group-summary[data-priority="low"] .action-group-summary-row {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-left-color: var(--text-faint);
+}
+.action-group-summary .group-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}
+.action-group-summary .group-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* v0.15 — Sezioni 3 fasce (.actions-group con data-group) — Operative Professional */
+.actions-group {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: var(--sp-3);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.actions-group .actions-group-title {
+  padding: 12px var(--sp-4);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.02em;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.actions-group[data-group="urgent"] {
+  border-color: var(--c-red-dot);
+}
+.actions-group[data-group="urgent"] .actions-group-title {
+  background: var(--c-red-bg);
+  color: var(--c-red-fg);
+  border-bottom-color: var(--c-red-dot);
+  border-left-color: var(--c-red-dot);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.actions-group[data-group="week"] .actions-group-title {
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+  border-bottom-color: var(--c-amber-dot);
+  border-left-color: var(--c-amber-dot);
+}
+.actions-group[data-group="someday"] .actions-group-title {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-left-color: var(--text-faint);
+}
+.actions-group.pinned-group {
+  border-color: var(--c-blue-dot);
+}
+.actions-group.pinned-group .actions-group-title {
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border-left-color: var(--c-blue-dot);
+}
+.actions-group .muted {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: var(--fs-xs);
+  background: var(--text-muted);
+  color: white;
+  margin-left: auto;
+}
+.actions-group[data-group="urgent"] .actions-group-title .muted { background: var(--c-red-dot); }
+.actions-group[data-group="week"] .actions-group-title .muted { background: var(--c-amber-dot); }
+.actions-group[data-group="someday"] .actions-group-title .muted { background: var(--text-faint); }
+.actions-group.pinned-group .actions-group-title .muted { background: var(--c-blue-dot); }
+
+/* count pill nei group-head */
+.action-group-summary .group-count,
+.action-group-count {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: var(--fs-xs);
+  background: var(--text-muted);
+  color: white;
+}
+.action-group-summary[data-priority="urgent"] .group-count { background: var(--c-red-dot); }
+.action-group-summary[data-priority="week"] .group-count,
+.action-group-summary[data-priority="warn"] .group-count { background: var(--c-amber-dot); }
+
+/* ACTION ROW v3 — etichetta verbo + bottoni */
+.action-row {
+  background: var(--bg-surface);
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 10px var(--sp-4);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-3);
+  align-items: center;
+  transition: background 0.1s;
+}
+.action-row:last-child { border-bottom: none; }
+.action-row:hover { background: var(--bg-muted); }
+.action-row.is-done,
+.action-row[data-done="1"] {
+  background: var(--c-green-soft);
+}
+
+/* etichetta verbo */
+.action-verb {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text);
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: var(--shadow-btn);
+  display: inline-block;
+}
+.action-row.is-urgent .action-verb,
+.action-row[data-urgent="1"] .action-verb {
+  background: var(--c-red-dot);
+  color: white;
+  border-color: var(--c-red-fg);
+}
+
+/* pill-status retro-compatibili: ora mappate al verb style */
+.action-row .pill-status {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: white;
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  box-shadow: var(--shadow-btn);
+  white-space: nowrap;
+}
+.action-row .pill-status.crit { background: var(--c-red-dot); color: white; border-color: var(--c-red-fg); }
+.action-row .pill-status.warn { background: var(--c-amber-dot); color: white; border-color: var(--c-amber-fg); }
+.action-row .pill-status.info { background: var(--c-blue-dot); color: white; border-color: var(--c-blue-fg); }
+.action-row .pill-status.flag { background: var(--c-purple-dot); color: white; border-color: var(--c-purple-fg); }
+
+.action-row .action-body {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.action-row .action-body strong { font-weight: 700; }
+.action-row .action-body .vessel-tag {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-left: 6px;
+  font-weight: 600;
+}
+.action-row .action-body .supplier-tag {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+/* bottoni azione */
+.action-row .action-btns {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-self: end;
+}
+
+/* Tag "outlook" speciale: blu pieno */
+.action-tag,
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: var(--bg-muted);
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 5px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: 1px;
+}
+.action-tag.outlook,
+.tag-chip.outlook,
+.outlook-tag {
+  background: var(--c-blue-dot);
+  color: white;
+  border-color: var(--c-blue-fg);
+}
+
+/* TAB NAV v3 */
+.tab-list,
+.switcher-list {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+}
+.tab,
+.switcher-tab {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  border-bottom: 2.5px solid transparent;
+  transition: all 0.1s;
+}
+.tab:hover,
+.switcher-tab:hover { background: var(--bg-muted); color: var(--text); }
+.tab.active,
+.switcher-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+.tab .icon,
+.switcher-tab .icon { color: currentColor; }
+
+/* SECTION META con verde "fatte oggi" */
+.section-meta .done-count,
+.actions-done-count {
+  color: var(--c-green-fg);
+  font-weight: 800;
+  background: var(--c-green-bg);
+  border: 1px solid var(--c-green-dot);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+}
+
+/* fade-in per riga "fatto" */
+@keyframes fadeDone {
+  from { background: var(--c-green-bg); }
+  to { background: var(--c-green-soft); }
+}
+.action-row.just-done { animation: fadeDone 0.6s ease-out; }
+
+/* PULSE per alert tab */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.tab-alert-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--c-red-dot);
+  box-shadow: 0 0 0 3px var(--c-red-soft);
+  animation: pulse-dot 2s infinite;
+  margin-left: 4px;
+}
+
+/* HOVER bottoni piccoli azione */
+.btn-mini-done:hover { background: var(--c-green-active) !important; color: white !important; border-color: var(--c-green-fg) !important; }
+.btn-mini-snooze:hover { background: var(--c-amber-dot) !important; color: white !important; border-color: var(--c-amber-fg) !important; }
+.btn-mini-pin:hover { background: var(--c-blue-dot) !important; color: white !important; border-color: var(--c-blue-fg) !important; }
+
+/* v0.15 — uniformo bottoni azione (done/snooze/pin/to-todo) allo stile v3 premibile */
+.action-row .btn-done,
+.action-row .btn-snooze,
+.action-row .btn-pin,
+.action-row .btn-action-to-todo {
+  background: white;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: var(--shadow-btn);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.08s;
+  font-size: 12px;
+}
+.action-row .btn-done:hover {
+  background: var(--c-green-active);
+  color: white;
+  border-color: var(--c-green-fg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-hover);
+}
+.action-row .btn-snooze:hover {
+  background: var(--c-amber-dot);
+  color: white;
+  border-color: var(--c-amber-fg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-hover);
+}
+.action-row .btn-pin:hover {
+  background: var(--c-blue-dot);
+  color: white;
+  border-color: var(--c-blue-fg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-hover);
+}
+.action-row .btn-pin.pinned {
+  background: var(--c-blue-dot);
+  color: white;
+  border-color: var(--c-blue-fg);
+}
+.action-row .btn-action-to-todo:hover {
+  background: var(--text);
+  color: white;
+  border-color: var(--text);
+  transform: translateY(-1px);
+}
+
+/* "Apri →" action bottone primario */
+.action-row .action-btns .btn,
+.action-row .action-btns a.btn {
+  background: var(--c-blue-dot);
+  border-color: var(--c-blue-fg);
+  color: white;
+  padding: 6px 10px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.action-row .action-btns .btn:hover,
+.action-row .action-btns a.btn:hover {
+  background: var(--c-blue-fg);
+  color: white;
+}
+
+/* Vessel todo badge style v3 */
+.vessel-todo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border: 1px solid var(--c-blue-dot);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+
+/* "rientrata" tag */
+.returned-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--c-amber-bg);
+  color: var(--c-amber-fg);
+  border: 1px solid var(--c-amber-dot);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* DARK MODE override per v3 — re-mappa */
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-surface: #141414;
+  --bg-muted: #1c1c1c;
+  --bg-elevated: #1a1a1a;
+  --border: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.22);
+  --text: #fafaf9;
+  --text-muted: #a3a3a3;
+  --text-faint: #737373;
+  --c-red-bg: rgba(200,34,42,0.15);
+  --c-red-fg: #fca5a5;
+  --c-amber-bg: rgba(217,119,6,0.15);
+  --c-amber-fg: #fcd34d;
+  --c-blue-bg: rgba(14,84,193,0.15);
+  --c-blue-fg: #93c5fd;
+  --c-green-bg: rgba(31,122,42,0.15);
+  --c-green-fg: #6ee7b7;
+}
+
+/* RESPONSIVE v3 */
+@media (max-width: 900px) {
+  .kpi { padding: var(--sp-3) 4px; }
+  .kpi-value { font-size: 26px; }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: repeat(5, 1fr); }
+  .kpi-value { font-size: 22px; }
+  .kpi-label { font-size: 9px; }
 }
 
 
@@ -4010,9 +4883,149 @@ a:hover { text-decoration: underline; }
 </head>
 <body>
 
+<!-- ============================================================ -->
+<!-- v0.15 — ICONE LUCIDE SVG sprite                              -->
+<!-- ============================================================ -->
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+  <defs>
+    <symbol id="i-ship" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+      <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+      <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+      <path d="M12 10v4"/><path d="M12 2v3"/>
+    </symbol>
+    <symbol id="i-anchor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="5" r="3"/><path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/>
+    </symbol>
+    <symbol id="i-waves" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+      <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+      <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+    </symbol>
+    <symbol id="i-shield-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+      <path d="m9 12 2 2 4-4"/>
+    </symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+      <path d="M21 3v5h-5"/>
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+      <path d="M8 16H3v5"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 6 9 17l-5-5"/>
+    </symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <path d="m9 11 3 3L22 4"/>
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
+    </symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="20" height="16" x="2" y="4" rx="2"/>
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+    </symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+    </symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </symbol>
+    <symbol id="i-mappin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+      <circle cx="12" cy="10" r="3"/>
+    </symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/>
+      <path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/>
+      <circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>
+    </symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+    </symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+    </symbol>
+    <symbol id="i-checksquare" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 11 12 14 22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+    </symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <path d="M12 17h.01"/>
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+    </symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14"/><path d="M12 5v14"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+    </symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+    </symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- Helper class per uso -->
+<style>
+.icon { display:inline-block; vertical-align:-2px; flex-shrink:0; }
+.icon-sm { width:14px; height:14px; }
+.icon-md { width:16px; height:16px; }
+.icon-lg { width:20px; height:20px; }
+</style>
+
 <header class="app-header">
   <div class="header-inner">
     <div class="brand">
+      <span class="brand-icon-svg"><svg class="icon icon-lg"><use href="#i-ship"/></svg></span>
       Maritime
       <span class="brand-sub">Procurement Dashboard</span>
     </div>
@@ -4025,16 +5038,20 @@ a:hover { text-decoration: underline; }
     </div>
     <div class="header-actions">
       <button class="icon-btn refresh has-label desktop-only" id="btn-refresh" title="Aggiorna dati (R)" aria-label="Aggiorna">
-        <span>↻</span><span class="label-md">Aggiorna</span>
+        <svg class="icon icon-sm"><use href="#i-refresh"/></svg><span class="label-md">Aggiorna</span>
       </button>
       <button class="icon-btn eod has-label desktop-only" id="btn-eod" title="Fine giornata" aria-label="Fine giornata">
-        <span>☾</span><span class="label-md">Fine giornata</span>
+        <svg class="icon icon-sm"><use href="#i-moon"/></svg><span class="label-md">Fine giornata</span>
       </button>
-      <button class="icon-btn desktop-only" id="btn-palette" title="Cerca (⌘K)" aria-label="Cerca">⌕</button>
+      <button class="icon-btn desktop-only" id="btn-palette" title="Cerca (⌘K)" aria-label="Cerca">
+        <svg class="icon icon-md"><use href="#i-search"/></svg>
+      </button>
       <button class="icon-btn desktop-only" id="btn-todos" title="Le mie to-do" aria-label="To-do">
-        ☐<span id="todos-badge" class="badge" style="display:none;">0</span>
+        <svg class="icon icon-md"><use href="#i-checksquare"/></svg><span id="todos-badge" class="badge" style="display:none;">0</span>
       </button>
-      <button class="icon-btn desktop-only" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">⚙</button>
+      <button class="icon-btn desktop-only" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">
+        <svg class="icon icon-md"><use href="#i-settings"/></svg>
+      </button>
 
       <!-- Menu mobile ☰ (visibile solo su <640px) -->
       <button class="icon-btn mobile-only" id="btn-mobile-menu" title="Menu" aria-label="Menu">
@@ -4045,14 +5062,14 @@ a:hover { text-decoration: underline; }
 
     <!-- Dropdown menu mobile -->
     <div class="mobile-menu" id="mobile-menu">
-      <button data-mm-action="refresh"><span class="icon">↻</span>Aggiorna dati</button>
-      <button data-mm-action="eod"><span class="icon">☾</span>Fine giornata</button>
+      <button data-mm-action="refresh"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-refresh"/></svg>Aggiorna dati</button>
+      <button data-mm-action="eod"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-moon"/></svg>Fine giornata</button>
       <div class="divider"></div>
-      <button data-mm-action="todo-new"><span class="icon">＋</span>Nuova to-do</button>
-      <button data-mm-action="todo-from-email"><span class="icon">📧</span>To-do da email</button>
-      <button data-mm-action="palette"><span class="icon">⌕</span>Cerca</button>
+      <button data-mm-action="todo-new"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-plus"/></svg>Nuova to-do</button>
+      <button data-mm-action="todo-from-email"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-mail"/></svg>To-do da email</button>
+      <button data-mm-action="palette"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-search"/></svg>Cerca</button>
       <div class="divider"></div>
-      <button data-mm-action="settings"><span class="icon">⚙</span>Impostazioni</button>
+      <button data-mm-action="settings"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-settings"/></svg>Impostazioni</button>
     </div>
   </div>
 </header>
@@ -5571,8 +6588,8 @@ function renderSwitcher() {
   // Pill To-do (badge con conteggio aperte)
   const openTodosCount = todosOpen().length;
   const todoPill = makeEl(`<button class="pill ${state.view === "todos" ? "active" : ""}" data-view="todos" role="tab">
-    <span>☐ To-do</span>
-    ${openTodosCount > 0 ? `<span class="pill-dot crit" style="background: var(--c-blue-dot);"></span>` : ""}
+    <svg class="icon icon-sm" style="vertical-align:-2px;margin-right:4px"><use href="#i-checksquare"/></svg>
+    <span>To-do</span>
     <span class="pill-key">${openTodosCount > 0 ? openTodosCount : ""}</span>
   </button>`);
   row.appendChild(todoPill);
@@ -5584,9 +6601,11 @@ function renderSwitcher() {
   // v0.11 — Pill Certificati (badge con scaduti+urgenti)
   const certGlobalStats = getCertStatsGlobal();
   const certUrgent = certGlobalStats.expired + certGlobalStats.urgent;
+  const certExpired = certGlobalStats.expired || 0;
   const certPill = makeEl(`<button class="pill ${state.view === "certificates" ? "active" : ""}" data-view="certificates" role="tab">
-    <span>🛡️ Certificati</span>
-    ${certUrgent > 0 ? `<span class="pill-dot crit" style="background: var(--c-red-dot);"></span>` : ""}
+    <svg class="icon icon-sm" style="vertical-align:-2px;margin-right:4px"><use href="#i-shield-check"/></svg>
+    <span>Certificati</span>
+    ${certExpired > 0 ? `<span class="tab-alert-dot" title="${certExpired} scaduti"></span>` : ""}
     <span class="pill-key">${certUrgent > 0 ? certUrgent : ""}</span>
   </button>`);
   row.appendChild(certPill);
@@ -5702,23 +6721,38 @@ function renderOverview() {
     // Conteggio to-do aperte specifiche per questa nave
     const vesselTodos = todosForVessel(cfg.vesselId, false);
     const todoBadge = vesselTodos.length > 0 ?
-      `<span class="vessel-todo-badge" data-vessel-todos="${cfg.vesselId}" title="${vesselTodos.length} to-do aperte">☐ ${vesselTodos.length}</span>` : "";
+      `<span class="vessel-todo-badge" data-vessel-todos="${cfg.vesselId}" title="${vesselTodos.length} to-do aperte"><svg class="icon icon-sm" style="vertical-align:-2px;margin-right:3px"><use href="#i-checksquare"/></svg>${vesselTodos.length}</span>` : "";
 
     // v0.11.2 — Badge certificati nella card nave (solo se ce ne sono in scadenza ≤ 90gg o scaduti)
+    // v0.15 — uso cert-pill style v3 senza emoji
     const cStats = getCertStatsForVessel(cfg.vesselId);
     const certBadges = [];
-    if (cStats.expired > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-expired" title="${cStats.expired} scaduti">🔴 ${cStats.expired}</span>`);
-    if (cStats.urgent > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-urgent" title="${cStats.urgent} entro 30 giorni">🟠 ${cStats.urgent}</span>`);
-    if (cStats.week > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-week" title="${cStats.week} in 31-60 giorni">🟡 ${cStats.week}</span>`);
-    if (cStats.somedays > 0) certBadges.push(`<span class="vessel-cert-badge cert-bg-somedays" title="${cStats.somedays} in 61-90 giorni">🔵 ${cStats.somedays}</span>`);
+    if (cStats.expired > 0) certBadges.push(`<span class="cert-pill red" title="${cStats.expired} scaduti">${cStats.expired}</span>`);
+    if (cStats.urgent > 0) certBadges.push(`<span class="cert-pill orange" title="${cStats.urgent} entro 30 giorni">${cStats.urgent}</span>`);
+    if (cStats.week > 0) certBadges.push(`<span class="cert-pill yellow" title="${cStats.week} in 31-60 giorni">${cStats.week}</span>`);
+    if (cStats.somedays > 0) certBadges.push(`<span class="cert-pill blue" title="${cStats.somedays} in 61-90 giorni">${cStats.somedays}</span>`);
     const certBadgesHTML = certBadges.length > 0 ?
       `<span class="vessel-cert-badges" data-vessel-certs="${cfg.vesselId}" title="Click per aprire i certificati di questa nave">${certBadges.join("")}</span>` : "";
 
-    cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}">
+    cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}" data-status="${(() => {
+      // v0.15: drydock se voyage status è drydock, altrimenti vesselStatus
+      const voySumm = getVoyageSummaryForCard(cfg.vesselId);
+      if (voySumm && voySumm.status === "drydock") return "drydock";
+      return status === "crit" ? "crit" : status === "warn" ? "warn" : "ok";
+    })()}">
       <div class="vessel-card-head">
+        <div class="vessel-status-icon">
+          ${(() => {
+            const voySumm = getVoyageSummaryForCard(cfg.vesselId);
+            if (voySumm && voySumm.status === "drydock") return '<svg class="icon icon-md"><use href="#i-wrench"/></svg>';
+            if (status === "crit") return '<svg class="icon icon-md"><use href="#i-alert"/></svg>';
+            if (voySumm && voySumm.status === "at_anchor") return '<svg class="icon icon-md"><use href="#i-anchor"/></svg>';
+            if (voySumm && voySumm.status === "at_sea") return '<svg class="icon icon-md"><use href="#i-waves"/></svg>';
+            return '<svg class="icon icon-md"><use href="#i-ship"/></svg>';
+          })()}
+        </div>
         <div class="vessel-name">
-          <span class="pill-dot ${status === "green" ? "" : status}"></span>
-          ${cfg.displayName}
+          <span class="vessel-name-text">${cfg.displayName}</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
           ${todoBadge}
@@ -5727,26 +6761,30 @@ function renderOverview() {
         </div>
       </div>
       <div class="kpi-row">
-        <div class="kpi clickable" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">RFQ</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
-        <div class="kpi clickable ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}" data-kpi-filter="rfqOverdue7" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Overdue</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
-        <div class="kpi clickable ${(v.readyForPO || 0) > 0 ? "blue" : ""}" data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
-        <div class="kpi clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
-        <div class="kpi clickable" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
+        <div class="kpi clickable ${(v.rfqOpen || 0) === 0 ? "" : ""}" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"${(v.rfqOpen || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">RFQ</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
+        <div class="kpi clickable ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}" data-kpi-filter="rfqOverdue7" data-kpi-vid="${cfg.vesselId}"${(v.rfqOverdue7 || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">Overdue</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
+        <div class="kpi clickable ${(v.readyForPO || 0) > 0 ? "blue" : ""}" data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"${(v.readyForPO || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
+        <div class="kpi clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"${(v.orders || 0) === 0 ? ' data-zero="1"' : ''}><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
+        <div class="kpi clickable ${(v.dnPending || 0) > 10 ? "alert" : (v.dnPending || 0) > 0 ? "amber" : ""}" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"${(v.dnPending || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
       </div>
       ${(() => {
         // v0.12 — Se c'è un voyage manuale, lo mostro al posto del prossimo porto da AIS
         const voySumm = getVoyageSummaryForCard(cfg.vesselId);
         if (voySumm && voySumm.nextPort) {
           const statusLabel = voySumm.status ? VOYAGE_STATUS_LABELS[voySumm.status] || "" : "";
+          // v0.15 — classe eta in base a stato: past (giorno passato), urgent (≤2gg), ok (normale)
+          let etaClass = "ok";
+          if (voySumm.daysLabel && voySumm.daysLabel.includes("fa")) etaClass = "past";
+          else if (voySumm.urgent) etaClass = "urgent";
           return `<div class="vessel-foot vessel-foot-voyage">
-            <span>${statusLabel ? statusLabel + " · " : ""}prossimo: <strong>${escapeHTML(voySumm.nextPort)}</strong></span>
-            <span class="${voySumm.urgent ? 'eta-urgent' : ''}">${voySumm.daysLabel ? "ETA " + voySumm.daysLabel : "ETA —"}</span>
+            <span class="route-info"><svg class="icon icon-sm"><use href="#i-mappin"/></svg>${statusLabel ? statusLabel + " · " : ""}prossimo: <strong>${escapeHTML(voySumm.nextPort)}</strong></span>
+            <span class="eta-badge ${etaClass}"><svg class="icon icon-sm"><use href="#i-clock"/></svg>${voySumm.daysLabel ? "ETA " + voySumm.daysLabel : "ETA —"}</span>
           </div>`;
         }
         // Fallback: prossimo porto da AIS come prima
         return `<div class="vessel-foot">
-          <span>Prossimo porto</span>
-          <span>${eta}</span>
+          <span class="route-info"><svg class="icon icon-sm"><use href="#i-mappin"/></svg>Prossimo porto</span>
+          <span class="eta-badge">${eta}</span>
         </div>`;
       })()}
     </div>`;
@@ -5762,9 +6800,9 @@ function renderOverview() {
 
     <section class="world-clock-section-compact">
       <div class="section-title section-title-compact">
-        <h2>Orologio mondiale</h2>
+        <h2><svg class="icon icon-md"><use href="#i-clock"/></svg>Orologio mondiale</h2>
         <span class="section-meta">
-          <button class="btn-mini-link" onclick="window.openWorldClockSettings()" title="Modifica le città mostrate">⚙</button>
+          <button class="btn-mini-link" onclick="window.openWorldClockSettings()" title="Modifica le città mostrate"><svg class="icon icon-sm"><use href="#i-settings"/></svg></button>
         </span>
       </div>
       <div class="world-clock-strip world-clock-strip-compact" id="world-clock-strip">${renderWorldClock()}</div>
@@ -5772,18 +6810,33 @@ function renderOverview() {
 
     <section>
       <div class="section-title">
-        <h2>Flotta</h2>
-        <span class="section-meta">${VESSELS.length} navi · clicca per dettaglio</span>
+        <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Flotta</h2>
+        <span class="section-meta">${(() => {
+          // v0.15 — conteggio per stato per dare contesto immediato
+          let crit = 0, warn = 0;
+          for (const cfg of VESSELS) {
+            const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
+            if (!v) continue;
+            const merged = { ...v, ...cfg };
+            const st = vesselStatus(merged);
+            if (st === "crit") crit++;
+            else if (st === "warn") warn++;
+          }
+          const parts = [`${VESSELS.length} navi`];
+          if (crit > 0) parts.push(`<strong style="color:var(--c-red-fg)">${crit} critic${crit === 1 ? "a" : "he"}</strong>`);
+          if (warn > 0) parts.push(`<strong style="color:var(--c-amber-fg)">${warn} attenzione</strong>`);
+          return parts.join(" · ");
+        })()}</span>
       </div>
       <div class="vessel-grid">${cardsHTML}</div>
     </section>
 
     <section>
       <div class="section-title">
-        <h2>Azioni oggi</h2>
+        <h2><svg class="icon icon-md"><use href="#i-checksquare"/></svg>Azioni oggi</h2>
         <div style="display: flex; gap: 12px; align-items: center;">
           <span class="section-meta" id="actions-today-meta"></span>
-          <button class="btn-mini-link" onclick="window.openCompletionsArchive()" title="Archivio completo delle azioni completate">📚 Archivio</button>
+          <button class="btn-mini-link" onclick="window.openCompletionsArchive()" title="Archivio completo delle azioni completate"><svg class="icon icon-sm"><use href="#i-eye"/></svg> Archivio</button>
         </div>
       </div>
       ${actionsHTML}
@@ -5791,7 +6844,7 @@ function renderOverview() {
 
     <section>
       <div class="section-title">
-        <h2>Carico settimana</h2>
+        <h2><svg class="icon icon-md"><use href="#i-truck"/></svg>Carico settimana</h2>
         <span class="section-meta">consegne previste</span>
       </div>
       <div class="heatmap">${renderHeatmap()}</div>
@@ -9867,23 +10920,23 @@ function renderActionsTodayV2(opts) {
 
   // v0.10.2: prima le fissate, poi le tre fasce
   if (pinned.length > 0) {
-    body += `<div class="actions-group pinned-group">
-      <div class="actions-group-title">📌 Fissate da te <span class="muted">(${pinned.length})</span></div>
+    body += `<div class="actions-group pinned-group" data-group="pinned">
+      <div class="actions-group-title"><svg class="icon icon-md"><use href="#i-pin"/></svg> Fissate da te <span class="muted">${pinned.length}</span></div>
       ${pinned.map(a => actionRowHTMLv2(a)).join("")}
     </div>`;
   }
 
   if (urgent.length + week.length + someday.length === 0 && pinned.length === 0) {
-    body = `<div class="empty-state" style="padding: 24px;">✓ Nessuna azione al momento${vesselFilter !== "all" ? " (per questa nave)" : ""}.</div>`;
+    body = `<div class="empty-state" style="padding: 24px;"><svg class="icon icon-md" style="color:var(--c-green-dot);vertical-align:-3px;margin-right:4px"><use href="#i-check-circle"/></svg> Nessuna azione al momento${vesselFilter !== "all" ? " (per questa nave)" : ""}.</div>`;
   } else {
     if (urgent.length > 0) {
-      body += renderActionGroup("urgent", "🔴 Urgente", urgent);
+      body += renderActionGroup("urgent", '<svg class="icon icon-md"><use href="#i-flame"/></svg> Urgente', urgent);
     }
     if (week.length > 0) {
-      body += renderActionGroup("week", "🟡 Questa settimana", week);
+      body += renderActionGroup("week", '<svg class="icon icon-md"><use href="#i-clock"/></svg> Questa settimana', week);
     }
     if (someday.length > 0) {
-      body += renderActionGroup("someday", "🔵 Quando puoi", someday);
+      body += renderActionGroup("someday", '<svg class="icon icon-md"><use href="#i-circle"/></svg> Quando puoi', someday);
     }
   }
 
@@ -9896,7 +10949,11 @@ function renderActionsTodayV2(opts) {
     if (m) {
       const total = urgent.length + week.length + someday.length;
       const completed = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today).length;
-      m.innerHTML = `<span style="color: var(--text-muted);">${total} aperte · ${completed} fatte oggi</span>`;
+      // v0.15: completati in verde "tranquillità" — soddisfazione visiva
+      const completedBadge = completed > 0
+        ? `<span class="actions-done-count"><svg class="icon icon-sm"><use href="#i-check"/></svg> ${completed} fatte oggi</span>`
+        : `<span style="color: var(--text-faint); font-size: var(--fs-xs);">${completed} fatte oggi</span>`;
+      m.innerHTML = `<span style="color: var(--text-muted);">${total} aperte</span> · ${completedBadge}`;
     }
   }, 10);
 
@@ -10067,7 +11124,7 @@ function renderActionGroup(groupId, title, actions) {
 
   return `
     <div class="actions-group" data-group="${escapeAttr(groupId)}">
-      <div class="actions-group-title">${title} <span class="muted">(${actions.length})</span></div>
+      <div class="actions-group-title">${title} <span class="muted">${actions.length}</span></div>
       ${groupedRows.join("")}
       ${singlesHTML}
     </div>
@@ -10080,10 +11137,10 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
   const groupKey = parentGroup + ":" + ruleType;
   const isExpanded = state._actionsTodayExpanded.has(groupKey);
   const labels = {
-    overdue: { icon: "📞", verb: "RFQ da sollecitare" },
-    refused: { icon: "🔴", verb: "RFQ rifiutate" },
-    readyPO: { icon: "📋", verb: "pronti per PO" },
-    outwindow: { icon: "⚠", verb: "consegne fuori finestra" }
+    overdue: { icon: '<svg class="icon icon-sm"><use href="#i-phone"/></svg>', verb: "RFQ da sollecitare" },
+    refused: { icon: '<svg class="icon icon-sm" style="color:var(--c-red-dot)"><use href="#i-alert"/></svg>', verb: "RFQ rifiutate" },
+    readyPO: { icon: '<svg class="icon icon-sm"><use href="#i-checksquare"/></svg>', verb: "pronti per PO" },
+    outwindow: { icon: '<svg class="icon icon-sm" style="color:var(--c-amber-dot)"><use href="#i-alert"/></svg>', verb: "consegne fuori finestra" }
   };
   const l = labels[ruleType] || { icon: "•", verb: ruleType };
 
@@ -10117,7 +11174,7 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
             items: supItems.map(i => ({ description: i.description || "", days: i.ageDays || "?" }))
           };
           const ctxJson = encodeURIComponent(JSON.stringify(ctx));
-          batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')">📨 Sollecita tutti (${supItems.length}) →</button>`;
+          batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')"><svg class="icon icon-sm"><use href="#i-send"/></svg> Sollecita tutti (${supItems.length}) →</button>`;
         }
         return `
           <div class="supplier-subgroup">
@@ -10137,7 +11194,7 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
   }
 
   return `
-    <div class="action-group-summary ${isExpanded ? 'expanded' : ''}">
+    <div class="action-group-summary ${isExpanded ? 'expanded' : ''}" data-priority="${escapeAttr(parentGroup)}">
       <div class="action-group-summary-row" onclick="window.toggleActionGroup('${escapeAttr(groupKey)}')">
         <span class="group-icon">${l.icon}</span>
         <span class="group-label"><strong>${items.length}</strong> ${l.verb}</span>
@@ -10166,7 +11223,7 @@ function actionRowHTMLv2(a, isInGroup) {
     const today = todayISO();
     if (snoozeDate <= today) {
       // Data scaduta: è "tornata dal rimando"
-      returnedTag = `<span class="returned-tag" title="Rimandata da te al ${snoozeDate}, ora rientrata">⏰ rientrata</span>`;
+      returnedTag = `<span class="returned-tag" title="Rimandata da te al ${snoozeDate}, ora rientrata"><svg class="icon icon-sm" style="vertical-align:-2px"><use href="#i-clock"/></svg> rientrata</span>`;
     }
   }
 
@@ -10200,12 +11257,12 @@ function actionRowHTMLv2(a, isInGroup) {
   // v0.10.2 — Bottone "+to-do" su ogni azione (trasforma azione in to-do programmata)
   // (non per azioni che SONO già to-do utente)
   const todoBtn = a._kind !== "todo" ? `
-    <button class="btn-action-to-todo" data-action-todo="${escapeAttr(a.key)}" title="Crea to-do da questa azione">+</button>
+    <button class="btn-action-to-todo" data-action-todo="${escapeAttr(a.key)}" title="Crea to-do da questa azione"><svg class="icon icon-sm"><use href="#i-plus"/></svg></button>
   ` : "";
 
   // v0.10.2 — Bottone "📌 pin"
   const isPinned = (state.pinnedActions || []).includes(a.key);
-  const pinBtn = `<button class="btn-pin ${isPinned ? "pinned" : ""}" data-pin-key="${escapeAttr(a.key)}" title="${isPinned ? "Sfissa" : "Fissa in cima"}">📌</button>`;
+  const pinBtn = `<button class="btn-pin btn-mini-pin ${isPinned ? "pinned" : ""}" data-pin-key="${escapeAttr(a.key)}" title="${isPinned ? "Sfissa" : "Fissa in cima"}"><svg class="icon icon-sm"><use href="#i-pin"/></svg></button>`;
 
   // v0.10.4 — Riga doc number (cliccabile per copia, popover se multi)
   let docHTML = "";
@@ -10236,8 +11293,8 @@ function actionRowHTMLv2(a, isInGroup) {
     <div class="action-btns">
       ${actionBtn}
       ${todoBtn}
-      <button class="btn-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" data-vessel-name="${escapeAttr(a.vesselName || "")}" data-description="${escapeAttr(desc)}" data-supplier="${escapeAttr(a.supplier || "")}" data-level="${escapeAttr(a.level || "")}" title="Segna come fatto">✓</button>
-      <button class="btn-snooze" data-snooze-key="${escapeAttr(a.key)}" data-action-json="${escapeAttr(JSON.stringify({label: a.label, vesselId: a.vesselId, vesselName: a.vesselName, description: desc, supplier: a.supplier}))}" title="Rimanda">⏰</button>
+      <button class="btn-done btn-mini-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" data-vessel-name="${escapeAttr(a.vesselName || "")}" data-description="${escapeAttr(desc)}" data-supplier="${escapeAttr(a.supplier || "")}" data-level="${escapeAttr(a.level || "")}" title="Segna come fatto"><svg class="icon icon-sm"><use href="#i-check"/></svg></button>
+      <button class="btn-snooze btn-mini-snooze" data-snooze-key="${escapeAttr(a.key)}" data-action-json="${escapeAttr(JSON.stringify({label: a.label, vesselId: a.vesselId, vesselName: a.vesselName, description: desc, supplier: a.supplier}))}" title="Rimanda"><svg class="icon icon-sm"><use href="#i-clock"/></svg></button>
       ${pinBtn}
     </div>
   </div>`;
