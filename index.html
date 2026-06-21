@@ -16,16 +16,6 @@
   --font-sans: 'Inter', 'Lexend', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
 
-  /* v0.16 — COLORI NAVI (faldoni in ufficio): tricolore italiano + navy */
-  --c-peppino: #c8362f;       /* rosso bandiera */
-  --c-peppino-soft: #fef1ef;
-  --c-toscana: #1565c0;       /* azzurro nazionale (maglia Azzurri) */
-  --c-toscana-soft: #e3f0fc;
-  --c-liguria: #117a3a;       /* verde bandiera/faldoni */
-  --c-liguria-soft: #ecf6ef;
-  --c-norrbotten: #1a2c5e;    /* blu navy */
-  --c-norrbotten-soft: #e6e9f2;
-
   /* Scala tipografica v3 — armonica a 7 taglie */
   --fs-xs: 11px;
   --fs-sm: 13px;
@@ -4889,12 +4879,91 @@ a:hover { text-decoration: underline; }
 }
 
 
-/* =============================================================================
-   v0.16 — ADDITIVO STYLE V4 CONTROL ROOM
-   Solo override mirati, non sostituisce nulla.
-   ============================================================================= */
 
-/* === CONTROL ROOM KPI STRIP (sopra le card flotta) === */
+/* ============================================================================
+   v0.17 — STYLE "CONTROL ROOM v4"  (layer ADDITIVO sul baseline pulito)
+   Costruisce l'estetica del mockup home-redesign v4 SENZA sostituire nulla
+   del CSS esistente: solo override mirati + nuovi selettori per gli elementi
+   v4. Niente logica toccata.
+   Per rimuovere tutto: cancellare il blocco tra V4-START e V4-END
+   (questo CSS) + lo snippet JS marcato "V4-JS" più in basso nel file.
+   === V4-START ============================================================== */
+
+/* --- 0. VARIABILI COLORE NAVI (faldoni ufficio): tricolore + navy ----------- */
+:root {
+  --c-peppino: #c8362f;       /* rosso bandiera */
+  --c-peppino-soft: #fef1ef;
+  --c-toscana: #1565c0;       /* azzurro nazionale */
+  --c-toscana-soft: #e3f0fc;
+  --c-liguria: #117a3a;       /* verde bandiera/faldoni */
+  --c-liguria-soft: #ecf6ef;
+  --c-norrbotten: #1a2c5e;    /* blu navy */
+  --c-norrbotten-soft: #e6e9f2;
+}
+
+/* --- 1. HEADER: brand circolare azzurro (no barra ricerca) ------------------ */
+.brand-icon-svg {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-2, #0a3f93), var(--accent, #0e54c1));
+  color: #fff !important;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(14,84,193,0.28);
+  flex-shrink: 0;
+}
+.brand-icon-svg .icon { width: 21px; height: 21px; vertical-align: 0; }
+.brand { gap: 10px; }
+
+/* --- 2. VESSEL SWITCHER: sottolineatura colorata per nave ------------------- */
+.vessel-switcher { background: #fff; }
+.pill {
+  border-radius: 8px 8px 0 0;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  min-height: 42px;
+  font-weight: 600;
+}
+.pill:hover { background: var(--bg-muted); }
+.pill .pill-key {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 7px;
+  opacity: 1;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+.pill.active {
+  background: var(--bg-muted);
+  color: var(--text);
+  border-color: transparent;
+  border-bottom: 3px solid var(--accent);
+}
+.pill.active .pill-key { background: #fff; }
+.pill[data-vid="peppino"].active    { border-bottom-color: var(--c-peppino); }
+.pill[data-vid="medtoscana"].active { border-bottom-color: var(--c-toscana); }
+.pill[data-vid="medliguria"].active { border-bottom-color: var(--c-liguria); }
+.pill[data-vid="norrbotten"].active { border-bottom-color: var(--c-norrbotten); }
+.pill[data-vid="peppino"]:hover    { border-bottom-color: rgba(200,54,47,0.45); }
+.pill[data-vid="medtoscana"]:hover { border-bottom-color: rgba(21,101,192,0.45); }
+.pill[data-vid="medliguria"]:hover { border-bottom-color: rgba(17,122,58,0.45); }
+.pill[data-vid="norrbotten"]:hover { border-bottom-color: rgba(26,44,94,0.45); }
+
+/* I dot semaforici restano (stato), ma diamo la priorità all'underline nave */
+.pill .pill-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+@media (max-width: 640px) {
+  .pill { border-radius: 999px; border: 1px solid var(--border); border-bottom-width: 1px; }
+  .pill.active { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); }
+  .pill[data-vid="peppino"].active    { background: var(--c-peppino); border-color: var(--c-peppino); }
+  .pill[data-vid="medtoscana"].active { background: var(--c-toscana); border-color: var(--c-toscana); }
+  .pill[data-vid="medliguria"].active { background: var(--c-liguria); border-color: var(--c-liguria); }
+  .pill[data-vid="norrbotten"].active { background: var(--c-norrbotten); border-color: var(--c-norrbotten); }
+  .pill.active .pill-key { background: rgba(255,255,255,0.25); border-color: transparent; color:#fff; }
+}
+
+/* --- 3. CONTROL ROOM KPI STRIP (elemento NUOVO, generato dallo snippet JS) -- */
 .cr-strip {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -4902,9 +4971,9 @@ a:hover { text-decoration: underline; }
   margin-bottom: 24px;
 }
 .cr-stat {
-  background: white;
+  background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg, 10px);
   padding: 14px 16px;
   cursor: pointer;
   transition: transform .15s, box-shadow .15s, border-color .15s;
@@ -4912,43 +4981,24 @@ a:hover { text-decoration: underline; }
   position: relative;
   overflow: hidden;
 }
-.cr-stat:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-.cr-stat.is-critical {
-  border-color: var(--c-red-dot);
-}
+.cr-stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.cr-stat.is-critical { border-color: var(--c-red-dot); }
 .cr-stat.is-critical::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px; height: 100%;
-  background: var(--c-red-dot);
+  content: ""; position: absolute; top: 0; left: 0;
+  width: 3px; height: 100%; background: var(--c-red-dot);
 }
 .cr-stat-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 10px;
-  line-height: 1.3;
-  letter-spacing: -.01em;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  margin-bottom: 10px; line-height: 1.3; letter-spacing: -.01em;
 }
 .cr-stat-bubble {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  height: 44px;
-  padding: 0 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; height: 44px; padding: 0 14px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 26px;
-  font-weight: 800;
-  color: white;
-  line-height: 1;
+  font-size: 26px; font-weight: 800; color: #fff; line-height: 1;
   letter-spacing: -.02em;
-  box-shadow: 0 1px 4px rgba(0,0,0,.10);
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
 }
 .cr-stat-bubble.red { background: var(--c-red-dot); }
 .cr-stat-bubble.orange { background: var(--c-amber-dot); }
@@ -4956,15 +5006,8 @@ a:hover { text-decoration: underline; }
 .cr-stat-bubble.green { background: var(--c-green-active); }
 .cr-stat-bubble.purple { background: var(--c-purple-dot); }
 .cr-stat-bubble.grey { background: var(--text-faint); }
-.cr-stat-sublabel {
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-top: 8px;
-  font-weight: 500;
-}
-@media (max-width: 1100px) {
-  .cr-strip { grid-template-columns: repeat(3, 1fr); }
-}
+.cr-stat-sublabel { font-size: 11px; color: var(--text-faint); margin-top: 8px; font-weight: 500; }
+@media (max-width: 1100px) { .cr-strip { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 700px) {
   .cr-strip { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .cr-stat { padding: 10px 12px; }
@@ -4972,136 +5015,85 @@ a:hover { text-decoration: underline; }
   .cr-stat-label { font-size: 12px; }
 }
 
-/* === COLORI NAVI sulle VESSEL-CARD (header pieno colorato) === */
-/* Override barra sx 5px del colore nave */
-.vessel-card[data-vid="peppino"]::before { background: var(--c-peppino) !important; width: 5px !important; }
+/* --- 4. CARD FLOTTA: header pieno colorato per ogni nave -------------------- */
+.vessel-card { border-radius: var(--radius-lg, 10px); overflow: hidden; }
+.vessel-card[data-vid="peppino"]::before    { background: var(--c-peppino) !important; width: 5px !important; }
 .vessel-card[data-vid="medtoscana"]::before { background: var(--c-toscana) !important; width: 5px !important; }
 .vessel-card[data-vid="medliguria"]::before { background: var(--c-liguria) !important; width: 5px !important; }
 .vessel-card[data-vid="norrbotten"]::before { background: var(--c-norrbotten) !important; width: 5px !important; }
 
-/* Header card pieno colorato per ogni nave */
-.vessel-card[data-vid="peppino"] .vessel-card-head {
-  background: var(--c-peppino);
-  color: white;
-  border-bottom-color: var(--c-peppino);
-}
-.vessel-card[data-vid="medtoscana"] .vessel-card-head {
-  background: var(--c-toscana);
-  color: white;
-  border-bottom-color: var(--c-toscana);
-}
-.vessel-card[data-vid="medliguria"] .vessel-card-head {
-  background: var(--c-liguria);
-  color: white;
-  border-bottom-color: var(--c-liguria);
-}
-.vessel-card[data-vid="norrbotten"] .vessel-card-head {
-  background: var(--c-norrbotten);
-  color: white;
-  border-bottom-color: var(--c-norrbotten);
-}
-/* Testi sull'header colorato → bianco */
-.vessel-card[data-vid="peppino"] .vessel-card-head .vessel-name-text,
-.vessel-card[data-vid="medtoscana"] .vessel-card-head .vessel-name-text,
-.vessel-card[data-vid="medliguria"] .vessel-card-head .vessel-name-text,
-.vessel-card[data-vid="norrbotten"] .vessel-card-head .vessel-name-text {
-  color: white;
-}
-.vessel-card[data-vid="peppino"] .vessel-card-head .vessel-meta,
-.vessel-card[data-vid="medtoscana"] .vessel-card-head .vessel-meta,
-.vessel-card[data-vid="medliguria"] .vessel-card-head .vessel-meta,
-.vessel-card[data-vid="norrbotten"] .vessel-card-head .vessel-meta {
-  color: rgba(255,255,255,0.88);
-}
-/* Status icon (cerchio bianco trasparente) sull'header */
-.vessel-card[data-vid="peppino"] .vessel-status-icon,
-.vessel-card[data-vid="medtoscana"] .vessel-status-icon,
-.vessel-card[data-vid="medliguria"] .vessel-status-icon,
-.vessel-card[data-vid="norrbotten"] .vessel-status-icon {
-  background: rgba(255,255,255,0.20);
-  color: white;
-}
-/* Badge to-do e cert sopra header → sfondo bianco */
-.vessel-card[data-vid="peppino"] .vessel-card-head .vessel-todo-badge,
-.vessel-card[data-vid="medtoscana"] .vessel-card-head .vessel-todo-badge,
-.vessel-card[data-vid="medliguria"] .vessel-card-head .vessel-todo-badge,
-.vessel-card[data-vid="norrbotten"] .vessel-card-head .vessel-todo-badge {
-  background: rgba(255,255,255,0.95);
-  color: var(--text);
-  border: none;
-}
-.vessel-card[data-vid="peppino"] .vessel-card-head .cert-pill,
-.vessel-card[data-vid="medtoscana"] .vessel-card-head .cert-pill,
-.vessel-card[data-vid="medliguria"] .vessel-card-head .cert-pill,
-.vessel-card[data-vid="norrbotten"] .vessel-card-head .cert-pill {
-  background: rgba(255,255,255,0.95);
-  border: none;
-}
+.vessel-card[data-vid="peppino"] .vessel-card-head    { background: var(--c-peppino); color:#fff; border-bottom-color: var(--c-peppino); }
+.vessel-card[data-vid="medtoscana"] .vessel-card-head { background: var(--c-toscana); color:#fff; border-bottom-color: var(--c-toscana); }
+.vessel-card[data-vid="medliguria"] .vessel-card-head { background: var(--c-liguria); color:#fff; border-bottom-color: var(--c-liguria); }
+.vessel-card[data-vid="norrbotten"] .vessel-card-head { background: var(--c-norrbotten); color:#fff; border-bottom-color: var(--c-norrbotten); }
 
-/* === VESSEL TAG colorato per nave nelle azioni === */
-.vessel-tag-colored {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 800;
-  color: white;
-  letter-spacing: .03em;
-  white-space: nowrap;
-  margin-left: 6px;
-  vertical-align: 1px;
-  text-transform: uppercase;
+.vessel-card[data-vid] .vessel-card-head .vessel-name-text { color: #fff; }
+.vessel-card[data-vid] .vessel-card-head .vessel-meta { color: rgba(255,255,255,0.88); }
+.vessel-card[data-vid] .vessel-status-icon { background: rgba(255,255,255,0.20); color: #fff; }
+.vessel-card[data-vid] .vessel-card-head .vessel-todo-badge {
+  background: rgba(255,255,255,0.95); color: var(--text); border: none;
 }
-.vessel-tag-colored[data-vid="peppino"] { background: var(--c-peppino); }
-.vessel-tag-colored[data-vid="medtoscana"] { background: var(--c-toscana); }
-.vessel-tag-colored[data-vid="medliguria"] { background: var(--c-liguria); }
-.vessel-tag-colored[data-vid="norrbotten"] { background: var(--c-norrbotten); }
+.vessel-card[data-vid] .vessel-card-head .cert-pill { background: rgba(255,255,255,0.95); border: none; }
 
-/* === HEATMAP — dot colorato accanto ai nomi nave === */
+/* --- 5. SECTION TITLE -------------------------------------------------------- */
+.section-title h2 { letter-spacing: -0.01em; }
+.section-title h2 .icon { color: var(--text-faint); }
+
+/* --- 6. AZIONI: gruppi a barra + badge nave colorati + status pill piene ---- */
+.actions-group-title {
+  font-size: 12px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted);
+  padding: 7px 12px; background: var(--bg-muted);
+  border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px;
+}
+.actions-group-title .icon { color: var(--text-faint); }
+.actions-group-title .muted, .actions-group-title .num { color: var(--text-faint); font-weight: 700; }
+.actions-group[data-group="urgent"]  .actions-group-title { border-left: 4px solid var(--c-red-dot); }
+.actions-group[data-group="week"]    .actions-group-title { border-left: 4px solid var(--c-amber-dot); }
+.actions-group[data-group="someday"] .actions-group-title { border-left: 4px solid var(--c-blue-dot); }
+.actions-group.pinned-group .actions-group-title { border-left: 4px solid var(--c-purple-dot); }
+
+/* Tag nave colorato nelle righe azioni (markup esistente: .vessel-tag) */
+.action-row .action-body .vessel-tag[data-vid="peppino"]    { background: var(--c-peppino); color:#fff; border-color: var(--c-peppino); }
+.action-row .action-body .vessel-tag[data-vid="medtoscana"] { background: var(--c-toscana); color:#fff; border-color: var(--c-toscana); }
+.action-row .action-body .vessel-tag[data-vid="medliguria"] { background: var(--c-liguria); color:#fff; border-color: var(--c-liguria); }
+.action-row .action-body .vessel-tag[data-vid="norrbotten"] { background: var(--c-norrbotten); color:#fff; border-color: var(--c-norrbotten); }
+
+/* Chip filtro nave nelle azioni → stile v4 (pieno quando attivo) */
+.action-filter-chip { border-radius: 6px; font-weight: 600; box-shadow: var(--shadow-btn); }
+.action-filter-chip.active { background: var(--text); border-color: var(--text); color: #fff; }
+
+/* --- 7. HEATMAP: testate scure v4 + dot colorato per nave ------------------- */
+.heatmap-label-h {
+  background: #2a3344; color: #fff; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; border-radius: 5px;
+}
 .heatmap-vessel-dot {
-  width: 10px; height: 10px;
-  border-radius: 2px;
-  display: inline-block;
-  margin-right: 6px;
-  vertical-align: -1px;
+  width: 10px; height: 10px; border-radius: 2px;
+  display: inline-block; margin-right: 6px; vertical-align: -1px;
 }
-.heatmap-vessel-dot[data-vid="peppino"] { background: var(--c-peppino); }
+.heatmap-vessel-dot[data-vid="peppino"]    { background: var(--c-peppino); }
 .heatmap-vessel-dot[data-vid="medtoscana"] { background: var(--c-toscana); }
 .heatmap-vessel-dot[data-vid="medliguria"] { background: var(--c-liguria); }
 .heatmap-vessel-dot[data-vid="norrbotten"] { background: var(--c-norrbotten); }
 
-/* === STATUS PILL PIENE COLORATE per le azioni === */
-.status-pill-cr {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  white-space: nowrap;
-}
-.status-pill-cr.urgent, .status-pill-cr.crit { background: var(--c-red-dot); }
-.status-pill-cr.warn { background: var(--c-amber-dot); }
-.status-pill-cr.attesa { background: #d4a017; color: #4a3700; }
-.status-pill-cr.info { background: var(--c-blue-dot); }
-.status-pill-cr.ok, .status-pill-cr.green { background: var(--c-green-active); }
-.status-pill-cr.flag, .status-pill-cr.purple { background: var(--c-purple-dot); }
-.status-pill-cr.neutral, .status-pill-cr.grey { background: var(--text-faint); }
+/* --- 8. CERTIFICATI: testata tabella scura v4 ------------------------------- */
+.cert-table-section { border-radius: var(--radius-lg, 10px); overflow: hidden; }
+.cert-table th { background: #2a3344; color: #fff; border-bottom: none; }
+.cert-filter-chip { border-radius: 6px; font-weight: 600; }
+.cert-filter-chip.active { background: var(--text); border-color: var(--text); color: #fff; }
 
-/* Color dot nelle pill switcher per ogni nave (in alto) */
-.switcher-tab[data-vid="peppino"] .pill-dot,
-.pill[data-vid="peppino"] .pill-dot { background: var(--c-peppino); }
-.switcher-tab[data-vid="medtoscana"] .pill-dot,
-.pill[data-vid="medtoscana"] .pill-dot { background: var(--c-toscana); }
-.switcher-tab[data-vid="medliguria"] .pill-dot,
-.pill[data-vid="medliguria"] .pill-dot { background: var(--c-liguria); }
-.switcher-tab[data-vid="norrbotten"] .pill-dot,
-.pill[data-vid="norrbotten"] .pill-dot { background: var(--c-norrbotten); }
+/* --- 9. TO-DO PAGE: chip filtro coerenti v4 -------------------------------- */
+.todo-toolbar .filter-chip { border-radius: 6px; font-weight: 600; box-shadow: var(--shadow-btn); }
+.todo-toolbar .filter-chip.active { background: var(--text); border-color: var(--text); color: #fff; }
 
+/* --- 10. SWITCHER dot per nave (anche se non attiva) ------------------------ */
+.pill[data-vid="peppino"] .pill-dot    { box-shadow: 0 0 0 2px rgba(200,54,47,0.18); }
+.pill[data-vid="medtoscana"] .pill-dot { box-shadow: 0 0 0 2px rgba(21,101,192,0.18); }
+.pill[data-vid="medliguria"] .pill-dot { box-shadow: 0 0 0 2px rgba(17,122,58,0.18); }
+.pill[data-vid="norrbotten"] .pill-dot { box-shadow: 0 0 0 2px rgba(26,44,94,0.18); }
+
+/* === V4-END ================================================================ */
 
 </style>
 </head>
@@ -6876,6 +6868,82 @@ function renderError() {
 }
 
 // ----- OVERVIEW VIEW -----------------------------------------------------
+/* === V4-JS: Control Room KPI strip (elemento nuovo, additivo) ============= */
+/* Calcola 6 KPI globali dai dati gia' presenti e restituisce l'HTML .cr-strip.
+   Cliccando una card si applica il filtro corrispondente (riusa funzioni esistenti). */
+function renderControlRoomStrip() {
+  try {
+    if (!state || !state.data || !state.data.vessels) return "";
+    var vessels = state.data.vessels;
+
+    // Somme globali dai campi per-nave gia' calcolati
+    var rfqOverdue = 0, readyPO = 0, dnPending = 0;
+    for (var i = 0; i < vessels.length; i++) {
+      var v = vessels[i];
+      rfqOverdue += (v.rfqOverdue7 || 0);
+      readyPO    += (v.readyForPO || 0);
+      dnPending  += (v.dnPending  || 0);
+    }
+
+    // Azioni urgenti = azioni di sistema "critical" + to-do scadute/alta (riuso generateAllActions)
+    var urgent = 0;
+    try {
+      var allActions = (typeof generateAllActions === "function") ? generateAllActions() : [];
+      urgent = allActions.filter(function(a){ return a.level === "critical"; }).length;
+    } catch (e) { urgent = 0; }
+
+    // Certificati scaduti (globale)
+    var certExpired = 0;
+    try {
+      if (typeof getCertStatsGlobal === "function") certExpired = getCertStatsGlobal().expired || 0;
+    } catch (e) { certExpired = 0; }
+
+    // Fatte oggi (dal completionsHistory)
+    var doneToday = 0;
+    try {
+      var t = (typeof todayISO === "function") ? todayISO() : new Date().toISOString().slice(0,10);
+      doneToday = (state.completionsHistory || []).filter(function(e){
+        return (e.completedAt || "").slice(0,10) === t;
+      }).length;
+    } catch (e) { doneToday = 0; }
+
+    function stat(label, value, colorWhenPos, sub, critical, onclick) {
+      var color = value > 0 ? colorWhenPos : "green";
+      var cls = "cr-stat" + (critical && value > 0 ? " is-critical" : "");
+      var click = onclick ? ' onclick="' + onclick + '"' : '';
+      return '<div class="' + cls + '" title="' + label + '"' + click + '>' +
+               '<div class="cr-stat-label">' + label + '</div>' +
+               '<div class="cr-stat-bubble ' + color + '">' + value + '</div>' +
+               '<div class="cr-stat-sublabel">' + sub + '</div>' +
+             '</div>';
+    }
+
+    var now = new Date().toLocaleTimeString("it-IT", {hour:"2-digit", minute:"2-digit"});
+    var nNavi = (typeof VESSELS !== "undefined" ? VESSELS.length : vessels.length);
+
+    var strip =
+      '<section class="cr-section" style="margin-bottom:20px;">' +
+        '<div class="section-title">' +
+          '<h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Control Room</h2>' +
+          '<span class="section-meta">' + nNavi + ' navi · panoramica al ' + now + '</span>' +
+        '</div>' +
+        '<div class="cr-strip">' +
+          stat("Azioni urgenti", urgent, "red", "scadute o critiche", true) +
+          stat("Cert. scaduti", certExpired, "red", "richiedono rinnovo", true, "window.goCertificates&&window.goCertificates()") +
+          stat("RFQ sollecito", rfqOverdue, "orange", "in attesa risposta") +
+          stat("Pronte PO", readyPO, "blue", "offerte da chiudere") +
+          stat("DN pendenti", dnPending, (dnPending > 10 ? "red" : "purple"), "consegne in arrivo") +
+          stat("Fatte oggi", doneToday, "green", (doneToday > 0 ? "ottimo lavoro" : "iniziamo")) +
+        '</div>' +
+      '</section>';
+    return strip;
+  } catch (err) {
+    console.warn("renderControlRoomStrip:", err);
+    return "";
+  }
+}
+window.renderControlRoomStrip = renderControlRoomStrip;
+
 function renderOverview() {
   const root = document.getElementById("view-root");
   // v0.10.2 fix — Indicatore "tempo dall'ultima visita" — soglia ridotta a 30 minuti
@@ -7018,76 +7086,11 @@ function renderOverview() {
   // l'Overview deve restare una panoramica veloce, non una lista lunga.
   // Le to-do sono accessibili dalla pill "To-do" in alto e via badge sulle vessel-card.
 
-  // v0.16 — Control Room KPI Strip
-  const crStats = (() => {
-    let rfqOverdue = 0, readyPO = 0, dnPending = 0, certExpired = 0;
-    for (const cfg of VESSELS) {
-      const v = state.data && state.data.vessels && state.data.vessels.find(x => x.vesselId === cfg.vesselId);
-      if (!v) continue;
-      rfqOverdue += (v.rfqOverdue7 || 0);
-      readyPO += (v.readyForPO || 0);
-      dnPending += (v.dnPending || 0);
-    }
-    try {
-      const cgs = (typeof getCertStatsGlobal === "function") ? getCertStatsGlobal() : null;
-      certExpired = cgs ? (cgs.expired || 0) : 0;
-    } catch(_) {}
-    // Urgenti = somma di to-do urgenti aperte + RFQ overdue
-    let urgent = rfqOverdue;
-    try {
-      const openTd = (typeof todosOpen === "function") ? todosOpen() : [];
-      urgent += openTd.filter(t => t.priority === "urgent" || t.priority === "high").length;
-    } catch(_) {}
-    const today = new Date().toISOString().slice(0, 10);
-    const doneToday = ((state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0, 10) === today)).length;
-    return { urgent, certExpired, rfqOverdue, readyPO, dnPending, doneToday };
-  })();
-  const crStripHTML = `
-    <section class="cr-section" style="margin-bottom: 20px;">
-      <div class="section-title">
-        <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Control Room</h2>
-        <span class="section-meta">${VESSELS.length} navi · panoramica al ${new Date().toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit"})}</span>
-      </div>
-      <div class="cr-strip">
-        <div class="cr-stat ${crStats.urgent > 0 ? 'is-critical' : ''}" title="Azioni urgenti">
-          <div class="cr-stat-label">Azioni urgenti</div>
-          <div class="cr-stat-bubble ${crStats.urgent > 0 ? 'red' : 'green'}">${crStats.urgent}</div>
-          <div class="cr-stat-sublabel">scadute o critiche</div>
-        </div>
-        <div class="cr-stat ${crStats.certExpired > 0 ? 'is-critical' : ''}" title="Certificati scaduti">
-          <div class="cr-stat-label">Cert. scaduti</div>
-          <div class="cr-stat-bubble ${crStats.certExpired > 0 ? 'red' : 'green'}">${crStats.certExpired}</div>
-          <div class="cr-stat-sublabel">richiedono rinnovo</div>
-        </div>
-        <div class="cr-stat" title="RFQ da sollecitare">
-          <div class="cr-stat-label">RFQ sollecito</div>
-          <div class="cr-stat-bubble ${crStats.rfqOverdue > 0 ? 'orange' : 'green'}">${crStats.rfqOverdue}</div>
-          <div class="cr-stat-sublabel">in attesa risposta</div>
-        </div>
-        <div class="cr-stat" title="Pronte per PO">
-          <div class="cr-stat-label">Pronte PO</div>
-          <div class="cr-stat-bubble ${crStats.readyPO > 0 ? 'blue' : 'grey'}">${crStats.readyPO}</div>
-          <div class="cr-stat-sublabel">offerte da chiudere</div>
-        </div>
-        <div class="cr-stat" title="DN pendenti">
-          <div class="cr-stat-label">DN pendenti</div>
-          <div class="cr-stat-bubble ${crStats.dnPending > 10 ? 'red' : crStats.dnPending > 0 ? 'purple' : 'grey'}">${crStats.dnPending}</div>
-          <div class="cr-stat-sublabel">consegne in arrivo</div>
-        </div>
-        <div class="cr-stat" title="Fatte oggi">
-          <div class="cr-stat-label">Fatte oggi</div>
-          <div class="cr-stat-bubble ${crStats.doneToday > 0 ? 'green' : 'grey'}">${crStats.doneToday}</div>
-          <div class="cr-stat-sublabel">${crStats.doneToday > 0 ? 'ottimo lavoro' : 'iniziamo'}</div>
-        </div>
-      </div>
-    </section>
-  `;
-
   root.innerHTML = `
     ${lastVisitHTML}
     ${whatsNewHTML}
 
-    ${crStripHTML}
+    ${window.renderControlRoomStrip ? window.renderControlRoomStrip() : ""}
 
     <section class="world-clock-section-compact">
       <div class="section-title section-title-compact">
@@ -7233,7 +7236,7 @@ function renderHeatmap() {
 
   for (const cfg of VESSELS) {
     const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
-    html += `<div class="heatmap-vname"><span class="heatmap-vessel-dot" data-vid="${escapeAttr(cfg.vesselId)}"></span>${cfg.displayName}</div>`;
+    html += `<div class="heatmap-vname">${cfg.displayName}</div>`;
     weekDays.forEach(d => {
       let count = 0;
       if (v && v.items) {
@@ -11503,7 +11506,7 @@ function actionRowHTMLv2(a, isInGroup) {
               { color: "grey" };
   const desc = a.description || a.body || "";
   const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
-  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>` : "";
+  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag" data-vid="${a.vesselId||''}">${escapeHTML(a.vesselName)}</span>` : "";
   const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   const todoTag = a._kind === "todo" ? `<span class="kind-tag-todo">personale</span>` : "";
   // v0.10.2 fix — Etichetta "rimandata da te" se l'azione era snoozed e oggi è tornata
@@ -11797,7 +11800,7 @@ function actionRowHTML(a) {
   const cfg = ALERT_CONFIG[a.level] || ALERT_CONFIG.info;
   const desc = a.description || a.body || "";
   const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
-  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>` : "";
+  const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag" data-vid="${a.vesselId||''}">${escapeHTML(a.vesselName)}</span>` : "";
   const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
   let actionBtn = "";
   if (a.action) {
