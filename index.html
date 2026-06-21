@@ -5142,6 +5142,164 @@ a:hover { text-decoration: underline; }
   border-color: var(--text) !important;
 }
 
+/* ============================================================================
+   v0.16 — AZIONI A TABELLA (colonne) + CALENDARIO header scuro — come mockup v4
+   ============================================================================ */
+
+/* Wrapper tabella azioni */
+.actions-table-wrap {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+/* Header colonne scuro */
+.actions-table-head {
+  display: grid;
+  grid-template-columns: 110px minmax(0,1fr) 120px 130px 140px 200px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  background: #2a3344;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+/* Le fasce (urgente/settimana/quando puoi) restano come separatori, ma senza bordo arrotondato dentro la tabella */
+.actions-table-wrap .actions-group {
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  box-shadow: none;
+}
+.actions-table-wrap .actions-group:last-child { border-bottom: none; }
+
+/* Riga azione a colonne */
+.action-row.action-row-cols {
+  display: grid;
+  grid-template-columns: 110px minmax(0,1fr) 120px 130px 140px 200px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+.action-row.action-row-cols:last-child { border-bottom: none; }
+.action-row.action-row-cols:hover { background: var(--bg-muted); }
+
+.action-row-cols .action-body {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+.action-row-cols .action-col-nave,
+.action-row-cols .action-col-scad,
+.action-row-cols .action-col-orig {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.action-row-cols .origine-cell { color: var(--text-muted); }
+.action-row-cols .faint { color: var(--text-faint); }
+.action-row-cols .action-btns { justify-content: flex-end; }
+
+/* Pillole scadenza */
+.due-pill-past {
+  display: inline-flex; align-items: center;
+  padding: 3px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700;
+  color: var(--c-red-2, #b32a28);
+  background: var(--c-red-bg);
+  border: 1px solid var(--c-red-dot);
+  font-family: var(--font-mono);
+}
+.due-plain { color: var(--text-muted); font-size: 11px; }
+
+/* Responsive: nascondo colonne secondarie su schermi piccoli */
+@media (max-width: 1100px) {
+  .actions-table-head, .action-row.action-row-cols {
+    grid-template-columns: 100px minmax(0,1fr) 100px 110px;
+  }
+  .actions-table-head > *:nth-child(5),
+  .actions-table-head > *:nth-child(6),
+  .action-row-cols .action-col-orig,
+  .action-row-cols .action-btns { display: none; }
+}
+@media (max-width: 700px) {
+  .actions-table-head, .action-row.action-row-cols {
+    grid-template-columns: 90px minmax(0,1fr) auto;
+  }
+  .actions-table-head > *:nth-child(3),
+  .actions-table-head > *:nth-child(4),
+  .action-row-cols .action-col-nave,
+  .action-row-cols .action-col-scad { display: none; }
+}
+
+/* ---- CALENDARIO (carico settimana) header giorni scuro come mockup ---- */
+.heatmap-label-h {
+  background: #2a3344 !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  border-radius: 5px;
+  padding: 8px 6px !important;
+}
+.heatmap-grid > .heatmap-label-h:first-child {
+  background: transparent !important;
+}
+/* Celle calendario: weekend leggermente viola, livelli più morbidi (come mockup) */
+.heat-cell { border-radius: 6px; min-height: 56px; }
+.heat-cell[data-level="1"] { background: #e8f0fe; color: var(--c-blue-fg); }
+.heat-cell[data-level="2"] { background: #bfdbfe; color: var(--c-blue-fg); }
+.heat-cell[data-level="3"] { background: var(--c-amber-bg); color: var(--c-amber-fg); }
+/* Dot nave nel calendario in tondo come mockup */
+.heatmap-vessel-dot { border-radius: 50% !important; }
+
+/* I titoli delle fasce e i sottogruppi NON sono righe a colonne: restano a tutta larghezza */
+.actions-table-wrap .actions-group-title,
+.actions-table-wrap .action-group-summary,
+.actions-table-wrap .action-group-summary-row,
+.actions-table-wrap .action-group-expanded,
+.actions-table-wrap .completed-today-section {
+  display: block;
+}
+.actions-table-wrap .actions-group-title {
+  display: flex;
+}
+.actions-table-wrap .action-group-summary-row {
+  display: flex;
+}
+/* Le righe DENTRO i sottogruppi espansi mantengono il layout a colonne */
+.actions-table-wrap .action-group-expanded .action-row.action-row-cols {
+  border-bottom: 1px solid var(--border);
+}
+.actions-table-wrap .supplier-subgroup {
+  border-top: 1px solid var(--border);
+}
+.actions-table-wrap .supplier-subgroup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.actions-table-wrap .supplier-subgroup-header .supplier-name { color: var(--text); }
+.actions-table-wrap .supplier-subgroup .action-row.action-row-cols {
+  padding-left: 28px;
+}
+
 
 </style>
 </head>
@@ -11267,7 +11425,17 @@ function renderActionsTodayV2(opts) {
     }
   }, 10);
 
-  return filterBar + body;
+  // v0.16 — Header colonne stile tabella mockup (solo in overview, non scheda nave)
+  const colHeader = `<div class="actions-table-head">
+    <span>Tipo</span>
+    <span>Descrizione</span>
+    <span>Nave</span>
+    <span>Scadenza</span>
+    <span>Origine</span>
+    <span></span>
+  </div>`;
+
+  return filterBar + `<div class="actions-table-wrap">` + colHeader + body + `</div>`;
 }
 
 // Filtri per nave (chips in cima)
@@ -11594,12 +11762,40 @@ function actionRowHTMLv2(a, isInGroup) {
     }
   }
 
-  return `<div class="action-row ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}">
+  // v0.16 — Riga azione a COLONNE (stile tabella mockup v4)
+  // Colonne: TIPO | DESCRIZIONE | NAVE | SCADENZA | ORIGINE | AZIONI
+  // Scadenza: deduco da ageDays/snoozed/dueDate per mostrare "Scaduto" o data
+  let scadenzaCell = "";
+  if (a.dueLabel) {
+    scadenzaCell = a.dueOverdue
+      ? `<span class="due-pill-past">${escapeHTML(a.dueLabel)}</span>`
+      : `<span class="due-plain">${escapeHTML(a.dueLabel)}</span>`;
+  } else if (a.level === "critical") {
+    scadenzaCell = `<span class="due-pill-past">Scaduto</span>`;
+  } else if (a.level === "warning") {
+    scadenzaCell = `<span class="due-plain">Questa settimana</span>`;
+  } else {
+    scadenzaCell = `<span class="due-plain faint">Quando puoi</span>`;
+  }
+
+  // Nave: badge colorato (sempre, anche dentro le fasce)
+  const naveCell = a.vesselName
+    ? `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>`
+    : `<span class="faint" style="font-size:11px;">${a._kind === "todo" ? "Ufficio" : "—"}</span>`;
+
+  // Origine: fornitore o canale
+  const origineCell = a.supplier
+    ? `<span class="origine-cell">${escapeHTML(a.supplier)}${langBadge}</span>`
+    : (a._kind === "todo" ? `<span class="origine-cell faint">personale</span>` : `<span class="faint">—</span>`);
+
+  return `<div class="action-row action-row-cols ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}">
     <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
     <div class="action-body">
-      ${escapeHTML(truncate(desc, 100))} ${supplier} ${vesselTag} ${ageTag} ${todoTag} ${returnedTag}
-      ${docHTML}
+      ${escapeHTML(truncate(desc, 90))} ${docHTML} ${ageTag} ${returnedTag}
     </div>
+    <div class="action-col-nave">${naveCell}</div>
+    <div class="action-col-scad">${scadenzaCell}</div>
+    <div class="action-col-orig">${origineCell}</div>
     <div class="action-btns">
       ${actionBtn}
       ${todoBtn}
