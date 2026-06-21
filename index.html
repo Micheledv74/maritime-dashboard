@@ -5077,6 +5077,71 @@ a:hover { text-decoration: underline; }
 .action-row[data-priority="urgent"] .action-verb { background: var(--c-red-dot) !important; }
 .action-row[data-priority="warn"] .action-verb { background: var(--c-amber-dot) !important; }
 
+/* ============================================================================
+   v0.16 — FAMILY FEELING esteso alle pagine interne
+   ============================================================================ */
+
+/* Titoli pagine interne coerenti */
+.cert-view-header h1, .todo-page-header h1 {
+  font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+}
+
+/* PAGINA CERTIFICATI: sezione per nave con accento colore nave */
+.cert-vessel-section[data-vid] {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+  margin-top: 18px;
+}
+.cert-vessel-section[data-vid="peppino"]    { border-left: 5px solid var(--c-peppino); }
+.cert-vessel-section[data-vid="medtoscana"] { border-left: 5px solid var(--c-toscana); }
+.cert-vessel-section[data-vid="medliguria"] { border-left: 5px solid var(--c-liguria); }
+.cert-vessel-section[data-vid="norrbotten"] { border-left: 5px solid var(--c-norrbotten); }
+.cert-vessel-section[data-vid] .section-title h2::before {
+  content: ""; display: inline-block; width: 12px; height: 12px;
+  border-radius: 3px; margin-right: 8px; vertical-align: -1px;
+}
+.cert-vessel-section[data-vid="peppino"] .section-title h2::before    { background: var(--c-peppino); }
+.cert-vessel-section[data-vid="medtoscana"] .section-title h2::before { background: var(--c-toscana); }
+.cert-vessel-section[data-vid="medliguria"] .section-title h2::before { background: var(--c-liguria); }
+.cert-vessel-section[data-vid="norrbotten"] .section-title h2::before { background: var(--c-norrbotten); }
+
+/* Header tabella cert compatta scuro */
+.cert-table-compact thead th {
+  background: #2a3344 !important; color: #fff !important;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+}
+
+/* Card import cert v4 */
+.cert-import-card {
+  border-radius: 10px !important;
+  box-shadow: var(--shadow-card);
+}
+
+/* PAGINA TO-DO: il border-left resta per la PRIORITÀ (semantica esistente).
+   Il family-feeling nave è dato dal chip nave colorato accanto al titolo. */
+
+/* Chip nave nelle to-do/cert → colore nave */
+.todo-vessel-chip[data-vid="peppino"],   .cert-vessel-chip[data-vid="peppino"]    { background: var(--c-peppino); color:#fff; }
+.todo-vessel-chip[data-vid="medtoscana"],.cert-vessel-chip[data-vid="medtoscana"] { background: var(--c-toscana); color:#fff; }
+.todo-vessel-chip[data-vid="medliguria"],.cert-vessel-chip[data-vid="medliguria"] { background: var(--c-liguria); color:#fff; }
+.todo-vessel-chip[data-vid="norrbotten"],.cert-vessel-chip[data-vid="norrbotten"] { background: var(--c-norrbotten); color:#fff; }
+
+/* Widget voyage/cert nel dettaglio nave: accento superiore colore nave */
+.voyage-widget[data-vid="peppino"],   .cert-widget-vessel[data-vid="peppino"]    { border-top: 3px solid var(--c-peppino); }
+.voyage-widget[data-vid="medtoscana"],.cert-widget-vessel[data-vid="medtoscana"] { border-top: 3px solid var(--c-toscana); }
+.voyage-widget[data-vid="medliguria"],.cert-widget-vessel[data-vid="medliguria"] { border-top: 3px solid var(--c-liguria); }
+.voyage-widget[data-vid="norrbotten"],.cert-widget-vessel[data-vid="norrbotten"] { border-top: 3px solid var(--c-norrbotten); }
+
+/* Filter chip coerenti stile v4 */
+.cert-filter-chip.active, .time-chip.active {
+  background: var(--text) !important;
+  color: #fff !important;
+  border-color: var(--text) !important;
+}
+
 
 </style>
 </head>
@@ -10238,7 +10303,7 @@ function renderVoyageWidget(vesselId) {
   const updated = voy.updatedAt ? formatRelative(new Date(voy.updatedAt)) : "";
 
   return `
-    <section class="voyage-widget">
+    <section class="voyage-widget" data-vid="${escapeAttr(vesselId)}">
       <div class="voyage-widget-icon">🚢</div>
       <div class="voyage-widget-main">
         <div class="voyage-status-row">
@@ -11000,7 +11065,7 @@ function renderCertSectionForVessel(vesselId) {
 
   if (items.length === 0) {
     return `
-      <section class="cert-vessel-section">
+      <section class="cert-vessel-section" data-vid="${escapeAttr(vesselId)}">
         <div class="section-title">
           <h2>Certificati & Scadenze</h2>
           <span class="section-meta muted">nessun file importato</span>
@@ -11029,7 +11094,7 @@ function renderCertSectionForVessel(vesselId) {
   const importedFmt = meta ? formatRelative(new Date(meta.importedAt)) : "—";
 
   return `
-    <section class="cert-vessel-section">
+    <section class="cert-vessel-section" data-vid="${escapeAttr(vesselId)}">
       <div class="section-title">
         <h2>Certificati & Scadenze</h2>
         <div style="display: flex; gap: 12px; align-items: center;">
@@ -11828,10 +11893,10 @@ function todoRowHTML(t) {
 
   // Sezione "contesto" (nave + riferimento + tag)
   let contextParts = [];
-  if (vesselName) contextParts.push(`<span class="vessel-tag">${escapeHTML(vesselName)}</span>`);
+  if (vesselName) contextParts.push(`<span class="cert-vessel-chip" data-vid="${escapeAttr(t.vessel || '')}" style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;">${escapeHTML(vesselName)}</span>`);
   if (ref) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
 
-  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}">
+  return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}" data-vid="${escapeAttr(t.vessel || '')}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
       ${t.outlookTaskId ? `<span class="todo-outlook-badge" title="Importato da Outlook ToDo">📧 Outlook</span>` : ""}
