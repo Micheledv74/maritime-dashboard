@@ -5301,6 +5301,288 @@ a:hover { text-decoration: underline; }
 }
 
 
+
+/* ==========================================================================
+   === SKIN v4 "CONTROL ROOM" — override additivo (Michele, giu 2026) ========
+   Allinea graficamente la dashboard reale al mockup v4 approvato.
+   SOLO grafica: nessuna classe nuova richiesta dal JS, override mirati.
+   Famiglia visiva estesa a Home, To-do, Certificati, scheda nave.
+   Token v4:
+     scuro intestazioni : #2a3344
+     navi               : --c-peppino/--c-toscana/--c-liguria/--c-norrbotten
+   ========================================================================== */
+
+:root{
+  --v4-head-dark: #2a3344;
+  --v4-red:    #d8403d;  --v4-red-2: #b32a28;  --v4-red-bg: #fdecec;
+  --v4-orange: #e88f30;  --v4-orange-2:#c46f17;--v4-orange-bg:#fdf1e0;
+  --v4-yellow: #e8c12d;  --v4-yellow-ink:#5a4500;--v4-yellow-bg:#fcf5d3;
+  --v4-green:  #3aa860;  --v4-green-2:#228544;  --v4-green-bg:#e0f3e8;
+  --v4-blue:   #2a8fb8;  --v4-blue-2:#1a6f93;   --v4-blue-bg:#def0f8;
+  --v4-purple: #7c4ca8;  --v4-purple-2:#5c2e87; --v4-purple-bg:#ede4f7;
+  --v4-shadow-card: 0 1px 2px rgba(20,30,50,0.04), 0 1px 4px rgba(20,30,50,0.06);
+  --v4-shadow-card-hover: 0 4px 12px rgba(20,30,50,0.10);
+}
+
+/* ---- helper colore per nave (mappa data-vid) ---------------------------- */
+[data-vid="peppino"]    { --v4-vessel: var(--c-peppino); }
+[data-vid="medliguria"] { --v4-vessel: var(--c-liguria); }
+[data-vid="medtoscana"] { --v4-vessel: var(--c-toscana); }
+[data-vid="norrbotten"] { --v4-vessel: var(--c-norrbotten); }
+
+/* ==========================================================================
+   1) HEADER — brand circolare azzurro + nav tabs underline colorato
+   ========================================================================== */
+.app-header{ background:#fff; border-bottom:1px solid var(--border); }
+
+/* Brand: pallino tondo azzurro come nel mockup */
+.app-header .brand{ gap:10px; font-weight:800; letter-spacing:-0.01em; }
+.app-header .brand .brand-icon-svg{
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg,#1a6f93,#2a8fb8);
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; flex-shrink:0;
+  box-shadow:0 2px 6px rgba(42,143,184,0.25);
+}
+.app-header .brand .brand-icon-svg .icon{ width:24px; height:24px; }
+.app-header .brand-sub{
+  font-size:11px; font-weight:600; color:var(--text-faint);
+  text-transform:uppercase; letter-spacing:0.06em; margin-left:2px;
+}
+
+/* Bottoni testata: stile pulito v4 */
+.app-header .icon-btn{
+  border:1px solid var(--border-strong); background:#fff; color:var(--text);
+  border-radius:6px; box-shadow:var(--shadow-btn); font-weight:600;
+}
+.app-header .icon-btn:hover{ background:var(--bg-muted); transform:translateY(-1px); }
+
+/* ---- NAV TABS: pill -> tab con striscia colorata sotto ----------------- */
+.vessel-switcher{ background:#fff; border-bottom:1px solid var(--border); }
+.pill-row{ gap:0; }
+.pill-row .pill{
+  background:none !important; border:none !important; box-shadow:none !important;
+  border-radius:0 !important;
+  padding:12px 18px 14px !important;
+  font-weight:600; color:var(--text); position:relative;
+}
+.pill-row .pill::after{
+  content:""; position:absolute; left:12px; right:12px; bottom:0;
+  height:3px; border-radius:2px; background:transparent; transition:background .15s, opacity .15s, height .15s;
+}
+.pill-row .pill:hover::after{ background:var(--border-strong); opacity:.6; }
+.pill-row .pill.active::after{ background:var(--accent); opacity:1; height:4px; }
+/* underline colorato per le tab nave */
+.pill-row .pill[data-vid="peppino"].active::after,
+.pill-row .pill[data-vid="peppino"]:hover::after{ background:var(--c-peppino); }
+.pill-row .pill[data-vid="medliguria"].active::after,
+.pill-row .pill[data-vid="medliguria"]:hover::after{ background:var(--c-liguria); }
+.pill-row .pill[data-vid="medtoscana"].active::after,
+.pill-row .pill[data-vid="medtoscana"]:hover::after{ background:var(--c-toscana); }
+.pill-row .pill[data-vid="norrbotten"].active::after,
+.pill-row .pill[data-vid="norrbotten"]:hover::after{ background:var(--c-norrbotten); }
+/* dot stato + contatore */
+.pill-row .pill .pill-dot{ width:8px; height:8px; }
+.pill-row .pill[data-vid="peppino"]  .pill-dot{ background:var(--c-peppino); }
+.pill-row .pill[data-vid="medliguria"] .pill-dot{ background:var(--c-liguria); }
+.pill-row .pill[data-vid="medtoscana"] .pill-dot{ background:var(--c-toscana); }
+.pill-row .pill[data-vid="norrbotten"] .pill-dot{ background:var(--c-norrbotten); }
+.pill-row .pill .pill-key{
+  background:var(--bg-muted); border:1px solid var(--border);
+  color:var(--text-muted); font-size:11px; font-weight:700;
+  padding:2px 7px; border-radius:10px; margin-left:4px;
+}
+
+/* ==========================================================================
+   2) KPI STRIP "Control Room" — numero in pallino colorato pieno
+   ========================================================================== */
+.cr-strip{ gap:var(--sp-3); }
+.cr-stat{
+  background:#fff; border:1px solid var(--border); border-radius:10px;
+  padding:var(--sp-4); box-shadow:var(--v4-shadow-card);
+  transition:transform .15s, box-shadow .15s;
+}
+.cr-stat:hover{ transform:translateY(-2px); box-shadow:var(--v4-shadow-card-hover); }
+.cr-stat-label{
+  font-size:var(--fs-sm); font-weight:700; color:var(--text);
+  margin-bottom:var(--sp-3); line-height:1.3; letter-spacing:-0.01em;
+}
+.cr-stat-bubble{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:40px; height:40px; padding:0 12px; border-radius:999px;
+  font-family:var(--font-mono); font-size:28px; font-weight:800;
+  color:#fff; line-height:1; box-shadow:0 1px 4px rgba(0,0,0,0.10);
+}
+.cr-stat-bubble.red{ background:var(--v4-red); }
+.cr-stat-bubble.orange{ background:var(--v4-orange); }
+.cr-stat-bubble.yellow{ background:var(--v4-yellow); color:var(--v4-yellow-ink); }
+.cr-stat-bubble.green{ background:var(--v4-green); }
+.cr-stat-bubble.blue{ background:var(--v4-blue); }
+.cr-stat-bubble.purple{ background:var(--v4-purple); }
+.cr-stat-bubble.grey{ background:var(--text-faint); }
+.cr-stat-sublabel{ font-size:11px; color:var(--text-faint); margin-top:6px; font-weight:500; }
+
+/* ==========================================================================
+   3) FLOTTA — card nave: header pieno colorato + mini KPI + foot
+   ========================================================================== */
+.vessel-card{
+  background:#fff; border:1px solid var(--border); border-radius:10px;
+  overflow:hidden; box-shadow:var(--v4-shadow-card);
+  transition:transform .15s, box-shadow .15s;
+}
+.vessel-card:hover{ transform:translateY(-2px); box-shadow:var(--v4-shadow-card-hover); }
+
+/* Header pieno colorato per nave */
+.vessel-card .vessel-card-head{
+  padding:12px 14px; color:#fff; letter-spacing:-0.01em;
+  background:var(--v4-vessel, var(--v4-head-dark));
+  border-bottom:none;
+}
+.vessel-card .vessel-status-icon{ color:rgba(255,255,255,0.9); }
+.vessel-card .vessel-name-text{ color:#fff; font-weight:700; }
+/* pill stato chiara su header colorato */
+.vessel-card .vessel-state-pill{
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;
+  background:rgba(255,255,255,0.25); color:#fff; padding:2px 8px; border-radius:10px;
+  border:none;
+}
+.vessel-card .vessel-todo-badge{
+  background:rgba(255,255,255,0.22); color:#fff; border:none;
+  font-weight:700; border-radius:10px;
+}
+
+/* Mini KPI (kpi-row) su fondo chiaro */
+.vessel-card .kpi-row{ background:var(--bg-muted); padding:12px 14px; gap:6px; }
+.vessel-card .kpi-row .kpi{ background:none; border:none; box-shadow:none; padding:4px; text-align:center; }
+.vessel-card .kpi-row .kpi-label{
+  font-size:9px; font-weight:700; color:var(--text-faint);
+  text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;
+}
+.vessel-card .kpi-row .kpi-value{
+  font-family:var(--font-mono); font-size:var(--fs-lg); font-weight:800;
+  color:var(--text); letter-spacing:-0.02em;
+}
+.vessel-card .kpi-row .kpi[data-zero-ok="1"] .kpi-value{ color:var(--v4-green); }
+.vessel-card .kpi-row .kpi.alert .kpi-value{ color:var(--v4-red); }
+.vessel-card .kpi-row .kpi.warn .kpi-value{ color:var(--v4-orange); }
+
+/* Foot card nave */
+.vessel-card .vessel-foot{
+  padding:10px 14px; border-top:1px solid var(--border);
+  color:var(--text-muted); background:#fff; font-size:var(--fs-xs);
+}
+.vessel-card .vessel-foot strong{ color:var(--text); font-weight:700; }
+
+/* ==========================================================================
+   4) AZIONI — tabella stile "Lead": pill tipo pieno, badge nave, header scuro
+   ========================================================================== */
+.actions-table-head{
+  background:var(--v4-head-dark); color:#fff;
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em;
+  border:none;
+}
+.actions-table-head span{ color:#fff; }
+
+.action-row.action-row-cols{ transition:background .1s; }
+.action-row.action-row-cols:hover{ background:var(--bg-muted); }
+
+/* Pill TIPO colorata piena (era a fondo chiaro con emoji) */
+.action-row .pill-status{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:5px 12px; border-radius:999px;
+  font-size:11px; font-weight:700; color:#fff;
+  text-transform:uppercase; letter-spacing:0.04em; white-space:nowrap; border:none;
+}
+.action-row .pill-status.urgent,
+.action-row .pill-status.alert{ background:var(--v4-red); color:#fff; }
+.action-row .pill-status.warn{ background:var(--v4-orange); color:#fff; }
+.action-row .pill-status.attesa{ background:var(--v4-yellow); color:var(--v4-yellow-ink); }
+.action-row .pill-status.info{ background:var(--v4-blue); color:#fff; }
+.action-row .pill-status.ok,
+.action-row .pill-status.success{ background:var(--v4-green); color:#fff; }
+.action-row .pill-status.neutral{ background:var(--text-faint); color:#fff; }
+
+/* Badge nave colorato pieno a destra */
+.action-row .vessel-tag-colored{
+  display:inline-flex; align-items:center; padding:3px 9px; border-radius:4px;
+  font-size:10px; font-weight:800; color:#fff; letter-spacing:0.03em; white-space:nowrap;
+  background:var(--v4-vessel, var(--text-faint));
+}
+
+/* Pillola scadenza */
+.action-row .due-pill-past{
+  display:inline-flex; align-items:center; padding:3px 8px; border-radius:4px;
+  font-size:11px; font-weight:700; color:var(--v4-red-2);
+  background:var(--v4-red-bg); border:1px solid var(--v4-red); font-family:var(--font-mono);
+}
+.action-row .due-plain{ color:var(--text-muted); font-size:var(--fs-sm); }
+.action-row .origine-cell.faint{ color:var(--text-faint); font-size:11px; }
+
+/* Bottone "Apri →" blu pieno + bottoncini riga */
+.action-row .btn.btn-sm{
+  background:var(--v4-blue); color:#fff; border:1px solid var(--v4-blue-2);
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
+  border-radius:5px; box-shadow:var(--shadow-btn);
+}
+.action-row .btn.btn-sm:hover{ background:var(--v4-blue-2); }
+.action-row .btn-done.btn-mini-done:hover{ background:var(--v4-green); color:#fff; border-color:var(--v4-green-2); }
+.action-row .btn-snooze.btn-mini-snooze:hover{ background:var(--v4-orange); color:#fff; border-color:var(--v4-orange-2); }
+
+/* Bande raggruppamento ristilizzate v4 (Tieni le bande) */
+.actions-group-title{
+  background:var(--bg-muted); border-radius:8px;
+  font-weight:800; letter-spacing:-0.01em;
+}
+
+/* ==========================================================================
+   5) CALENDARIO carico settimana — header giorni scuro
+   ========================================================================== */
+.week-head, .heatmap-head, [class*="week"] .heat-day-head{ }
+/* dot nave nel calendario */
+.heatmap-vessel-dot[data-vid="peppino"]{ background:var(--c-peppino); }
+.heatmap-vessel-dot[data-vid="medliguria"]{ background:var(--c-liguria); }
+.heatmap-vessel-dot[data-vid="medtoscana"]{ background:var(--c-toscana); }
+.heatmap-vessel-dot[data-vid="norrbotten"]{ background:var(--c-norrbotten); }
+
+/* ==========================================================================
+   6) FAMILY FEELING — Certificati / To-do / scheda nave
+   ========================================================================== */
+/* tabelle: header scuro coerente */
+.cert-table thead, .cert-table-section thead, .items-table thead{
+  background:var(--v4-head-dark);
+}
+.cert-table thead th, .cert-table-section thead th, .items-table thead th{
+  color:#fff; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.06em;
+}
+/* sezione certificati per nave: bordo sx colore nave */
+.cert-vessel-section[data-vid="peppino"]{ border-left:3px solid var(--c-peppino); }
+.cert-vessel-section[data-vid="medliguria"]{ border-left:3px solid var(--c-liguria); }
+.cert-vessel-section[data-vid="medtoscana"]{ border-left:3px solid var(--c-toscana); }
+.cert-vessel-section[data-vid="norrbotten"]{ border-left:3px solid var(--c-norrbotten); }
+.cert-vessel-chip[data-vid="peppino"]{ background:var(--c-peppino); color:#fff; }
+.cert-vessel-chip[data-vid="medliguria"]{ background:var(--c-liguria); color:#fff; }
+.cert-vessel-chip[data-vid="medtoscana"]{ background:var(--c-toscana); color:#fff; }
+.cert-vessel-chip[data-vid="norrbotten"]{ background:var(--c-norrbotten); color:#fff; }
+
+/* scheda nave: banner colorato pieno */
+.vessel-detail-banner[data-vid="peppino"]{ background:var(--c-peppino); color:#fff; }
+.vessel-detail-banner[data-vid="medliguria"]{ background:var(--c-liguria); color:#fff; }
+.vessel-detail-banner[data-vid="medtoscana"]{ background:var(--c-toscana); color:#fff; }
+.vessel-detail-banner[data-vid="norrbotten"]{ background:var(--c-norrbotten); color:#fff; }
+
+/* ==========================================================================
+   7) FAB + Orologio mondiale — TENUTI, ristilizzati coerenti v4
+   ========================================================================== */
+.fab{
+  background:linear-gradient(135deg,#1a6f93,#2a8fb8);
+  color:#fff; box-shadow:0 4px 14px rgba(42,143,184,0.35);
+  border:none;
+}
+.fab:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(42,143,184,0.45); }
+.world-clock-strip .wc-tile{ border-radius:8px; }
+.world-clock-strip .wc-tile.wc-day{ background:var(--v4-blue-bg); }
+
 </style>
 </head>
 <body>
