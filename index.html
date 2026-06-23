@@ -7,7 +7,7 @@
 <title>Maritime Procurement — Dashboard Operativa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Google Identity Services per sync Drive (caricato in modalità defer per non bloccare il render iniziale) -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
@@ -5844,14 +5844,191 @@ a:hover { text-decoration: underline; }
 .section-title h2{ font-size:12px !important; font-weight:700 !important; letter-spacing:.1em !important; text-transform:uppercase !important; color:#8a93a0 !important; }
 .section-title h2 .icon{ display:none !important; }
 .section-title .section-meta{ color:#9aa3af !important; }
+
+/* ====================================================================
+   PLANCIA RESKIN 3 — HEADER (logo blu quadrato, sync compatta, bottoni)
+   ==================================================================== */
+.app-header{ background:#fff !important; border-bottom:1px solid #e3e8ee !important; }
+.app-header .header-inner{ gap:16px; }
+/* Brand: quadratino blu con ancora (era cerchio teal v4) */
+.app-header .brand{ font-weight:700 !important; font-size:16px !important; gap:9px !important; }
+.app-header .brand .brand-icon-svg{
+  width:30px !important; height:30px !important; border-radius:8px !important;
+  background:var(--accent) !important; box-shadow:none !important;
+}
+.app-header .brand .brand-icon-svg .icon{ width:18px !important; height:18px !important; }
+.app-header .brand .brand-sub{
+  font-size:10.5px !important; font-weight:600 !important; letter-spacing:.13em !important;
+  text-transform:uppercase !important; color:#9aa3af !important; margin-left:2px !important;
+}
+/* Sync: pill compatta verde (era barra larga flex:1) */
+.app-header .sync-info{
+  flex:none !important; background:#e8f5ec; border:1px solid #cfe9d8; color:#145f1f;
+  border-radius:7px; padding:4px 11px; font-size:12px; font-weight:500; gap:7px; overflow:visible;
+}
+.app-header .sync-dot{ background:#2b8a3e; }
+.app-header .drive-sync-indicator{
+  background:transparent !important; color:#5e7a64 !important; padding:0 0 0 8px !important;
+  border-left:1px solid #cfe9d8; border-radius:0; font-size:11px;
+}
+.app-header .header-actions{ margin-left:auto; gap:8px; }
+/* Bottoni testata puliti come mockup */
+.app-header .icon-btn{
+  width:36px !important; height:36px !important; min-width:36px !important; min-height:36px !important;
+  border:1px solid #d8dee5 !important; background:#fff !important; color:#374151 !important;
+  border-radius:8px !important; box-shadow:none !important; font-weight:500;
+}
+.app-header .icon-btn:hover{ background:#f7f9fb !important; transform:none !important; }
+.app-header .icon-btn .icon{ width:17px; height:17px; }
+/* Aggiorna / Fine giornata: bottoni testuali */
+.app-header .icon-btn.has-label{ width:auto !important; padding:0 14px !important; gap:6px; font-size:13px; white-space:nowrap; }
+.app-header .icon-btn.has-label .label-md{ display:inline !important; font-size:13px; white-space:nowrap !important; }
+.app-header .icon-btn.has-label, .app-header .icon-btn.has-label *{ white-space:nowrap !important; }
+.app-header .icon-btn.has-label svg{ display:none !important; }
+.app-header #btn-eod{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; font-weight:600; }
+.app-header #btn-eod:hover{ filter:brightness(.95); }
+@media(max-width:680px){
+  .app-header .icon-btn.has-label .label-md{ display:none !important; }
+  .app-header .icon-btn.has-label svg{ display:inline-block !important; }
+  .app-header .icon-btn.has-label{ width:36px !important; padding:0 !important; }
+}
+
+/* ====================================================================
+   PLANCIA RESKIN 4 — NAV (tab a pillola blu, chip navi soft a destra)
+   ==================================================================== */
+.vessel-switcher{ background:#fff !important; border-bottom:1px solid #e3e8ee !important; padding:0 !important; }
+.vessel-switcher .switcher-inner{ padding:0 var(--gutter); }
+.vessel-switcher .pill-row{ height:50px; align-items:center; gap:6px; }
+.vessel-switcher .pill-row .pill{
+  min-height:auto !important; border:1px solid transparent !important; background:transparent !important;
+  border-radius:8px !important; padding:7px 13px !important; font-size:13.5px !important; font-weight:500 !important;
+  color:var(--text-muted) !important; box-shadow:none !important;
+}
+.vessel-switcher .pill-row .pill::after{ display:none !important; }   /* via underline v4 */
+.vessel-switcher .pill-row .pill svg{ display:none !important; }      /* via icone tab */
+.vessel-switcher .pill-row .pill .pill-key{ display:none !important; }
+.vessel-switcher .pill-row .pill:hover{ background:#f1f4f7 !important; }
+/* tab vista attiva = pillola azzurra piena chiara */
+.vessel-switcher .pill-row .pill[data-view].active{ background:#eaf1fc !important; color:var(--accent) !important; font-weight:600 !important; }
+/* chip navi: soft, spinte a destra */
+.vessel-switcher .pill-row .pill[data-vid]{ border-radius:20px !important; padding:6px 12px !important; font-size:12.5px !important; font-weight:600 !important; gap:7px !important; }
+.vessel-switcher .pill-row .pill[data-vid="peppino"]{ margin-left:auto !important; }
+.vessel-switcher .pill-row .pill[data-vid="peppino"]{ background:var(--c-peppino-soft) !important; color:var(--c-peppino) !important; }
+.vessel-switcher .pill-row .pill[data-vid="medliguria"]{ background:var(--c-liguria-soft) !important; color:var(--c-liguria) !important; }
+.vessel-switcher .pill-row .pill[data-vid="medtoscana"]{ background:var(--c-toscana-soft) !important; color:var(--c-toscana) !important; }
+.vessel-switcher .pill-row .pill[data-vid="norrbotten"]{ background:var(--c-norrbotten-soft) !important; color:var(--c-norrbotten) !important; }
+.vessel-switcher .pill-row .pill[data-vid="peppino"].active{ background:var(--c-peppino) !important; color:#fff !important; }
+.vessel-switcher .pill-row .pill[data-vid="medliguria"].active{ background:var(--c-liguria) !important; color:#fff !important; }
+.vessel-switcher .pill-row .pill[data-vid="medtoscana"].active{ background:var(--c-toscana) !important; color:#fff !important; }
+.vessel-switcher .pill-row .pill[data-vid="norrbotten"].active{ background:var(--c-norrbotten) !important; color:#fff !important; }
+.vessel-switcher .pill-row .pill[data-vid].active .pill-dot{ background:#fff !important; }
+.vessel-switcher .pill-row .pill .tab-alert-dot{ width:7px; height:7px; border-radius:50%; background:var(--c-red-strong); display:inline-block; }
+
+/* ====================================================================
+   PLANCIA RESKIN 5 — SCHEDA NAVE
+   ==================================================================== */
+/* Banner: da pieno colorato (v4) → banda soft con bordo sx colore + nome in colore */
+.vessel-detail-banner[data-vid]{
+  background:var(--bg-surface) !important; color:var(--text) !important;
+  border:1px solid var(--border) !important; border-left:6px solid #d0d5dd !important;
+  border-radius:13px !important; padding:20px 24px !important; align-items:flex-start;
+}
+.vessel-detail-banner[data-vid="peppino"]{    background:var(--c-peppino-soft) !important; border-left-color:var(--c-peppino) !important; border-color:rgba(200,54,47,.2) !important; }
+.vessel-detail-banner[data-vid="medliguria"]{ background:var(--c-liguria-soft) !important; border-left-color:var(--c-liguria) !important; border-color:rgba(17,122,58,.2) !important; }
+.vessel-detail-banner[data-vid="medtoscana"]{ background:var(--c-toscana-soft) !important; border-left-color:var(--c-toscana) !important; border-color:rgba(21,101,192,.2) !important; }
+.vessel-detail-banner[data-vid="norrbotten"]{ background:var(--c-norrbotten-soft) !important; border-left-color:var(--c-norrbotten) !important; border-color:rgba(26,44,94,.2) !important; }
+.vessel-detail-banner .vdb-icon{ display:none !important; }
+.vessel-detail-banner .vdb-name{ font-size:24px !important; font-weight:700 !important; letter-spacing:-.02em; }
+.vessel-detail-banner[data-vid="peppino"] .vdb-name{    color:var(--c-peppino) !important; }
+.vessel-detail-banner[data-vid="medliguria"] .vdb-name{ color:var(--c-liguria) !important; }
+.vessel-detail-banner[data-vid="medtoscana"] .vdb-name{ color:var(--c-toscana) !important; }
+.vessel-detail-banner[data-vid="norrbotten"] .vdb-name{ color:var(--c-norrbotten) !important; }
+.vessel-detail-banner .vdb-sub{ color:#5b6470 !important; font-size:13px; }
+.vessel-detail-banner .alert-line{ background:rgba(255,255,255,.6); border:1px solid rgba(0,0,0,.05); border-radius:8px; padding:6px 12px; font-weight:600; color:var(--c-red-fg) !important; }
+
+/* Voyage·AIS box (position-panel) → card pulita */
+.position-panel{ border-radius:12px !important; padding:18px 20px !important; }
+.pos-cell .pos-main{ font-family:var(--font-mono); }
+
+/* Pipeline → pcard bianche con numero mono colorato (era blocco grigio) */
+.pipeline-grid{ gap:12px !important; }
+.pipeline-col{ background:#fff !important; border:1px solid var(--border) !important; border-radius:11px !important; padding:14px 16px !important; }
+.pipeline-col:hover{ background:#fff !important; box-shadow:var(--shadow-card); }
+.pipeline-col .pl-label{ color:var(--text-faint) !important; font-weight:600; }
+.pipeline-col .pl-count{ font-family:var(--font-mono); font-size:28px !important; font-weight:600 !important; }
+.pipeline-col[data-stage="REQ"] .pl-count{ color:#475569; }
+.pipeline-col[data-stage="RFQ"] .pl-count{ color:#0a3f93; }
+.pipeline-col[data-stage="PO"] .pl-count{ color:#9a4a00; }
+.pipeline-col[data-stage="DN"] .pl-count{ color:var(--c-red-strong); }
+.pipeline-col.active{ background:var(--accent) !important; }
+.pipeline-col.active .pl-count, .pipeline-col.active .pl-label, .pipeline-col.active .pl-sub{ color:#fff !important; opacity:1; }
+
+/* Tabella Items: header CHIARO (era scuro v4) */
+.items-table thead{ background:#fafbfc !important; }
+.items-table thead th{ background:#fafbfc !important; color:#aab2bd !important; font-weight:700 !important; border-bottom:1px solid #eef1f4 !important; }
+.items-table-wrap{ border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
+
+/* Toolbar / ricerca pulita */
+.search-input, .filter-select{ border-radius:8px !important; }
+
+/* Info card / contatti → bordi morbidi */
+.info-card{ border-radius:12px !important; }
+.info-card-title{ font-size:11px !important; letter-spacing:.08em; color:#aab2bd !important; }
+
+/* RFQ age bands → pulite */
+.age-band{ border-radius:11px !important; }
+
+/* Bottoni toolbar nave → primario in Infoship */
+.vessel-toolbar .btn{ border-radius:8px; }
+</style>
+
+<style>
+/* PLANCIA — override scheda nave in blocco dedicato (specificità alta) */
+header.vessel-detail-banner[data-vid]{
+  background:var(--bg-surface) !important; color:var(--text) !important;
+  border:1px solid var(--border) !important; border-left:6px solid #d0d5dd !important;
+  border-radius:13px !important; padding:20px 24px !important;
+}
+header.vessel-detail-banner[data-vid="peppino"]{    background:var(--c-peppino-soft) !important; border-left-color:var(--c-peppino) !important; }
+header.vessel-detail-banner[data-vid="medliguria"]{ background:var(--c-liguria-soft) !important; border-left-color:var(--c-liguria) !important; }
+header.vessel-detail-banner[data-vid="medtoscana"]{ background:var(--c-toscana-soft) !important; border-left-color:var(--c-toscana) !important; }
+header.vessel-detail-banner[data-vid="norrbotten"]{ background:var(--c-norrbotten-soft) !important; border-left-color:var(--c-norrbotten) !important; }
+header.vessel-detail-banner .vdb-icon{ display:none !important; }
+header.vessel-detail-banner .vdb-name{ font-size:24px !important; font-weight:700 !important; }
+header.vessel-detail-banner[data-vid="peppino"] .vdb-name{    color:var(--c-peppino) !important; }
+header.vessel-detail-banner[data-vid="medliguria"] .vdb-name{ color:var(--c-liguria) !important; }
+header.vessel-detail-banner[data-vid="medtoscana"] .vdb-name{ color:var(--c-toscana) !important; }
+header.vessel-detail-banner[data-vid="norrbotten"] .vdb-name{ color:var(--c-norrbotten) !important; }
+header.vessel-detail-banner .vdb-sub{ color:#5b6470 !important; font-size:13px; }
+header.vessel-detail-banner .alert-line{ background:rgba(255,255,255,.6); border:1px solid rgba(0,0,0,.05); border-radius:8px; padding:6px 12px; font-weight:600; color:var(--c-red-fg) !important; }
+table.items-table thead th{ background:#fafbfc !important; color:#aab2bd !important; font-weight:700 !important; border-bottom:1px solid #eef1f4 !important; }
+
+/* ---- CERTIFICATI: header tabella CHIARO (era scuro v4) + pannello ---- */
+table.cert-table thead th, .cert-table-section thead th, table.cert-table thead, .cert-table-section thead{
+  background:#fafbfc !important; color:#aab2bd !important; font-weight:700 !important;
+  letter-spacing:.06em !important; border-bottom:1px solid #eef1f4 !important;
+}
+.cert-table-section, .cert-view .cert-table{ border-radius:12px; }
+.cert-view .cert-table-section{ border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); background:#fff; }
+.cert-view-header h1{ font-size:24px !important; font-weight:700 !important; letter-spacing:-.02em; margin:0 0 4px !important; }
+/* chip filtro come "stagechip" del riferimento */
+.cert-view .cert-filter-chip{ border-radius:8px !important; padding:6px 12px !important; background:#f1f4f7 !important; border:1px solid var(--border) !important; color:#475569 !important; font-weight:500; }
+.cert-view .cert-filter-chip.active{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; font-weight:700; }
+.cert-import-card{ border-radius:11px !important; }
+
+/* ---- TO-DO page: titolo grande + chip puliti ---- */
+.todo-page-header h1{ font-size:24px !important; font-weight:700 !important; letter-spacing:-.02em; }
+.todo-page-header .btn.btn-primary{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; font-weight:600; border-radius:8px; }
+.time-chips-row .time-chip{ border-radius:8px !important; }
+.time-chips-row .time-chip.active{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; }
 </style>
 
 <header class="app-header">
   <div class="header-inner">
     <div class="brand">
-      <span class="brand-icon-svg"><svg class="icon icon-lg"><use href="#i-ship"/></svg></span>
+      <span class="brand-icon-svg"><svg class="icon icon-lg"><use href="#i-anchor"/></svg></span>
       Maritime
-      <span class="brand-sub">Procurement Dashboard</span>
+      <span class="brand-sub">Procurement</span>
     </div>
     <div class="sync-info" id="sync-info">
       <span class="sync-dot" id="sync-dot"></span>
