@@ -6046,6 +6046,67 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .action-row .pill-status.neutral, .action-row .pill-status.grey{ background:#e9edf2 !important; color:#475569 !important; }
 </style>
 
+<style>
+/* === PLANCIA — SCHEDA NAVE A TAB === */
+.vessel-detail-banner .vdb-main{ flex:1; min-width:0; }
+.vessel-detail-banner .vdb-titlerow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:5px; }
+.vessel-detail-banner .vdb-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; flex:none; }
+.vessel-detail-banner .vdb-actions .btn{ border-radius:8px; height:36px; font-weight:500; background:#fff; }
+.vessel-detail-banner .vdb-actions .vdb-btn-primary{ font-weight:600; color:#fff !important; border:none !important; }
+.vessel-detail-banner[data-vid="peppino"] .vdb-btn-primary{ background:var(--c-peppino) !important; }
+.vessel-detail-banner[data-vid="medliguria"] .vdb-btn-primary{ background:var(--c-liguria) !important; }
+.vessel-detail-banner[data-vid="medtoscana"] .vdb-btn-primary{ background:var(--c-toscana) !important; }
+.vessel-detail-banner[data-vid="norrbotten"] .vdb-btn-primary{ background:var(--c-norrbotten) !important; }
+
+/* subtabs */
+.vd-subtabs{ display:flex; gap:4px; border-bottom:1px solid #e3e8ee; margin:0 0 22px; flex-wrap:wrap; }
+.vd-subtab{ background:none; border:none; font-size:13.5px; font-weight:500; color:var(--text-muted); padding:10px 14px; border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+.vd-subtab:hover{ color:var(--text); }
+.vd-subtab .vd-subtab-n{ font-family:var(--font-mono); font-size:11px; color:#aab2bd; }
+.vd-subtab.active{ font-weight:700; color:var(--accent); border-bottom-color:var(--accent); }
+.vd-subtab.active .vd-subtab-n{ color:var(--accent); opacity:.7; }
+
+/* layout pannelli */
+.vd-grid2{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:22px; align-items:start; }
+@media(max-width:900px){ .vd-grid2{ grid-template-columns:1fr; } }
+.vd-panel .box-h{ font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#aab2bd; margin-bottom:14px; }
+.vd-panel .position-panel{ margin-bottom:0; height:100%; }
+
+/* mappa placeholder */
+.vd-map{ position:relative; background:#e9eef3; border:1px solid var(--border); border-radius:12px; min-height:220px; overflow:hidden; background-image:repeating-linear-gradient(45deg,#e2e8ef 0,#e2e8ef 12px,#e9eef3 12px,#e9eef3 24px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
+.vd-map-label{ position:absolute; top:12px; left:14px; font-size:10px; font-weight:600; letter-spacing:.08em; color:#94a0ad; font-family:var(--font-mono); z-index:1; }
+.vd-map-center{ display:flex; flex-direction:column; align-items:center; gap:8px; z-index:1; }
+.vd-map-pin{ width:18px; height:18px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); box-shadow:0 2px 6px rgba(0,0,0,.2); background:#c8222a; }
+.vd-map[data-vid="peppino"] .vd-map-pin{ background:var(--c-peppino); }
+.vd-map[data-vid="medliguria"] .vd-map-pin{ background:var(--c-liguria); }
+.vd-map[data-vid="medtoscana"] .vd-map-pin{ background:var(--c-toscana); }
+.vd-map[data-vid="norrbotten"] .vd-map-pin{ background:var(--c-norrbotten); }
+.vd-map-tag{ background:#fff; border:1px solid #e0e5ea; border-radius:7px; padding:5px 10px; font-size:11px; color:#3a4250; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.vd-map-toggle{ position:absolute; bottom:12px; background:#fff; border:1px solid var(--border); border-radius:7px; padding:5px 11px; font-size:11.5px; color:var(--accent); font-weight:600; cursor:pointer; z-index:1; }
+.vd-map #map{ position:absolute; inset:0; width:100%; height:100%; margin:0; border-radius:0; display:none; }
+.vd-map #map.visible{ display:block; z-index:2; }
+
+/* card preview (Prossime scadenze / To-do aperte) */
+.panel-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
+.panel-card-head{ display:flex; align-items:center; justify-content:space-between; padding:13px 18px; border-bottom:1px solid #eef1f4; font-size:12px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#3a4250; }
+.panel-card-head.red{ color:#a01b22; }
+.vd-link{ background:none; border:none; font-size:11.5px; font-weight:600; color:var(--accent); cursor:pointer; }
+.vd-prev-row{ display:flex; align-items:center; gap:10px; padding:10px 18px; border-bottom:1px solid #f3f5f8; }
+.vd-prev-row:last-child{ border-bottom:none; }
+.vd-prev-name{ flex:1; min-width:0; font-size:12.5px; color:#3a4250; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vd-prev-meta{ flex:none; font-size:11px; color:#9aa3af; }
+.vd-prev-desc{ flex:1; min-width:0; font-size:12.5px; color:#3a4250; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vd-prev-row .pill-status{ flex:none; }
+.vd-prev-row .btn-done{ flex:none; }
+.vd-empty{ padding:24px; text-align:center; color:#9aa3af; font-size:12.5px; }
+.cert-restano{ flex:none; font-family:var(--font-mono); font-size:11px; font-weight:700; padding:3px 8px; border-radius:5px; white-space:nowrap; }
+.cert-restano.expired{ background:#c8222a; color:#fff; }
+.cert-restano.urgent{ background:#fff; color:#9a4a00; border:1px solid #f0cf9a; }
+.cert-restano.week{ background:#fffbe9; color:#7a6a1a; }
+.cert-restano.somedays{ background:#eef3fb; color:#0a3f93; }
+.cert-restano.ok, .cert-restano.permanent{ background:#f1f4f7; color:#94a0ad; }
+</style>
+
 <header class="app-header">
   <div class="header-inner">
     <div class="brand">
@@ -8098,10 +8159,7 @@ function renderVesselDetail() {
           <div class="pos-sub">${staleWarning || (lastSeenDate ? lastSeenDate.toLocaleString("it-IT", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) : "—")}</div>
         </div>
       </div>
-      <div class="map-toggle">
-        <button id="toggle-map">▾ Mostra mappa</button>
-        <div id="map"></div>
-      </div>`;
+`;
   }
 
   // KPI strip (cliccabile: applica filtro pipeline + scroll alla tabella)
@@ -8146,118 +8204,151 @@ function renderVesselDetail() {
     completedLookbackDays: 7  // scheda nave: vedi anche fatte ultimi 7 giorni
   });
 
+  if (!state.detailTab) state.detailTab = "panoramica";
+  const _vtab = state.detailTab;
+  const _certAll = ((state.certificates && state.certificates[v.vesselId]) || []);
+  const _certCount = _certAll.length;
+  const _certPrev = _certAll.filter(c => !c.isPermanent && c.expiry).sort((a,b)=>(a.expiry||"").localeCompare(b.expiry||"")).slice(0,5);
+  const _certPrevHTML = _certPrev.length ? _certPrev.map(c => {
+    const d = daysToExpiry(c.expiry); const cl = classifyCertExpiry(c.expiry);
+    const dl = d==null ? "—" : (d<0 ? Math.abs(d)+"g fa" : d+"g");
+    const ex = c.expiry ? new Date(c.expiry+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"}) : "—";
+    return `<div class="vd-prev-row"><span class="vd-prev-name">${escapeHTML(c.name||"—")}</span><span class="vd-prev-meta mono">${ex}</span><span class="cert-restano ${cl}">${dl}</span></div>`;
+  }).join("") : `<div class="vd-empty">Nessun certificato caricato.</div>`;
+  const _todoPrevHTML = allActions.length ? allActions.slice(0,5).map(a => {
+    const c2 = (typeof ALERT_CONFIG!=="undefined" && ALERT_CONFIG[a.level]) ? ALERT_CONFIG[a.level] : {color:"grey"};
+    return `<div class="vd-prev-row action-row"><span class="pill-status ${c2.color}">${actionTypeIconHTML(a)}${escapeHTML(a.label)}</span><span class="vd-prev-desc">${escapeHTML(truncate(a.description||a.body||"",54))}</span><button class="btn-done btn-mini-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" data-vessel-name="${escapeAttr(a.vesselName||"")}" data-description="${escapeAttr(a.description||"")}" data-supplier="${escapeAttr(a.supplier||"")}" data-level="${escapeAttr(a.level||"")}" title="Segna come fatto"><svg class="icon icon-sm"><use href="#i-check"/></svg></button></div>`;
+  }).join("") : `<div class="vd-empty">Nessuna to-do aperta.</div>`;
+
   document.getElementById("view-root").innerHTML = `
     <header class="vessel-detail-banner" data-vid="${cfg.vesselId}">
-      <div class="vdb-icon"><svg class="icon icon-lg"><use href="#i-ship"/></svg></div>
-      <div style="flex:1;">
-        <h1 class="vdb-name">${cfg.displayName}</h1>
+      <div class="vdb-main">
+        <div class="vdb-titlerow"><h1 class="vdb-name">${cfg.displayName}</h1>${alertLine}</div>
         <div class="vdb-sub">${cfg.type} · IMO ${cfg.imo} · ${cfg.flag}</div>
       </div>
-      ${alertLine}
+      <div class="vdb-actions">
+        <button class="btn vdb-btn-primary" onclick="window.open('${cfg.infoshipUrl}', '_blank')">Apri in Infoship ↗</button>
+        <button class="btn" onclick="window.open('${cfg.driveUrl}', '_blank')">Drive</button>
+        <button class="btn" onclick="window.open('${cfg.notionUrl}', '_blank')">Notion</button>
+        <button class="btn" id="btn-export-pdf">Esporta PDF</button>
+      </div>
     </header>
 
-    <section class="position-panel">${posHTML}</section>
+    <div class="vd-subtabs">
+      <button class="vd-subtab ${_vtab==='panoramica'?'active':''}" data-tab="panoramica" onclick="window.setVesselDetailTab('panoramica')">Panoramica</button>
+      <button class="vd-subtab ${_vtab==='procurement'?'active':''}" data-tab="procurement" onclick="window.setVesselDetailTab('procurement')">Procurement <span class="vd-subtab-n">${(v.items||[]).length}</span></button>
+      <button class="vd-subtab ${_vtab==='certificati'?'active':''}" data-tab="certificati" onclick="window.setVesselDetailTab('certificati')">Certificati <span class="vd-subtab-n">${_certCount}</span></button>
+      <button class="vd-subtab ${_vtab==='todo'?'active':''}" data-tab="todo" onclick="window.setVesselDetailTab('todo')">To-do <span class="vd-subtab-n">${allActions.length}</span></button>
+    </div>
 
-    ${renderVoyageWidget(v.vesselId)}
-
-    ${renderCertWidgetForVessel(v.vesselId)}
-
-    ${kpiHTML}
-
-    ${ageBandsHTML}
-
-    <section class="todo-section" id="vessel-todo-section"></section>
-
-    <section>
-      <div class="section-title">
-        <h2>Azioni oggi</h2>
-        <span class="section-meta" id="actions-today-meta"></span>
+    <div class="vd-panel" data-tab="panoramica" style="display:${_vtab==='panoramica'?'':'none'};">
+      <div class="vd-grid2">
+        <section class="position-panel"><div class="box-h">Voyage · AIS</div>${posHTML}</section>
+        <div class="vd-map" data-vid="${cfg.vesselId}">
+          <div class="vd-map-label">MAPPA AIS</div>
+          <div class="vd-map-center"><span class="vd-map-pin"></span><span class="vd-map-tag">${cfg.displayName} · ${trk ? aisNavStatusText(trk.navStatus) : "—"}</span></div>
+          <button id="toggle-map" class="vd-map-toggle">Mostra mappa interattiva</button>
+          <div id="map"></div>
+        </div>
       </div>
-      ${actionsHTML}
-    </section>
 
-    <section>
+      ${renderVoyageWidget(v.vesselId)}
+
+      <div class="section-title"><h2>Pipeline procurement</h2></div>
+      ${kpiHTML}
+
+      <div class="vd-grid2">
+        <section class="panel-card">
+          <div class="panel-card-head red"><span>Prossime scadenze</span><button class="vd-link" onclick="window.setVesselDetailTab('certificati')">tutte →</button></div>
+          <div class="panel-card-body">${_certPrevHTML}</div>
+        </section>
+        <section class="panel-card">
+          <div class="panel-card-head"><span>To-do aperte</span><button class="vd-link" onclick="window.setVesselDetailTab('todo')">tutte →</button></div>
+          <div class="panel-card-body">${_todoPrevHTML}</div>
+        </section>
+      </div>
+
+      <div class="info-row">
+        <div class="info-card">
+          <div class="info-card-title">Contatti operativi</div>
+          <div class="info-line">⚓ Master · <a href="mailto:${cfg.masterEmail}">${cfg.masterName}</a></div>
+          <div class="info-line">🔧 Chief Eng. · <a href="mailto:${cfg.chiefEngEmail}">${cfg.chiefEngName}</a></div>
+          <div class="info-line">👤 Inspector · <a href="mailto:${cfg.inspectorEmail}">${cfg.inspectorName}</a></div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">Risorse rapide</div>
+          <div class="info-line">📁 <a href="${cfg.driveUrl}" target="_blank" rel="noopener">Cartella Drive ${cfg.displayName}</a></div>
+          <div class="info-line">📝 <a href="${cfg.notionUrl}" target="_blank" rel="noopener">Pagina Notion nave</a></div>
+          <div class="info-line">🔗 <a href="${cfg.infoshipUrl}" target="_blank" rel="noopener">Record Infoship</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vd-panel" data-tab="procurement" style="display:${_vtab==='procurement'?'':'none'};">
+      ${ageBandsHTML}
       <div class="section-title"><h2>Pipeline procurement</h2></div>
       <div class="pipeline-grid">
-        <div class="pipeline-col ${state.pipelineFilter === "REQ" ? "active" : ""}" data-stage="REQ">
-          <div class="pl-label">REQ</div>
-          <div class="pl-count">${pipeline.REQ.total}</div>
-          <div class="pl-sub">${pipeline.REQ.sub || "—"}</div>
-        </div>
-        <div class="pipeline-col ${state.pipelineFilter === "RFQ" ? "active" : ""}" data-stage="RFQ">
-          <div class="pl-label">RFQ</div>
-          <div class="pl-count">${pipeline.RFQ.total}</div>
-          <div class="pl-sub">${pipeline.RFQ.sub || "—"}</div>
-        </div>
-        <div class="pipeline-col ${state.pipelineFilter === "PO" ? "active" : ""}" data-stage="PO">
-          <div class="pl-label">PO</div>
-          <div class="pl-count">${pipeline.PO.total}</div>
-          <div class="pl-sub">${pipeline.PO.sub || "—"}</div>
-        </div>
-        <div class="pipeline-col ${state.pipelineFilter === "DN" ? "active" : ""}" data-stage="DN">
-          <div class="pl-label">DN</div>
-          <div class="pl-count">${pipeline.DN.total}</div>
-          <div class="pl-sub">${pipeline.DN.sub || "—"}</div>
-        </div>
+        <div class="pipeline-col ${state.pipelineFilter === "REQ" ? "active" : ""}" data-stage="REQ"><div class="pl-label">REQ</div><div class="pl-count">${pipeline.REQ.total}</div><div class="pl-sub">${pipeline.REQ.sub || "—"}</div></div>
+        <div class="pipeline-col ${state.pipelineFilter === "RFQ" ? "active" : ""}" data-stage="RFQ"><div class="pl-label">RFQ</div><div class="pl-count">${pipeline.RFQ.total}</div><div class="pl-sub">${pipeline.RFQ.sub || "—"}</div></div>
+        <div class="pipeline-col ${state.pipelineFilter === "PO" ? "active" : ""}" data-stage="PO"><div class="pl-label">PO</div><div class="pl-count">${pipeline.PO.total}</div><div class="pl-sub">${pipeline.PO.sub || "—"}</div></div>
+        <div class="pipeline-col ${state.pipelineFilter === "DN" ? "active" : ""}" data-stage="DN"><div class="pl-label">DN</div><div class="pl-count">${pipeline.DN.total}</div><div class="pl-sub">${pipeline.DN.sub || "—"}</div></div>
       </div>
-    </section>
 
-    ${renderCertSectionForVessel(v.vesselId)}
-
-
-    <section>
-      <div class="section-title">
-        <h2>Items</h2>
-        <span class="section-meta">${(v.items || []).length} totali ${state.pipelineFilter ? "· filtro: " + state.pipelineFilter : ""}</span>
-      </div>
-      <div class="items-toolbar">
-        <input type="search" class="search-input" id="items-search" placeholder="Cerca per descrizione, fornitore, N° REQ/RFQ/PO/DN…" value="${escapeHTML(state.searchQuery)}">
-        <select class="filter-select" id="supplier-filter">
-          <option value="">Tutti i fornitori</option>
-          ${uniqueSuppliers(v.items).map(s => `<option value="${escapeHTML(s)}" ${s === state.supplierFilter ? "selected" : ""}>${escapeHTML(s)}</option>`).join("")}
-        </select>
-        ${state.pipelineFilter || state._kpiFilter ? `<button class="btn btn-sm" onclick="clearPipelineFilter()">Pulisci filtri</button>` : ""}
-      </div>
-      <div class="items-visibility-toggles" id="items-visibility-toggles">
-        <!-- Popolato dinamicamente da updateVisibilityToggles() dopo renderItemsTable -->
-      </div>
-      <div class="items-table-wrap as-cards">
-        <table class="items-table as-cards" id="items-table">
-          <thead>
-            <tr>
-              <th data-sort="description" style="min-width: 220px;">Descrizione</th>
-              <th>N° doc</th>
-              <th style="min-width: 240px;">Progress <button class="progress-legend-btn" type="button" onclick="window.toggleProgressLegend()" title="Cosa significano i colori?">?</button></th>
-              <th data-sort="rfqDays">Età</th>
-              <th data-sort="deliveryDate">Consegna</th>
-              <th>Nota</th><th style="width: 1%;"></th>
-            </tr>
-          </thead>
-          <tbody id="items-tbody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <div class="vessel-toolbar">
-      <button class="btn" id="btn-export-pdf">Esporta scheda PDF</button>
-      <button class="btn" onclick="window.open('${cfg.infoshipUrl}', '_blank')">Apri in Infoship</button>
+      <section>
+        <div class="section-title">
+          <h2>Items</h2>
+          <span class="section-meta">${(v.items || []).length} totali ${state.pipelineFilter ? "· filtro: " + state.pipelineFilter : ""}</span>
+        </div>
+        <div class="items-toolbar">
+          <input type="search" class="search-input" id="items-search" placeholder="Cerca per descrizione, fornitore, N° REQ/RFQ/PO/DN…" value="${escapeHTML(state.searchQuery)}">
+          <select class="filter-select" id="supplier-filter">
+            <option value="">Tutti i fornitori</option>
+            ${uniqueSuppliers(v.items).map(s => `<option value="${escapeHTML(s)}" ${s === state.supplierFilter ? "selected" : ""}>${escapeHTML(s)}</option>`).join("")}
+          </select>
+          ${state.pipelineFilter || state._kpiFilter ? `<button class="btn btn-sm" onclick="clearPipelineFilter()">Pulisci filtri</button>` : ""}
+        </div>
+        <div class="items-visibility-toggles" id="items-visibility-toggles"></div>
+        <div class="items-table-wrap as-cards">
+          <table class="items-table as-cards" id="items-table">
+            <thead>
+              <tr>
+                <th data-sort="description" style="min-width: 220px;">Descrizione</th>
+                <th>N° doc</th>
+                <th style="min-width: 240px;">Progress <button class="progress-legend-btn" type="button" onclick="window.toggleProgressLegend()" title="Cosa significano i colori?">?</button></th>
+                <th data-sort="rfqDays">Età</th>
+                <th data-sort="deliveryDate">Consegna</th>
+                <th>Nota</th><th style="width: 1%;"></th>
+              </tr>
+            </thead>
+            <tbody id="items-tbody"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
-    <div class="info-row">
-      <div class="info-card">
-        <div class="info-card-title">Contatti operativi</div>
-        <div class="info-line">⚓ Master · <a href="mailto:${cfg.masterEmail}">${cfg.masterName}</a></div>
-        <div class="info-line">🔧 Chief Eng. · <a href="mailto:${cfg.chiefEngEmail}">${cfg.chiefEngName}</a></div>
-        <div class="info-line">👤 Inspector · <a href="mailto:${cfg.inspectorEmail}">${cfg.inspectorName}</a></div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-title">Risorse rapide</div>
-        <div class="info-line">📁 <a href="${cfg.driveUrl}" target="_blank" rel="noopener">Cartella Drive ${cfg.displayName}</a></div>
-        <div class="info-line">📝 <a href="${cfg.notionUrl}" target="_blank" rel="noopener">Pagina Notion nave</a></div>
-        <div class="info-line">🔗 <a href="${cfg.infoshipUrl}" target="_blank" rel="noopener">Record Infoship</a></div>
-      </div>
+    <div class="vd-panel" data-tab="certificati" style="display:${_vtab==='certificati'?'':'none'};">
+      ${renderCertWidgetForVessel(v.vesselId)}
+      ${renderCertSectionForVessel(v.vesselId)}
+    </div>
+
+    <div class="vd-panel" data-tab="todo" style="display:${_vtab==='todo'?'':'none'};">
+      <section class="todo-section" id="vessel-todo-section"></section>
+      <section>
+        <div class="section-title">
+          <h2>Azioni oggi</h2>
+          <span class="section-meta" id="actions-today-meta"></span>
+        </div>
+        ${actionsHTML}
+      </section>
     </div>
   `;
+
+  window.setVesselDetailTab = function(t){
+    state.detailTab = t;
+    document.querySelectorAll('.vd-subtab').forEach(x=>x.classList.toggle('active', x.dataset.tab===t));
+    document.querySelectorAll('.vd-panel').forEach(p=>{ p.style.display = (p.dataset.tab===t) ? '' : 'none'; });
+    window.scrollTo(0,0);
+  };
 
   // attach handlers
   document.querySelectorAll(".pipeline-col").forEach(col => {
@@ -8289,6 +8380,7 @@ function renderVesselDetail() {
       else if (f === "orders") state.pipelineFilter = "PO";
       else if (f === "dnPending") state.pipelineFilter = "DN";
       state._kpiFilter = f;
+      state.detailTab = "procurement";
       render();
       setTimeout(() => {
         const tbody = document.getElementById("items-tbody");
