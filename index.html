@@ -5786,6 +5786,59 @@ a:hover { text-decoration: underline; }
 
 /* Orologio in fondo: striscia sobria */
 .world-clock-section-compact{ margin-top:22px; opacity:.92; }
+
+/* ====================================================================
+   PLANCIA RESKIN 2 — CARD FLOTTA (da testata piena → card pulita)
+   ==================================================================== */
+.vessel-card[data-vid]{
+  position:relative; background:#fff !important;
+  border:1px solid #eceff3 !important; border-top:4px solid #d0d5dd !important;
+  border-radius:11px !important; padding:16px 17px !important; overflow:hidden;
+}
+.vessel-card[data-vid="peppino"]{    border-top-color:var(--c-peppino) !important; }
+.vessel-card[data-vid="medliguria"]{ border-top-color:var(--c-liguria) !important; }
+.vessel-card[data-vid="medtoscana"]{ border-top-color:var(--c-toscana) !important; }
+.vessel-card[data-vid="norrbotten"]{ border-top-color:var(--c-norrbotten) !important; }
+.vessel-card[data-vid]:hover{ box-shadow:0 3px 14px rgba(20,30,50,.12) !important; }
+.vessel-card[data-vid]::before{ display:none !important; }   /* via barra sinistra v4 */
+
+/* Testata: trasparente, testo scuro, niente blocco colorato */
+.vessel-card[data-vid] .vessel-card-head{
+  background:transparent !important; color:var(--text) !important;
+  padding:0 !important; margin-bottom:13px !important; border-bottom:none !important;
+  display:flex !important; align-items:center !important; gap:9px !important;
+}
+.vessel-card[data-vid] .vessel-status-icon{ display:none !important; }
+.vessel-card[data-vid] .vessel-name{ flex:1; min-width:0; }
+.vessel-card[data-vid] .vessel-name-text{ color:var(--text) !important; font-weight:700 !important; font-size:14px !important; }
+.vessel-card[data-vid] .vessel-card-head > div:last-child{ flex:none; }
+
+/* Pill stato → soft tinta per stato (comando visivo chiaro) */
+.vessel-card[data-vid] .vessel-state-pill{
+  background:#eef2f6 !important; color:#475569 !important; border:none !important;
+  font-size:10.5px !important; font-weight:700 !important; padding:2px 9px !important; border-radius:20px !important;
+}
+.vessel-card[data-status="ok"] .vessel-state-pill{   background:#e3f3e6 !important; color:#145f1f !important; }
+.vessel-card[data-status="warn"] .vessel-state-pill{ background:#fbe6c8 !important; color:#9a4a00 !important; }
+.vessel-card[data-status="crit"] .vessel-state-pill{ background:#fbdcde !important; color:#8f1219 !important; }
+.vessel-card[data-status="drydock"] .vessel-state-pill{ background:var(--c-norrbotten-soft) !important; color:var(--c-norrbotten) !important; }
+.vessel-card[data-vid] .vessel-todo-badge{ background:#eef2f6 !important; color:#475569 !important; border:none !important; font-weight:700; }
+.vessel-card[data-vid] .vessel-card-head .cert-pill{ background:#fff !important; border:1px solid var(--border) !important; }
+
+/* KPI row su bianco: nessun blocco grigio, divisori leggeri */
+.vessel-card[data-vid] .kpi-row{ background:transparent !important; padding:0 !important; gap:6px !important; margin-bottom:13px !important; }
+.vessel-card[data-vid] .kpi-row .kpi{ background:transparent !important; padding:0 !important; text-align:left !important; }
+.vessel-card[data-vid] .kpi-row .kpi-label{ font-size:9.5px !important; color:var(--text-faint) !important; }
+.vessel-card[data-vid] .kpi-row .kpi-value{ font-family:var(--font-mono); font-size:19px !important; font-weight:700 !important; color:#374151 !important; }
+.vessel-card[data-vid] .kpi-row .kpi.amber .kpi-value{ color:#9a4a00 !important; }
+.vessel-card[data-vid] .kpi-row .kpi.blue .kpi-value{ color:#0e54c1 !important; }
+.vessel-card[data-vid] .kpi-row .kpi.alert .kpi-value{ color:var(--c-red-strong) !important; }
+
+/* Footer rotta/ETA pulito */
+.vessel-card[data-vid] .vessel-foot{ padding-top:11px !important; border-top:1px solid #f1f4f7 !important; font-size:12px !important; color:var(--text-muted) !important; }
+.vessel-card[data-vid] .eta-badge{ background:#eef2f6 !important; color:#475569 !important; border:none !important; font-weight:600; border-radius:6px; padding:2px 8px; }
+.vessel-card[data-vid] .eta-badge.past{ background:#fbdcde !important; color:#8f1219 !important; }
+.vessel-card[data-vid] .eta-badge.urgent{ background:#fbe6c8 !important; color:#9a4a00 !important; }
 </style>
 
 <header class="app-header">
