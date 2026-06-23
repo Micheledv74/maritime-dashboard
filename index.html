@@ -6021,6 +6021,29 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .todo-page-header .btn.btn-primary{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; font-weight:600; border-radius:8px; }
 .time-chips-row .time-chip{ border-radius:8px !important; }
 .time-chips-row .time-chip.active{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; }
+
+/* FUSI ORARI — striscia piatta (sotto Flotta) */
+.fusi-section{ margin-bottom:26px; }
+.fusi-bar{ display:flex; align-items:center; gap:16px; background:#fff; border:1px solid var(--border); border-radius:11px; padding:10px 16px; box-shadow:var(--shadow-card); }
+.fusi-bar-label{ flex:none; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8a93a0; }
+.fusi-list{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 18px; flex:1; }
+.fusi-item{ display:inline-flex; align-items:baseline; gap:6px; font-family:var(--font-mono); white-space:nowrap; }
+.fusi-code{ font-size:11px; font-weight:600; letter-spacing:.06em; color:#9aa3af; }
+.fusi-time{ font-size:13px; font-weight:600; color:#374151; font-variant-numeric:tabular-nums; }
+.fusi-item.fusi-night .fusi-time{ color:#9aa3af; }
+.fusi-item.fusi-dusk .fusi-time{ color:#9a6a1a; }
+.fusi-edit{ flex:none; width:28px; height:28px; border:1px solid var(--border); background:#fff; border-radius:7px; color:#9aa3af; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+.fusi-edit:hover{ background:#f7f9fb; color:#475569; }
+@media(max-width:640px){ .fusi-bar{ align-items:flex-start; flex-wrap:wrap; } .fusi-list{ justify-content:flex-start; gap:8px 16px; } }
+
+/* AZIONI — pill Tipo a tinta soft con icona (era pieno colorato v4) */
+.action-row .pill-status{ display:inline-flex !important; align-items:center; gap:6px; padding:4px 10px !important; border-radius:6px !important; font-size:11px !important; font-weight:700 !important; text-transform:none !important; letter-spacing:0 !important; }
+.action-row .pill-status .pill-status-ic{ font-size:12px; line-height:1; flex:none; }
+.action-row .pill-status.crit, .action-row .pill-status.alert, .action-row .pill-status.urgent{ background:#fbdcde !important; color:#8f1219 !important; }
+.action-row .pill-status.warn{ background:#fbe6c8 !important; color:#9a4a00 !important; }
+.action-row .pill-status.info{ background:#dbe8ff !important; color:#0a3f93 !important; }
+.action-row .pill-status.ok, .action-row .pill-status.success{ background:#d4eedb !important; color:#145f1f !important; }
+.action-row .pill-status.neutral, .action-row .pill-status.grey{ background:#e9edf2 !important; color:#475569 !important; }
 </style>
 
 <header class="app-header">
@@ -7873,6 +7896,14 @@ function renderOverview() {
       <div class="vessel-grid">${cardsHTML}</div>
     </section>
 
+    <section class="fusi-section">
+      <div class="fusi-bar">
+        <span class="fusi-bar-label">Fusi orari</span>
+        <div class="fusi-list" id="world-clock-strip">${renderWorldClock()}</div>
+        <button class="fusi-edit" onclick="window.openWorldClockSettings()" title="Modifica i fusi orari mostrati"><svg class="icon icon-sm"><use href="#i-settings"/></svg></button>
+      </div>
+    </section>
+
     <section>
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-checksquare"/></svg>Azioni oggi</h2>
@@ -7890,16 +7921,6 @@ function renderOverview() {
         <span class="section-meta">consegne previste</span>
       </div>
       <div class="heatmap">${renderHeatmap()}</div>
-    </section>
-
-    <section class="world-clock-section-compact">
-      <div class="section-title section-title-compact">
-        <h2><svg class="icon icon-md"><use href="#i-clock"/></svg>Orologio mondiale</h2>
-        <span class="section-meta">
-          <button class="btn-mini-link" onclick="window.openWorldClockSettings()" title="Modifica le città mostrate"><svg class="icon icon-sm"><use href="#i-settings"/></svg></button>
-        </span>
-      </div>
-      <div class="world-clock-strip world-clock-strip-compact" id="world-clock-strip">${renderWorldClock()}</div>
     </section>
   `;
 
@@ -8745,33 +8766,19 @@ const WC_ICONS = {
 
 function renderWorldClock() {
   const cities = loadWorldClockCities();
-  const tiles = cities.map(c => {
+  return cities.map(c => {
     try {
       const t = new Date().toLocaleTimeString("it-IT", { timeZone: c.tz, hour: "2-digit", minute: "2-digit" });
       const hour = parseInt(t.split(":")[0], 10);
-      const isWorkingHours = hour >= 9 && hour < 18;
+      const isWork = hour >= 9 && hour < 18;
       const isNight = hour < 7 || hour >= 22;
-      const isOffHour = !isWorkingHours && !isNight;  // alba/tramonto
-      const cls = isWorkingHours ? "wc-tile wc-day" : isNight ? "wc-tile wc-night" : "wc-tile wc-offhour";
-      const icon = isNight ? WC_ICONS.night : isWorkingHours ? WC_ICONS.day : WC_ICONS.dusk;
-      const stateLabel = isWorkingHours ? "orario lavorativo" : isNight ? "notte" : "fuori orario";
-      // Codice IATA come "badge" identificativo (fallback su flag emoji se vecchio formato salvato)
+      const cls = isWork ? "fusi-item fusi-day" : isNight ? "fusi-item fusi-night" : "fusi-item fusi-dusk";
       const code = c.code || c.flag || "•••";
-      return `
-        <div class="${cls}" title="${escapeAttr(c.tz)} — ${stateLabel}">
-          <div class="wc-top-row">
-            <span class="wc-code">${escapeHTML(code)}</span>
-            ${icon}
-          </div>
-          <div class="wc-time">${escapeHTML(t)}</div>
-          <div class="wc-label">${escapeHTML(c.label)}</div>
-        </div>
-      `;
+      return `<span class="${cls}" title="${escapeAttr(c.label)} — ${escapeAttr(c.tz)}"><span class="fusi-code">${escapeHTML(code)}</span><span class="fusi-time">${escapeHTML(t)}</span></span>`;
     } catch (e) {
-      return `<div class="wc-tile wc-error" title="${escapeAttr(c.tz)}">${escapeHTML(c.label)}<br><span class="muted">— err</span></div>`;
+      return `<span class="fusi-item" title="${escapeAttr(c.tz)}"><span class="fusi-code">${escapeHTML(c.code||c.label||'?')}</span><span class="fusi-time">--:--</span></span>`;
     }
   }).join("");
-  return tiles;
 }
 
 // Auto-refresh orologi ogni minuto
@@ -11919,7 +11926,9 @@ function renderActionsTodayV2(opts) {
   let systemActions = generateAllActions();
   // v0.11 — aggiungo azioni dalle scadenze certificati (≤ 90 giorni)
   const certActions = generateCertificateActions();
-  systemActions = systemActions.concat(certActions);
+  // PLANCIA: niente righe certificati nelle Azioni della Home (ridondante con la scheda "Cosa serve ora");
+  // restano solo nella scheda nave (forcedVesselId).
+  systemActions = systemActions.concat(forcedVesselId ? certActions : []);
   // Filtra per nave
   if (vesselFilter !== "all") {
     systemActions = systemActions.filter(a => a.vesselId === vesselFilter);
@@ -12271,6 +12280,19 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
 }
 
 // Action row v2 — v0.10.2 con bottone +to-do, picker lingua, pin, rimanda intelligente
+// PLANCIA: icona per la colonna Tipo, coerente con l'iconografia "Nuova to-do" (emoji categoria)
+function actionTypeIconHTML(a){
+  if (a._kind === 'todo') return '';   // l'etichetta to-do porta già l'emoji della categoria
+  const k = String(a.key||'').split(':')[0];
+  let em = '📋';
+  if (k==='overdue' || k==='refused' || k==='batch') em = '📞';
+  else if (k==='readyPO') em = '✅';
+  else if (k==='outwindow') em = '📦';
+  else if (k==='cert') em = '🛡️';
+  else if (a.level==='critical') em = '⚠️';
+  return `<span class="pill-status-ic">${em}</span> `;
+}
+
 function actionRowHTMLv2(a, isInGroup) {
   const cfg = (typeof ALERT_CONFIG !== "undefined" && ALERT_CONFIG[a.level]) ?
               ALERT_CONFIG[a.level] :
@@ -12376,7 +12398,7 @@ function actionRowHTMLv2(a, isInGroup) {
     : (a._kind === "todo" ? `<span class="origine-cell faint">personale</span>` : `<span class="faint">—</span>`);
 
   return `<div class="action-row action-row-cols ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}" data-vid="${escapeAttr(a.vesselId || '')}">
-    <span class="pill-status ${cfg.color}">${escapeHTML(a.label)}</span>
+    <span class="pill-status ${cfg.color}">${actionTypeIconHTML(a)}${escapeHTML(a.label)}</span>
     <div class="action-body">
       ${escapeHTML(truncate(desc, 90))} ${docHTML} ${ageTag} ${returnedTag}
     </div>
