@@ -6105,6 +6105,14 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .cert-restano.week{ background:#fffbe9; color:#7a6a1a; }
 .cert-restano.somedays{ background:#eef3fb; color:#0a3f93; }
 .cert-restano.ok, .cert-restano.permanent{ background:#f1f4f7; color:#94a0ad; }
+
+/* Voyage editor — blocco agenzia */
+.voyage-agency{ margin-top:6px; }
+.voyage-agency .voyage-agency-lbl{ display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:5px; }
+.voyage-agency .agency-pick{ display:flex; gap:8px; align-items:center; margin-bottom:7px; }
+.voyage-agency .agency-pick select, .voyage-agency .agency-pick input{ flex:1; min-width:0; height:38px; border:1px solid var(--border); border-radius:6px; padding:0 10px; font-family:inherit; font-size:13px; background:#fff; color:var(--text); }
+.voyage-agency .agency-pick .btn{ flex:none; white-space:nowrap; border-radius:7px; }
+.voyage-agency .agency-contacts{ width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-family:inherit; font-size:13px; resize:vertical; color:var(--text); }
 </style>
 
 <header class="app-header">
@@ -11166,6 +11174,54 @@ function renderVoyageWidget(vesselId) {
   `;
 }
 
+// === Agenzie (rubrica salvata in localStorage, riproposta nei voyage) ===
+function loadAgencies(){ try{ const a=JSON.parse(localStorage.getItem("mpd.agencies")||"[]"); return Array.isArray(a)?a:[]; }catch{ return []; } }
+function saveAgenciesDB(arr){ try{ localStorage.setItem("mpd.agencies", JSON.stringify(arr)); }catch{} }
+function upsertAgency(name, contacts){
+  name=(name||"").trim(); if(!name) return;
+  const arr=loadAgencies(); const i=arr.findIndex(a=>(a.name||"").toLowerCase()===name.toLowerCase());
+  if(i>=0){ arr[i]={name, contacts:(contacts||"").trim()}; } else { arr.push({name, contacts:(contacts||"").trim()}); }
+  arr.sort((a,b)=>(a.name||"").localeCompare(b.name||"")); saveAgenciesDB(arr);
+}
+function agencyOptions(selectedName){
+  const arr=loadAgencies();
+  const opts=arr.map(a=>`<option value="${escapeAttr(a.name)}" ${a.name===selectedName?"selected":""}>${escapeHTML(a.name)}</option>`).join("");
+  return `<option value="">— nessuna —</option>${opts}<option value="__new">+ Nuova agenzia…</option>`;
+}
+function agencyBlock(which, ag){
+  ag = ag || {};
+  const inDB = ag.name && loadAgencies().some(a=>a.name===ag.name);
+  return `
+    <div class="voyage-agency">
+      <label class="voyage-agency-lbl">Agenzia</label>
+      <div class="agency-pick">
+        <select id="voy-${which}-agency-sel" onchange="window.voyAgencySelect('${which}')">${agencyOptions(inDB?ag.name:"")}</select>
+        <input type="text" id="voy-${which}-agency-name" placeholder="Nome nuova agenzia" value="${escapeAttr(ag.name||"")}" style="display:${(ag.name && !inDB)?"":"none"};">
+        <button type="button" class="btn btn-sm" onclick="window.copyAgency('${which}')" title="Copia agenzia e contatti negli appunti">📋 Copia</button>
+      </div>
+      <textarea id="voy-${which}-agency-contacts" rows="2" class="agency-contacts" placeholder="Contatti agenzia: referente, tel, email… (salvati e riproposti)">${escapeHTML(ag.contacts||"")}</textarea>
+    </div>`;
+}
+window.voyAgencySelect = function(which){
+  const sel=document.getElementById(`voy-${which}-agency-sel`);
+  const nameI=document.getElementById(`voy-${which}-agency-name`);
+  const cont=document.getElementById(`voy-${which}-agency-contacts`);
+  if(!sel||!nameI||!cont) return;
+  if(sel.value==="__new"){ nameI.style.display=""; nameI.value=""; cont.value=""; nameI.focus(); return; }
+  nameI.style.display="none"; nameI.value=sel.value;
+  const a=loadAgencies().find(x=>x.name===sel.value);
+  cont.value=a?(a.contacts||""):"";
+};
+window.copyAgency = function(which){
+  const name=(document.getElementById(`voy-${which}-agency-name`)?.value||"").trim();
+  const contacts=(document.getElementById(`voy-${which}-agency-contacts`)?.value||"").trim();
+  if(!name && !contacts){ showToast("Nessuna agenzia da copiare"); return; }
+  const text = name + (contacts? "\n"+contacts : "");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showToast("Agenzia copiata negli appunti")).catch(()=>showToast("Copia non riuscita"));
+  } else { showToast("Copia non supportata"); }
+};
+
 // Editor modale per compilare/modificare voyage
 window.openVoyageEditor = function(vesselId) {
   const voy = getVoyage(vesselId);
@@ -11208,41 +11264,24 @@ window.openVoyageEditor = function(vesselId) {
         <div class="detail-section">
           <h4>Voyage in corso</h4>
           <div class="voyage-form-grid">
-            <div class="voyage-form-row">
-              <label>Da (porto)</label>
-              <input type="text" id="voy-cur-from" value="${escapeAttr(cur.from || "")}" placeholder="Es. Algeciras">
-            </div>
-            <div class="voyage-form-row">
-              <label>A (porto)</label>
-              <input type="text" id="voy-cur-to" value="${escapeAttr(cur.to || "")}" placeholder="Es. Vitoria">
-            </div>
-            <div class="voyage-form-row">
-              <label>ETD (partenza)</label>
-              <input type="datetime-local" id="voy-cur-etd" value="${escapeAttr(cur.etd || "")}">
-            </div>
-            <div class="voyage-form-row">
-              <label>ETA (arrivo)</label>
-              <input type="datetime-local" id="voy-cur-eta" value="${escapeAttr(cur.eta || "")}">
-            </div>
+            <div class="voyage-form-row"><label>Da (porto)</label><input type="text" id="voy-cur-from" value="${escapeAttr(cur.from || "")}" placeholder="Es. Algeciras"></div>
+            <div class="voyage-form-row"><label>A (porto)</label><input type="text" id="voy-cur-to" value="${escapeAttr(cur.to || "")}" placeholder="Es. Vitoria"></div>
+            <div class="voyage-form-row"><label>ETA (arrivo)</label><input type="datetime-local" id="voy-cur-eta" value="${escapeAttr(cur.eta || "")}"></div>
+            <div class="voyage-form-row"><label>ETB (banchina)</label><input type="datetime-local" id="voy-cur-etb" value="${escapeAttr(cur.etb || "")}"></div>
+            <div class="voyage-form-row"><label>ETD (partenza)</label><input type="datetime-local" id="voy-cur-etd" value="${escapeAttr(cur.etd || "")}"></div>
           </div>
+          ${agencyBlock("cur", cur.agency)}
         </div>
 
         <div class="detail-section">
           <h4>Voyage successivo (se noto)</h4>
           <div class="voyage-form-grid">
-            <div class="voyage-form-row">
-              <label>Da</label>
-              <input type="text" id="voy-nxt-from" value="${escapeAttr(nxt.from || "")}" placeholder="Es. Vitoria">
-            </div>
-            <div class="voyage-form-row">
-              <label>A</label>
-              <input type="text" id="voy-nxt-to" value="${escapeAttr(nxt.to || "")}" placeholder="Es. Rotterdam">
-            </div>
-            <div class="voyage-form-row">
-              <label>ETA</label>
-              <input type="datetime-local" id="voy-nxt-eta" value="${escapeAttr(nxt.eta || "")}">
-            </div>
+            <div class="voyage-form-row"><label>Da</label><input type="text" id="voy-nxt-from" value="${escapeAttr(nxt.from || "")}" placeholder="Es. Vitoria"></div>
+            <div class="voyage-form-row"><label>A</label><input type="text" id="voy-nxt-to" value="${escapeAttr(nxt.to || "")}" placeholder="Es. Rotterdam"></div>
+            <div class="voyage-form-row"><label>ETA (arrivo)</label><input type="datetime-local" id="voy-nxt-eta" value="${escapeAttr(nxt.eta || "")}"></div>
+            <div class="voyage-form-row"><label>ETB (banchina)</label><input type="datetime-local" id="voy-nxt-etb" value="${escapeAttr(nxt.etb || "")}"></div>
           </div>
+          ${agencyBlock("nxt", nxt.agency)}
         </div>
 
         <div class="detail-section">
@@ -11286,12 +11325,16 @@ window.saveVoyageFromEditor = function(vesselId) {
       from: getVal("voy-cur-from"),
       to: getVal("voy-cur-to"),
       etd: getVal("voy-cur-etd"),
-      eta: getVal("voy-cur-eta")
+      etb: getVal("voy-cur-etb"),
+      eta: getVal("voy-cur-eta"),
+      agency: (()=>{ const n=getVal("voy-cur-agency-name"), c=getVal("voy-cur-agency-contacts"); if(n) upsertAgency(n,c); return (n||c)?{name:n,contacts:c}:null; })()
     },
     next: {
       from: getVal("voy-nxt-from"),
       to: getVal("voy-nxt-to"),
-      eta: getVal("voy-nxt-eta")
+      etb: getVal("voy-nxt-etb"),
+      eta: getVal("voy-nxt-eta"),
+      agency: (()=>{ const n=getVal("voy-nxt-agency-name"), c=getVal("voy-nxt-agency-contacts"); if(n) upsertAgency(n,c); return (n||c)?{name:n,contacts:c}:null; })()
     },
     notes: getVal("voy-notes"),
     updatedAt: new Date().toISOString()
