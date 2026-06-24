@@ -6172,6 +6172,28 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .voyage-next .voyage-next-eta{ font-size:11.5px; color:#9aa3af; font-family:var(--font-mono); white-space:nowrap; }
 .voyage-notes-line{ display:flex; align-items:center; gap:7px; margin-top:12px; font-size:12.5px; color:#5b6470; }
 .voyage-notes-line .icon{ width:14px; height:14px; color:#aab2bd; flex:none; }
+
+/* --- mappa sempre visibile --- */
+.vd-map-live{ padding:0 !important; background:#e9eef3 !important; background-image:none !important; }
+.vd-map-live .vd-map-label{ z-index:500; background:rgba(255,255,255,.85); padding:2px 7px; border-radius:5px; }
+.vd-map-live #map{ position:absolute; inset:0; width:100%; height:100%; display:block !important; border-radius:12px; z-index:1; }
+.vd-map-na{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#9aa3af; font-size:13px; }
+
+/* --- specs nave nel banner --- */
+.vdb-specs{ display:flex; flex-wrap:wrap; gap:5px 18px; margin-top:9px; font-size:12px; color:#5b6470; font-family:var(--font-mono); }
+.vdb-specs b{ color:#9aa3af; font-weight:600; margin-right:4px; }
+
+/* --- badge certificati colorato (solo numeri) --- */
+.vd-subtab .vd-cert-red{ color:#c8222a; font-weight:800; font-family:var(--font-mono); margin-left:6px; }
+.vd-subtab .vd-cert-amber{ color:#b8740a; font-weight:800; font-family:var(--font-mono); margin-left:5px; }
+
+/* --- KPI Panoramica: gerarchia colore + hover --- */
+.vd-kpi-row .kpi.is-zero .kpi-value{ color:#c2cad4 !important; }
+.vd-kpi-row .kpi.kpi-red .kpi-value{ color:#c8222a !important; }
+.vd-kpi-row .kpi.kpi-amber .kpi-value{ color:#b8740a !important; }
+.vd-kpi-row .kpi.kpi-blue .kpi-value{ color:#0a3f93 !important; }
+.vd-kpi-row .kpi.clickable{ cursor:pointer; transition:box-shadow .12s, border-color .12s; }
+.vd-kpi-row .kpi.clickable:hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
 </style>
 
 <header class="app-header">
@@ -6687,64 +6709,88 @@ const VESSELS = [
   {
     vesselId: "peppino",        // deve combaciare con il campo vesselId nel JSON
     displayName: "M/V PEPPINO",
-    imo: "9999991",
-    flag: "Italia",
-    type: "General Cargo",
+    imo: "9586708",
+    mmsi: "256957000",
+    callSign: "9HA6039",
+    aisClass: "Class A",
+    flag: "Malta",
+    flagEmoji: "\uD83C\uDDF2\uD83C\uDDF9",
+    type: "Bulk Carrier",
+    generalType: "Cargo - Hazard A (Major)",
+    detailedType: "Bulk Carrier",
     masterName: "Cpt. ___",
     masterEmail: "master.peppino@example.com",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.peppino@example.com",
     inspectorName: "Ispettore ___",
     inspectorEmail: "inspector.peppino@example.com",
-    driveUrl: "https://drive.google.com/drive/u/0/folders/PEPPINO_PLACEHOLDER",
+    driveUrl: "https://drive.google.com/drive/my-drive",
     notionUrl: "https://www.notion.so/PEPPINO_PLACEHOLDER",
     infoshipUrl: "https://infoship.example.com/vessel/peppino"
   },
   {
     vesselId: "medliguria",
     displayName: "MED LIGURIA",
-    imo: "9618372",
+    imo: "9604811",
+    mmsi: "636024824",
+    callSign: "5LUL8",
+    aisClass: "Class A",
     flag: "Liberia",
-    type: "Bulk Carrier",
+    flagEmoji: "\uD83C\uDDF1\uD83C\uDDF7",
+    type: "General Cargo",
+    generalType: "Cargo",
+    detailedType: "General Cargo",
     masterName: "Cpt. ___",
     masterEmail: "master.medliguria@example.com",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.medliguria@example.com",
     inspectorName: "Ispettore ___",
     inspectorEmail: "inspector.medliguria@example.com",
-    driveUrl: "https://drive.google.com/drive/u/0/folders/MEDLIGURIA_PLACEHOLDER",
+    driveUrl: "https://drive.google.com/drive/my-drive",
     notionUrl: "https://www.notion.so/MEDLIGURIA_PLACEHOLDER",
     infoshipUrl: "https://infoship.example.com/vessel/medliguria"
   },
   {
     vesselId: "medtoscana",
     displayName: "MED TOSCANA",
-    imo: "9999992",
-    flag: "Liberia",
+    imo: "9490741",
+    mmsi: "249090000",
+    callSign: "9HA6104",
+    aisClass: "Class A",
+    flag: "Malta",
+    flagEmoji: "\uD83C\uDDF2\uD83C\uDDF9",
     type: "Bulk Carrier",
+    generalType: "Cargo",
+    detailedType: "Bulk Carrier",
     masterName: "Cpt. ___",
     masterEmail: "master.medtoscana@example.com",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.medtoscana@example.com",
     inspectorName: "Ispettore ___",
     inspectorEmail: "inspector.medtoscana@example.com",
-    driveUrl: "https://drive.google.com/drive/u/0/folders/MEDTOSCANA_PLACEHOLDER",
+    driveUrl: "https://drive.google.com/drive/my-drive",
     notionUrl: "https://www.notion.so/MEDTOSCANA_PLACEHOLDER",
     infoshipUrl: "https://infoship.example.com/vessel/medtoscana"
   },
   {
     vesselId: "norrbotten",
     displayName: "NORRBOTTEN",
-    imo: "9999993",
-    flag: "Italia",
-    type: "Bulk Carrier",
+    imo: "9191931",
+    mmsi: "255624000",
+    callSign: "CQCK",
+    aisClass: "Class A",
+    flag: "Portogallo",
+    flagEmoji: "\uD83C\uDDF5\uD83C\uDDF9",
+    type: "General Cargo",
+    generalType: "Cargo",
+    detailedType: "General Cargo",
     masterName: "Cpt. ___",
     masterEmail: "master.norrbotten@example.com",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.norrbotten@example.com",
     inspectorName: "Ispettore ___",
     inspectorEmail: "inspector.norrbotten@example.com",
-    driveUrl: "https://drive.google.com/drive/u/0/folders/NORRBOTTEN_PLACEHOLDER",
+    driveUrl: "https://drive.google.com/drive/my-drive",
     notionUrl: "https://www.notion.so/NORRBOTTEN_PLACEHOLDER",
     infoshipUrl: "https://infoship.example.com/vessel/norrbotten"
   }
@@ -8202,6 +8248,7 @@ function renderVesselDetail() {
     const hoursOld = lastSeenDate ? Math.round((Date.now() - lastSeenDate.getTime()) / 36e5) : null;
     const staleWarning = hoursOld != null && hoursOld > 24 ?
       `<span class="ais-stale">⚠ segnale vecchio di ${hoursOld}h</span>` : "";
+    const shipTime = shipLocalTime(trk.lng);
 
     posHTML = `
       <div class="position-grid">
@@ -8225,17 +8272,22 @@ function renderVesselDetail() {
           <div class="pos-main">${lastSeenDate ? formatRelative(lastSeenDate) : "—"}</div>
           <div class="pos-sub">${staleWarning || (lastSeenDate ? lastSeenDate.toLocaleString("it-IT", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}) : "—")}</div>
         </div>
+        <div class="pos-cell">
+          <div class="pos-label">Ora a bordo</div>
+          <div class="pos-main">${shipTime ? shipTime.time : "—"}</div>
+          <div class="pos-sub">${shipTime ? "UTC" + (shipTime.offset >= 0 ? "+" : "") + shipTime.offset + " · stimata" : "stimata da long."}</div>
+        </div>
       </div>
 `;
   }
 
   // KPI strip (cliccabile: applica filtro pipeline + scroll alla tabella)
-  const kpiHTML = `<div class="kpi-row" style="margin-bottom: 18px;">
-    <div class="kpi clickable" data-vd-kpi="rfqOpen"><div class="kpi-label">RFQ Open</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
-    <div class="kpi clickable ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}" data-vd-kpi="rfqOverdue7"><div class="kpi-label">Overdue 7g</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
-    <div class="kpi clickable ${(v.readyForPO || 0) > 0 ? "blue" : ""}" data-vd-kpi="readyForPO"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
-    <div class="kpi clickable" data-vd-kpi="orders"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
-    <div class="kpi clickable" data-vd-kpi="dnPending"><div class="kpi-label">DN pending</div><div class="kpi-value">${v.dnPending || 0}</div></div>
+  const kpiHTML = `<div class="kpi-row vd-kpi-row" style="margin-bottom: 18px;">
+    <div class="kpi clickable ${(v.rfqOpen||0)===0?'is-zero':''}" data-vd-kpi="rfqOpen"><div class="kpi-label">RFQ Open</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
+    <div class="kpi clickable ${(v.rfqOverdue7||0)>0?'kpi-amber':'is-zero'}" data-vd-kpi="rfqOverdue7"><div class="kpi-label">Overdue 7g</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
+    <div class="kpi clickable ${(v.readyForPO||0)>0?'kpi-blue':'is-zero'}" data-vd-kpi="readyForPO"><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
+    <div class="kpi clickable ${(v.orders||0)===0?'is-zero':''}" data-vd-kpi="orders"><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
+    <div class="kpi clickable ${(v.dnPending||0)>0?'kpi-red':'is-zero'}" data-vd-kpi="dnPending"><div class="kpi-label">DN pending</div><div class="kpi-value">${v.dnPending || 0}</div></div>
   </div>`;
 
   // RFQ age bands: vista a colpo d'occhio degli RFQ per fascia di età
@@ -8287,15 +8339,42 @@ function renderVesselDetail() {
     return `<div class="vd-prev-row action-row"><span class="pill-status ${c2.color}">${actionTypeIconHTML(a)}${escapeHTML(a.label)}</span><span class="vd-prev-desc">${escapeHTML(truncate(a.description||a.body||"",54))}</span><button class="btn-done btn-mini-done" data-done-key="${escapeAttr(a.key)}" data-done-label="${escapeAttr(a.label)}" data-vessel-name="${escapeAttr(a.vesselName||"")}" data-description="${escapeAttr(a.description||"")}" data-supplier="${escapeAttr(a.supplier||"")}" data-level="${escapeAttr(a.level||"")}" title="Segna come fatto"><svg class="icon icon-sm"><use href="#i-check"/></svg></button></div>`;
   }).join("") : `<div class="vd-empty">Nessuna to-do aperta.</div>`;
 
+  // Badge certificati colorato (rosso = scaduti o ≤30gg, ambra = 31-60gg)
+  const _certDays = _certAll.map(c => daysToExpiry(c.expiry)).filter(d => d != null);
+  const _certRed = _certDays.filter(d => d <= 30).length;
+  const _certAmber = _certDays.filter(d => d > 30 && d <= 60).length;
+  const _certBadge = (_certRed || _certAmber)
+    ? `${_certRed ? `<span class="vd-cert-red">${_certRed}</span>` : ""}${_certAmber ? `<span class="vd-cert-amber">${_certAmber}</span>` : ""}`
+    : `<span class="vd-subtab-n">${_certCount}</span>`;
+
+  // Contatti: nascondi righe non compilate (placeholder "___")
+  const _contacts = [
+    { role: "Master", icon: "⚓", name: cfg.masterName, email: cfg.masterEmail },
+    { role: "Chief Eng.", icon: "\uD83D\uDD27", name: cfg.chiefEngName, email: cfg.chiefEngEmail },
+    { role: "Inspector", icon: "\uD83D\uDC64", name: cfg.inspectorName, email: cfg.inspectorEmail }
+  ].filter(c => c.name && !/_{2,}/.test(c.name));
+  const _contactsHTML = _contacts.length
+    ? _contacts.map(c => `<div class="info-line">${c.icon} ${c.role} · <a href="mailto:${c.email}">${escapeHTML(c.name)}</a></div>`).join("")
+    : `<div class="info-line muted">Nessun contatto inserito</div>`;
+
+  // Particolari nave (IMO / MMSI / Call sign / classe AIS)
+  const _specsHTML = `
+    <div class="vdb-specs">
+      <span><b>IMO</b> ${escapeHTML(cfg.imo || "—")}</span>
+      <span><b>MMSI</b> ${escapeHTML(cfg.mmsi || "—")}</span>
+      <span><b>Call sign</b> ${escapeHTML(cfg.callSign || "—")}</span>
+      <span><b>AIS</b> ${escapeHTML(cfg.aisClass || "—")}</span>
+    </div>`;
+
   document.getElementById("view-root").innerHTML = `
     <header class="vessel-detail-banner" data-vid="${cfg.vesselId}">
       <div class="vdb-main">
-        <div class="vdb-titlerow"><h1 class="vdb-name">${cfg.displayName}</h1>${alertLine}</div>
-        <div class="vdb-sub">${cfg.type} · IMO ${cfg.imo} · ${cfg.flag}</div>
+        <div class="vdb-titlerow"><h1 class="vdb-name">${cfg.displayName}</h1></div>
+        <div class="vdb-sub">${cfg.detailedType || cfg.type} · ${cfg.flagEmoji || ""} ${cfg.flag}</div>
+        ${_specsHTML}
       </div>
       <div class="vdb-actions">
-        <button class="btn vdb-btn-primary" onclick="window.open('${cfg.infoshipUrl}', '_blank')">Apri in Infoship ↗</button>
-        <button class="btn" onclick="window.open('${cfg.driveUrl}', '_blank')">Drive</button>
+        <button class="btn vdb-btn-primary" onclick="window.open('${cfg.driveUrl}', '_blank')">Drive</button>
         <button class="btn" onclick="window.open('${cfg.notionUrl}', '_blank')">Notion</button>
         <button class="btn" id="btn-export-pdf">Esporta PDF</button>
       </div>
@@ -8304,17 +8383,15 @@ function renderVesselDetail() {
     <div class="vd-subtabs">
       <button class="vd-subtab ${_vtab==='panoramica'?'active':''}" data-tab="panoramica" onclick="window.setVesselDetailTab('panoramica')">Panoramica</button>
       <button class="vd-subtab ${_vtab==='procurement'?'active':''}" data-tab="procurement" onclick="window.setVesselDetailTab('procurement')">Procurement <span class="vd-subtab-n">${(v.items||[]).length}</span></button>
-      <button class="vd-subtab ${_vtab==='certificati'?'active':''}" data-tab="certificati" onclick="window.setVesselDetailTab('certificati')">Certificati <span class="vd-subtab-n">${_certCount}</span></button>
+      <button class="vd-subtab ${_vtab==='certificati'?'active':''}" data-tab="certificati" onclick="window.setVesselDetailTab('certificati')">Certificati ${_certBadge}</button>
       <button class="vd-subtab ${_vtab==='todo'?'active':''}" data-tab="todo" onclick="window.setVesselDetailTab('todo')">To-do <span class="vd-subtab-n">${allActions.length}</span></button>
     </div>
 
     <div class="vd-panel" data-tab="panoramica" style="display:${_vtab==='panoramica'?'':'none'};">
       <div class="vd-grid2">
         <section class="position-panel"><div class="box-h">Voyage · AIS</div>${posHTML}</section>
-        <div class="vd-map" data-vid="${cfg.vesselId}">
+        <div class="vd-map vd-map-live" data-vid="${cfg.vesselId}">
           <div class="vd-map-label">MAPPA AIS</div>
-          <div class="vd-map-center"><span class="vd-map-pin"></span><span class="vd-map-tag">${cfg.displayName} · ${trk ? aisNavStatusText(trk.navStatus) : "—"}</span></div>
-          <button id="toggle-map" class="vd-map-toggle">Mostra mappa interattiva</button>
           <div id="map"></div>
         </div>
       </div>
@@ -8324,29 +8401,20 @@ function renderVesselDetail() {
       <div class="section-title"><h2>Pipeline procurement</h2></div>
       ${kpiHTML}
 
-      <div class="vd-grid2">
-        <section class="panel-card">
-          <div class="panel-card-head red"><span>Prossime scadenze</span><button class="vd-link" onclick="window.setVesselDetailTab('certificati')">tutte →</button></div>
-          <div class="panel-card-body">${_certPrevHTML}</div>
-        </section>
-        <section class="panel-card">
-          <div class="panel-card-head"><span>To-do aperte</span><button class="vd-link" onclick="window.setVesselDetailTab('todo')">tutte →</button></div>
-          <div class="panel-card-body">${_todoPrevHTML}</div>
-        </section>
-      </div>
+      <section class="panel-card">
+        <div class="panel-card-head"><span>To-do aperte</span><button class="vd-link" onclick="window.setVesselDetailTab('todo')">tutte →</button></div>
+        <div class="panel-card-body">${_todoPrevHTML}</div>
+      </section>
 
       <div class="info-row">
         <div class="info-card">
           <div class="info-card-title">Contatti operativi</div>
-          <div class="info-line">⚓ Master · <a href="mailto:${cfg.masterEmail}">${cfg.masterName}</a></div>
-          <div class="info-line">🔧 Chief Eng. · <a href="mailto:${cfg.chiefEngEmail}">${cfg.chiefEngName}</a></div>
-          <div class="info-line">👤 Inspector · <a href="mailto:${cfg.inspectorEmail}">${cfg.inspectorName}</a></div>
+          ${_contactsHTML}
         </div>
         <div class="info-card">
           <div class="info-card-title">Risorse rapide</div>
           <div class="info-line">📁 <a href="${cfg.driveUrl}" target="_blank" rel="noopener">Cartella Drive ${cfg.displayName}</a></div>
           <div class="info-line">📝 <a href="${cfg.notionUrl}" target="_blank" rel="noopener">Pagina Notion nave</a></div>
-          <div class="info-line">🔗 <a href="${cfg.infoshipUrl}" target="_blank" rel="noopener">Record Infoship</a></div>
         </div>
       </div>
     </div>
@@ -8434,6 +8502,15 @@ function renderVesselDetail() {
   });
   const mapBtn = document.getElementById("toggle-map");
   if (mapBtn) mapBtn.addEventListener("click", () => toggleMap(trk, cfg.displayName));
+  // Mappa sempre visibile (init immediato, no click)
+  initVesselMap(trk, cfg.displayName);
+  // KPI Panoramica cliccabili → tab Procurement filtrato
+  document.querySelectorAll(".vd-kpi-row .kpi[data-vd-kpi]").forEach(kpi => {
+    kpi.addEventListener("click", () => {
+      state.detailTab = "procurement";
+      goVesselWithFilter(cfg.vesselId, kpi.dataset.vdKpi);
+    });
+  });
   document.getElementById("btn-export-pdf").addEventListener("click", () => exportVesselPDF(cfg.displayName));
 
   renderItemsTable(v);
@@ -11480,6 +11557,18 @@ function getVoyageSummaryForCard(vesselId) {
 // Soglie urgenza scadenza (giorni)
 const CERT_THRESHOLDS = { urgent: 30, week: 60, somedays: 90 };
 
+// Ora locale stimata a bordo, dalla longitudine (fuso nautico ≈ lon/15)
+function shipLocalTime(lng) {
+  if (lng == null || isNaN(lng)) return null;
+  const offset = Math.round(lng / 15);
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const local = new Date(utcMs + offset * 3600000);
+  const hh = String(local.getHours()).padStart(2, "0");
+  const mm = String(local.getMinutes()).padStart(2, "0");
+  return { time: `${hh}:${mm}`, offset };
+}
+
 // Classifica una data di scadenza vs oggi → "expired" | "urgent" | "week" | "somedays" | "ok"
 function classifyCertExpiry(expiryISO) {
   if (!expiryISO) return "permanent";
@@ -13053,6 +13142,29 @@ async function toggleMap(trk, vesselName) {
   }).addTo(mapInstance);
   const popupText = `<strong>${vesselName}</strong><br>${trk.sog != null ? trk.sog.toFixed(1) : "—"} kn · COG ${trk.cog != null ? trk.cog.toFixed(0) : "—"}°<br>${aisNavStatusText(trk.navStatus)}`;
   L.marker([trk.lat, trk.lng]).addTo(mapInstance).bindPopup(popupText).openPopup();
+}
+
+// Mappa sempre visibile nella Panoramica (Leaflet, interattiva, nessun click per mostrarla)
+let vesselMapInstance = null;
+async function initVesselMap(trk, vesselName) {
+  const mapDiv = document.getElementById("map");
+  if (!mapDiv) return;
+  if (!trk || trk.lat == null || trk.lng == null) {
+    mapDiv.innerHTML = "<div class='vd-map-na'>Posizione AIS non disponibile</div>";
+    return;
+  }
+  if (!mapLoaded) { await loadLeaflet(); mapLoaded = true; }
+  // il render del tab può aver ricreato il div: ripulisco eventuale istanza precedente
+  if (vesselMapInstance) { try { vesselMapInstance.remove(); } catch (e) {} vesselMapInstance = null; }
+  const el = document.getElementById("map");
+  if (!el) return;
+  vesselMapInstance = L.map(el, { scrollWheelZoom: false }).setView([trk.lat, trk.lng], 6);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap", maxZoom: 12
+  }).addTo(vesselMapInstance);
+  const popupText = `<strong>${vesselName}</strong><br>${trk.sog != null ? trk.sog.toFixed(1) : "—"} kn · COG ${trk.cog != null ? trk.cog.toFixed(0) : "—"}°<br>${aisNavStatusText(trk.navStatus)}`;
+  L.marker([trk.lat, trk.lng]).addTo(vesselMapInstance).bindPopup(popupText).openPopup();
+  setTimeout(() => { try { vesselMapInstance.invalidateSize(); } catch (e) {} }, 200);
 }
 
 async function loadLeaflet() {
