@@ -6205,36 +6205,41 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 @keyframes rowFlash { 0%{ background:#fff7d6; } 100%{ background:transparent; } }
 .row-flash{ animation:rowFlash 2.2s ease-out; }
 
-/* === CARICO SETTIMANA — calendario 7 colonne === */
-.cal-week{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
-.cal-col{ background:#fff; border:1px solid var(--border); border-radius:11px; min-height:150px; display:flex; flex-direction:column; overflow:hidden; transition:box-shadow .12s, border-color .12s; }
-.cal-col[data-count="0"]{ background:#fcfdfe; }
-.cal-col:not([data-count="0"]){ cursor:pointer; }
-.cal-col:not([data-count="0"]):hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
-.cal-col.is-weekend{ background:#f7f9fb; }
-.cal-col.is-today{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
-.cal-col-head{ display:flex; align-items:baseline; justify-content:space-between; padding:8px 11px; border-bottom:1px solid #eef1f4; }
-.cal-col.is-today .cal-col-head{ background:#eaf1fc; }
-.cal-dow{ font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9aa3af; }
-.cal-col.is-today .cal-dow{ color:var(--accent); }
-.cal-dnum{ font-size:14px; font-weight:700; color:#3a4250; font-family:var(--font-mono); }
-.cal-dmon{ font-size:10px; font-weight:600; color:#aab2bd; }
-.cal-col-body{ flex:1; padding:7px; display:flex; flex-direction:column; gap:5px; }
-.cal-chip{ display:flex; align-items:center; gap:5px; padding:4px 7px; border-radius:6px; font-size:11px; font-weight:500; line-height:1.25; border:1px solid transparent; }
-.cal-chip-ic{ font-size:10px; flex:none; }
-.cal-chip-tx{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.cal-vdot{ width:7px; height:7px; border-radius:50%; flex:none; background:#cbd2da; }
-.cal-vdot[data-vid="peppino"]{ background:var(--c-peppino); }
-.cal-vdot[data-vid="medliguria"]{ background:var(--c-liguria); }
-.cal-vdot[data-vid="medtoscana"]{ background:var(--c-toscana); }
-.cal-vdot[data-vid="norrbotten"]{ background:var(--c-norrbotten); }
-.cal-chip.ev-cert{ background:#fbdcde; color:#8f1219; }
-.cal-chip.ev-delivery{ background:#dbe8ff; color:#0a3f93; }
-.cal-chip.ev-todo{ background:#e7f0e9; color:#1f5a2c; }
-.cal-chip.ev-outlook{ background:#efe6fb; color:#5a2d8f; }
-.cal-empty{ color:#cbd2da; font-size:14px; text-align:center; margin:auto; }
-.cal-more{ font-size:10.5px; font-weight:600; color:#8a93a0; padding:2px 7px; }
-.cal-legend{ display:flex; flex-wrap:wrap; gap:14px; margin-top:12px; padding-left:2px; }
+/* === CARICO SETTIMANA — griglia righe-nave × giorni === */
+.calg-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.cal-todo-toggle{ flex:none; font-size:12px; font-weight:600; color:#5b6470; background:#fff; border:1px solid var(--border); border-radius:7px; padding:5px 11px; cursor:pointer; }
+.cal-todo-toggle:hover{ background:#f7f9fb; }
+.cal-todo-toggle.on{ background:#e7f0e9; border-color:#bcd9c4; color:#1f5a2c; }
+.calg{ display:grid; grid-template-columns:140px repeat(7,1fr); gap:6px; align-items:stretch; }
+.calg-corner{ }
+.calg-dhead{ display:flex; flex-direction:column; gap:1px; padding:6px 8px; border-bottom:2px solid #eef1f4; }
+.calg-dhead.is-today{ border-bottom-color:var(--accent); }
+.calg-dhead.is-weekend{ opacity:.7; }
+.calg-dow{ font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9aa3af; }
+.calg-dhead.is-today .calg-dow{ color:var(--accent); }
+.calg-dnum{ font-size:13px; font-weight:700; color:#3a4250; font-family:var(--font-mono); }
+.calg-dmon{ font-size:9.5px; font-weight:600; color:#aab2bd; }
+.calg-vname{ display:flex; align-items:center; gap:8px; padding:8px 6px 8px 0; font-size:13px; font-weight:600; color:#2a313c; min-width:0; }
+.calg-vname .calg-vtx{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.calg-vname.general{ color:#5b6470; font-style:italic; }
+.calg-vbar{ width:4px; align-self:stretch; border-radius:3px; flex:none; background:#cbd2da; }
+.calg-vbar[data-vid="peppino"]{ background:var(--c-peppino); }
+.calg-vbar[data-vid="medliguria"]{ background:var(--c-liguria); }
+.calg-vbar[data-vid="medtoscana"]{ background:var(--c-toscana); }
+.calg-vbar[data-vid="norrbotten"]{ background:var(--c-norrbotten); }
+.calg-cell{ background:#fcfdfe; border:1px solid #eef1f4; border-radius:9px; min-height:54px; padding:5px; display:flex; flex-direction:column; gap:4px; }
+.calg-cell.is-weekend{ background:#f7f9fb; }
+.calg-cell.is-today{ background:#f4f8ff; border-color:#cfe0fb; }
+.calg-cell.has-ev{ cursor:pointer; }
+.calg-cell.has-ev:hover{ border-color:#cdd5de; box-shadow:var(--shadow-card); }
+.calg-badge{ display:flex; align-items:center; gap:5px; padding:3px 6px; border-radius:6px; font-size:11px; font-weight:600; line-height:1.2; min-width:0; }
+.calg-bic{ font-size:10px; flex:none; }
+.calg-btx{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.calg-badge.ev-cert{ background:#fbdcde; color:#8f1219; }
+.calg-badge.ev-delivery{ background:#dbe8ff; color:#0a3f93; }
+.calg-badge.ev-outlook{ background:#efe6fb; color:#5a2d8f; }
+.calg-badge.ev-todo{ background:#e7f0e9; color:#1f5a2c; }
+.cal-legend{ display:flex; flex-wrap:wrap; gap:14px; }
 .cal-leg{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:#5b6470; }
 .cal-leg-sw{ width:11px; height:11px; border-radius:3px; }
 .cal-leg-sw.ev-cert{ background:#f3a8ae; }
@@ -6243,9 +6248,16 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .cal-leg-sw.ev-outlook{ background:#c4a8ec; }
 .cal-leg-off{ color:#b4bcc6; }
 .cal-leg-off .cal-leg-sw{ opacity:.4; }
-@media(max-width:880px){ .cal-week{ grid-template-columns:repeat(2,1fr); } .cal-col{ min-height:auto; } }
+@media(max-width:880px){
+  .calg{ grid-template-columns:1fr; gap:0; }
+  .calg-corner, .calg-dhead{ display:none; }
+  .calg-vname{ margin-top:14px; border-bottom:1px solid #eef1f4; }
+  .calg-cell{ display:none; }
+  .calg-cell.has-ev{ display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; margin-bottom:4px; }
+  .calg-cell.has-ev::before{ content:attr(data-date); font-size:11px; color:#9aa3af; font-family:var(--font-mono); width:100%; }
+}
 
-/* dettaglio giorno (modale) */
+/* dettaglio giorno/cella (modale) */
 .day-detail-list{ display:flex; flex-direction:column; }
 .day-detail-row{ display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid #f1f4f7; border-left:3px solid transparent; }
 .day-detail-row:last-child{ border-bottom:none; }
@@ -8197,11 +8209,9 @@ function renderOverview() {
     });
   });
 
-  // Calendario settimana — colonne-giorno cliccabili
-  root.querySelectorAll(".cal-col[data-count]").forEach(col => {
-    if (parseInt(col.dataset.count, 10) > 0) {
-      col.addEventListener("click", () => openDayDetail(col.dataset.date));
-    }
+  // Calendario settimana — celle nave+giorno cliccabili
+  root.querySelectorAll(".calg-cell.has-ev").forEach(cell => {
+    cell.addEventListener("click", () => openCellDetail(cell.dataset.vid, cell.dataset.date));
   });
 
   attachActionHandlers(root);
@@ -8234,7 +8244,8 @@ function goVesselWithFilter(vesselId, filter) {
 
 // v0.18 — Raccoglie tutti gli eventi della settimana per giorno (consegne, certificati, to-do, Outlook).
 // Ritorna una mappa { "YYYY-MM-DD": [ {type, vesselId, label, sub, sort} ] }.
-function collectWeekEvents(fromISO, toISO) {
+function collectWeekEvents(fromISO, toISO, opts) {
+  opts = opts || {};
   const byDay = {};
   const push = (dateISO, ev) => {
     if (!dateISO || dateISO < fromISO || dateISO > toISO) return;
@@ -8259,10 +8270,12 @@ function collectWeekEvents(fromISO, toISO) {
       }
     }
   }
-  // 3) To-do con dueDate
-  for (const t of (state.todos || [])) {
-    if (t.done || !t.dueDate) continue;
-    push(t.dueDate, { type: "todo", vesselId: t.vessel || null, label: truncate(t.action || t.reference || "To-do", 40), sub: t.category || "", sort: 1 });
+  // 3) To-do con dueDate — solo se richiesto (evita duplicati con la pagina To-do)
+  if (opts.includeTodos) {
+    for (const t of (state.todos || [])) {
+      if (t.done || !t.dueDate) continue;
+      push(t.dueDate, { type: "todo", vesselId: t.vessel || null, label: truncate(t.action || t.reference || "To-do", 40), sub: t.category || "", sort: 1 });
+    }
   }
   // 4) Appuntamenti Outlook (opzionale, da data-outlook-calendar.json via n8n)
   const cal = state.outlookCalendar;
@@ -8279,65 +8292,92 @@ function collectWeekEvents(fromISO, toISO) {
 function renderHeatmap() {
   // Settimana corrente: lunedì → domenica
   const today = new Date();
-  const day = today.getDay() === 0 ? 7 : today.getDay(); // domenica=7
+  const day = today.getDay() === 0 ? 7 : today.getDay();
   const monday = new Date(today);
   monday.setDate(today.getDate() - (day - 1));
   monday.setHours(0,0,0,0);
   const weekDays = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    weekDays.push(d);
-  }
+  for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDays.push(d); }
+  const isoOf = d => d.toISOString().slice(0,10);
   const labels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
   const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   const todayStr = todayISO();
-  const fromISO = monday.toISOString().slice(0,10);
-  const toISO = weekDays[6].toISOString().slice(0,10);
-  const events = collectWeekEvents(fromISO, toISO);
+  const fromISO = isoOf(monday), toISO = isoOf(weekDays[6]);
+  const showTodos = !!state._calShowTodos;
+  const events = collectWeekEvents(fromISO, toISO, { includeTodos: showTodos });
 
-  const typeMeta = {
-    cert:     { ic: "🛡️", cls: "ev-cert",     name: "Certificati" },
-    todo:     { ic: "✓",  cls: "ev-todo",     name: "To-do" },
-    outlook:  { ic: "📅", cls: "ev-outlook",  name: "Outlook" },
-    delivery: { ic: "📦", cls: "ev-delivery", name: "Consegne" }
-  };
-
-  let cols = "";
-  weekDays.forEach((d, i) => {
-    const dISO = d.toISOString().slice(0,10);
-    const isToday = dISO === todayStr;
-    const isWeekend = i >= 5;
-    const dayEvents = (events[dISO] || []).slice().sort((a,b) => a.sort - b.sort);
-    const MAX_CHIPS = 6;
-    const shown = dayEvents.slice(0, MAX_CHIPS);
-    const overflow = dayEvents.length - shown.length;
-    const chips = shown.map(ev => {
-      const m = typeMeta[ev.type] || typeMeta.delivery;
-      const vdot = ev.vesselId ? `<span class="cal-vdot" data-vid="${escapeAttr(ev.vesselId)}"></span>` : "";
-      return `<div class="cal-chip ${m.cls}" title="${escapeAttr(ev.label + (ev.sub ? " — " + ev.sub : ""))}"><span class="cal-chip-ic">${m.ic}</span>${vdot}<span class="cal-chip-tx">${escapeHTML(ev.label)}</span></div>`;
-    }).join("") + (overflow > 0 ? `<div class="cal-more">+${overflow} altri</div>` : "");
-    const emptyState = dayEvents.length === 0 ? `<div class="cal-empty">—</div>` : "";
-    cols += `<div class="cal-col ${isToday ? "is-today" : ""} ${isWeekend ? "is-weekend" : ""}" data-date="${dISO}" data-count="${dayEvents.length}">
-      <div class="cal-col-head">
-        <span class="cal-dow">${labels[i]}</span>
-        <span class="cal-dnum">${d.getDate()}<span class="cal-dmon"> ${months[d.getMonth()]}</span></span>
-      </div>
-      <div class="cal-col-body">${chips}${emptyState}</div>
-    </div>`;
+  // Indicizzo per nave + giorno (e "generale" per eventi senza nave)
+  const map = {}, general = {};
+  Object.entries(events).forEach(([dISO, evs]) => {
+    evs.forEach(ev => {
+      if (ev.vesselId) { (map[ev.vesselId] = map[ev.vesselId] || {}); (map[ev.vesselId][dISO] = map[ev.vesselId][dISO] || []).push(ev); }
+      else { (general[dISO] = general[dISO] || []).push(ev); }
+    });
   });
 
-  // Legenda compatta
+  const typeMeta = {
+    cert:     { ic: "🛡️", short: "cert.",     cls: "ev-cert" },
+    delivery: { ic: "📦", short: "consegne",  cls: "ev-delivery" },
+    outlook:  { ic: "📅", short: "appunt.",   cls: "ev-outlook" },
+    todo:     { ic: "✓",  short: "to-do",     cls: "ev-todo" }
+  };
+  const typeOrder = ["cert", "delivery", "outlook", "todo"];
+
+  function cellHTML(vesselId, dISO, evs) {
+    const isToday = dISO === todayStr;
+    const isWeekend = new Date(dISO + "T00:00:00").getDay() % 6 === 0;
+    const cls = `calg-cell ${isToday ? "is-today" : ""} ${isWeekend ? "is-weekend" : ""}`;
+    if (!evs || !evs.length) return `<div class="${cls}"></div>`;
+    const byType = {};
+    evs.forEach(e => { (byType[e.type] = byType[e.type] || []).push(e); });
+    const badges = typeOrder.filter(t => byType[t]).map(t => {
+      const m = typeMeta[t]; const arr = byType[t]; const n = arr.length;
+      const label = n === 1 ? truncate(arr[0].label, 14) : `${n} ${m.short}`;
+      const tip = arr.map(e => e.label + (e.sub ? " (" + e.sub + ")" : "")).join("\n");
+      return `<span class="calg-badge ${m.cls}" title="${escapeAttr(tip)}"><span class="calg-bic">${m.ic}</span><span class="calg-btx">${escapeHTML(label)}</span></span>`;
+    }).join("");
+    return `<div class="${cls} has-ev" data-vid="${escapeAttr(vesselId || "")}" data-date="${dISO}">${badges}</div>`;
+  }
+
+  // Intestazione giorni
+  let head = `<div class="calg-corner"></div>`;
+  weekDays.forEach((d, i) => {
+    const dISO = isoOf(d), isToday = dISO === todayStr, isWeekend = i >= 5;
+    head += `<div class="calg-dhead ${isToday ? "is-today" : ""} ${isWeekend ? "is-weekend" : ""}">
+      <span class="calg-dow">${labels[i]}</span><span class="calg-dnum">${d.getDate()}<span class="calg-dmon"> ${months[d.getMonth()]}</span></span></div>`;
+  });
+
+  // Righe nave
+  let rows = "";
+  for (const cfg of VESSELS) {
+    rows += `<div class="calg-vname" data-vid="${cfg.vesselId}"><span class="calg-vbar" data-vid="${cfg.vesselId}"></span><span class="calg-vtx">${cfg.displayName}</span></div>`;
+    weekDays.forEach(d => { rows += cellHTML(cfg.vesselId, isoOf(d), (map[cfg.vesselId] || {})[isoOf(d)]); });
+  }
+  // Riga "Agenda" per appuntamenti Outlook senza nave (solo se presenti)
+  if (Object.keys(general).length) {
+    rows += `<div class="calg-vname general"><span class="calg-vbar general"></span><span class="calg-vtx">Agenda</span></div>`;
+    weekDays.forEach(d => { rows += cellHTML(null, isoOf(d), general[isoOf(d)]); });
+  }
+
+  const grid = `<div class="calg">${head}${rows}</div>`;
+
+  // Barra: legenda + toggle to-do
   const hasOutlook = !!(state.outlookCalendar && Array.isArray(state.outlookCalendar.events) && state.outlookCalendar.events.length);
   const legend = `<div class="cal-legend">
     <span class="cal-leg"><span class="cal-leg-sw ev-cert"></span>Certificati</span>
     <span class="cal-leg"><span class="cal-leg-sw ev-delivery"></span>Consegne</span>
-    <span class="cal-leg"><span class="cal-leg-sw ev-todo"></span>To-do</span>
     <span class="cal-leg ${hasOutlook ? "" : "cal-leg-off"}"><span class="cal-leg-sw ev-outlook"></span>Outlook${hasOutlook ? "" : " (non collegato)"}</span>
+    ${showTodos ? `<span class="cal-leg"><span class="cal-leg-sw ev-todo"></span>To-do</span>` : ""}
   </div>`;
+  const toggle = `<button class="cal-todo-toggle ${showTodos ? "on" : ""}" onclick="window.toggleCalTodos()">${showTodos ? "✓ To-do mostrate" : "Mostra to-do"}</button>`;
 
-  return `<div class="cal-week">${cols}</div>${legend}`;
+  return `<div class="calg-top">${legend}${toggle}</div>${grid}`;
 }
+
+window.toggleCalTodos = function() {
+  state._calShowTodos = !state._calShowTodos;
+  render();
+};
 
 // ----- VESSEL DETAIL VIEW ------------------------------------------------
 function renderVesselDetail() {
@@ -13499,6 +13539,40 @@ function goTodos() {
   state._todoShowCompleted = state._todoShowCompleted ?? false;
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// v0.18 — Dettaglio eventi di una cella (nave + giorno), o agenda generale del giorno
+function openCellDetail(vesselId, dateISO) {
+  const all = collectWeekEvents(dateISO, dateISO, { includeTodos: true })[dateISO] || [];
+  const events = all.filter(e => vesselId ? e.vesselId === vesselId : !e.vesselId);
+  const cfg = VESSELS.find(v => v.vesselId === vesselId);
+  const who = cfg ? cfg.displayName : "Agenda";
+  const typeMeta = {
+    cert:     { ic: "🛡️", name: "Certificato in scadenza" },
+    todo:     { ic: "✓",  name: "To-do" },
+    outlook:  { ic: "📅", name: "Appuntamento Outlook" },
+    delivery: { ic: "📦", name: "Consegna prevista" }
+  };
+  document.getElementById("heatmap-detail-title").textContent = `${who} — ${formatDate(dateISO)}`;
+  let body;
+  if (events.length === 0) {
+    body = `<div class="empty-state" style="padding:24px;">Nessun evento.</div>`;
+  } else {
+    const order = { cert: 0, outlook: 1, delivery: 2, todo: 3 };
+    events.sort((a,b) => (order[a.type] - order[b.type]));
+    body = `<div class="day-detail-list">${events.map(ev => {
+      const m = typeMeta[ev.type] || typeMeta.delivery;
+      return `<div class="day-detail-row ev-${ev.type}">
+        <span class="dd-ic">${m.ic}</span>
+        <div class="dd-main">
+          <div class="dd-label">${escapeHTML(ev.label)}</div>
+          <div class="dd-sub">${m.name}${ev.sub ? " · " + escapeHTML(ev.sub) : ""}</div>
+        </div>
+      </div>`;
+    }).join("")}</div>`;
+  }
+  document.getElementById("heatmap-detail-body").innerHTML = body;
+  document.getElementById("modal-heatmap-detail").classList.add("open");
 }
 
 // v0.18 — Dettaglio di TUTTI gli eventi di un giorno (consegne, certificati, to-do, Outlook)
