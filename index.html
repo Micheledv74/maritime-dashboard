@@ -6204,6 +6204,60 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 /* flash riga item quando si arriva da "Vai all'azione" */
 @keyframes rowFlash { 0%{ background:#fff7d6; } 100%{ background:transparent; } }
 .row-flash{ animation:rowFlash 2.2s ease-out; }
+
+/* === CARICO SETTIMANA — calendario 7 colonne === */
+.cal-week{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+.cal-col{ background:#fff; border:1px solid var(--border); border-radius:11px; min-height:150px; display:flex; flex-direction:column; overflow:hidden; transition:box-shadow .12s, border-color .12s; }
+.cal-col[data-count="0"]{ background:#fcfdfe; }
+.cal-col:not([data-count="0"]){ cursor:pointer; }
+.cal-col:not([data-count="0"]):hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
+.cal-col.is-weekend{ background:#f7f9fb; }
+.cal-col.is-today{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.cal-col-head{ display:flex; align-items:baseline; justify-content:space-between; padding:8px 11px; border-bottom:1px solid #eef1f4; }
+.cal-col.is-today .cal-col-head{ background:#eaf1fc; }
+.cal-dow{ font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#9aa3af; }
+.cal-col.is-today .cal-dow{ color:var(--accent); }
+.cal-dnum{ font-size:14px; font-weight:700; color:#3a4250; font-family:var(--font-mono); }
+.cal-dmon{ font-size:10px; font-weight:600; color:#aab2bd; }
+.cal-col-body{ flex:1; padding:7px; display:flex; flex-direction:column; gap:5px; }
+.cal-chip{ display:flex; align-items:center; gap:5px; padding:4px 7px; border-radius:6px; font-size:11px; font-weight:500; line-height:1.25; border:1px solid transparent; }
+.cal-chip-ic{ font-size:10px; flex:none; }
+.cal-chip-tx{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-vdot{ width:7px; height:7px; border-radius:50%; flex:none; background:#cbd2da; }
+.cal-vdot[data-vid="peppino"]{ background:var(--c-peppino); }
+.cal-vdot[data-vid="medliguria"]{ background:var(--c-liguria); }
+.cal-vdot[data-vid="medtoscana"]{ background:var(--c-toscana); }
+.cal-vdot[data-vid="norrbotten"]{ background:var(--c-norrbotten); }
+.cal-chip.ev-cert{ background:#fbdcde; color:#8f1219; }
+.cal-chip.ev-delivery{ background:#dbe8ff; color:#0a3f93; }
+.cal-chip.ev-todo{ background:#e7f0e9; color:#1f5a2c; }
+.cal-chip.ev-outlook{ background:#efe6fb; color:#5a2d8f; }
+.cal-empty{ color:#cbd2da; font-size:14px; text-align:center; margin:auto; }
+.cal-more{ font-size:10.5px; font-weight:600; color:#8a93a0; padding:2px 7px; }
+.cal-legend{ display:flex; flex-wrap:wrap; gap:14px; margin-top:12px; padding-left:2px; }
+.cal-leg{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:#5b6470; }
+.cal-leg-sw{ width:11px; height:11px; border-radius:3px; }
+.cal-leg-sw.ev-cert{ background:#f3a8ae; }
+.cal-leg-sw.ev-delivery{ background:#a8c4f4; }
+.cal-leg-sw.ev-todo{ background:#a9cdb3; }
+.cal-leg-sw.ev-outlook{ background:#c4a8ec; }
+.cal-leg-off{ color:#b4bcc6; }
+.cal-leg-off .cal-leg-sw{ opacity:.4; }
+@media(max-width:880px){ .cal-week{ grid-template-columns:repeat(2,1fr); } .cal-col{ min-height:auto; } }
+
+/* dettaglio giorno (modale) */
+.day-detail-list{ display:flex; flex-direction:column; }
+.day-detail-row{ display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid #f1f4f7; border-left:3px solid transparent; }
+.day-detail-row:last-child{ border-bottom:none; }
+.day-detail-row.ev-cert{ border-left-color:#c8222a; }
+.day-detail-row.ev-delivery{ border-left-color:#0e54c1; }
+.day-detail-row.ev-todo{ border-left-color:#1f8a4c; }
+.day-detail-row.ev-outlook{ border-left-color:#7a3fc0; }
+.day-detail-row .dd-ic{ font-size:16px; flex:none; }
+.day-detail-row .dd-main{ flex:1; min-width:0; }
+.day-detail-row .dd-label{ font-size:13.5px; font-weight:600; color:#2a313c; }
+.day-detail-row .dd-sub{ font-size:11.5px; color:#8a93a0; margin-top:2px; }
+.day-detail-row .dd-vessel{ flex:none; display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#5b6470; }
 </style>
 
 <header class="app-header">
@@ -6809,7 +6863,8 @@ const VESSELS = [
 const DATA_URLS = {
   procurement: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json",
   tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json",
-  outlookTasks: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-tasks.json"  // v0.14
+  outlookTasks: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-tasks.json",  // v0.14
+  outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json"  // v0.18 — appuntamenti calendario (opzionale, via n8n)
 };
 
 // === Configurazione Google Drive Sync ===
@@ -7032,14 +7087,16 @@ async function loadData() {
   }
 
   try {
-    const [proc, trk, outlookData] = await Promise.all([
+    const [proc, trk, outlookData, calData] = await Promise.all([
       fetchJSON(DATA_URLS.procurement),
       fetchJSON(DATA_URLS.tracking).catch(() => null),  // tracking opzionale
-      fetchJSON(DATA_URLS.outlookTasks).catch(() => null)  // v0.14: outlook tasks opzionale
+      fetchJSON(DATA_URLS.outlookTasks).catch(() => null),  // v0.14: outlook tasks opzionale
+      fetchJSON(DATA_URLS.outlookCalendar).catch(() => null)  // v0.18: outlook calendar opzionale
     ]);
     state.data = proc;
     state.tracking = trk;
     state.outlookTasks = outlookData;
+    state.outlookCalendar = calData;  // {events:[{title,start,end,location,vesselId?}]} o null
     writeCache({ procurement: proc, tracking: trk });
     state.loading = false;
     mergeAndPrepare();
@@ -8102,7 +8159,7 @@ function renderOverview() {
     <section>
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-truck"/></svg>Carico settimana</h2>
-        <span class="section-meta">consegne previste</span>
+        <span class="section-meta">consegne, certificati, to-do e appuntamenti</span>
       </div>
       <div class="heatmap">${renderHeatmap()}</div>
     </section>
@@ -8140,11 +8197,11 @@ function renderOverview() {
     });
   });
 
-  // Heatmap cells cliccabili
-  root.querySelectorAll(".heat-cell.has-data").forEach(cell => {
-    cell.addEventListener("click", () => {
-      openHeatmapDetail(cell.dataset.vid, cell.dataset.date);
-    });
+  // Calendario settimana — colonne-giorno cliccabili
+  root.querySelectorAll(".cal-col[data-count]").forEach(col => {
+    if (parseInt(col.dataset.count, 10) > 0) {
+      col.addEventListener("click", () => openDayDetail(col.dataset.date));
+    }
   });
 
   attachActionHandlers(root);
@@ -8175,6 +8232,50 @@ function goVesselWithFilter(vesselId, filter) {
   }, 100);
 }
 
+// v0.18 — Raccoglie tutti gli eventi della settimana per giorno (consegne, certificati, to-do, Outlook).
+// Ritorna una mappa { "YYYY-MM-DD": [ {type, vesselId, label, sub, sort} ] }.
+function collectWeekEvents(fromISO, toISO) {
+  const byDay = {};
+  const push = (dateISO, ev) => {
+    if (!dateISO || dateISO < fromISO || dateISO > toISO) return;
+    (byDay[dateISO] = byDay[dateISO] || []).push(ev);
+  };
+  // 1) Consegne item (deliveryDate)
+  for (const cfg of VESSELS) {
+    const v = state.data && state.data.vessels.find(x => x.vesselId === cfg.vesselId);
+    if (!v || !v.items) continue;
+    for (const it of v.items) {
+      if (!it.deliveryDate || it.deliveryDate === "—") continue;
+      push(it.deliveryDate, { type: "delivery", vesselId: cfg.vesselId, label: truncate(it.description || "Consegna", 40), sub: it.supplier || "", sort: 2 });
+    }
+  }
+  // 2) Scadenze certificati
+  if (state.certificates) {
+    for (const cfg of VESSELS) {
+      const list = state.certificates[cfg.vesselId] || [];
+      for (const c of list) {
+        if (c.isPermanent || !c.expiry) continue;
+        push(c.expiry, { type: "cert", vesselId: cfg.vesselId, label: truncate(c.name || "Certificato", 40), sub: "scadenza", sort: 0 });
+      }
+    }
+  }
+  // 3) To-do con dueDate
+  for (const t of (state.todos || [])) {
+    if (t.done || !t.dueDate) continue;
+    push(t.dueDate, { type: "todo", vesselId: t.vessel || null, label: truncate(t.action || t.reference || "To-do", 40), sub: t.category || "", sort: 1 });
+  }
+  // 4) Appuntamenti Outlook (opzionale, da data-outlook-calendar.json via n8n)
+  const cal = state.outlookCalendar;
+  if (cal && Array.isArray(cal.events)) {
+    for (const e of cal.events) {
+      const dISO = (e.start || e.date || "").slice(0, 10);
+      const time = (e.start && e.start.length > 10) ? e.start.slice(11, 16) : "";
+      push(dISO, { type: "outlook", vesselId: e.vesselId || null, label: truncate(e.title || e.subject || "Appuntamento", 40), sub: [time, e.location].filter(Boolean).join(" · "), sort: 1.5 });
+    }
+  }
+  return byDay;
+}
+
 function renderHeatmap() {
   // Settimana corrente: lunedì → domenica
   const today = new Date();
@@ -8189,32 +8290,53 @@ function renderHeatmap() {
     weekDays.push(d);
   }
   const labels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+  const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   const todayStr = todayISO();
+  const fromISO = monday.toISOString().slice(0,10);
+  const toISO = weekDays[6].toISOString().slice(0,10);
+  const events = collectWeekEvents(fromISO, toISO);
 
-  let html = `<div class="heatmap-grid">
-    <div class="heatmap-label-h"></div>`;
+  const typeMeta = {
+    cert:     { ic: "🛡️", cls: "ev-cert",     name: "Certificati" },
+    todo:     { ic: "✓",  cls: "ev-todo",     name: "To-do" },
+    outlook:  { ic: "📅", cls: "ev-outlook",  name: "Outlook" },
+    delivery: { ic: "📦", cls: "ev-delivery", name: "Consegne" }
+  };
+
+  let cols = "";
   weekDays.forEach((d, i) => {
-    html += `<div class="heatmap-label-h">${labels[i]} ${d.getDate()}</div>`;
+    const dISO = d.toISOString().slice(0,10);
+    const isToday = dISO === todayStr;
+    const isWeekend = i >= 5;
+    const dayEvents = (events[dISO] || []).slice().sort((a,b) => a.sort - b.sort);
+    const MAX_CHIPS = 6;
+    const shown = dayEvents.slice(0, MAX_CHIPS);
+    const overflow = dayEvents.length - shown.length;
+    const chips = shown.map(ev => {
+      const m = typeMeta[ev.type] || typeMeta.delivery;
+      const vdot = ev.vesselId ? `<span class="cal-vdot" data-vid="${escapeAttr(ev.vesselId)}"></span>` : "";
+      return `<div class="cal-chip ${m.cls}" title="${escapeAttr(ev.label + (ev.sub ? " — " + ev.sub : ""))}"><span class="cal-chip-ic">${m.ic}</span>${vdot}<span class="cal-chip-tx">${escapeHTML(ev.label)}</span></div>`;
+    }).join("") + (overflow > 0 ? `<div class="cal-more">+${overflow} altri</div>` : "");
+    const emptyState = dayEvents.length === 0 ? `<div class="cal-empty">—</div>` : "";
+    cols += `<div class="cal-col ${isToday ? "is-today" : ""} ${isWeekend ? "is-weekend" : ""}" data-date="${dISO}" data-count="${dayEvents.length}">
+      <div class="cal-col-head">
+        <span class="cal-dow">${labels[i]}</span>
+        <span class="cal-dnum">${d.getDate()}<span class="cal-dmon"> ${months[d.getMonth()]}</span></span>
+      </div>
+      <div class="cal-col-body">${chips}${emptyState}</div>
+    </div>`;
   });
 
-  for (const cfg of VESSELS) {
-    const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
-    html += `<div class="heatmap-vname"><span class="heatmap-vessel-dot" data-vid="${escapeAttr(cfg.vesselId)}"></span>${cfg.displayName}</div>`;
-    weekDays.forEach(d => {
-      let count = 0;
-      if (v && v.items) {
-        const dISO = d.toISOString().slice(0,10);
-        count = v.items.filter(it => it.deliveryDate === dISO).length;
-      }
-      const level = count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : 3;
-      const isToday = d.toISOString().slice(0,10) === todayStr ? 1 : 0;
-      const dISO = d.toISOString().slice(0,10);
-      const hasData = count > 0 ? "has-data" : "";
-      html += `<div class="heat-cell ${hasData}" data-level="${level}" data-today="${isToday}" data-vid="${cfg.vesselId}" data-date="${dISO}" title="${count} consegne — click per dettaglio">${count || ""}</div>`;
-    });
-  }
-  html += `</div>`;
-  return html;
+  // Legenda compatta
+  const hasOutlook = !!(state.outlookCalendar && Array.isArray(state.outlookCalendar.events) && state.outlookCalendar.events.length);
+  const legend = `<div class="cal-legend">
+    <span class="cal-leg"><span class="cal-leg-sw ev-cert"></span>Certificati</span>
+    <span class="cal-leg"><span class="cal-leg-sw ev-delivery"></span>Consegne</span>
+    <span class="cal-leg"><span class="cal-leg-sw ev-todo"></span>To-do</span>
+    <span class="cal-leg ${hasOutlook ? "" : "cal-leg-off"}"><span class="cal-leg-sw ev-outlook"></span>Outlook${hasOutlook ? "" : " (non collegato)"}</span>
+  </div>`;
+
+  return `<div class="cal-week">${cols}</div>${legend}`;
 }
 
 // ----- VESSEL DETAIL VIEW ------------------------------------------------
@@ -13377,6 +13499,41 @@ function goTodos() {
   state._todoShowCompleted = state._todoShowCompleted ?? false;
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// v0.18 — Dettaglio di TUTTI gli eventi di un giorno (consegne, certificati, to-do, Outlook)
+function openDayDetail(dateISO) {
+  const events = collectWeekEvents(dateISO, dateISO)[dateISO] || [];
+  const vName = id => (VESSELS.find(v => v.vesselId === id) || {}).displayName || "";
+  const typeMeta = {
+    cert:     { ic: "🛡️", name: "Certificato in scadenza" },
+    todo:     { ic: "✓",  name: "To-do" },
+    outlook:  { ic: "📅", name: "Appuntamento Outlook" },
+    delivery: { ic: "📦", name: "Consegna prevista" }
+  };
+  const title = `${formatDate(dateISO)} — ${events.length} event${events.length === 1 ? "o" : "i"}`;
+  document.getElementById("heatmap-detail-title").textContent = title;
+  let body;
+  if (events.length === 0) {
+    body = `<div class="empty-state" style="padding:24px;">Nessun evento in questo giorno.</div>`;
+  } else {
+    const order = { cert: 0, outlook: 1, todo: 2, delivery: 3 };
+    events.sort((a,b) => (order[a.type] - order[b.type]));
+    body = `<div class="day-detail-list">${events.map(ev => {
+      const m = typeMeta[ev.type] || typeMeta.delivery;
+      const vd = ev.vesselId ? `<span class="cal-vdot" data-vid="${escapeAttr(ev.vesselId)}"></span>${escapeHTML(vName(ev.vesselId))}` : "<span class='muted'>Generale</span>";
+      return `<div class="day-detail-row ev-${ev.type}">
+        <span class="dd-ic">${m.ic}</span>
+        <div class="dd-main">
+          <div class="dd-label">${escapeHTML(ev.label)}</div>
+          <div class="dd-sub">${m.name}${ev.sub ? " · " + escapeHTML(ev.sub) : ""}</div>
+        </div>
+        <div class="dd-vessel">${vd}</div>
+      </div>`;
+    }).join("")}</div>`;
+  }
+  document.getElementById("heatmap-detail-body").innerHTML = body;
+  document.getElementById("modal-heatmap-detail").classList.add("open");
 }
 
 // Apre modale con il dettaglio delle consegne di un giorno specifico per una nave
