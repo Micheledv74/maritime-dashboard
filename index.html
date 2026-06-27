@@ -6194,6 +6194,16 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .vd-kpi-row .kpi.kpi-blue .kpi-value{ color:#0a3f93 !important; }
 .vd-kpi-row .kpi.clickable{ cursor:pointer; transition:box-shadow .12s, border-color .12s; }
 .vd-kpi-row .kpi.clickable:hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
+
+/* date relative colonna Scadenza (Azioni) */
+.action-row .due-rel{ font-size:12px; font-weight:600; font-family:var(--font-mono); white-space:nowrap; }
+.action-row .due-rel.past{ color:#c8222a; }
+.action-row .due-rel.today{ color:#b8740a; }
+.action-row .due-rel.soon{ color:#9a4a00; }
+.action-row .due-rel.normal{ color:#5b6470; }
+/* flash riga item quando si arriva da "Vai all'azione" */
+@keyframes rowFlash { 0%{ background:#fff7d6; } 100%{ background:transparent; } }
+.row-flash{ animation:rowFlash 2.2s ease-out; }
 </style>
 
 <header class="app-header">
@@ -6471,7 +6481,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
         <option value="Chiedere">❓ Chiedere</option>
         <option value="Sollecitare">⏰ Sollecitare</option>
         <option value="Verificare">🔍 Verificare</option>
-        <option value="Attesa risposta">⌛ Attesa risposta</option>
+        <option value="Aspettare risposta">⌛ Aspettare risposta</option>
         <option value="Documentare">📄 Documentare</option>
         <option value="Controllare">✅ Controllare</option>
         <option value="Altro">📝 Altro</option>
@@ -7129,7 +7139,7 @@ const priorityRules = [
       docExtraCount: rfqs.length > 1 ? rfqs.length - 1 : 0,
       docAllNumbers: rfqs,
       itemId: item.id,
-      action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
+      action: { label: "Vai all'azione", type: "link-internal", payload: { view: "vessel", vesselId: vessel.vesselId, tab: "procurement", itemId: item.id } }
     };
   },
 
@@ -7222,7 +7232,7 @@ const priorityRules = [
       docNumber: item.reqNumber || rfqsRdy[0] || "",
       docLabel: item.reqNumber ? "REQ" : "RFQ",
       itemId: item.id,
-      action: { label: "Apri in Infoship", type: "link", payload: vessel.infoshipUrl }
+      action: { label: "Vai all'azione", type: "link-internal", payload: { view: "vessel", vesselId: vessel.vesselId, tab: "procurement", itemId: item.id } }
     };
   }
 ];
@@ -10375,6 +10385,24 @@ const EMAIL_TEMPLATES = {
   }
 };
 
+// Compone l'URL di scrittura email secondo la modalità scelta (Outlook web di default).
+// Outlook web non apre il client di sistema (mailto), ma il compositore web — affidabile dove mailto è bloccato.
+function buildComposeHref(subject, body, to) {
+  const mode = (state.settings && state.settings.emailMode) || "outlook";
+  to = to || "";
+  if (mode === "mailto") {
+    return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+  // Outlook web (Office 365). Deeplink di composizione con campi precompilati.
+  return `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(to)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// Apre la mail di scrittura: Outlook web in nuova scheda, mailto nella stessa.
+function openComposeMail(href) {
+  if (href.startsWith("mailto:")) { window.location.href = href; }
+  else { window.open(href, "_blank", "noopener"); }
+}
+
 // Risolve il template + lingua → torna { subject, body, mailtoHref }
 function resolveEmailTemplate(templateKey, context, lang) {
   const tpl = EMAIL_TEMPLATES[templateKey];
@@ -10384,7 +10412,7 @@ function resolveEmailTemplate(templateKey, context, lang) {
   }
   const fn = tpl[lang] || tpl.en;  // fallback inglese se lingua sconosciuta
   const result = fn(context);
-  const mailtoHref = `mailto:?subject=${encodeURIComponent(result.subject)}&body=${encodeURIComponent(result.body)}`;
+  const mailtoHref = buildComposeHref(result.subject, result.body, result.to || "");
   return { ...result, mailtoHref };
 }
 
@@ -10399,7 +10427,7 @@ window.handleMailtoBilingualClick = function(actionKey, supplier, templateKey, c
   if (storedLang === "it" || storedLang === "en") {
     const r = resolveEmailTemplate(templateKey, context, storedLang);
     if (!r) return;
-    window.location.href = r.mailtoHref;
+    openComposeMail(r.mailtoHref);
     return;
   }
   // Altrimenti: mini picker
@@ -10467,7 +10495,7 @@ window.chooseLanguageAndSend = function(supplier, templateKey, contextJson, lang
   const r = resolveEmailTemplate(templateKey, context, lang);
   window.closeLangPicker();
   if (r) {
-    window.location.href = r.mailtoHref;
+    openComposeMail(r.mailtoHref);
   }
 };
 
@@ -11803,6 +11831,19 @@ window.handleInternalLink = function(payloadJson) {
       category: "all"
     };
     render();
+  } else if (p.view === "vessel") {
+    // Apre la scheda nave sul tab indicato (panoramica/procurement/certificati/todo)
+    state.view = "vessel";
+    state.selectedVesselId = p.vesselId;
+    state.detailTab = p.tab || "procurement";
+    if (p.itemId) { state.searchQuery = ""; state._focusItemId = p.itemId; }
+    render();
+    if (p.itemId) {
+      setTimeout(() => {
+        const row = document.querySelector(`[data-item-id="${p.itemId}"], #items-tbody tr[ondblclick*="${p.itemId}"]`);
+        if (row && row.scrollIntoView) { row.classList.add("row-flash"); window.scrollBy(0, row.getBoundingClientRect().top - 200); setTimeout(()=>row.classList.remove("row-flash"), 2400); }
+      }, 300);
+    }
   }
 };
 
@@ -11843,6 +11884,7 @@ function generateCertificateActions() {
         vesselName: v.displayName,
         supplier: "",  // i certificati non hanno fornitore di default
         ageDays: null,
+        dueDate: it.expiry || null,
         docNumber: it.certNum || "",
         docLabel: "Cert",
         itemId: null,
@@ -12515,6 +12557,8 @@ function renderActionGroup(groupId, title, actions) {
   }
 
   // Renderizzo singles + groupedRows
+  // PLANCIA: ordino i singoli cronologicamente (oggi → domani → …; non datati in fondo)
+  singles.sort((x, y) => actionSortKey(x) - actionSortKey(y));
   const singlesHTML = singles.map(a => actionRowHTMLv2(a)).join("");
 
   return `
@@ -12614,6 +12658,34 @@ function actionTypeIconHTML(a){
   return `<span class="pill-status-ic">${em}</span> `;
 }
 
+// PLANCIA: etichetta data relativa per la colonna Scadenza (Oggi / Domani / data / Xg fa)
+function relativeDueLabel(iso){
+  if(!iso) return null;
+  const d = new Date(iso + (iso.length<=10 ? "T00:00:00" : ""));
+  if(isNaN(d)) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dd = new Date(d); dd.setHours(0,0,0,0);
+  const diff = Math.round((dd - today) / 86400000);
+  const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  const days = ["dom","lun","mar","mer","gio","ven","sab"];
+  let text;
+  if(diff < 0) text = Math.abs(diff)+"g fa";
+  else if(diff === 0) text = "Oggi";
+  else if(diff === 1) text = "Domani";
+  else if(diff <= 6) text = days[dd.getDay()]+" "+dd.getDate()+" "+months[dd.getMonth()];
+  else text = dd.getDate()+" "+months[dd.getMonth()];
+  const cls = diff < 0 ? "past" : diff === 0 ? "today" : diff <= 2 ? "soon" : "normal";
+  return { text, cls, diff };
+}
+
+// Valore-data per ordinamento cronologico (azioni datate prima, in ordine; non datate in fondo)
+function actionSortKey(a){
+  if(a.dueDate){ const d=new Date(a.dueDate + (a.dueDate.length<=10?"T00:00:00":"")); if(!isNaN(d)) return d.getTime(); }
+  // RFQ/overdue: più vecchie = più urgenti → le ordino come "scadute" usando ageDays
+  if(a.ageDays != null) return Date.now() - a.ageDays*86400000;
+  return Number.MAX_SAFE_INTEGER;
+}
+
 function actionRowHTMLv2(a, isInGroup) {
   const cfg = (typeof ALERT_CONFIG !== "undefined" && ALERT_CONFIG[a.level]) ?
               ALERT_CONFIG[a.level] :
@@ -12646,8 +12718,8 @@ function actionRowHTMLv2(a, isInGroup) {
     } else if (a.action.type === "mailto") {
       // Legacy: vecchio formato hard-coded italiano
       const p = a.action.payload;
-      const href = `mailto:${encodeURIComponent(p.to || "")}?subject=${encodeURIComponent(p.subject || "")}&body=${encodeURIComponent(p.body || "")}`;
-      actionBtn = `<a class="btn btn-sm" href="${href}">${escapeHTML(a.action.label)} →</a>`;
+      const href = buildComposeHref(p.subject || "", p.body || "", p.to || "");
+      actionBtn = `<button class="btn btn-sm" onclick="openComposeMail('${escapeAttr(href)}')">${escapeHTML(a.action.label)} →</button>`;
     } else if (a.action.type === "mailto-bilingual") {
       // v0.10.2 — handler smart con scelta lingua memorizzata o picker
       const ctxJson = encodeURIComponent(JSON.stringify(a.action.context || {}));
@@ -12696,7 +12768,10 @@ function actionRowHTMLv2(a, isInGroup) {
   // Colonne: TIPO | DESCRIZIONE | NAVE | SCADENZA | ORIGINE | AZIONI
   // Scadenza: deduco da ageDays/snoozed/dueDate per mostrare "Scaduto" o data
   let scadenzaCell = "";
-  if (a.dueLabel) {
+  const _rd = relativeDueLabel(a.dueDate);
+  if (_rd) {
+    scadenzaCell = `<span class="due-rel due-${_rd.cls}">${escapeHTML(_rd.text)}</span>`;
+  } else if (a.dueLabel) {
     scadenzaCell = a.dueOverdue
       ? `<span class="due-pill-past">${escapeHTML(a.dueLabel)}</span>`
       : `<span class="due-plain">${escapeHTML(a.dueLabel)}</span>`;
@@ -12950,8 +13025,8 @@ function actionRowHTML(a) {
       actionBtn = `<button class="btn btn-sm" onclick="window.open('${escapeAttr(a.action.payload)}', '_blank')">${escapeHTML(a.action.label)} →</button>`;
     } else if (a.action.type === "mailto") {
       const p = a.action.payload;
-      const href = `mailto:${encodeURIComponent(p.to || "")}?subject=${encodeURIComponent(p.subject || "")}&body=${encodeURIComponent(p.body || "")}`;
-      actionBtn = `<a class="btn btn-sm" href="${href}">${escapeHTML(a.action.label)} →</a>`;
+      const href = buildComposeHref(p.subject || "", p.body || "", p.to || "");
+      actionBtn = `<button class="btn btn-sm" onclick="openComposeMail('${escapeAttr(href)}')">${escapeHTML(a.action.label)} →</button>`;
     }
   }
   return `<div class="action-row" data-action-key="${escapeAttr(a.key)}">
