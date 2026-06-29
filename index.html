@@ -6291,6 +6291,9 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .day-detail-row .dd-label{ font-size:13.5px; font-weight:600; color:#2a313c; }
 .day-detail-row .dd-sub{ font-size:11.5px; color:#8a93a0; margin-top:2px; }
 .day-detail-row .dd-vessel{ flex:none; display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#5b6470; }
+.dd-todo-btn{ flex:none; font-size:11.5px; font-weight:600; color:var(--accent); background:#eaf1fc; border:1px solid #cfe0fb; border-radius:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
+.dd-todo-btn:hover{ background:#dce9fb; }
+.dd-todo-btn.done{ background:#e7f0e9; border-color:#bcd9c4; color:#1f5a2c; cursor:default; }
 </style>
 
 <header class="app-header">
@@ -8321,10 +8324,10 @@ function renderHeatmap() {
   monday.setHours(0,0,0,0);
   const weekDays = [];
   for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDays.push(d); }
-  const isoOf = d => d.toISOString().slice(0,10);
+  const isoOf = d => { const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); };
   const labels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
   const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
-  const todayStr = todayISO();
+  const todayStr = isoOf(new Date());
   const fromISO = isoOf(monday), toISO = isoOf(weekDays[6]);
   const showTodos = !!state._calShowTodos;
   const events = collectWeekEvents(fromISO, toISO, { includeTodos: showTodos });
@@ -13706,26 +13709,56 @@ function openCellDetail(vesselId, dateISO) {
     delivery: { ic: "📦", name: "Consegna prevista" }
   };
   document.getElementById("heatmap-detail-title").textContent = `${who} — ${formatDate(dateISO)}`;
+  window.__cellDetail = { events, dateISO, vesselId };
   let body;
   if (events.length === 0) {
     body = `<div class="empty-state" style="padding:24px;">Nessun evento.</div>`;
   } else {
     const order = { cert: 0, outlook: 1, delivery: 2, todo: 3 };
     events.sort((a,b) => (order[a.type] - order[b.type]));
-    body = `<div class="day-detail-list">${events.map(ev => {
+    body = `<div class="day-detail-list">${events.map((ev, i) => {
       const m = typeMeta[ev.type] || typeMeta.delivery;
+      const canTodo = ev.type !== "todo";
+      const todoBtn = canTodo
+        ? `<button class="dd-todo-btn" data-idx="${i}" onclick="window.createTodoFromEvent(${i})" title="Crea una to-do da questo evento">+ To-do</button>`
+        : "";
       return `<div class="day-detail-row ev-${ev.type}">
         <span class="dd-ic">${m.ic}</span>
         <div class="dd-main">
           <div class="dd-label">${escapeHTML(ev.label)}</div>
           <div class="dd-sub">${m.name}${ev.sub ? " · " + escapeHTML(ev.sub) : ""}</div>
         </div>
+        ${todoBtn}
       </div>`;
     }).join("")}</div>`;
   }
   document.getElementById("heatmap-detail-body").innerHTML = body;
   document.getElementById("modal-heatmap-detail").classList.add("open");
 }
+
+// Crea una to-do a partire da un evento del calendario (consegna / certificato / appuntamento)
+window.createTodoFromEvent = function(idx){
+  const ctx = window.__cellDetail;
+  if (!ctx || !ctx.events || !ctx.events[idx]) return;
+  const ev = ctx.events[idx];
+  const cleanLabel = String(ev.label || "").replace(/\s[⚓~]$/,"").trim();
+  const category = ev.vesselId ? "Nave" : "Ufficio";
+  const actionByType = { cert: "Certificato", delivery: "Consegna", outlook: "Appuntamento" };
+  addTodo({
+    category,
+    vessel: ev.vesselId || "",
+    action: actionByType[ev.type] || "Altro",
+    reference: cleanLabel,
+    dueDate: ctx.dateISO,
+    note: ev.sub || ""
+  });
+  showToast("To-do creata");
+  // aggiorno il bottone della riga
+  const btn = document.querySelector(`.dd-todo-btn[data-idx="${idx}"]`);
+  if (btn) { btn.textContent = "✓ creata"; btn.classList.add("done"); btn.disabled = true; }
+  // aggiorno badge to-do in nav se presente
+  if (typeof renderSwitcher === "function") try { renderSwitcher(); } catch(e){}
+};
 
 // v0.18 — Dettaglio di TUTTI gli eventi di un giorno (consegne, certificati, to-do, Outlook)
 function openDayDetail(dateISO) {
