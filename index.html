@@ -6304,6 +6304,35 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .voyage-arr-btn:hover{ background:#dce9fb; }
 .voyage-arr-btn .icon{ width:14px; height:14px; }
 
+/* === NOON REPORT — blocco posizione + proposta APPLICA === */
+.noon-block{ background:#f0f6ff; border:1px solid #cfe0fb; border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+.noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
+.noon-tag .icon{ width:14px; height:14px; }
+.noon-status{ font-size:12px; font-weight:600; color:#3a4250; background:#fff; border:1px solid #d4e4f6; border-radius:20px; padding:3px 10px; }
+.noon-pos{ display:flex; align-items:baseline; flex-wrap:wrap; gap:6px 12px; }
+.noon-pos-label{ font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#8aa0bd; }
+.noon-pos-val{ font-family:var(--font-mono); font-size:15px; font-weight:600; color:#1a2c5e; }
+.noon-meta{ font-size:12px; color:#5b6470; }
+.noon-bunk{ margin-top:6px; font-size:11.5px; color:#7a8699; font-family:var(--font-mono); }
+.noon-prop{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; padding-top:11px; border-top:1px solid #dce8f8; flex-wrap:wrap; }
+.noon-prop-txt{ font-size:12.5px; color:#2a4a7a; font-weight:500; flex:1; min-width:0; }
+.noon-apply-btn{ flex:none; font-size:12.5px; font-weight:700; color:#fff; background:var(--accent); border:none; border-radius:7px; padding:7px 14px; cursor:pointer; }
+.noon-apply-btn:hover{ filter:brightness(.95); }
+
+/* === DIARIO DI BORDO === */
+.diario-wrap{ border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
+.diario-table{ width:100%; border-collapse:collapse; background:#fff; }
+.diario-table thead th{ background:#fafbfc; color:#aab2bd; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; text-align:left; padding:11px 16px; border-bottom:1px solid #eef1f4; }
+.diario-table tbody td{ padding:12px 16px; border-bottom:1px solid #f3f5f8; font-size:13px; color:#3a4250; vertical-align:top; }
+.diario-table tbody tr:last-child td{ border-bottom:none; }
+.diario-table tbody tr:hover{ background:#fafcff; }
+.diario-date{ font-weight:700; color:#2a313c; white-space:nowrap; }
+.diario-date .diario-yr{ display:block; font-size:10.5px; font-weight:500; color:#aab2bd; font-family:var(--font-mono); }
+.diario-pos{ color:#1a2c5e; white-space:nowrap; }
+.diario-where{ color:#3a4250; }
+.diario-sched{ color:#5b6470; font-size:12px; }
+
 /* dettaglio giorno/cella (modale) */
 .day-detail-row{ display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid #f1f4f7; border-left:3px solid transparent; }
 .day-detail-row:last-child{ border-bottom:none; }
@@ -6931,7 +6960,8 @@ const DATA_URLS = {
   procurement: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-procurement.json",
   tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json",
   outlookTasks: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-tasks.json",  // v0.14
-  outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json"  // v0.18 — appuntamenti calendario (opzionale, via n8n)
+  outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json",  // v0.18 — appuntamenti calendario (opzionale, via n8n)
+  noonReports: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-noon-reports.json"  // v0.19 — noon report estratti via AI (opzionale, via n8n)
 };
 
 // === Configurazione Google Drive Sync ===
@@ -7154,16 +7184,18 @@ async function loadData() {
   }
 
   try {
-    const [proc, trk, outlookData, calData] = await Promise.all([
+    const [proc, trk, outlookData, calData, noonData] = await Promise.all([
       fetchJSON(DATA_URLS.procurement),
       fetchJSON(DATA_URLS.tracking).catch(() => null),  // tracking opzionale
       fetchJSON(DATA_URLS.outlookTasks).catch(() => null),  // v0.14: outlook tasks opzionale
-      fetchJSON(DATA_URLS.outlookCalendar).catch(() => null)  // v0.18: outlook calendar opzionale
+      fetchJSON(DATA_URLS.outlookCalendar).catch(() => null),  // v0.18: outlook calendar opzionale
+      fetchJSON(DATA_URLS.noonReports).catch(() => null)  // v0.19: noon report opzionale
     ]);
     state.data = proc;
     state.tracking = trk;
     state.outlookTasks = outlookData;
     state.outlookCalendar = calData;  // {events:[{title,start,end,location,vesselId?}]} o null
+    state.noonReports = (noonData && noonData.vessels) ? noonData.vessels : (noonData || null);  // {vesselId:[report,...]}
     writeCache({ procurement: proc, tracking: trk });
     state.loading = false;
     mergeAndPrepare();
@@ -8613,6 +8645,7 @@ function renderVesselDetail() {
       <button class="vd-subtab ${_vtab==='procurement'?'active':''}" data-tab="procurement" onclick="window.setVesselDetailTab('procurement')">Procurement <span class="vd-subtab-n">${(v.items||[]).length}</span></button>
       <button class="vd-subtab ${_vtab==='certificati'?'active':''}" data-tab="certificati" onclick="window.setVesselDetailTab('certificati')">Certificati ${_certBadge}</button>
       <button class="vd-subtab ${_vtab==='todo'?'active':''}" data-tab="todo" onclick="window.setVesselDetailTab('todo')">To-do <span class="vd-subtab-n">${allActions.length}</span></button>
+      <button class="vd-subtab ${_vtab==='diario'?'active':''}" data-tab="diario" onclick="window.setVesselDetailTab('diario')">Diario di bordo ${getNoonReports(cfg.vesselId).length?`<span class="vd-subtab-n">${getNoonReports(cfg.vesselId).length}</span>`:""}</button>
     </div>
 
     <div class="vd-panel" data-tab="panoramica" style="display:${_vtab==='panoramica'?'':'none'};">
@@ -8703,6 +8736,14 @@ function renderVesselDetail() {
         </div>
         ${actionsHTML}
       </section>
+    </div>
+
+    <div class="vd-panel" data-tab="diario" style="display:${_vtab==='diario'?'':'none'};">
+      <div class="section-title">
+        <h2>Diario di bordo</h2>
+        <span class="section-meta">storico posizioni e porti dai noon report</span>
+      </div>
+      ${renderNoonDiario(cfg.vesselId)}
     </div>
   `;
 
@@ -11530,20 +11571,124 @@ function formatVoyageDate(dateStr) {
          (dateStr.includes("T") ? " " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "");
 }
 
+// === NOON REPORTS (estratti via AI da n8n) — posizione giornaliera, proposta Voyage, storico ===
+function getNoonReports(vesselId){
+  const all = (state.noonReports && state.noonReports[vesselId]) || [];
+  // ordino per data crescente
+  return all.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+}
+function getLatestNoon(vesselId){
+  const arr = getNoonReports(vesselId);
+  return arr.length ? arr[arr.length-1] : null;
+}
+function noonDateLabel(iso){
+  if(!iso) return "";
+  const d = new Date(iso + (iso.length<=10?"T00:00:00":""));
+  if(isNaN(d)) return iso;
+  const mesi=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  return `${d.getDate()} ${mesi[d.getMonth()]}`;
+}
+// Blocco "Ultimo noon report" + proposta da Applicare al Voyage
+function noonReportBlockHTML(vesselId){
+  const n = getLatestNoon(vesselId);
+  if(!n) return "";
+  const pos = n.positionText || [n.lat, n.lon].filter(Boolean).join(" / ");
+  const statusTxt = n.status || (n.type==="port"?"In porto":n.type==="anchor"?"In rada":"In navigazione");
+  // valori proponibili al voyage (solo se presenti)
+  const prop = [];
+  if(n.from || n.to || n.nextPort) prop.push(`${escapeHTML(n.from||"—")} → ${escapeHTML(n.to||n.nextPort||"—")}`);
+  if(n.etaText) prop.push(`ETA ${escapeHTML(n.etaText)}`);
+  if(n.etbText) prop.push(`ETB ${escapeHTML(n.etbText)}`);
+  if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
+  const propLine = prop.length ? prop.join(" · ") : "";
+  const bunk = n.bunkers ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
+  return `
+    <div class="noon-block">
+      <div class="noon-head">
+        <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Noon report ${noonDateLabel(n.date)}</span>
+        <span class="noon-status">${escapeHTML(statusTxt)}</span>
+      </div>
+      <div class="noon-pos">
+        <span class="noon-pos-label">Posizione</span>
+        <span class="noon-pos-val">${pos ? escapeHTML(pos) : "—"}</span>
+        ${n.speed?`<span class="noon-meta">${escapeHTML(n.speed)} kts</span>`:""}
+        ${n.course?`<span class="noon-meta">rotta ${escapeHTML(n.course)}</span>`:""}
+        ${n.milesToGo?`<span class="noon-meta">${escapeHTML(n.milesToGo)} NM al porto</span>`:""}
+      </div>
+      ${bunk?`<div class="noon-bunk">${bunk}</div>`:""}
+      ${propLine ? `<div class="noon-prop">
+        <span class="noon-prop-txt">${propLine}</span>
+        <button class="noon-apply-btn" onclick="window.applyNoonToVoyage('${escapeAttr(vesselId)}')" title="Applica questi dati al Voyage">Applica al Voyage</button>
+      </div>` : ""}
+    </div>`;
+}
+window.applyNoonToVoyage = function(vesselId){
+  const n = getLatestNoon(vesselId);
+  if(!n){ showToast("Nessun noon report"); return; }
+  if(!state.voyages) state.voyages = {};
+  const voy = state.voyages[vesselId] || {};
+  const cur = Object.assign({}, voy.current || {});
+  // applico solo i campi presenti (non sovrascrivo con vuoti)
+  if(n.from) cur.from = n.from;
+  if(n.to || n.nextPort) cur.to = n.to || n.nextPort;
+  if(n.etaISO) cur.eta = n.etaISO;
+  if(n.etbISO) cur.etb = n.etbISO;
+  if(n.etdISO) cur.etd = n.etdISO;
+  voy.current = cur;
+  if(!voy.status) voy.status = (n.type==="port"||n.type==="anchor") ? "in-porto" : "in-navigazione";
+  voy.updatedAt = new Date().toISOString();
+  voy.fromNoon = n.date;
+  state.voyages[vesselId] = voy;
+  if(typeof saveVoyages==="function") saveVoyages();
+  showToast("✓ Voyage aggiornato dal noon report "+noonDateLabel(n.date));
+  if(state.view==="vessel") render();
+};
+// Storico (Diario di bordo): tabella della cronologia posizioni/porti
+function renderNoonDiario(vesselId){
+  const arr = getNoonReports(vesselId).slice().reverse(); // più recenti in alto
+  if(!arr.length){
+    return `<div class="vd-empty" style="padding:40px;text-align:center">
+      <p style="margin:0 0 6px;font-weight:600;color:#5b6470">Nessun noon report ancora archiviato</p>
+      <p style="margin:0;font-size:12.5px;color:#9aa3af">I report estratti dalle email compariranno qui, uno per giorno, come diario di bordo.</p>
+    </div>`;
+  }
+  const rows = arr.map(n=>{
+    const pos = n.positionText || [n.lat, n.lon].filter(Boolean).join(" / ");
+    const where = n.type==="sea" ? (n.to||n.nextPort?("→ "+escapeHTML(n.to||n.nextPort)):"In navigazione") : escapeHTML(n.status || n.port || (n.type==="port"?"In porto":"In rada"));
+    const eta = n.etaText?`ETA ${escapeHTML(n.etaText)}`:"";
+    const etd = n.etdText?`ETD ${escapeHTML(n.etdText)}`:"";
+    const sched = [eta,etd].filter(Boolean).join(" · ");
+    return `<tr>
+      <td class="diario-date">${noonDateLabel(n.date)}<span class="diario-yr">${(n.date||'').slice(0,4)}</span></td>
+      <td class="diario-pos mono">${pos?escapeHTML(pos):"—"}</td>
+      <td class="diario-where">${where}</td>
+      <td class="diario-sched">${sched||"—"}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="diario-wrap">
+    <table class="diario-table">
+      <thead><tr><th>Data</th><th>Posizione</th><th>Porto / Stato</th><th>ETA / ETD</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
 // Render compatto del voyage sopra le KPI (nella scheda nave)
 function renderVoyageWidget(vesselId) {
   const voy = getVoyage(vesselId);
   const cur = voy.current || {};
   const nxt = voy.next || {};
   const hasAnyData = cur.from || cur.to || cur.eta || nxt.to || voy.notes || voy.status;
+  const noonBlock = noonReportBlockHTML(vesselId);
 
   if (!hasAnyData) {
     return `
+      ${noonBlock}
       <section class="voyage-widget voyage-widget-empty">
         <div class="voyage-widget-icon">🚢</div>
         <div class="voyage-widget-text">
           <div class="voyage-widget-title">Voyage in corso</div>
-          <div class="voyage-widget-subtitle muted">Nessun dato — compila a mano dalle email</div>
+          <div class="voyage-widget-subtitle muted">${noonBlock? 'Applica il noon report qui sopra, o compila a mano' : 'Nessun dato — compila a mano dalle email'}</div>
         </div>
         <button class="btn-mini-link" onclick="window.openVoyageEditor('${escapeAttr(vesselId)}')">✎ aggiungi</button>
       </section>
@@ -11592,6 +11737,7 @@ function renderVoyageWidget(vesselId) {
     </div>` : "";
 
   return `
+    ${noonBlock}
     <section class="voyage-card" data-vid="${escapeAttr(vesselId)}">
       <div class="voyage-card-top">
         <div class="vct-left">
