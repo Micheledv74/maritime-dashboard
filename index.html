@@ -6227,6 +6227,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .calg-vbar[data-vid="medliguria"]{ background:var(--c-liguria); }
 .calg-vbar[data-vid="medtoscana"]{ background:var(--c-toscana); }
 .calg-vbar[data-vid="norrbotten"]{ background:var(--c-norrbotten); }
+.calg-vbar.general{ background:#7a8699; }
 .calg-cell{ background:#fcfdfe; border:1px solid #eef1f4; border-radius:9px; min-height:54px; padding:5px; display:flex; flex-direction:column; gap:4px; }
 .calg-cell.is-weekend{ background:#f7f9fb; }
 .calg-cell.is-today{ background:#f4f8ff; border-color:#cfe0fb; }
@@ -8375,11 +8376,9 @@ function renderHeatmap() {
     rows += `<div class="calg-vname" data-vid="${cfg.vesselId}"><span class="calg-vbar" data-vid="${cfg.vesselId}"></span><span class="calg-vtx">${cfg.displayName}</span></div>`;
     weekDays.forEach(d => { rows += cellHTML(cfg.vesselId, isoOf(d), (map[cfg.vesselId] || {})[isoOf(d)]); });
   }
-  // Riga "Agenda" per appuntamenti Outlook senza nave (solo se presenti)
-  if (Object.keys(general).length) {
-    rows += `<div class="calg-vname general"><span class="calg-vbar general"></span><span class="calg-vtx">Agenda</span></div>`;
-    weekDays.forEach(d => { rows += cellHTML(null, isoOf(d), general[isoOf(d)]); });
-  }
+  // Riga "Ufficio" per appuntamenti senza nave — sempre visibile (anche vuota)
+  rows += `<div class="calg-vname general"><span class="calg-vbar general"></span><span class="calg-vtx">🏢 Ufficio</span></div>`;
+  weekDays.forEach(d => { rows += cellHTML(null, isoOf(d), general[isoOf(d)]); });
 
   const grid = `<div class="calg">${head}${rows}</div>`;
 
@@ -13699,7 +13698,7 @@ function openCellDetail(vesselId, dateISO) {
   const all = collectWeekEvents(dateISO, dateISO, { includeTodos: true })[dateISO] || [];
   const events = all.filter(e => vesselId ? e.vesselId === vesselId : !e.vesselId);
   const cfg = VESSELS.find(v => v.vesselId === vesselId);
-  const who = cfg ? cfg.displayName : "Agenda";
+  const who = cfg ? cfg.displayName : "🏢 Ufficio";
   const typeMeta = {
     cert:     { ic: "🛡️", name: "Certificato in scadenza" },
     todo:     { ic: "✓",  name: "To-do" },
