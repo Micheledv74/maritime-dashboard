@@ -6311,6 +6311,8 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .noon-map{ position:relative; min-height:200px; background:#e9eef3; border-left:1px solid #cfe0fb; }
 .noon-map-frame{ position:absolute; inset:0; width:100%; height:100%; border:0; }
 .noon-map-open{ position:absolute; bottom:8px; right:8px; z-index:2; background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:11px; font-weight:600; color:var(--accent); text-decoration:none; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+.noon-map-stale{ position:absolute; top:8px; left:8px; z-index:2; background:rgba(255,255,255,.92); border:1px solid #e0d3a8; color:#8a6d1a; border-radius:6px; padding:3px 8px; font-size:10.5px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.1); }
+.noon-shiptime{ font-size:12px; color:#0a3f93; font-weight:600; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -11603,13 +11605,47 @@ function parseNoonLatLon(n){
   if(Math.abs(la)>90 || Math.abs(lo)>180) return null;
   return { lat: la, lon: lo };
 }
-// Blocco "Ultimo noon report" + proposta da Applicare al Voyage + mappa posizione
+// Ultima posizione NOTA (scorre lo storico dal più recente all'indietro finché trova coordinate valide)
+function getLastKnownPosition(vesselId){
+  const arr = getNoonReports(vesselId); // crescente
+  for(let i=arr.length-1; i>=0; i--){
+    const c = parseNoonLatLon(arr[i]);
+    if(c) return { coords:c, report:arr[i] };
+  }
+  return null;
+}
+// Giorni trascorsi da una data ISO (0 = oggi)
+function noonDaysAgo(iso){
+  if(!iso) return null;
+  const d = new Date(iso + (iso.length<=10?"T00:00:00":""));
+  if(isNaN(d)) return null;
+  const t = new Date(); t.setHours(0,0,0,0); d.setHours(0,0,0,0);
+  return Math.round((t-d)/86400000);
+}
+// Ora locale a bordo stimata dalla longitudine (≈ 15° = 1h). Approssimata (~).
+function shipLocalTimeFromLon(lon){
+  if(lon==null || isNaN(lon)) return null;
+  const offset = Math.round(lon/15);
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset()*60000;
+  const ship = new Date(utcMs + offset*3600000);
+  const hh = String(ship.getHours()).padStart(2,"0");
+  const mm = String(ship.getMinutes()).padStart(2,"0");
+  return { text: hh+":"+mm, off: "UTC"+(offset>=0?"+":"")+offset };
+}
+// Blocco "Ultimo noon report" + proposta da Applicare al Voyage + mappa posizione (sempre attiva)
 function noonReportBlockHTML(vesselId){
   const n = getLatestNoon(vesselId);
   if(!n) return "";
   const pos = n.positionText || [n.lat, n.lon].filter(Boolean).join(" / ");
   const statusTxt = n.status || (n.type==="port"?"In porto":n.type==="anchor"?"In rada":"In navigazione");
-  const coords = parseNoonLatLon(n);
+  // Posizione per la mappa: ultima nota, anche di giorni fa
+  const last = getLastKnownPosition(vesselId);
+  const coords = last ? last.coords : null;
+  const staleDays = last ? noonDaysAgo(last.report.date) : null;
+  const isStale = last && last.report.date !== n.date;
+  // Ora a bordo stimata dalla longitudine dell'ultima posizione nota
+  const shipTime = coords ? shipLocalTimeFromLon(coords.lon) : null;
   // valori proponibili al voyage (solo se presenti)
   const prop = [];
   if(n.from || n.to || n.nextPort) prop.push(`${escapeHTML(n.from||"—")} → ${escapeHTML(n.to||n.nextPort||"—")}`);
@@ -11618,15 +11654,17 @@ function noonReportBlockHTML(vesselId){
   if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
   const propLine = prop.length ? prop.join(" · ") : "";
   const bunk = n.bunkers ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
-  // mappa: OSM embed centrato sulla posizione (se coordinate disponibili)
+  // mappa: OSM embed sempre attiva sull'ultima posizione nota
   let mapHTML = "";
   if(coords){
     const d = 3.5; // mezzo lato bbox in gradi
     const bbox = `${coords.lon-d},${coords.lat-d},${coords.lon+d},${coords.lat+d}`;
     const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${coords.lat},${coords.lon}`;
     const osmLink = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lon}#map=6/${coords.lat}/${coords.lon}`;
+    const staleTag = isStale ? `<span class="noon-map-stale">📍 rilevata ${staleDays===1?"ieri":staleDays+" giorni fa"}</span>` : "";
     mapHTML = `<div class="noon-map">
       <iframe class="noon-map-frame" loading="lazy" src="${src}" title="Posizione ${escapeAttr(pos)}"></iframe>
+      ${staleTag}
       <a class="noon-map-open" href="${osmLink}" target="_blank" rel="noopener">Apri mappa ↗</a>
     </div>`;
   }
@@ -11642,6 +11680,7 @@ function noonReportBlockHTML(vesselId){
         ${n.speed?`<span class="noon-meta">${escapeHTML(n.speed)} kts</span>`:""}
         ${n.course?`<span class="noon-meta">rotta ${escapeHTML(n.course)}</span>`:""}
         ${n.milesToGo?`<span class="noon-meta">${escapeHTML(n.milesToGo)} NM al porto</span>`:""}
+        ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
       </div>
       ${bunk?`<div class="noon-bunk">${bunk}</div>`:""}
       ${propLine ? `<div class="noon-prop">
