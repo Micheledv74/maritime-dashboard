@@ -6306,6 +6306,12 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 
 /* === NOON REPORT — blocco posizione + proposta APPLICA === */
 .noon-block{ background:#f0f6ff; border:1px solid #cfe0fb; border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+.noon-block.has-map{ display:grid; grid-template-columns:1fr 300px; gap:16px; padding:0; overflow:hidden; }
+.noon-block.has-map .noon-info{ padding:14px 16px; }
+.noon-map{ position:relative; min-height:200px; background:#e9eef3; border-left:1px solid #cfe0fb; }
+.noon-map-frame{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.noon-map-open{ position:absolute; bottom:8px; right:8px; z-index:2; background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:11px; font-weight:600; color:var(--accent); text-decoration:none; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+@media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
 .noon-tag .icon{ width:14px; height:14px; }
@@ -8649,14 +8655,6 @@ function renderVesselDetail() {
     </div>
 
     <div class="vd-panel" data-tab="panoramica" style="display:${_vtab==='panoramica'?'':'none'};">
-      <div class="vd-grid2">
-        <section class="position-panel"><div class="box-h">Voyage · AIS</div>${posHTML}</section>
-        <div class="vd-map vd-map-live" data-vid="${cfg.vesselId}">
-          <div class="vd-map-label">MAPPA AIS</div>
-          <div id="map"></div>
-        </div>
-      </div>
-
       ${renderVoyageWidget(v.vesselId)}
 
       <div class="section-title"><h2>Pipeline procurement</h2></div>
@@ -8771,8 +8769,8 @@ function renderVesselDetail() {
   });
   const mapBtn = document.getElementById("toggle-map");
   if (mapBtn) mapBtn.addEventListener("click", () => toggleMap(trk, cfg.displayName));
-  // Mappa sempre visibile (init immediato, no click)
-  initVesselMap(trk, cfg.displayName);
+  // Mappa AIS rimossa: la posizione ora viene dal noon report (mappa OSM nel blocco noon)
+  if (document.getElementById("map")) initVesselMap(trk, cfg.displayName);
   // KPI Panoramica cliccabili → tab Procurement filtrato
   document.querySelectorAll(".vd-kpi-row .kpi[data-vd-kpi]").forEach(kpi => {
     kpi.addEventListener("click", () => {
@@ -11588,12 +11586,30 @@ function noonDateLabel(iso){
   const mesi=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
   return `${d.getDate()} ${mesi[d.getMonth()]}`;
 }
-// Blocco "Ultimo noon report" + proposta da Applicare al Voyage
+// Converte coordinate noon ("21-58.4N" / "113-58.7E") in decimali; null se non parsabili
+function parseNoonLatLon(n){
+  if(!n) return null;
+  function dec(v){
+    if(v==null) return null;
+    v = String(v).trim();
+    let m = v.match(/(\d+(?:\.\d+)?)[-°\s]+(\d+(?:\.\d+)?)?\s*([NSEW])/i); // gradi-primi + emisfero
+    if(m){ let d=parseFloat(m[1])+(m[2]?parseFloat(m[2])/60:0); if(/[SW]/i.test(m[3])) d=-d; return d; }
+    m = v.match(/(-?\d+(?:\.\d+)?)\s*([NSEW])?/i); // decimale eventuale
+    if(m){ let d=parseFloat(m[1]); if(m[2]&&/[SW]/i.test(m[2])) d=-d; return d; }
+    return null;
+  }
+  const la = dec(n.lat), lo = dec(n.lon);
+  if(la==null || lo==null || isNaN(la) || isNaN(lo)) return null;
+  if(Math.abs(la)>90 || Math.abs(lo)>180) return null;
+  return { lat: la, lon: lo };
+}
+// Blocco "Ultimo noon report" + proposta da Applicare al Voyage + mappa posizione
 function noonReportBlockHTML(vesselId){
   const n = getLatestNoon(vesselId);
   if(!n) return "";
   const pos = n.positionText || [n.lat, n.lon].filter(Boolean).join(" / ");
   const statusTxt = n.status || (n.type==="port"?"In porto":n.type==="anchor"?"In rada":"In navigazione");
+  const coords = parseNoonLatLon(n);
   // valori proponibili al voyage (solo se presenti)
   const prop = [];
   if(n.from || n.to || n.nextPort) prop.push(`${escapeHTML(n.from||"—")} → ${escapeHTML(n.to||n.nextPort||"—")}`);
@@ -11602,8 +11618,20 @@ function noonReportBlockHTML(vesselId){
   if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
   const propLine = prop.length ? prop.join(" · ") : "";
   const bunk = n.bunkers ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
-  return `
-    <div class="noon-block">
+  // mappa: OSM embed centrato sulla posizione (se coordinate disponibili)
+  let mapHTML = "";
+  if(coords){
+    const d = 3.5; // mezzo lato bbox in gradi
+    const bbox = `${coords.lon-d},${coords.lat-d},${coords.lon+d},${coords.lat+d}`;
+    const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${coords.lat},${coords.lon}`;
+    const osmLink = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lon}#map=6/${coords.lat}/${coords.lon}`;
+    mapHTML = `<div class="noon-map">
+      <iframe class="noon-map-frame" loading="lazy" src="${src}" title="Posizione ${escapeAttr(pos)}"></iframe>
+      <a class="noon-map-open" href="${osmLink}" target="_blank" rel="noopener">Apri mappa ↗</a>
+    </div>`;
+  }
+  const infoHTML = `
+    <div class="noon-info">
       <div class="noon-head">
         <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Noon report ${noonDateLabel(n.date)}</span>
         <span class="noon-status">${escapeHTML(statusTxt)}</span>
@@ -11621,6 +11649,7 @@ function noonReportBlockHTML(vesselId){
         <button class="noon-apply-btn" onclick="window.applyNoonToVoyage('${escapeAttr(vesselId)}')" title="Applica questi dati al Voyage">Applica al Voyage</button>
       </div>` : ""}
     </div>`;
+  return `<div class="noon-block ${coords?'has-map':''}">${infoHTML}${mapHTML}</div>`;
 }
 window.applyNoonToVoyage = function(vesselId){
   const n = getLatestNoon(vesselId);
