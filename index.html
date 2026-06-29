@@ -5893,6 +5893,10 @@ a:hover { text-decoration: underline; }
   border-left:1px solid #cfe9d8; border-radius:0; font-size:11px;
 }
 .app-header .header-actions{ margin-left:auto; gap:8px; }
+/* data·ora centrale (come mockup) */
+.header-clock{ margin-left:auto; font-family:var(--font-mono); font-size:13px; color:#5b6470; white-space:nowrap; letter-spacing:.01em; }
+.header-clock .hc-time{ color:#2a313c; font-weight:600; }
+@media(max-width:900px){ .header-clock{ display:none; } }
 /* Bottoni testata puliti come mockup */
 .app-header .icon-btn{
   width:36px !important; height:36px !important; min-width:36px !important; min-height:36px !important;
@@ -6098,6 +6102,12 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .vd-subtab .vd-subtab-n{ font-family:var(--font-mono); font-size:11px; color:#aab2bd; }
 .vd-subtab.active{ font-weight:700; color:var(--accent); border-bottom-color:var(--accent); }
 .vd-subtab.active .vd-subtab-n{ color:var(--accent); opacity:.7; }
+/* tab attiva del colore-nave (come mockup) */
+.vd-subtabs[data-vid="peppino"] .vd-subtab.active{ color:var(--c-peppino); border-bottom-color:var(--c-peppino); }
+.vd-subtabs[data-vid="medliguria"] .vd-subtab.active{ color:var(--c-liguria); border-bottom-color:var(--c-liguria); }
+.vd-subtabs[data-vid="medtoscana"] .vd-subtab.active{ color:var(--c-toscana); border-bottom-color:var(--c-toscana); }
+.vd-subtabs[data-vid="norrbotten"] .vd-subtab.active{ color:var(--c-norrbotten); border-bottom-color:var(--c-norrbotten); }
+.vd-subtabs[data-vid] .vd-subtab.active .vd-subtab-n{ color:inherit; }
 
 /* layout pannelli */
 .vd-grid2{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:22px; align-items:start; }
@@ -6325,6 +6335,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
         <span class="drive-icon">☁</span><span class="drive-label">Drive</span>
       </span>
     </div>
+    <div class="header-clock" id="header-clock" title="Data e ora locali"></div>
     <div class="header-actions">
       <button class="icon-btn refresh has-label desktop-only" id="btn-refresh" title="Aggiorna dati (R)" aria-label="Aggiorna">
         <svg class="icon icon-sm"><use href="#i-refresh"/></svg><span class="label-md">Aggiorna</span>
@@ -7833,6 +7844,7 @@ function render() {
   renderSwitcher();
   if (state.error && !state.data) { renderError(); return; }
   if (state.loading && !state.data) { renderLoading(); return; }
+  if (typeof updateHeaderClock === "function") updateHeaderClock();
   if (state.view === "certificates") renderCertificatesContainer();
   else if (state.view === "overview") { renderOverview(); startWorldClockTimer(); }
   else if (state.view === "vessel") renderVesselDetail();
@@ -8596,7 +8608,7 @@ function renderVesselDetail() {
       </div>
     </header>
 
-    <div class="vd-subtabs">
+    <div class="vd-subtabs" data-vid="${cfg.vesselId}">
       <button class="vd-subtab ${_vtab==='panoramica'?'active':''}" data-tab="panoramica" onclick="window.setVesselDetailTab('panoramica')">Panoramica</button>
       <button class="vd-subtab ${_vtab==='procurement'?'active':''}" data-tab="procurement" onclick="window.setVesselDetailTab('procurement')">Procurement <span class="vd-subtab-n">${(v.items||[]).length}</span></button>
       <button class="vd-subtab ${_vtab==='certificati'?'active':''}" data-tab="certificati" onclick="window.setVesselDetailTab('certificati')">Certificati ${_certBadge}</button>
@@ -9250,13 +9262,27 @@ function renderWorldClock() {
   }).join("");
 }
 
+// Aggiorna data·ora in testata
+function updateHeaderClock() {
+  const el = document.getElementById("header-clock");
+  if (!el) return;
+  const now = new Date();
+  const giorni = ["dom","lun","mar","mer","gio","ven","sab"];
+  const mesi = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  const data = `${giorni[now.getDay()]} ${now.getDate()} ${mesi[now.getMonth()]}`;
+  const ora = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  el.innerHTML = `${data} · <span class="hc-time">${ora}</span>`;
+}
+
 // Auto-refresh orologi ogni minuto
 let worldClockInterval = null;
 function startWorldClockTimer() {
   if (worldClockInterval) clearInterval(worldClockInterval);
+  updateHeaderClock();
   worldClockInterval = setInterval(() => {
     const strip = document.getElementById("world-clock-strip");
     if (strip) strip.innerHTML = renderWorldClock();
+    updateHeaderClock();
   }, 60000);  // ogni minuto
 }
 
