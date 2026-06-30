@@ -6313,6 +6313,28 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .noon-map-open{ position:absolute; bottom:8px; right:8px; z-index:2; background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:11px; font-weight:600; color:var(--accent); text-decoration:none; box-shadow:0 1px 4px rgba(0,0,0,.12); }
 .noon-map-stale{ position:absolute; top:8px; left:8px; z-index:2; background:rgba(255,255,255,.92); border:1px solid #e0d3a8; color:#8a6d1a; border-radius:6px; padding:3px 8px; font-size:10.5px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.1); }
 .noon-shiptime{ font-size:12px; color:#0a3f93; font-weight:600; }
+
+/* v0.20 — Badge insight procurement nella card flotta */
+.vessel-proc-badges{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 12px; }
+.proc-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 9px; border-radius:7px; cursor:pointer; border:1px solid transparent; }
+.proc-badge.unplanned{ background:#fdf0d8; color:#9a4a00; border-color:#f0d9ad; }
+.proc-badge.unplanned:hover{ background:#fbe6c0; }
+.proc-badge.stale{ background:#fbe4e6; color:#8f1219; border-color:#f2c4c8; }
+.proc-badge.stale:hover{ background:#f7d3d7; }
+.proc-badge .icon{ width:12px; height:12px; }
+/* arrivo tra X giorni nel footer card */
+.vessel-foot .arr-chip{ display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:#0a3f93; background:#e3edfb; border-radius:6px; padding:3px 9px; }
+.vessel-foot .arr-chip.soon{ color:#fff; background:var(--accent); }
+/* A) bunker sparkline */
+.bunk-trend{ display:flex; flex-wrap:wrap; gap:16px; margin-top:9px; padding-top:9px; border-top:1px solid #e3ecf7; }
+.bunk-spark{ display:inline-flex; align-items:center; gap:6px; }
+.bunk-spark-lbl{ font-size:10px; font-weight:700; letter-spacing:.04em; color:#8aa0bd; }
+.bunk-spark svg{ display:block; }
+.bunk-spark-val{ font-family:var(--font-mono); font-size:12px; font-weight:600; color:#3a4250; }
+.bunk-delta{ margin-left:2px; font-weight:700; }
+.bunk-delta.down{ color:#1f8a4c; }
+.bunk-delta.up{ color:#c8222a; }
+.bunk-delta.flat{ color:#9aa3af; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -8107,6 +8129,14 @@ function renderOverview() {
     const certBadgesHTML = certBadges.length > 0 ?
       `<span class="vessel-cert-badges" data-vessel-certs="${cfg.vesselId}" title="Click per aprire i certificati di questa nave">${certBadges.join("")}</span>` : "";
 
+    // v0.20 — Badge insight procurement (B: PO senza consegna, C: RFQ ferme)
+    const procBadges = [];
+    const unplanned = getUnplannedPOs(cfg.vesselId);
+    if (unplanned.length > 0) procBadges.push(`<span class="proc-badge unplanned" data-proc-jump="po" data-proc-vid="${cfg.vesselId}" title="${unplanned.length} PO senza consegna pianificata — click per pianificare"><svg class="icon icon-sm" style="vertical-align:-2px"><use href="#i-truck"/></svg> ${unplanned.length} da pianificare</span>`);
+    const stale = getStaleRFQs(cfg.vesselId, 14);
+    if (stale.length > 0) procBadges.push(`<span class="proc-badge stale" data-proc-jump="rfq" data-proc-vid="${cfg.vesselId}" title="${stale.length} RFQ ferme da oltre 14 giorni"><svg class="icon icon-sm" style="vertical-align:-2px"><use href="#i-clock"/></svg> ${stale.length} RFQ ferme</span>`);
+    const procBadgesHTML = procBadges.length > 0 ? `<div class="vessel-proc-badges">${procBadges.join("")}</div>` : "";
+
     cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}" data-status="${(() => {
       // v0.15: drydock se voyage status è drydock, altrimenti vesselStatus
       const voySumm = getVoyageSummaryForCard(cfg.vesselId);
@@ -8144,6 +8174,7 @@ function renderOverview() {
         <div class="kpi clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"${(v.orders || 0) === 0 ? ' data-zero="1"' : ''}><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
         <div class="kpi clickable ${(v.dnPending || 0) > 10 ? "alert" : (v.dnPending || 0) > 0 ? "amber" : ""}" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"${(v.dnPending || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
       </div>
+      ${procBadgesHTML}
       ${(() => {
         // v0.12 — Se c'è un voyage manuale, lo mostro al posto del prossimo porto da AIS
         const voySumm = getVoyageSummaryForCard(cfg.vesselId);
@@ -8153,9 +8184,13 @@ function renderOverview() {
           let etaClass = "ok";
           if (voySumm.daysLabel && voySumm.daysLabel.includes("fa")) etaClass = "past";
           else if (voySumm.urgent) etaClass = "urgent";
+          const daysToArr = getDaysToArrival(cfg.vesselId);
+          const arrChip = (daysToArr != null && daysToArr >= 0 && daysToArr <= 5)
+            ? `<span class="arr-chip ${daysToArr<=2?"soon":""}" title="Arrivo previsto tra ${daysToArr} giorni">⚓ arrivo ${daysToArr===0?"oggi":daysToArr===1?"domani":"tra "+daysToArr+"g"}</span>`
+            : "";
           return `<div class="vessel-foot vessel-foot-voyage">
             <span class="route-info"><svg class="icon icon-sm"><use href="#i-mappin"/></svg>${statusLabel ? statusLabel + " · " : ""}prossimo: <strong>${escapeHTML(voySumm.nextPort)}</strong></span>
-            <span class="eta-badge ${etaClass}"><svg class="icon icon-sm"><use href="#i-clock"/></svg>${voySumm.daysLabel ? "ETA " + voySumm.daysLabel : "ETA —"}</span>
+            ${arrChip || `<span class="eta-badge ${etaClass}"><svg class="icon icon-sm"><use href="#i-clock"/></svg>${voySumm.daysLabel ? "ETA " + voySumm.daysLabel : "ETA —"}</span>`}
           </div>`;
         }
         // Fallback: prossimo porto da AIS come prima
@@ -8289,6 +8324,19 @@ function renderOverview() {
       if (certBadge) {
         e.stopPropagation();
         window.goCertificatesForVessel(certBadge.dataset.vesselCerts);
+        return;
+      }
+      // v0.20 — Click su badge insight procurement → Procurement della nave con filtro
+      const procBadge = e.target.closest("[data-proc-jump]");
+      if (procBadge) {
+        e.stopPropagation();
+        const vid = procBadge.dataset.procVid;
+        const jump = procBadge.dataset.procJump;
+        state.view = "vessel"; state.selectedVesselId = vid; state.detailTab = "procurement";
+        if (jump === "rfq") state.pipelineFilter = "RFQ";
+        else state.pipelineFilter = null;
+        state._procFocus = jump; // 'po' = senza consegna, 'rfq' = ferme
+        render();
         return;
       }
       // se il click è su un KPI cliccabile, non navigare
@@ -11633,6 +11681,39 @@ function shipLocalTimeFromLon(lon){
   const mm = String(ship.getMinutes()).padStart(2,"0");
   return { text: hh+":"+mm, off: "UTC"+(offset>=0?"+":"")+offset };
 }
+// A) Mini-sparkline del bunker (LSFO/LSMGO) dagli ultimi noon report
+function bunkerTrendHTML(vesselId){
+  const arr = getNoonReports(vesselId).filter(r => r.bunkers && (r.bunkers.lsfo || r.bunkers.lsmgo));
+  if(arr.length < 2) return "";  // serve almeno 2 punti per un trend
+  const recent = arr.slice(-10);  // ultimi 10 report
+  function spark(key, color, label){
+    const vals = recent.map(r => parseFloat(r.bunkers[key])).filter(x => !isNaN(x));
+    if(vals.length < 2) return "";
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const range = (max - min) || 1;
+    const W = 64, H = 18;
+    const pts = vals.map((val,i) => {
+      const x = (i/(vals.length-1))*W;
+      const y = H - ((val-min)/range)*H;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    const last = vals[vals.length-1];
+    const first = vals[0];
+    const delta = last - first;
+    const arrow = delta < -0.5 ? "↓" : delta > 0.5 ? "↑" : "→";
+    const dCls = delta < -0.5 ? "down" : delta > 0.5 ? "up" : "flat";
+    return `<span class="bunk-spark">
+      <span class="bunk-spark-lbl">${label}</span>
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>
+      <span class="bunk-spark-val">${last.toFixed(1)}<span class="bunk-delta ${dCls}">${arrow}</span></span>
+    </span>`;
+  }
+  const s1 = spark("lsfo", "#0a3f93", "LSFO");
+  const s2 = spark("lsmgo", "#9a4a00", "LSMGO");
+  if(!s1 && !s2) return "";
+  return `<div class="bunk-trend" title="Andamento bunker negli ultimi report">${s1}${s2}</div>`;
+}
+
 // Blocco "Ultimo noon report" + proposta da Applicare al Voyage + mappa posizione (sempre attiva)
 function noonReportBlockHTML(vesselId){
   const n = getLatestNoon(vesselId);
@@ -11654,6 +11735,8 @@ function noonReportBlockHTML(vesselId){
   if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
   const propLine = prop.length ? prop.join(" · ") : "";
   const bunk = n.bunkers ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
+  // A) Bunker trend: mini-sparkline LSFO/LSMGO dagli ultimi report
+  const bunkTrend = bunkerTrendHTML(vesselId);
   // mappa: OSM embed sempre attiva sull'ultima posizione nota
   let mapHTML = "";
   if(coords){
@@ -11683,6 +11766,7 @@ function noonReportBlockHTML(vesselId){
         ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
       </div>
       ${bunk?`<div class="noon-bunk">${bunk}</div>`:""}
+      ${bunkTrend}
       ${propLine ? `<div class="noon-prop">
         <span class="noon-prop-txt">${propLine}</span>
         <button class="noon-apply-btn" onclick="window.applyNoonToVoyage('${escapeAttr(vesselId)}')" title="Applica questi dati al Voyage">Applica al Voyage</button>
@@ -12427,6 +12511,44 @@ window.openCertImport = function(vesselId) {
 };
 
 // === Helper: stats per nave ===
+// v0.20 — Procurement insights per la card flotta e il blocco noon
+// B) PO con merce ricevuta/in ordine ma SENZA consegna pianificata (rischio "ordine perso")
+function getUnplannedPOs(vesselId){
+  const v = (state.data && state.data.vessels || []).find(x => x.vesselId === vesselId);
+  if(!v || !v.items) return [];
+  return v.items.filter(it => {
+    const hasPO = !!(it.poNumber && String(it.poNumber).trim());
+    if(!hasPO) return false;
+    // già consegnato (DN emessa/chiusa) → non serve pianificare
+    const delivered = !!(it.dnNumber && String(it.dnNumber).trim()) || /closed|delivered|consegn/i.test(it.dnStatus||"");
+    if(delivered) return false;
+    const plan = getDeliveryPlan(it.id);
+    const eff = getEffectiveDelivery(it, vesselId);
+    return !plan && !eff.date;  // nessun piano e nessuna data effettiva
+  });
+}
+// C) RFQ ferme da troppo (oltre soglia giorni)
+function getStaleRFQs(vesselId, thresholdDays){
+  thresholdDays = thresholdDays || 14;
+  const v = (state.data && state.data.vessels || []).find(x => x.vesselId === vesselId);
+  if(!v || !v.items) return [];
+  return v.items.filter(it => {
+    // RFQ aperta: ha rfqDays, non ancora diventata PO
+    const isOpenRFQ = it.rfqDays != null && !(it.poNumber && String(it.poNumber).trim());
+    return isOpenRFQ && it.rfqDays >= thresholdDays;
+  });
+}
+// D) Giorni all'arrivo dal voyage/noon (numero, può essere negativo se in ritardo)
+function getDaysToArrival(vesselId){
+  const voy = (typeof getVoyage==="function") ? getVoyage(vesselId) : null;
+  const etaISO = voy && voy.current && voy.current.eta;
+  if(!etaISO) return null;
+  const d = new Date(etaISO + (etaISO.length<=10?"T00:00:00":""));
+  if(isNaN(d)) return null;
+  const t = new Date(); t.setHours(0,0,0,0); const dd=new Date(d); dd.setHours(0,0,0,0);
+  return Math.round((dd - t)/86400000);
+}
+
 function getCertStatsForVessel(vesselId) {
   const items = (state.certificates && state.certificates[vesselId]) || [];
   const stats = { total: items.length, expired: 0, urgent: 0, week: 0, somedays: 0, ok: 0, permanent: 0 };
