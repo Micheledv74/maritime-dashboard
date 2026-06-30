@@ -30,29 +30,29 @@
       },
       {
         "date": "2026-06-30",
-        "type": null,
-        "lat": null,
-        "lon": null,
+        "type": "sea",
+        "lat": "20-51.5N",
+        "lon": "084-29.2W",
         "positionText": null,
         "from": null,
-        "to": null,
-        "nextPort": null,
-        "etaText": null,
+        "to": "HOUSTON",
+        "nextPort": "AGW WP, HOUSTON",
+        "etaText": "03.07.2026 0730 LT",
         "etbText": null,
         "etdText": null,
-        "etaISO": null,
+        "etaISO": "2026-07-03T07:30",
         "etbISO": null,
         "etdISO": null,
-        "speed": null,
-        "course": null,
-        "milesToGo": null,
+        "speed": 12.96,
+        "course": 315,
+        "milesToGo": 752,
         "bunkers": {
-          "lsfo": null,
-          "lsmgo": null,
+          "lsfo": 516.543,
+          "lsmgo": 146.4,
           "fw": null
         },
-        "status": null,
-        "remarks": "Email non contiene dati di navigazione o noon report. Solo comunicazione su Enclosed Space Register.",
+        "status": "in navigazione",
+        "remarks": null,
         "vesselId": "medtoscana"
       },
       {
@@ -107,8 +107,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In attesa di conferma per polishing UWI. Condizioni meteo avverse (onde alte e vento forte).",
-        "remarks": "Nessuna informazione ricevuta da agenti o sommozzatori riguardo al timing del polishing UWI. Inviata lettera di conferma in attesa di risposta.",
+        "status": "In attesa di conferma per operazione UWI (underwater inspection) in condizioni meteo avverse (onde e vento forti).",
+        "remarks": "Nessuna posizione o dato operativo fornito nel report. Solo comunicazione tra ufficio e comandante riguardo UWI.",
         "vesselId": "medliguria"
       },
       {
@@ -306,5 +306,5 @@
       }
     ]
   },
-  "syncedAt": "2026-06-30T17:05:07.561Z"
+  "syncedAt": "2026-06-30T18:05:07.460Z"
 }
