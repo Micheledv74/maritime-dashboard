@@ -6365,6 +6365,18 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .pr-btn.pr-dismiss{ width:32px; padding:6px 0; text-align:center; color:#1f8a4c; }
 .pr-more{ font-size:12px; color:#8a93a0; padding:6px 4px; }
 @media(max-width:720px){ .pr-row{ flex-wrap:wrap; } .pr-actions{ width:100%; justify-content:flex-end; } }
+
+/* v0.22 — Segmented control pagina To-do (Le mie to-do | Azioni flotta) */
+.todo-mode-switch{ display:inline-flex; gap:4px; background:#eef1f5; border:1px solid #e3e8ee; border-radius:10px; padding:4px; margin:4px 0 20px; }
+.tms-btn{ display:inline-flex; align-items:center; gap:7px; border:none; background:transparent; color:#5b6470; font-size:13.5px; font-weight:600; padding:8px 16px; border-radius:7px; cursor:pointer; }
+.tms-btn .icon{ width:15px; height:15px; }
+.tms-btn:hover{ color:#2a313c; }
+.tms-btn.active{ background:#fff; color:var(--accent); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.tms-badge{ font-family:var(--font-mono); font-size:11px; font-weight:700; background:#dde4ec; color:#5b6470; border-radius:10px; padding:1px 7px; }
+.tms-btn.active .tms-badge{ background:#eaf1fc; color:var(--accent); }
+/* intro vista azioni flotta */
+.fleet-actions-intro{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.fleet-actions-lead{ margin:0; font-size:13px; color:#7a8699; max-width:640px; line-height:1.5; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -7943,6 +7955,7 @@ function render() {
   if (state.view === "certificates") renderCertificatesContainer();
   else if (state.view === "overview") { renderOverview(); startWorldClockTimer(); }
   else if (state.view === "vessel") renderVesselDetail();
+  else if (state.view === "email") renderEmailPage();
   else if (state.view === "supplier") renderSupplierPulse();
   else if (state.view === "debug") renderDebug();
   else if (state.view === "todos") renderTodosPage();
@@ -8025,6 +8038,20 @@ function renderSwitcher() {
   todoOpt.value = "__todos"; todoOpt.textContent = `☐ To-do${openTodosCount > 0 ? " (" + openTodosCount + ")" : ""}`;
   if (state.view === "todos") todoOpt.selected = true;
   select.appendChild(todoOpt);
+
+  // v0.21 — Pill Email (in attesa di tua risposta) con badge conteggio
+  const emailCount = (typeof getPendingReplies === "function") ? getPendingReplies().length : 0;
+  const emailPill = makeEl(`<button class="pill ${state.view === "email" ? "active" : ""}" data-view="email" role="tab">
+    <svg class="icon icon-sm" style="vertical-align:-2px;margin-right:4px"><use href="#i-mail"/></svg>
+    <span>Email</span>
+    ${emailCount > 0 ? `<span class="tab-alert-dot" title="${emailCount} in attesa di risposta"></span>` : ""}
+    <span class="pill-key">${emailCount > 0 ? emailCount : ""}</span>
+  </button>`);
+  row.appendChild(emailPill);
+  const emailOpt = document.createElement("option");
+  emailOpt.value = "__email"; emailOpt.textContent = `📧 Email${emailCount > 0 ? " (" + emailCount + ")" : ""}`;
+  if (state.view === "email") emailOpt.selected = true;
+  select.appendChild(emailOpt);
 
   // v0.11 — Pill Certificati (badge con scaduti+urgenti)
   const certGlobalStats = getCertStatsGlobal();
@@ -8290,8 +8317,6 @@ function renderOverview() {
 
     ${crStripHTML}
 
-    ${renderPendingRepliesSection()}
-
     <section>
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Flotta</h2>
@@ -8321,17 +8346,6 @@ function renderOverview() {
         <div class="fusi-list" id="world-clock-strip">${renderWorldClock()}</div>
         <button class="fusi-edit" onclick="window.openWorldClockSettings()" title="Modifica i fusi orari mostrati"><svg class="icon icon-sm"><use href="#i-settings"/></svg></button>
       </div>
-    </section>
-
-    <section>
-      <div class="section-title">
-        <h2><svg class="icon icon-md"><use href="#i-checksquare"/></svg>Azioni oggi</h2>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <span class="section-meta" id="actions-today-meta"></span>
-          <button class="btn-mini-link" onclick="window.openCompletionsArchive()" title="Archivio completo delle azioni completate"><svg class="icon icon-sm"><use href="#i-eye"/></svg> Archivio</button>
-        </div>
-      </div>
-      ${actionsHTML}
     </section>
 
     <section>
@@ -8486,37 +8500,53 @@ function getPendingReplies(){
   return out;
 }
 // Render della sezione "In attesa di tua risposta" (solo se ci sono email)
-function renderPendingRepliesSection(){
+function renderPendingRepliesSection(){ return ""; }
+// Render della PAGINA dedicata "In attesa di tua risposta"
+function renderEmailPage(){
   const list = getPendingReplies();
-  if(!list.length) return "";
   const vName = id => (VESSELS.find(v=>v.vesselId===id)||{}).displayName || "";
-  const rows = list.slice(0,8).map(r=>{
-    const vtag = r.vesselId ? `<span class="pr-vtag" data-vid="${escapeAttr(r.vesselId)}">${escapeHTML(vName(r.vesselId))}</span>` : "";
-    const roleTag = r.role ? `<span class="pr-role pr-${r.kind}">${escapeHTML(r.role)}</span>` : "";
-    const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
-    const openBtn = r.webLink ? `<a class="pr-btn pr-open" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" title="Apri in Outlook">Apri ↗</a>`
-      : `<button class="pr-btn pr-open" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')" title="Rispondi">Rispondi</button>`;
-    return `<div class="pr-row" data-pr-id="${escapeAttr(r.id)}">
-      <div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>
-      <div class="pr-main">
-        <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
-        <div class="pr-subj">${escapeHTML(r.subject)}</div>
-      </div>
-      <div class="pr-actions">
-        ${openBtn}
-        <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
-        <button class="pr-btn pr-dismiss" onclick="window.dismissReplyUI('${escapeAttr(r.id)}')" title="Ho già risposto / ignora">✓</button>
-      </div>
+  const connected = state.pendingReplies != null;
+  let body;
+  if(!list.length){
+    body = `<div class="empty-state" style="padding:48px 24px;text-align:center;">
+      <div style="font-size:34px;margin-bottom:10px;">✅</div>
+      <p style="margin:0 0 6px;font-weight:600;color:#3a4250;">${connected ? "Nessuna email in attesa di risposta" : "Rilevamento email non ancora collegato"}</p>
+      <p style="margin:0;font-size:13px;color:#9aa3af;">${connected ? "Hai risposto a tutti — oppure le hai archiviate qui." : "Quando il flusso n8n scrive data-pending-replies.json, le email senza risposta compaiono qui."}</p>
     </div>`;
-  }).join("");
-  const more = list.length>8 ? `<div class="pr-more">+${list.length-8} altre in attesa</div>` : "";
-  return `<section class="pr-section" style="margin-bottom:24px;">
-    <div class="section-title">
-      <h2><svg class="icon icon-md"><use href="#i-mail"/></svg>In attesa di tua risposta</h2>
-      <span class="section-meta">${list.length} email senza risposta · ordinate per priorità</span>
-    </div>
-    <div class="pr-list">${rows}${more}</div>
-  </section>`;
+  } else {
+    const rows = list.map(r=>{
+      const vtag = r.vesselId ? `<span class="pr-vtag" data-vid="${escapeAttr(r.vesselId)}">${escapeHTML(vName(r.vesselId))}</span>` : "";
+      const roleTag = r.role ? `<span class="pr-role pr-${r.kind}">${escapeHTML(r.role)}</span>` : "";
+      const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
+      const openBtn = r.webLink ? `<a class="pr-btn pr-open" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" title="Apri in Outlook">Apri ↗</a>`
+        : `<button class="pr-btn pr-open" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')" title="Rispondi">Rispondi</button>`;
+      return `<div class="pr-row" data-pr-id="${escapeAttr(r.id)}">
+        <div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>
+        <div class="pr-main">
+          <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
+          <div class="pr-subj">${escapeHTML(r.subject)}</div>
+        </div>
+        <div class="pr-actions">
+          ${openBtn}
+          <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
+          <button class="pr-btn pr-dismiss" onclick="window.dismissReplyUI('${escapeAttr(r.id)}')" title="Ho già risposto / ignora">✓ Fatto</button>
+        </div>
+      </div>`;
+    }).join("");
+    body = `<div class="pr-list">${rows}</div>`;
+  }
+  document.getElementById("view-root").innerHTML = `
+    <header class="todo-page-header">
+      <div>
+        <h1>In attesa di tua risposta</h1>
+        <div class="todo-page-stats">
+          <span class="stat ${list.length>0?"warn":""}"><strong>${list.length}</strong> email senza risposta</span>
+          <span class="stat">ordinate per priorità · navi, agenzie, fornitori</span>
+        </div>
+      </div>
+    </header>
+    ${body}
+  `;
 }
 window.composeReply = function(to, subject){
   const subj = /^re:/i.test(subject) ? subject : "RE: " + subject;
@@ -8525,7 +8555,8 @@ window.composeReply = function(to, subject){
 window.dismissReplyUI = function(id){
   dismissReply(id);
   showToast("Email archiviata dalla lista");
-  if(state.view==="overview") render();
+  if(state.view==="email"||state.view==="overview") render();
+  renderSwitcher();
 };
 window.replyToTodo = function(id){
   const r = getPendingReplies().find(x=>x.id===id);
@@ -8536,7 +8567,8 @@ window.replyToTodo = function(id){
     else if(typeof createTodo==="function"){ createTodo(txt, r.vesselId||null); }
     dismissReply(id);
     showToast("✓ To-do creata");
-    if(state.view==="overview") render();
+    if(state.view==="email"||state.view==="overview") render();
+    renderSwitcher();
   }catch(e){ showToast("To-do non creata"); }
 };
 
@@ -10569,6 +10601,13 @@ function renderTodosPage() {
   const lastBackup = localStorage.getItem(LS_KEYS.lastBackupDate);
   const lastExcel = localStorage.getItem(LS_KEYS.lastExcelDate);
 
+  // v0.22 — Modalità pagina: "todos" (le mie to-do) | "actions" (azioni flotta cross-nave)
+  const pageMode = state._todoPageMode === "actions" ? "actions" : "todos";
+  const fleetActionsCount = (() => {
+    try { return generateAllActions().length + (state.todos||[]).filter(t=>!t.done).length; }
+    catch(e){ return 0; }
+  })();
+
   document.getElementById("view-root").innerHTML = `
     <header class="todo-page-header">
       <div>
@@ -10588,6 +10627,18 @@ function renderTodosPage() {
       </div>
     </header>
 
+    <div class="todo-mode-switch" role="tablist">
+      <button class="tms-btn ${pageMode==='todos'?'active':''}" role="tab" onclick="window.setTodoPageMode('todos')">
+        <svg class="icon icon-sm"><use href="#i-checksquare"/></svg> Le mie to-do
+        ${totaleAperte>0?`<span class="tms-badge">${totaleAperte}</span>`:""}
+      </button>
+      <button class="tms-btn ${pageMode==='actions'?'active':''}" role="tab" onclick="window.setTodoPageMode('actions')">
+        <svg class="icon icon-sm"><use href="#i-anchor"/></svg> Azioni flotta
+        ${fleetActionsCount>0?`<span class="tms-badge">${fleetActionsCount}</span>`:""}
+      </button>
+    </div>
+
+    <div id="todo-mode-todos" style="display:${pageMode==='todos'?'':'none'};">
     <div class="backup-status">
       Backup: <span class="backup-ok">JSON ${lastBackup ? formatRelative(new Date(lastBackup)) : "non ancora"}</span>
       · Excel ${lastExcel ? formatRelative(new Date(lastExcel)) : "non ancora"}
@@ -10695,6 +10746,18 @@ function renderTodosPage() {
       ${completate.length === 0 ? `<div class="empty-state">Nessuna to-do completata corrisponde ai filtri.</div>` :
         `<div class="todo-list">${completate.slice(0, 30).map(todoRowHTML).join("")}</div>`}
     </div>
+    </div><!-- /todo-mode-todos -->
+
+    <div id="todo-mode-actions" style="display:${pageMode==='actions'?'':'none'};">
+      <div class="fleet-actions-intro">
+        <p class="fleet-actions-lead">Tutte le azioni operative aperte sulla flotta, raggruppate per urgenza. Filtra per nave o segna come fatto direttamente da qui.</p>
+        <button class="btn-mini-link" onclick="window.openCompletionsArchive()" title="Archivio azioni completate"><svg class="icon icon-sm"><use href="#i-eye"/></svg> Archivio fatte</button>
+      </div>
+      <span class="section-meta" id="actions-today-meta" style="display:none;"></span>
+      <div class="todo-actions-system">
+        ${renderActionsTodayV2()}
+      </div>
+    </div><!-- /todo-mode-actions -->
   `;
 
   // Handlers
@@ -10790,6 +10853,7 @@ function renderTodosPage() {
   });
 
   attachTodoHandlers(document.getElementById("view-root"));
+  attachActionHandlers(document.getElementById("view-root"));
 }
 
 // ----- DEBUG VIEW --------------------------------------------------------
@@ -14303,6 +14367,18 @@ function goTodos() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function goEmail() {
+  state.view = "email";
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+window.setTodoPageMode = function(mode){
+  state._todoPageMode = (mode === "actions") ? "actions" : "todos";
+  renderTodosPage();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
 // v0.18 — Dettaglio eventi di una cella (nave + giorno), o agenda generale del giorno
 function openCellDetail(vesselId, dateISO) {
   const all = collectWeekEvents(dateISO, dateISO, { includeTodos: true })[dateISO] || [];
@@ -15516,6 +15592,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!pill) return;
     if (pill.dataset.view === "overview") goOverview();
     else if (pill.dataset.view === "todos") goTodos();
+    else if (pill.dataset.view === "email") goEmail();
     else if (pill.dataset.view === "certificates") window.goCertificates();
     else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
@@ -15523,6 +15600,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const v = e.target.value;
     if (v === "__overview" || v === "") goOverview();
     else if (v === "__todos") goTodos();
+    else if (v === "__email") goEmail();
     else if (v === "__certificates") window.goCertificates();
     else goVessel(v);
   });
