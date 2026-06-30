@@ -140,18 +140,18 @@
       },
       {
         "date": "2026-06-30",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Vitoria, Brazil",
         "from": null,
         "to": null,
         "nextPort": null,
         "etaText": null,
-        "etbText": null,
+        "etbText": "Expected to berth after 01 July 2026 (subject to previous vessel's operation completion)",
         "etdText": null,
         "etaISO": null,
-        "etbISO": null,
+        "etbISO": "2026-07-01T00:00",
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -161,8 +161,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": null,
-        "remarks": "VSAT KU OFFLINE - comunicazioni tecniche in corso per risoluzione problema. Nave in attesa di coordinamento per accesso remoto tramite TeamViewer. Nessun dato di navigazione o posizione fornito nel testo.",
+        "status": "Next in line for berthing, subject to previous vessel's operation completion expected on 01 July 2026",
+        "remarks": "Vessel awaiting berthing in Vitoria, Brazil. RightShip inspection scheduled with surveyor Petros Spanogiannis.",
         "vesselId": "medliguria"
       }
     ],
@@ -223,11 +223,11 @@
       },
       {
         "date": "2026-06-30",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
-        "from": "Dongguan",
+        "positionText": "Dongguan",
+        "from": null,
         "to": "Hong Kong",
         "nextPort": null,
         "etaText": "TBA",
@@ -244,8 +244,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione verso Hong Kong per rifornimento acqua dolce dopo cancellazione charter e livello critico FW",
-        "remarks": "Vessel in critical FW level. Deviation to Hong Kong planned after cancellation notice sent at midnight 30/06/2026. No new employment confirmed yet. Fresh water supply in Hong Kong to be arranged by owners/agents.",
+        "status": "In porto a Dongguan. Critico livello acqua dolce. In attesa di conferma ETA Hong Kong dopo cancellazione charter.",
+        "remarks": "Nave in attesa di cancellazione charter (notifica inviata a mezzanotte). Acqua dolce critica. Possibile partenza per Hong Kong dopo cancellazione. Nessun impiego confermato per ora.",
         "vesselId": "peppino"
       }
     ],
@@ -306,5 +306,5 @@
       }
     ]
   },
-  "syncedAt": "2026-06-30T18:05:07.460Z"
+  "syncedAt": "2026-06-30T19:05:08.095Z"
 }
