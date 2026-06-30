@@ -6377,6 +6377,62 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 /* intro vista azioni flotta */
 .fleet-actions-intro{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
 .fleet-actions-lead{ margin:0; font-size:13px; color:#7a8699; max-width:640px; line-height:1.5; }
+
+/* === HOME v0.23 — Card nave: numero-eroe RFQ ferme === */
+.vessel-hero{ display:flex; align-items:center; gap:14px; padding:14px 16px; margin:2px 0 12px; border-radius:11px; cursor:pointer; border:1px solid transparent; transition:box-shadow .12s, transform .08s; }
+.vessel-hero:hover{ box-shadow:var(--shadow-card); }
+.vessel-hero:active{ transform:scale(.995); }
+.vessel-hero .vh-num{ font-family:var(--font-mono); font-size:38px; font-weight:700; line-height:1; }
+.vessel-hero .vh-body{ flex:1; min-width:0; }
+.vessel-hero .vh-label{ font-size:14px; font-weight:700; letter-spacing:-.01em; }
+.vessel-hero .vh-sub{ font-size:12px; margin-top:2px; opacity:.8; }
+.vessel-hero .vh-arrow{ flex:none; opacity:.45; }
+.vessel-hero .vh-arrow .icon{ width:18px; height:18px; }
+.vessel-hero.tier-red{ background:#fce9ea; border-color:#f3c2c6; color:#8f1219; }
+.vessel-hero.tier-amber{ background:#fdf2dd; border-color:#f0dba8; color:#8a5a12; }
+.vessel-hero.tier-calm{ background:#eef6f0; border-color:#d3e7d9; color:#3a6b46; cursor:default; }
+.vessel-hero.tier-calm:hover{ box-shadow:none; }
+/* KPI strip muta (secondaria, sotto l'eroe) */
+.kpi-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#eef1f4; border:1px solid #eef1f4; border-radius:9px; overflow:hidden; margin-bottom:12px; }
+.kpis{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 4px; background:#fff; border:none; cursor:pointer; }
+.kpis:hover{ background:#f6f8fb; }
+.kpis-v{ font-family:var(--font-mono); font-size:16px; font-weight:600; color:#5b6470; }
+.kpis-l{ font-size:9.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:#aab2bd; }
+.kpis.accent .kpis-v{ color:var(--accent); }
+.kpis.warnmute .kpis-v{ color:#9a6a1a; }
+/* mini-flag PO da pianificare */
+.vessel-mini-flag{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:#9a4a00; background:#fdf0d8; border:1px solid #f0d9ad; border-radius:7px; padding:5px 10px; margin-bottom:10px; cursor:pointer; }
+.vessel-mini-flag:hover{ background:#fbe6c0; }
+.vessel-mini-flag .icon{ width:12px; height:12px; }
+/* anticipazione viaggio nella card */
+.vessel-voypreview{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 0 2px; border-top:1px dashed #e6eaef; margin-top:2px; }
+.vp-route{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#3a4250; }
+.vp-port{ white-space:nowrap; }
+.vp-dest{ color:var(--accent); }
+.vp-arr{ color:#aab2bd; font-weight:700; }
+.vp-chips{ display:inline-flex; gap:6px; flex-wrap:wrap; }
+.vp-chip{ display:inline-flex; align-items:center; gap:4px; font-size:11px; font-family:var(--font-mono); color:#5b6470; background:#f1f4f7; border-radius:5px; padding:2px 7px; }
+.vp-chip-l{ font-size:9px; font-weight:700; letter-spacing:.05em; color:#9aa3af; }
+
+/* === HOME v0.23 — "Cosa serve ora" 4 tessere uguali === */
+.cn-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+@media(max-width:900px){ .cn-grid{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:520px){ .cn-grid{ grid-template-columns:1fr; } }
+.cn-tile{ display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left; padding:18px; border-radius:14px; border:1px solid var(--border); background:#fff; cursor:pointer; transition:box-shadow .12s, transform .08s, border-color .12s; }
+.cn-tile:hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
+.cn-tile:active{ transform:scale(.99); }
+.cn-num{ font-family:var(--font-mono); font-size:40px; font-weight:700; line-height:1; letter-spacing:-.02em; }
+.cn-lbl{ font-size:13.5px; font-weight:700; color:#2a313c; margin-top:6px; }
+.cn-sub{ font-size:11.5px; color:#9aa3af; }
+.cn-go{ font-size:11.5px; font-weight:600; color:var(--accent); margin-top:10px; opacity:0; transition:opacity .12s; }
+.cn-tile:hover .cn-go{ opacity:1; }
+.cn-tile.tier-red .cn-num{ color:#c8222a; }
+.cn-tile.tier-amber .cn-num{ color:#b8740a; }
+.cn-tile.tier-blue .cn-num{ color:#0a3f93; }
+.cn-tile.tier-slate .cn-num{ color:#475569; }
+.cn-tile.tier-calm{ background:#fafbfc; }
+.cn-tile.tier-calm .cn-num{ color:#c2c9d2; }
+.cn-tile.tier-calm .cn-lbl{ color:#8a93a0; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -8189,13 +8245,50 @@ function renderOverview() {
     const certBadgesHTML = certBadges.length > 0 ?
       `<span class="vessel-cert-badges" data-vessel-certs="${cfg.vesselId}" title="Click per aprire i certificati di questa nave">${certBadges.join("")}</span>` : "";
 
-    // v0.20 — Badge insight procurement (B: PO senza consegna, C: RFQ ferme)
-    const procBadges = [];
+    // v0.23 — NUMERO-EROE: RFQ ferme con doppia soglia (8-14gg ambra, 15+ rosso)
+    const staleAll = getStaleRFQs(cfg.vesselId, 8);      // tutte ≥8gg
+    const stale15 = getStaleRFQs(cfg.vesselId, 15);       // critiche ≥15gg
+    const stale8 = staleAll.length - stale15.length;      // ambra 8-14gg
+    const heroTier = stale15.length > 0 ? "red" : staleAll.length > 0 ? "amber" : "calm";
+    const heroBreakdown = (stale15.length > 0 && stale8 > 0)
+      ? `${stale15.length} oltre 15g · ${stale8} oltre 8g`
+      : stale15.length > 0 ? `ferme da oltre 15 giorni`
+      : staleAll.length > 0 ? `ferme da oltre 8 giorni`
+      : `nessuna RFQ ferma`;
+    const heroHTML = `<div class="vessel-hero tier-${heroTier}" data-proc-jump="rfq" data-proc-vid="${cfg.vesselId}" title="RFQ ferme — click per aprire Procurement filtrato su RFQ">
+        <div class="vh-left">
+          <div class="vh-num">${staleAll.length}</div>
+        </div>
+        <div class="vh-body">
+          <div class="vh-label">${staleAll.length === 0 ? "RFQ sotto controllo" : "RFQ da sollecitare"}</div>
+          <div class="vh-sub">${heroBreakdown}</div>
+        </div>
+        <div class="vh-arrow">${staleAll.length > 0 ? '<svg class="icon icon-sm"><use href="#i-arrow-right"/></svg>' : '<svg class="icon icon-sm"><use href="#i-check"/></svg>'}</div>
+      </div>`;
+
+    // Badge secondario: PO senza consegna pianificata (resta utile, non duplica l'eroe)
     const unplanned = getUnplannedPOs(cfg.vesselId);
-    if (unplanned.length > 0) procBadges.push(`<span class="proc-badge unplanned" data-proc-jump="po" data-proc-vid="${cfg.vesselId}" title="${unplanned.length} PO senza consegna pianificata — click per pianificare"><svg class="icon icon-sm" style="vertical-align:-2px"><use href="#i-truck"/></svg> ${unplanned.length} da pianificare</span>`);
-    const stale = getStaleRFQs(cfg.vesselId, 14);
-    if (stale.length > 0) procBadges.push(`<span class="proc-badge stale" data-proc-jump="rfq" data-proc-vid="${cfg.vesselId}" title="${stale.length} RFQ ferme da oltre 14 giorni"><svg class="icon icon-sm" style="vertical-align:-2px"><use href="#i-clock"/></svg> ${stale.length} RFQ ferme</span>`);
-    const procBadgesHTML = procBadges.length > 0 ? `<div class="vessel-proc-badges">${procBadges.join("")}</div>` : "";
+    const unplannedHTML = unplanned.length > 0
+      ? `<button class="vessel-mini-flag" data-proc-jump="po" data-proc-vid="${cfg.vesselId}" title="${unplanned.length} PO senza consegna pianificata"><svg class="icon icon-sm"><use href="#i-truck"/></svg> ${unplanned.length} da pianificare</button>`
+      : "";
+
+    // v0.23 — Anticipazione viaggio: rotta + ETA/ETB/ETD dal voyage
+    const voyPrev = (() => {
+      const voy = (typeof getVoyage === "function") ? getVoyage(cfg.vesselId) : null;
+      const cur = voy && voy.current ? voy.current : null;
+      if (!cur || (!cur.from && !cur.to && !cur.eta && !cur.etb)) return "";
+      const route = (cur.from || cur.to)
+        ? `<span class="vp-route"><span class="vp-port">${escapeHTML(cur.from || "—")}</span><span class="vp-arr">→</span><span class="vp-port vp-dest">${escapeHTML(cur.to || "—")}</span></span>`
+        : "";
+      const dchip = (lbl, val) => {
+        if (!val) return "";
+        const d = String(val).length <= 10 ? val : String(val).slice(0,10);
+        return `<span class="vp-chip"><span class="vp-chip-l">${lbl}</span>${escapeHTML(formatDate(d))}</span>`;
+      };
+      const chips = [dchip("ETA", cur.eta), dchip("ETB", cur.etb), dchip("ETD", cur.etd)].filter(Boolean).join("");
+      if (!route && !chips) return "";
+      return `<div class="vessel-voypreview">${route}${chips ? `<span class="vp-chips">${chips}</span>` : ""}</div>`;
+    })();
 
     cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}" data-status="${(() => {
       // v0.15: drydock se voyage status è drydock, altrimenti vesselStatus
@@ -8227,14 +8320,15 @@ function renderOverview() {
           })()}</span>
         </div>
       </div>
-      <div class="kpi-row">
-        <div class="kpi clickable ${(v.rfqOpen || 0) === 0 ? "" : ""}" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"${(v.rfqOpen || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">RFQ</div><div class="kpi-value">${v.rfqOpen || 0}</div></div>
-        <div class="kpi clickable ${(v.rfqOverdue7 || 0) > 0 ? "amber" : ""}" data-kpi-filter="rfqOverdue7" data-kpi-vid="${cfg.vesselId}"${(v.rfqOverdue7 || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">Overdue</div><div class="kpi-value">${v.rfqOverdue7 || 0}</div></div>
-        <div class="kpi clickable ${(v.readyForPO || 0) > 0 ? "blue" : ""}" data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"${(v.readyForPO || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">Ready PO</div><div class="kpi-value">${v.readyForPO || 0}</div></div>
-        <div class="kpi clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"${(v.orders || 0) === 0 ? ' data-zero="1"' : ''}><div class="kpi-label">Orders</div><div class="kpi-value">${v.orders || 0}</div></div>
-        <div class="kpi clickable ${(v.dnPending || 0) > 10 ? "alert" : (v.dnPending || 0) > 0 ? "amber" : ""}" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"${(v.dnPending || 0) === 0 ? ' data-zero-ok="1"' : ''}><div class="kpi-label">DN pend.</div><div class="kpi-value">${v.dnPending || 0}</div></div>
+      ${heroHTML}
+      <div class="kpi-strip">
+        <button class="kpis clickable" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.rfqOpen || 0}</span><span class="kpis-l">RFQ</span></button>
+        <button class="kpis clickable ${(v.readyForPO || 0) > 0 ? "accent" : ""}" data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.readyForPO || 0}</span><span class="kpis-l">Ready PO</span></button>
+        <button class="kpis clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.orders || 0}</span><span class="kpis-l">Orders</span></button>
+        <button class="kpis clickable ${(v.dnPending || 0) > 0 ? "warnmute" : ""}" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.dnPending || 0}</span><span class="kpis-l">DN pend.</span></button>
       </div>
-      ${procBadgesHTML}
+      ${unplannedHTML}
+      ${voyPrev}
       ${(() => {
         // v0.12 — Se c'è un voyage manuale, lo mostro al posto del prossimo porto da AIS
         const voySumm = getVoyageSummaryForCard(cfg.vesselId);
@@ -8292,21 +8386,31 @@ function renderOverview() {
         <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Cosa serve ora</h2>
         <span class="section-meta">${VESSELS.length} navi · ${new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})}</span>
       </div>
-      <div class="pl-hero">
-        <div class="pl-hcard pl-hcard-cert" onclick="window.goCertificates&&window.goCertificates()">
-          <div class="pl-hcard-lbl">Certificati scaduti</div>
-          <div class="pl-hcard-row"><span class="pl-hnum">${crStats.certExpired}</span><span class="pl-hsub">richiedono<br>rinnovo</span></div>
-          <div class="pl-hcta">Apri certificati →</div>
-        </div>
-        <div class="pl-hcard pl-hcard-dn">
-          <div class="pl-hcard-lbl">Consegne (DN) in arrivo</div>
-          <div class="pl-hcard-row"><span class="pl-hnum">${crStats.dnPending}</span><span class="pl-hsub">da<br>controllare</span></div>
-        </div>
-        <div class="pl-mini">
-          <div class="pl-ministat"><div><div class="pl-mlbl">RFQ da sollecitare</div><div class="pl-msub">in attesa risposta</div></div><span class="pl-mn ${crStats.rfqOverdue>0?'amber':'green'}">${crStats.rfqOverdue}</span></div>
-          <div class="pl-ministat"><div><div class="pl-mlbl">Pronte a PO</div><div class="pl-msub">offerte da chiudere</div></div><span class="pl-mn blue">${crStats.readyPO}</span></div>
-          <div class="pl-ministat"><div><div class="pl-mlbl">Fatte oggi</div><div class="pl-msub">${crStats.doneToday>0?'ottimo lavoro':'iniziamo'}</div></div><span class="pl-mn green">${crStats.doneToday}</span></div>
-        </div>
+      <div class="cn-grid">
+        <button class="cn-tile ${crStats.certExpired>0?'tier-red':'tier-calm'}" onclick="window.goCertificates&&window.goCertificates()">
+          <div class="cn-num">${crStats.certExpired}</div>
+          <div class="cn-lbl">Certificati scaduti</div>
+          <div class="cn-sub">${crStats.certExpired>0?'richiedono rinnovo':'tutti validi'}</div>
+          <div class="cn-go">Apri certificati →</div>
+        </button>
+        <button class="cn-tile ${crStats.rfqOverdue>0?'tier-amber':'tier-calm'}" onclick="window.goFleetActions&&window.goFleetActions()">
+          <div class="cn-num">${crStats.rfqOverdue}</div>
+          <div class="cn-lbl">RFQ da sollecitare</div>
+          <div class="cn-sub">${crStats.rfqOverdue>0?'in attesa risposta':'nessun sollecito'}</div>
+          <div class="cn-go">Azioni flotta →</div>
+        </button>
+        <button class="cn-tile ${crStats.readyPO>0?'tier-blue':'tier-calm'}" onclick="window.goFleetActions&&window.goFleetActions()">
+          <div class="cn-num">${crStats.readyPO}</div>
+          <div class="cn-lbl">Pronte a PO</div>
+          <div class="cn-sub">${crStats.readyPO>0?'offerte da chiudere':'niente in coda'}</div>
+          <div class="cn-go">Azioni flotta →</div>
+        </button>
+        <button class="cn-tile ${crStats.dnPending>0?'tier-slate':'tier-calm'}" onclick="window.goFleetActions&&window.goFleetActions()">
+          <div class="cn-num">${crStats.dnPending}</div>
+          <div class="cn-lbl">Consegne (DN) da controllare</div>
+          <div class="cn-sub">${crStats.dnPending>0?'DN aperte sulla flotta':'nessuna pendente'}</div>
+          <div class="cn-go">Azioni flotta →</div>
+        </button>
       </div>
     </section>
   `;
@@ -8340,20 +8444,20 @@ function renderOverview() {
       <div class="vessel-grid">${cardsHTML}</div>
     </section>
 
-    <section class="fusi-section">
-      <div class="fusi-bar">
-        <span class="fusi-bar-label">Fusi orari</span>
-        <div class="fusi-list" id="world-clock-strip">${renderWorldClock()}</div>
-        <button class="fusi-edit" onclick="window.openWorldClockSettings()" title="Modifica i fusi orari mostrati"><svg class="icon icon-sm"><use href="#i-settings"/></svg></button>
-      </div>
-    </section>
-
     <section>
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-truck"/></svg>Carico settimana</h2>
         <span class="section-meta">consegne, certificati, to-do e appuntamenti</span>
       </div>
       <div class="heatmap">${renderHeatmap()}</div>
+    </section>
+
+    <section class="fusi-section">
+      <div class="fusi-bar">
+        <span class="fusi-bar-label">Fusi orari</span>
+        <div class="fusi-list" id="world-clock-strip">${renderWorldClock()}</div>
+        <button class="fusi-edit" onclick="window.openWorldClockSettings()" title="Modifica i fusi orari mostrati"><svg class="icon icon-sm"><use href="#i-settings"/></svg></button>
+      </div>
     </section>
   `;
 
@@ -8389,13 +8493,13 @@ function renderOverview() {
         return;
       }
       // se il click è su un KPI cliccabile, non navigare
-      if (e.target.closest(".kpi.clickable")) return;
+      if (e.target.closest(".kpi.clickable") || e.target.closest(".kpis.clickable")) return;
       goVessel(card.dataset.vid);
     });
   });
 
   // KPI cliccabili nelle vessel card → vai alla nave con filtro
-  root.querySelectorAll(".kpi[data-kpi-filter]").forEach(kpi => {
+  root.querySelectorAll(".kpi[data-kpi-filter], .kpis[data-kpi-filter]").forEach(kpi => {
     kpi.addEventListener("click", (e) => {
       e.stopPropagation();
       goVesselWithFilter(kpi.dataset.kpiVid, kpi.dataset.kpiFilter);
@@ -14378,6 +14482,15 @@ window.setTodoPageMode = function(mode){
   renderTodosPage();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
+
+// Vai alla pagina To-do, modalità "Azioni flotta" (vista cross-nave)
+function goFleetActions(){
+  state.view = "todos";
+  state._todoPageMode = "actions";
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+window.goFleetActions = goFleetActions;
 
 // v0.18 — Dettaglio eventi di una cella (nave + giorno), o agenda generale del giorno
 function openCellDetail(vesselId, dateISO) {
