@@ -51,8 +51,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": null,
-        "remarks": "Email non contiene dati di NOON REPORT. Contiene solo comunicazioni relative a credenziali internet e scratch cards per la nave M/V MED TOSCANA.",
+        "status": "Issue with crew internet system credentials. No valid logins available.",
+        "remarks": "Crew unable to access internet due to invalid credentials. Support unavailable until 2026-07-01 due to holiday. Daily 4GB allowance per user, 800GB monthly vessel quota, no Fair Use Policy. Account suspended at 4GB limit until midnight LT.",
         "vesselId": "medtoscana"
       }
     ],
@@ -81,7 +81,7 @@
           "fw": 374
         },
         "status": "In Port, anchored at Vitoria Anchorage Area No.1 awaiting berthing",
-        "remarks": "Vessel Condition: Ballast. Main Engine Hrs: 0.00. Port Consumption: Working. Scrubber Fitted: No.",
+        "remarks": "Vessel Condition: Ballast. Main Engine Hrs: 0.00. Scrubber Fitted: No. Fresh Water ROB: 374.000 MT. Air-conditioning compressor used for 24.00 hrs.",
         "vesselId": "medliguria"
       }
     ],
@@ -114,6 +114,33 @@
         "vesselId": "peppino"
       },
       {
+        "date": "2026-06-29",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": "Singapore",
+        "etaText": "30 June 2026",
+        "etbText": null,
+        "etdText": "29 June 2026",
+        "etaISO": "2026-06-30T00:00",
+        "etbISO": null,
+        "etdISO": "2026-06-29T00:00",
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "Order dispatched via DHL",
+        "remarks": "ETD 29/06/2026, ETA 30/06/2026. Order ready in Korea. Next port: Singapore (ETA 25/06/2026 originally delayed to 07/07/2026).",
+        "vesselId": "peppino"
+      },
+      {
         "date": "2026-06-30",
         "type": "anchor",
         "lat": "21-58.4N",
@@ -142,5 +169,5 @@
       }
     ]
   },
-  "syncedAt": "2026-06-30T07:05:08.711Z"
+  "syncedAt": "2026-06-30T08:05:09.370Z"
 }
