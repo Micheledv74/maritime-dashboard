@@ -6335,6 +6335,36 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .bunk-delta.down{ color:#1f8a4c; }
 .bunk-delta.up{ color:#c8222a; }
 .bunk-delta.flat{ color:#9aa3af; }
+
+/* v0.21 — In attesa di tua risposta */
+.pr-list{ display:flex; flex-direction:column; gap:8px; }
+.pr-row{ display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--border); border-left:4px solid #cbd2da; border-radius:10px; padding:11px 15px; box-shadow:var(--shadow-card); }
+.pr-row:has(.pr-wait.late){ border-left-color:#c8222a; }
+.pr-row:has(.pr-wait.warn){ border-left-color:#b8740a; }
+.pr-wait{ flex:none; width:42px; text-align:center; font-family:var(--font-mono); font-size:19px; font-weight:700; color:#5b6470; line-height:1; }
+.pr-wait .pr-wait-u{ font-size:11px; font-weight:600; color:#aab2bd; margin-left:1px; }
+.pr-wait.warn{ color:#b8740a; }
+.pr-wait.late{ color:#c8222a; }
+.pr-main{ flex:1; min-width:0; }
+.pr-from{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; font-size:13px; font-weight:700; color:#2a313c; }
+.pr-subj{ font-size:12.5px; color:#5b6470; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.pr-role{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:5px; text-transform:uppercase; letter-spacing:.03em; }
+.pr-role.pr-nave{ background:#dbe8ff; color:#0a3f93; }
+.pr-role.pr-agenzia{ background:#e7f0e9; color:#1f5a2c; }
+.pr-role.pr-fornitore{ background:#fdf0d8; color:#9a4a00; }
+.pr-vtag{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; background:#f1f4f7; color:#5b6470; }
+.pr-vtag[data-vid="peppino"]{ background:var(--c-peppino-soft); color:var(--c-peppino); }
+.pr-vtag[data-vid="medliguria"]{ background:var(--c-liguria-soft); color:var(--c-liguria); }
+.pr-vtag[data-vid="medtoscana"]{ background:var(--c-toscana-soft); color:var(--c-toscana); }
+.pr-vtag[data-vid="norrbotten"]{ background:var(--c-norrbotten-soft); color:var(--c-norrbotten); }
+.pr-actions{ flex:none; display:flex; align-items:center; gap:6px; }
+.pr-btn{ font-size:12px; font-weight:600; padding:6px 11px; border-radius:7px; border:1px solid var(--border); background:#fff; color:#475569; cursor:pointer; text-decoration:none; white-space:nowrap; }
+.pr-btn:hover{ background:#f7f9fb; }
+.pr-btn.pr-open{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.pr-btn.pr-open:hover{ filter:brightness(.95); }
+.pr-btn.pr-dismiss{ width:32px; padding:6px 0; text-align:center; color:#1f8a4c; }
+.pr-more{ font-size:12px; color:#8a93a0; padding:6px 4px; }
+@media(max-width:720px){ .pr-row{ flex-wrap:wrap; } .pr-actions{ width:100%; justify-content:flex-end; } }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -6991,7 +7021,8 @@ const DATA_URLS = {
   tracking: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-ais.json",
   outlookTasks: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-tasks.json",  // v0.14
   outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json",  // v0.18 — appuntamenti calendario (opzionale, via n8n)
-  noonReports: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-noon-reports.json"  // v0.19 — noon report estratti via AI (opzionale, via n8n)
+  noonReports: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-noon-reports.json",  // v0.19 — noon report estratti via AI (opzionale, via n8n)
+  pendingReplies: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-pending-replies.json"  // v0.21 — email in attesa di tua risposta (opzionale, via n8n)
 };
 
 // === Configurazione Google Drive Sync ===
@@ -7214,18 +7245,20 @@ async function loadData() {
   }
 
   try {
-    const [proc, trk, outlookData, calData, noonData] = await Promise.all([
+    const [proc, trk, outlookData, calData, noonData, pendingData] = await Promise.all([
       fetchJSON(DATA_URLS.procurement),
       fetchJSON(DATA_URLS.tracking).catch(() => null),  // tracking opzionale
       fetchJSON(DATA_URLS.outlookTasks).catch(() => null),  // v0.14: outlook tasks opzionale
       fetchJSON(DATA_URLS.outlookCalendar).catch(() => null),  // v0.18: outlook calendar opzionale
-      fetchJSON(DATA_URLS.noonReports).catch(() => null)  // v0.19: noon report opzionale
+      fetchJSON(DATA_URLS.noonReports).catch(() => null),  // v0.19: noon report opzionale
+      fetchJSON(DATA_URLS.pendingReplies).catch(() => null)  // v0.21: email in attesa di risposta opzionale
     ]);
     state.data = proc;
     state.tracking = trk;
     state.outlookTasks = outlookData;
     state.outlookCalendar = calData;  // {events:[{title,start,end,location,vesselId?}]} o null
     state.noonReports = (noonData && noonData.vessels) ? noonData.vessels : (noonData || null);  // {vesselId:[report,...]}
+    state.pendingReplies = (pendingData && Array.isArray(pendingData.items)) ? pendingData.items : (Array.isArray(pendingData) ? pendingData : null);
     writeCache({ procurement: proc, tracking: trk });
     state.loading = false;
     mergeAndPrepare();
@@ -8257,6 +8290,8 @@ function renderOverview() {
 
     ${crStripHTML}
 
+    ${renderPendingRepliesSection()}
+
     <section>
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Flotta</h2>
@@ -8386,7 +8421,126 @@ function goVesselWithFilter(vesselId, filter) {
   }, 100);
 }
 
-// v0.18 — Raccoglie tutti gli eventi della settimana per giorno (consegne, certificati, to-do, Outlook).
+// === v0.21 — EMAIL IN ATTESA DI TUA RISPOSTA (rilevate via n8n, arricchite coi contatti noti) ===
+// Costruisce indice contatti noti: comandanti/agenzie/fornitori → {vesselId, role}
+function buildKnownContactsIndex(){
+  const idx = {};
+  for(const cfg of VESSELS){
+    [["masterEmail","Master"],["chiefEngEmail","Chief Eng."],["inspectorEmail","Inspector"]].forEach(([k,role])=>{
+      const e = (cfg[k]||"").toLowerCase().trim();
+      if(e && !/example\.com|_{2,}/.test(e)) idx[e] = { vesselId: cfg.vesselId, role, kind:"nave" };
+    });
+  }
+  // agenzie (rubrica): provo a estrarre email dai contatti salvati
+  try{
+    for(const a of (typeof loadAgencies==="function"?loadAgencies():[])){
+      const m = (a.contacts||"").match(/[\w.+-]+@[\w-]+\.[\w.-]+/g) || [];
+      for(const e of m){ const le=e.toLowerCase(); if(!idx[le]) idx[le] = { vesselId:null, role:"Agenzia "+(a.name||""), kind:"agenzia" }; }
+    }
+  }catch(_){}
+  // fornitori (dai contatti item, se presente email)
+  try{
+    for(const v of (state.data && state.data.vessels || [])){
+      for(const it of (v.items||[])){
+        const e = (it.supplierEmail||"").toLowerCase().trim();
+        if(e && !idx[e]) idx[e] = { vesselId:v.vesselId, role:"Fornitore "+(it.supplier||""), kind:"fornitore" };
+      }
+    }
+  }catch(_){}
+  return idx;
+}
+function loadDismissedReplies(){ try{ return JSON.parse(localStorage.getItem("mpd.repliesDismissed")||"[]"); }catch{ return []; } }
+function dismissReply(id){
+  const arr = loadDismissedReplies(); if(!arr.includes(id)){ arr.push(id); }
+  try{ localStorage.setItem("mpd.repliesDismissed", JSON.stringify(arr.slice(-500))); }catch{}
+}
+// Restituisce le email in attesa, arricchite e ordinate (priorità: contatto noto + giorni d'attesa)
+function getPendingReplies(){
+  const raw = state.pendingReplies;
+  if(!raw || !raw.length) return [];
+  const idx = buildKnownContactsIndex();
+  const dismissed = new Set(loadDismissedReplies());
+  const out = [];
+  for(const m of raw){
+    const id = m.id || m.conversationId || (m.from+"|"+m.subject+"|"+(m.receivedDate||""));
+    if(dismissed.has(id)) continue;
+    const fromEmail = (m.from||m.fromEmail||"").toLowerCase().trim();
+    const known = idx[fromEmail] || null;
+    const days = m.waitingDays != null ? m.waitingDays : noonDaysAgo((m.receivedDate||"").slice(0,10));
+    // priorità: contatto nave > agenzia > fornitore > sconosciuto, poi più giorni
+    const kindRank = known ? (known.kind==="nave"?0:known.kind==="agenzia"?1:2) : 3;
+    out.push({
+      id, fromEmail,
+      fromName: m.fromName || m.from || fromEmail,
+      subject: m.subject || "(senza oggetto)",
+      receivedDate: m.receivedDate || "",
+      days: days==null ? 0 : days,
+      webLink: m.webLink || m.webUrl || "",
+      vesselId: (m.vesselId || (known && known.vesselId)) || null,
+      role: known ? known.role : null,
+      kind: known ? known.kind : "altro",
+      kindRank
+    });
+  }
+  out.sort((a,b)=> a.kindRank - b.kindRank || b.days - a.days);
+  return out;
+}
+// Render della sezione "In attesa di tua risposta" (solo se ci sono email)
+function renderPendingRepliesSection(){
+  const list = getPendingReplies();
+  if(!list.length) return "";
+  const vName = id => (VESSELS.find(v=>v.vesselId===id)||{}).displayName || "";
+  const rows = list.slice(0,8).map(r=>{
+    const vtag = r.vesselId ? `<span class="pr-vtag" data-vid="${escapeAttr(r.vesselId)}">${escapeHTML(vName(r.vesselId))}</span>` : "";
+    const roleTag = r.role ? `<span class="pr-role pr-${r.kind}">${escapeHTML(r.role)}</span>` : "";
+    const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
+    const openBtn = r.webLink ? `<a class="pr-btn pr-open" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" title="Apri in Outlook">Apri ↗</a>`
+      : `<button class="pr-btn pr-open" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')" title="Rispondi">Rispondi</button>`;
+    return `<div class="pr-row" data-pr-id="${escapeAttr(r.id)}">
+      <div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>
+      <div class="pr-main">
+        <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
+        <div class="pr-subj">${escapeHTML(r.subject)}</div>
+      </div>
+      <div class="pr-actions">
+        ${openBtn}
+        <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
+        <button class="pr-btn pr-dismiss" onclick="window.dismissReplyUI('${escapeAttr(r.id)}')" title="Ho già risposto / ignora">✓</button>
+      </div>
+    </div>`;
+  }).join("");
+  const more = list.length>8 ? `<div class="pr-more">+${list.length-8} altre in attesa</div>` : "";
+  return `<section class="pr-section" style="margin-bottom:24px;">
+    <div class="section-title">
+      <h2><svg class="icon icon-md"><use href="#i-mail"/></svg>In attesa di tua risposta</h2>
+      <span class="section-meta">${list.length} email senza risposta · ordinate per priorità</span>
+    </div>
+    <div class="pr-list">${rows}${more}</div>
+  </section>`;
+}
+window.composeReply = function(to, subject){
+  const subj = /^re:/i.test(subject) ? subject : "RE: " + subject;
+  openComposeMail(buildComposeHref(subj, "", to));
+};
+window.dismissReplyUI = function(id){
+  dismissReply(id);
+  showToast("Email archiviata dalla lista");
+  if(state.view==="overview") render();
+};
+window.replyToTodo = function(id){
+  const r = getPendingReplies().find(x=>x.id===id);
+  if(!r){ return; }
+  const txt = "Rispondere a "+r.fromName+" — "+r.subject;
+  try{
+    if(typeof addTodo==="function"){ addTodo({ action: txt, vessel: r.vesselId||null, category:"Email", priority: r.days>=5?"high":"normal" }); }
+    else if(typeof createTodo==="function"){ createTodo(txt, r.vesselId||null); }
+    dismissReply(id);
+    showToast("✓ To-do creata");
+    if(state.view==="overview") render();
+  }catch(e){ showToast("To-do non creata"); }
+};
+
+// === v0.18 — Raccoglie tutti gli eventi della settimana per giorno (consegne, certificati, to-do, Outlook).
 // Ritorna una mappa { "YYYY-MM-DD": [ {type, vesselId, label, sub, sort} ] }.
 function collectWeekEvents(fromISO, toISO, opts) {
   opts = opts || {};
