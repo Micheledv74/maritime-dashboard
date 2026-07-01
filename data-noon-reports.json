@@ -56,6 +56,33 @@
         "vesselId": "medtoscana"
       },
       {
+        "date": "2026-07-01",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": null,
+        "remarks": "Email non contiene dati di navigazione o noon report. Contenuto relativo a problemi tecnici con il sistema internet della nave M/V MED TOSCANA.",
+        "vesselId": "medtoscana"
+      },
+      {
         "date": "2026-07-03",
         "type": "port",
         "lat": null,
@@ -189,7 +216,7 @@
           "fw": null
         },
         "status": null,
-        "remarks": "Nessun NOON REPORT presente nel testo fornito. Solo comunicazioni commerciali.",
+        "remarks": "Nessun Noon Report presente nel testo fornito. Solo email di corrispondenza commerciale.",
         "vesselId": "medliguria"
       }
     ],
@@ -277,14 +304,14 @@
       },
       {
         "date": "2026-07-01",
-        "type": "port",
+        "type": "anchor",
         "lat": null,
         "lon": null,
-        "positionText": "Hong Kong",
+        "positionText": "South Lamma Anchorage (position to be provided by Hong Kong Mardep)",
         "from": null,
-        "to": null,
+        "to": "Hong Kong",
         "nextPort": null,
-        "etaText": null,
+        "etaText": "July/2026",
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -298,8 +325,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In porto a Hong Kong per rifornimento acqua dolce e imbarco passeggero. Movimento limitato a causa di restrizioni doganali cinesi.",
-        "remarks": "Vessel moved to HK ONLY to supply FW and embark Mr. Coscia. Restrizioni doganali cinesi su prodotti in acciaio e merci pericolose (gas/batterie) impediscono trasferimento a HK. Starlink equipment non consentito nei porti cinesi.",
+        "status": "In attesa di chiamata a Hong Kong per rifornimento FW. Attesa all'ancoraggio South Lamma Anchorage (posizione da fornire da Hong Kong Mardep).",
+        "remarks": "Vessel may be calling Hong Kong for FW supply. Richiesta documentazione per formalità pre-arrivo.",
         "vesselId": "peppino"
       },
       {
@@ -384,8 +411,35 @@
         "status": null,
         "remarks": "Email non contiene dati di NOON REPORT per la nave mv Norrbotten.",
         "vesselId": "norrbotten"
+      },
+      {
+        "date": "2026-07-01",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "In yard for maintenance, at least one more month",
+        "remarks": "NORRBOTTEN (IMO 9191931) in yard for overhaul; workshop jobs in progress; ETD not yet confirmed; parts under customs clearance",
+        "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-01T09:05:07.239Z"
+  "syncedAt": "2026-07-01T10:05:09.421Z"
 }
