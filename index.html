@@ -6433,6 +6433,21 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .cn-tile.tier-calm{ background:#fafbfc; }
 .cn-tile.tier-calm .cn-num{ color:#c2c9d2; }
 .cn-tile.tier-calm .cn-lbl{ color:#8a93a0; }
+
+/* === Report certificati (modale) === */
+.cert-view-head-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.cert-report-btn{ flex:none; white-space:nowrap; }
+.crr-controls{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+.crr-field{ display:flex; flex-direction:column; gap:5px; }
+.crr-field label{ font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#8a93a0; }
+.crr-field select{ height:40px; border:1px solid var(--border); border-radius:8px; padding:0 12px; font-family:inherit; font-size:13.5px; background:#fff; color:var(--text); min-width:180px; }
+.crr-lang{ display:inline-flex; gap:2px; background:#eef1f5; border:1px solid #e3e8ee; border-radius:8px; padding:3px; height:40px; box-sizing:border-box; }
+.crr-lang-btn{ border:none; background:transparent; font-size:13px; font-weight:700; color:#8a93a0; padding:0 16px; border-radius:6px; cursor:pointer; }
+.crr-lang-btn.active{ background:#fff; color:var(--accent); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.crr-preview-wrap{ margin-bottom:16px; }
+.crr-preview-label{ font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#8a93a0; margin-bottom:6px; }
+.crr-preview{ background:#f7f9fb; border:1px solid #e3e8ee; border-radius:10px; padding:14px 16px; font-family:var(--font-mono); font-size:12px; line-height:1.6; color:#3a4250; white-space:pre-wrap; max-height:320px; overflow:auto; margin:0; }
+.crr-actions{ display:flex; gap:10px; justify-content:flex-end; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -6926,6 +6941,47 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
       <button class="close" data-close-modal>✕</button>
     </div>
     <div id="heatmap-detail-body"></div>
+  </div>
+</div>
+
+<!-- Modal: Generatore report certificati -->
+<div class="modal" id="modal-cert-report">
+  <div class="modal-content" style="max-width:640px;">
+    <div class="modal-header">
+      <h2>Report certificati</h2>
+      <button class="close" data-close-modal>✕</button>
+    </div>
+    <div class="crr-controls">
+      <div class="crr-field">
+        <label>Nave</label>
+        <select id="crr-vessel"></select>
+      </div>
+      <div class="crr-field">
+        <label>Filtro</label>
+        <select id="crr-filter">
+          <option value="expired">Scaduti</option>
+          <option value="m1">In scadenza entro 1 mese</option>
+          <option value="m3" selected>In scadenza entro 3 mesi</option>
+          <option value="m6">In scadenza entro 6 mesi</option>
+          <option value="all">Tutti (non permanenti)</option>
+        </select>
+      </div>
+      <div class="crr-field">
+        <label>Lingua</label>
+        <div class="crr-lang" id="crr-lang">
+          <button class="crr-lang-btn active" data-lang="it">IT</button>
+          <button class="crr-lang-btn" data-lang="en">EN</button>
+        </div>
+      </div>
+    </div>
+    <div class="crr-preview-wrap">
+      <div class="crr-preview-label">Anteprima <span id="crr-count"></span></div>
+      <pre class="crr-preview" id="crr-preview"></pre>
+    </div>
+    <div class="crr-actions">
+      <button class="btn" id="crr-copy"><svg class="icon icon-sm" style="vertical-align:-2px;margin-right:5px"><use href="#i-check"/></svg>Copia testo</button>
+      <button class="btn btn-primary" id="crr-email"><svg class="icon icon-sm" style="vertical-align:-2px;margin-right:5px"><use href="#i-mail"/></svg>Apri in Outlook</button>
+    </div>
   </div>
 </div>
 
@@ -13336,8 +13392,13 @@ function renderCertificatesView() {
   return `
     <div class="cert-view">
       <header class="cert-view-header">
-        <h1>Certificati & Scadenze</h1>
-        <div class="muted">${allItems.length} voci totali · ${filtered.length} visibili coi filtri attuali</div>
+        <div class="cert-view-head-row">
+          <div>
+            <h1>Certificati & Scadenze</h1>
+            <div class="muted">${allItems.length} voci totali · ${filtered.length} visibili coi filtri attuali</div>
+          </div>
+          <button class="btn btn-primary cert-report-btn" onclick="window.openCertReport()"><svg class="icon icon-sm" style="vertical-align:-2px;margin-right:5px"><use href="#i-mail"/></svg>Genera report</button>
+        </div>
       </header>
 
       <section class="cert-import-toolbar">
@@ -13402,6 +13463,137 @@ window.setCertFilter = function(key, value) {
   state._certFilter[key] = value;
   render();
 };
+
+// === REPORT CERTIFICATI (email pronta IT/EN + copia) ============================
+window._certReport = { vessel: "all", filter: "m3", lang: "it" };
+
+window.openCertReport = function() {
+  // Pre-seleziona la nave dal filtro attivo, se presente
+  const cf = state._certFilter || {};
+  if (cf.vessel && cf.vessel !== "all") window._certReport.vessel = cf.vessel;
+
+  const vsel = document.getElementById("crr-vessel");
+  vsel.innerHTML = `<option value="all">Tutta la flotta</option>` +
+    VESSELS.map(v => `<option value="${escapeAttr(v.vesselId)}">${escapeHTML(v.displayName)}</option>`).join("");
+  vsel.value = window._certReport.vessel;
+  document.getElementById("crr-filter").value = window._certReport.filter;
+  document.querySelectorAll("#crr-lang .crr-lang-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.lang === window._certReport.lang));
+
+  vsel.onchange = () => { window._certReport.vessel = vsel.value; refreshCertReportPreview(); };
+  document.getElementById("crr-filter").onchange = (e) => { window._certReport.filter = e.target.value; refreshCertReportPreview(); };
+  document.querySelectorAll("#crr-lang .crr-lang-btn").forEach(b => {
+    b.onclick = () => {
+      window._certReport.lang = b.dataset.lang;
+      document.querySelectorAll("#crr-lang .crr-lang-btn").forEach(x => x.classList.toggle("active", x === b));
+      refreshCertReportPreview();
+    };
+  });
+  document.getElementById("crr-copy").onclick = () => {
+    const r = buildCertReport();
+    const text = r.subject + "\n\n" + r.body;
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast("Report copiato negli appunti")).catch(() => showToast("Copia non riuscita"));
+  };
+  document.getElementById("crr-email").onclick = () => {
+    const r = buildCertReport();
+    openComposeMail(buildComposeHref(r.subject, r.body, ""));
+  };
+
+  refreshCertReportPreview();
+  document.getElementById("modal-cert-report").classList.add("open");
+};
+
+// Raccoglie i certificati filtrati per il report
+function collectCertsForReport() {
+  const { vessel, filter } = window._certReport;
+  let items = [];
+  const all = state.certificates || {};
+  const vids = vessel === "all" ? VESSELS.map(v => v.vesselId) : [vessel];
+  for (const vid of vids) {
+    const list = all[vid] || [];
+    for (const c of list) {
+      if (c.isPermanent) continue;
+      if (!c.expiry && filter !== "all") continue;
+      const days = daysToExpiry(c.expiry);
+      let keep = false;
+      if (filter === "expired") keep = days != null && days < 0;
+      else if (filter === "m1") keep = days != null && days >= 0 && days <= 31;
+      else if (filter === "m3") keep = days != null && days >= 0 && days <= 92;
+      else if (filter === "m6") keep = days != null && days >= 0 && days <= 183;
+      else if (filter === "all") keep = true;
+      if (keep) items.push({ ...c, _vid: vid, _days: days });
+    }
+  }
+  // ordina per scadenza (più urgenti prima)
+  items.sort((a, b) => (a._days == null ? 9999 : a._days) - (b._days == null ? 9999 : b._days));
+  return items;
+}
+
+// Costruisce { subject, body } nel linguaggio scelto
+function buildCertReport() {
+  const { vessel, filter, lang } = window._certReport;
+  const items = collectCertsForReport();
+  const vName = vessel === "all" ? null : (VESSELS.find(v => v.vesselId === vessel) || {}).displayName;
+  const EN = lang === "en";
+
+  const filterLabel = {
+    expired: EN ? "expired certificates" : "certificati scaduti",
+    m1: EN ? "certificates expiring within 1 month" : "certificati in scadenza entro 1 mese",
+    m3: EN ? "certificates expiring within 3 months" : "certificati in scadenza entro 3 mesi",
+    m6: EN ? "certificates expiring within 6 months" : "certificati in scadenza entro 6 mesi",
+    all: EN ? "certificates" : "certificati"
+  }[filter];
+
+  const fmtDate = iso => iso ? new Date(iso + "T00:00:00").toLocaleDateString(EN ? "en-GB" : "it-IT", { day: "2-digit", month: "short", year: "numeric" }) : (EN ? "n/a" : "n/d");
+  const daysTxt = d => {
+    if (d == null) return "";
+    if (d < 0) return EN ? `expired ${Math.abs(d)} days ago` : `scaduto da ${Math.abs(d)} giorni`;
+    if (d === 0) return EN ? "expires today" : "scade oggi";
+    return EN ? `in ${d} days` : `tra ${d} giorni`;
+  };
+
+  const scope = vName || (EN ? "the fleet" : "la flotta");
+  const vLabel = vName ? (/^m\/v/i.test(vName) ? vName : "M/V " + vName) : null;
+  const subject = vLabel
+    ? `${vLabel} — ${filterLabel.charAt(0).toUpperCase() + filterLabel.slice(1)} (${items.length})`
+    : `${EN ? "Fleet" : "Flotta"} — ${filterLabel.charAt(0).toUpperCase() + filterLabel.slice(1)} (${items.length})`;
+
+  const lines = items.map(c => {
+    const nm = c.name || "—";
+    const num = c.certNum ? ` — ${EN ? "No." : "N°"} ${c.certNum}` : "";
+    const exp = fmtDate(c.expiry);
+    const dt = daysTxt(c._days);
+    const vtag = vessel === "all" ? `[${(VESSELS.find(v => v.vesselId === c._vid) || {}).displayName || ""}] ` : "";
+    return `• ${vtag}${nm}${num} — ${exp}${dt ? ` (${dt})` : ""}`;
+  });
+
+  let body;
+  if (EN) {
+    const intro = filter === "expired"
+      ? `Please find below the certificates currently expired for ${vLabel || scope}:`
+      : `Please find below the ${filterLabel} for ${vLabel || scope}:`;
+    const closing = filter === "expired"
+      ? "Kindly arrange renewal at earliest and confirm status."
+      : "Kindly arrange timely renewal and confirm the planned actions.";
+    body = `Dear Captain,\n\n${intro}\n\n${lines.join("\n") || "— none —"}\n\n${closing}\n\nBest regards,`;
+  } else {
+    const intro = filter === "expired"
+      ? `Di seguito i certificati attualmente scaduti per ${vLabel || scope}:`
+      : `Di seguito i ${filterLabel} per ${vLabel || scope}:`;
+    const closing = filter === "expired"
+      ? "Si prega di provvedere al rinnovo al più presto e confermare lo stato."
+      : "Si prega di organizzare il rinnovo per tempo e confermare le azioni previste.";
+    body = `Gentile Comandante,\n\n${intro}\n\n${lines.join("\n") || "— nessuno —"}\n\n${closing}\n\nCordiali saluti,`;
+  }
+  return { subject, body, count: items.length };
+}
+
+function refreshCertReportPreview() {
+  const r = buildCertReport();
+  document.getElementById("crr-preview").textContent = r.subject + "\n\n" + r.body;
+  const cnt = document.getElementById("crr-count");
+  if (cnt) cnt.textContent = `· ${r.count} ${r.count === 1 ? "voce" : "voci"}`;
+}
 
 // Render sezione certificati a piè della scheda nave
 function renderCertSectionForVessel(vesselId) {
