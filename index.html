@@ -6478,6 +6478,100 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .dd-todo-btn.done{ background:#e7f0e9; border-color:#bcd9c4; color:#1f5a2c; cursor:default; }
 </style>
 
+<style>
+/* ============================================================
+   STRATO MOBILE UNIFICATO (v0.24) — un solo criterio coerente
+   Breakpoint unico ≤768px · hit target ≥44px · tab bar in basso
+   NON tocca il layout desktop (regole attive solo sotto 768px)
+   ============================================================ */
+
+/* La tab bar in basso è nascosta di default (desktop) */
+.mobile-tabbar{ display:none; }
+
+@media (max-width: 768px) {
+  /* ---- Base: tipografia leggibile e spazio per la tab bar ---- */
+  body{ font-size:16px; }
+  .main-wrap{ padding-bottom:calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+
+  /* ---- HEADER compatto ---- */
+  .app-header .header-inner{ gap:10px; padding:0 14px; }
+  .app-header .sync-info{ font-size:11px; padding:4px 9px; }
+  .app-header .icon-btn{ width:44px !important; height:44px !important; min-width:44px !important; }
+  #btn-mobile-menu{ width:44px !important; height:44px !important; }
+
+  /* ---- NAV in alto: solo chip navi (le viste vanno nella tab bar) ---- */
+  .vessel-switcher .pill-row .pill[data-view]{ display:none !important; }
+  .vessel-switcher{ position:sticky; top:var(--header-h); z-index:40; }
+  .vessel-switcher .switcher-inner{ padding:0 14px; }
+  .vessel-switcher .pill-row{ height:auto; padding:8px 0; gap:8px; overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .vessel-switcher .pill-row::-webkit-scrollbar{ display:none; }
+  .vessel-switcher .pill-row .pill[data-vid]{ flex:none; min-height:40px; padding:8px 14px !important; font-size:13.5px !important; }
+  .switcher-select-wrap{ display:none !important; }
+
+  /* ---- TAB BAR in basso (iOS-style) ---- */
+  .mobile-tabbar{
+    display:flex; position:fixed; left:0; right:0; bottom:0; z-index:200;
+    background:rgba(255,255,255,.92); backdrop-filter:saturate(180%) blur(12px);
+    border-top:1px solid #e3e8ee;
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .mtab{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    background:none; border:none; cursor:pointer; position:relative;
+    min-height:52px; padding:4px; border-radius:10px; color:#8a93a0;
+  }
+  .mtab .icon{ width:23px; height:23px; }
+  .mtab-l{ font-size:10.5px; font-weight:600; letter-spacing:.01em; }
+  .mtab.active{ color:var(--accent); }
+  .mtab:active{ background:#f1f4f7; }
+  .mtab-dot{ position:absolute; top:5px; right:calc(50% - 16px); width:8px; height:8px; border-radius:50%; background:var(--c-red-strong); border:1.5px solid #fff; }
+
+  /* ---- FAB sopra la tab bar ---- */
+  .fab{ bottom:calc(80px + env(safe-area-inset-bottom, 0px)) !important; right:16px !important; width:52px !important; height:52px !important; }
+
+  /* ---- HIT TARGET ≥44px su tutti gli interattivi ---- */
+  .btn, .btn-sm, .btn-mini-link{ min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+  .pr-btn{ min-height:44px; padding:10px 14px; }
+  .pr-actions{ gap:8px; }
+  .tms-btn{ min-height:46px; padding:10px 16px; }
+  .kpis{ min-height:52px; }
+  .noon-apply-btn{ min-height:44px; }
+  .vessel-mini-flag{ min-height:40px; }
+  .fusi-edit{ width:40px !important; height:40px !important; }
+  .cn-go{ opacity:1 !important; }   /* su touch non c'è hover: mostra sempre la CTA */
+
+  /* ---- Card nave: numeri e tocco più generosi ---- */
+  .vessel-card{ padding:16px; }
+  .vessel-hero{ padding:16px; }
+  .vessel-hero .vh-num{ font-size:34px; }
+  .cn-num{ font-size:36px; }
+  .cn-tile{ padding:16px; min-height:120px; }
+
+  /* ---- Tabella azioni: leggibile in colonna ---- */
+  .actions-table-head{ display:none !important; }
+  .action-row.action-row-cols{ display:flex !important; flex-direction:column; align-items:flex-start; gap:8px; padding:14px; }
+  .action-row .action-btns{ width:100%; display:flex; gap:8px; }
+  .action-row .action-btns .btn, .action-row .action-btns button{ flex:1; }
+
+  /* ---- Email: righe più ariose ---- */
+  .pr-row{ padding:14px; gap:12px; }
+  .pr-actions{ width:100%; justify-content:flex-start; flex-wrap:wrap; }
+
+  /* ---- Diario / tabelle: scroll orizzontale morbido ---- */
+  .diario-wrap, .items-table-wrap{ -webkit-overflow-scrolling:touch; }
+
+  /* ---- Modali a tutta larghezza, comodi col pollice ---- */
+  .modal, .item-detail-popover, .voyage-editor-modal{ border-radius:16px 16px 0 0 !important; }
+}
+
+/* Telefoni piccoli (≤400px): un filo più compatto */
+@media (max-width: 400px) {
+  .mtab-l{ font-size:9.5px; }
+  .cn-grid{ gap:10px; }
+  .vessel-hero .vh-num{ font-size:30px; }
+}
+</style>
+
 <header class="app-header">
   <div class="header-inner">
     <div class="brand">
@@ -6551,6 +6645,29 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 
 <!-- Floating Quick Capture -->
 <button class="fab" id="fab-quick" title="Aggiungi to-do" aria-label="Nuova to-do">+</button>
+
+<!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
+<nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
+  <button class="mtab" data-mtab="overview" aria-label="Overview">
+    <svg class="icon"><use href="#i-ship"/></svg>
+    <span class="mtab-l">Flotta</span>
+  </button>
+  <button class="mtab" data-mtab="todos" aria-label="To-do">
+    <svg class="icon"><use href="#i-checksquare"/></svg>
+    <span class="mtab-l">To-do</span>
+    <span class="mtab-dot" id="mtab-todos-dot" style="display:none;"></span>
+  </button>
+  <button class="mtab" data-mtab="email" aria-label="Email">
+    <svg class="icon"><use href="#i-mail"/></svg>
+    <span class="mtab-l">Email</span>
+    <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
+  </button>
+  <button class="mtab" data-mtab="certificates" aria-label="Certificati">
+    <svg class="icon"><use href="#i-shield-check"/></svg>
+    <span class="mtab-l">Cert.</span>
+    <span class="mtab-dot" id="mtab-cert-dot" style="display:none;"></span>
+  </button>
+</nav>
 
 <!-- Modal: Settings -->
 <div class="modal" id="modal-settings">
@@ -8148,6 +8265,27 @@ function renderSwitcher() {
     if (isActive) opt.selected = true;
     select.appendChild(opt);
   });
+
+  updateMobileTabBar();
+}
+
+// v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
+function updateMobileTabBar() {
+  const map = { overview: "overview", todos: "todos", email: "email", certificates: "certificates" };
+  const activeView = state.view === "vessel" ? "overview" : (map[state.view] || "overview");
+  document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
+    tab.classList.toggle("active", tab.dataset.mtab === activeView);
+  });
+  try {
+    const todoDot = document.getElementById("mtab-todos-dot");
+    if (todoDot) todoDot.style.display = (todosOpen().length > 0) ? "" : "none";
+    const emailDot = document.getElementById("mtab-email-dot");
+    const emailN = (typeof getPendingReplies === "function") ? getPendingReplies().length : 0;
+    if (emailDot) emailDot.style.display = emailN > 0 ? "" : "none";
+    const certDot = document.getElementById("mtab-cert-dot");
+    const certExp = (typeof getCertStatsGlobal === "function") ? ((getCertStatsGlobal() || {}).expired || 0) : 0;
+    if (certDot) certDot.style.display = certExp > 0 ? "" : "none";
+  } catch (e) { /* no-op */ }
 }
 
 function renderLoading() {
@@ -15767,6 +15905,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // FAB (+) apre la modale to-do
   document.getElementById("fab-quick").addEventListener("click", () => openTodoModal(null));
+
+  // Bottom tab bar (mobile): naviga alle 4 viste principali
+  document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const t = tab.dataset.mtab;
+      if (t === "overview") goOverview();
+      else if (t === "todos") goTodos();
+      else if (t === "email") goEmail();
+      else if (t === "certificates") window.goCertificates();
+    });
+  });
 
   // To-do modale: handler save + cambio campi
   document.getElementById("todo-save").addEventListener("click", saveTodoFromModal);
