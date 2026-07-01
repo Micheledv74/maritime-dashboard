@@ -223,11 +223,11 @@
       },
       {
         "date": "2026-06-30",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
-        "from": "Dongguan",
+        "positionText": "Dongguan",
+        "from": null,
         "to": "Hong Kong",
         "nextPort": null,
         "etaText": "TBA",
@@ -244,8 +244,35 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione verso Hong Kong per rifornimento acqua dolce dopo cancellazione charter e livello critico FW",
-        "remarks": "Vessel in critical FW level. Deviation to Hong Kong planned after cancellation notice sent at midnight 30/06/2026. No new employment confirmed yet. Fresh water supply in Hong Kong to be arranged by owners/agents.",
+        "status": "in porto a Dongguan, acqua dolce critica, in attesa di cancellazione charter e possibile partenza per Hong Kong",
+        "remarks": "Acqua dolce a livello critico. Dongguan non permette rifornimento in ancoraggio. Possibile deviazione a Hong Kong per rifornimento FW. Cancellazione charter prevista per mezzanotte del 30/06/2026.",
+        "vesselId": "peppino"
+      },
+      {
+        "date": "2026-07-01",
+        "type": "sea",
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": "Hong Kong",
+        "nextPort": null,
+        "etaText": "TBA",
+        "etbText": null,
+        "etdText": "midnight today (LT)",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": "2026-07-01T00:00",
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "in navigazione verso Hong Kong dopo cancellazione charter",
+        "remarks": "Vessel in ECO speed, circa 7 ore per Hong Kong. Acqua dolce critica, possibile approvvigionamento a Hong Kong. Cancellazione charter inviata a mezzanotte.",
         "vesselId": "peppino"
       }
     ],
@@ -306,5 +333,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-01T02:05:08.050Z"
+  "syncedAt": "2026-07-01T03:05:09.376Z"
 }
