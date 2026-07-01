@@ -6,15 +6,15 @@
         "type": "sea",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "At Deep Water Bulk Terminal",
         "from": null,
         "to": "Galveston Fairway",
         "nextPort": null,
-        "etaText": "July 3, 2026 0730 a.m. LT",
+        "etaText": "July 3, 2026 0730 a.m. LT w.p. agw",
         "etbText": "07/03/26 (POB on arrival)",
         "etdText": null,
         "etaISO": "2026-07-03T07:30",
-        "etbISO": "2026-07-03T00:00",
+        "etbISO": "2026-07-03T07:30",
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -24,8 +24,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in transito verso Galveston Fairway per carico di Petroleum Coke (Non-Calcined) in bulk",
-        "remarks": "ETA soggetta a cambiamenti in base al completamento delle operazioni di scarico in Colombia. ETB prevista per 07/03/26 (POB all'arrivo).",
+        "status": "Loading Petroleum Coke (Non-Calcined) in bulk",
+        "remarks": "ETA subject to change depending on discharging operation in Colombia. ETB preliminary for Deepwater terminal schedule.",
         "vesselId": "medtoscana"
       },
       {
@@ -148,7 +148,7 @@
         "to": "Vitoria, Brazil",
         "nextPort": null,
         "etaText": null,
-        "etbText": "subject to completion of previous vessel's operation, expected 01 July",
+        "etbText": "Expected to berth after 01 July 2026",
         "etdText": null,
         "etaISO": null,
         "etbISO": "2026-07-01T00:00",
@@ -161,8 +161,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "next in line for berthing, subject to previous vessel's completion",
-        "remarks": "Vessel expected to berth after 01 July 2026 following previous vessel's operations. RightShip inspection scheduled.",
+        "status": "Next in line for berthing, subject to previous vessel's completion expected on 01 July 2026",
+        "remarks": "Vessel next in line for berthing; RightShip inspection scheduled; transportation arrangements for surveyor to be covered by Owners",
         "vesselId": "medliguria"
       }
     ],
@@ -231,10 +231,10 @@
         "to": "Hong Kong",
         "nextPort": null,
         "etaText": "TBA",
-        "etbText": "midnight tonight (30/06/2026)",
-        "etdText": "midnight tonight (30/06/2026)",
+        "etbText": null,
+        "etdText": "midnight today (30/06/2026)",
         "etaISO": null,
-        "etbISO": "2026-06-30T00:00",
+        "etbISO": null,
         "etdISO": "2026-06-30T00:00",
         "speed": null,
         "course": null,
@@ -244,8 +244,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione verso Hong Kong per rifornimento acqua dolce dopo cancellazione charter e livello critico FW",
-        "remarks": "Vessel in critical FW level. Deviation to Hong Kong planned after cancellation notice sent at midnight 30/06/2026. No new employment confirmed yet. Fresh water supply in Hong Kong to be arranged by owners/agents.",
+        "status": "in navigazione verso Hong Kong per approvvigionamento acqua dolce dopo cancellazione charter. Livello acqua critica.",
+        "remarks": "Vessel in rotta verso Hong Kong dopo cancellazione charter. Acqua dolce critica. Attesa conferma approvvigionamento FW a Hong Kong. Possibile partenza a mezzanotte del 30/06/2026.",
         "vesselId": "peppino"
       }
     ],
@@ -306,5 +306,5 @@
       }
     ]
   },
-  "syncedAt": "2026-06-30T23:05:07.537Z"
+  "syncedAt": "2026-07-01T00:05:08.052Z"
 }
