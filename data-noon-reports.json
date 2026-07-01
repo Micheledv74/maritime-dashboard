@@ -164,6 +164,33 @@
         "status": "next in line for berthing",
         "remarks": "Berthing subject to previous vessel's operation completion expected 01 July 2026. RightShip inspection scheduled.",
         "vesselId": "medliguria"
+      },
+      {
+        "date": "2026-07-01",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": null,
+        "remarks": "Nessun NOON REPORT presente nel testo fornito. Solo comunicazioni commerciali.",
+        "vesselId": "medliguria"
       }
     ],
     "peppino": [
@@ -250,10 +277,10 @@
       },
       {
         "date": "2026-07-01",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Hong Kong",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -271,8 +298,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": null,
-        "remarks": "Email non contiene dati di NOON REPORT. Contiene solo informazioni logistiche relative a ordine merci per nave M/V PEPPINO.",
+        "status": "In porto a Hong Kong per rifornimento acqua dolce e imbarco passeggero. Movimento limitato a causa di restrizioni doganali cinesi.",
+        "remarks": "Vessel moved to HK ONLY to supply FW and embark Mr. Coscia. Restrizioni doganali cinesi su prodotti in acciaio e merci pericolose (gas/batterie) impediscono trasferimento a HK. Starlink equipment non consentito nei porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -306,7 +333,7 @@
     "norrbotten": [
       {
         "date": "2026-06-19",
-        "type": "sea",
+        "type": null,
         "lat": null,
         "lon": null,
         "positionText": null,
@@ -315,7 +342,7 @@
         "nextPort": null,
         "etaText": null,
         "etbText": null,
-        "etdText": "TBA",
+        "etdText": null,
         "etaISO": null,
         "etbISO": null,
         "etdISO": null,
@@ -327,8 +354,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione, in attesa di ETD per pianificazione reinstallazione",
-        "remarks": "Nave NORRBOTTEN (IMO 9191931) in navigazione verso Turchia per DD intorno a maggio 2026. Richiesta ETD per pianificazione reinstallazione parti dopo workshop.",
+        "status": null,
+        "remarks": "Nessun Noon Report presente nel testo fornito. Solo email di corrispondenza commerciale senza dati operativi della nave.",
         "vesselId": "norrbotten"
       },
       {
@@ -360,5 +387,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-01T08:05:04.068Z"
+  "syncedAt": "2026-07-01T09:05:07.239Z"
 }
