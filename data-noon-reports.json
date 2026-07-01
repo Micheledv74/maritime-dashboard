@@ -37,11 +37,11 @@
         "from": null,
         "to": "Galveston Fairway",
         "nextPort": null,
-        "etaText": "July 3, 2026 0730 a.m. LT w.p. agw",
+        "etaText": "July 3, 2026 0730 a.m. LT",
         "etbText": "07/03/26 (POB on arrival)",
         "etdText": null,
         "etaISO": "2026-07-03T07:30",
-        "etbISO": "2026-07-03T07:30",
+        "etbISO": "2026-07-03T00:00",
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -51,8 +51,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In transito verso Galveston Fairway per carico di Petroleum Coke (Non-Calcined) in bulk",
-        "remarks": "ETA soggetta a cambiamenti in base al completamento delle operazioni di scarico in Colombia. ETB prevista per 07/03/26 (POB all'arrivo).",
+        "status": "In transito verso Galveston Fairway",
+        "remarks": "ETA soggetta a cambiamenti in base al completamento delle operazioni di scarico in Colombia. ETB preliminare Deepwater Terminal 07/03/26 (POB all'arrivo).",
         "vesselId": "medtoscana"
       },
       {
@@ -194,10 +194,10 @@
       },
       {
         "date": "2026-07-01",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "VITORIA ANCH AREA NO.1",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -211,12 +211,12 @@
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": null,
-          "lsmgo": null,
-          "fw": null
+          "lsfo": 847.3,
+          "lsmgo": 80.18,
+          "fw": 363
         },
-        "status": null,
-        "remarks": "Nave M/V MED LIGURIA PR41 in navigazione verso prossimo porto cinese; ordine di rifornimento in standby in attesa dell'arrivo.",
+        "status": "Awaiting berthing in Vitoria",
+        "remarks": "VSL anchored at Vitoria Anchorage Area No.1 awaiting berth. Ballast condition, 21823.78 MT.",
         "vesselId": "medliguria"
       }
     ],
@@ -311,7 +311,7 @@
         "from": null,
         "to": "Hong Kong",
         "nextPort": null,
-        "etaText": "1400hrs 02 Jul",
+        "etaText": "1400hrs 2nd Jul",
         "etbText": null,
         "etdText": "07:00 Lt 02.07.2026",
         "etaISO": "2026-07-02T14:00",
@@ -325,8 +325,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In port (Hong Kong) - awaiting port clearance and fresh water supply. Vessel to anchor at South Lamma anchorage upon arrival.",
-        "remarks": "Vessel to communicate with Mardep via VHF channel 12 2 hours before entry. Port clearance required before departure. Fresh water supply expected tomorrow afternoon. Free pratique granted.",
+        "status": "In port clearance process, anchored at South Lamma anchorage, awaiting port clearance and fresh water supply (expected afternoon 02.07.2026). Free pratique granted.",
+        "remarks": "Vessel to contact Mardep via VHF 12 2hrs before entry and again before departure. Fresh water supply planned for afternoon 02.07.2026. Port clearance to be sent by agent tomorrow.",
         "vesselId": "peppino"
       },
       {
@@ -463,10 +463,10 @@
           "fw": null
         },
         "status": null,
-        "remarks": "Email scambio tecnico su bow thruster Jastram BU 2889 per M/V NORRBOTTEN (IMO 9191931). Nessun dato operativo o posizione presente nel testo.",
+        "remarks": "Email non contiene dati di NOON REPORT per nave mv Norrbotten. Solo richieste commerciali per pompa idraulica TE22285.",
         "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-01T15:05:07.808Z"
+  "syncedAt": "2026-07-01T16:05:10.106Z"
 }
