@@ -140,7 +140,7 @@
       },
       {
         "date": "2026-06-30",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
         "positionText": null,
@@ -148,7 +148,7 @@
         "to": "Vitoria, Brazil",
         "nextPort": null,
         "etaText": null,
-        "etbText": "subject to the completion of the previous vessel's operation, which is currently expected on 01 July, after which the vessel is expected to berth",
+        "etbText": "subject to completion of previous vessel's operation, expected 01 July",
         "etdText": null,
         "etaISO": null,
         "etbISO": "2026-07-01T00:00",
@@ -161,8 +161,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "next in line for berthing",
-        "remarks": "Berthing subject to previous vessel's operation completion expected 01 July 2026. RightShip inspection scheduled.",
+        "status": "next in line for berthing, subject to previous vessel's completion",
+        "remarks": "Vessel expected to berth after 01 July 2026 following previous vessel's operations. RightShip inspection scheduled.",
         "vesselId": "medliguria"
       }
     ],
@@ -306,5 +306,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-01T01:05:07.495Z"
+  "syncedAt": "2026-07-01T02:05:08.050Z"
 }
