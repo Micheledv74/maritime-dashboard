@@ -24,8 +24,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In navigazione verso Galveston Fairway per carico di Petroleum Coke (Non-Calcined) in bulk",
-        "remarks": "ETA soggetta a cambiamenti in base al completamento delle operazioni di scarico in Colombia. ETB preliminare per 03/07/2026 (POB all'arrivo).",
+        "status": "In transito verso Galveston Fairway per carico di Petroleum Coke (Non-Calcined) in bulk",
+        "remarks": "ETA soggetta a cambiamenti in base al completamento delle operazioni di scarico in Colombia. ETB prevista per il 03/07/26 (POB all'arrivo).",
         "vesselId": "medtoscana"
       },
       {
@@ -143,12 +143,12 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Vitoria, Brazil",
+        "positionText": null,
         "from": null,
-        "to": null,
+        "to": "Vitoria, Brazil",
         "nextPort": null,
         "etaText": null,
-        "etbText": "Expected to berth after 01 July 2026 (subject to previous vessel's completion)",
+        "etbText": "subject to completion of previous vessel's operation, expected 01 July",
         "etdText": null,
         "etaISO": null,
         "etbISO": "2026-07-01T00:00",
@@ -161,8 +161,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Next in line for berthing, subject to previous vessel's operation completion expected on 01 July 2026",
-        "remarks": "RightShip inspection scheduled; agent arrangements for surveyor transportation required. Berthing prospects to be provided daily.",
+        "status": "next in line for berthing, subject to previous vessel's completion",
+        "remarks": "Vessel expected to berth after 01 July 2026 following previous vessel's operations. RightShip inspection scheduled.",
         "vesselId": "medliguria"
       }
     ],
@@ -250,29 +250,29 @@
       },
       {
         "date": "2026-07-01",
-        "type": "sea",
-        "lat": null,
-        "lon": null,
+        "type": "anchor",
+        "lat": "21-58.4N",
+        "lon": "113-58.5E",
         "positionText": null,
-        "from": null,
-        "to": "Hong Kong",
-        "nextPort": null,
-        "etaText": "TBA",
-        "etbText": null,
-        "etdText": "midnight today (30/06/2026)",
+        "from": "Iloilo Philippines PEDC Terminal",
+        "to": "Dongguan, China",
+        "nextPort": "Dongguan, China",
+        "etaText": null,
+        "etbText": "There is no berthing schedule, As per agent information",
+        "etdText": null,
         "etaISO": null,
         "etbISO": null,
-        "etdISO": "2026-06-30T00:00",
+        "etdISO": null,
         "speed": null,
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": null,
-          "lsmgo": null,
-          "fw": null
+          "lsfo": 827.4,
+          "lsmgo": 160.72,
+          "fw": 15
         },
-        "status": "in navigazione verso Hong Kong per approvvigionamento acqua dolce (livello critico). Partenza prevista a mezzanotte del 30/06/2026 dopo annullamento charter.",
-        "remarks": "Vessel in ECO speed, circa 7 ore per Hong Kong. Acqua dolce critica. Notizia cancellazione charter inviata a mezzanotte del 30/06/2026.",
+        "status": "Vessel anchored No. 04 DT Anchorage",
+        "remarks": "No berthing schedule per agent information",
         "vesselId": "peppino"
       }
     ],
@@ -333,5 +333,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-01T04:05:09.252Z"
+  "syncedAt": "2026-07-01T05:05:07.244Z"
 }
