@@ -61,8 +61,8 @@
         "lat": null,
         "lon": null,
         "positionText": null,
-        "from": "Genova (Italy)",
-        "to": "IAH (Houston)",
+        "from": "GENOVA",
+        "to": "IAH",
         "nextPort": null,
         "etaText": "JULY 5th",
         "etbText": null,
@@ -79,7 +79,7 @@
           "fw": null
         },
         "status": "in transito",
-        "remarks": "ETA rivista al 5 luglio. Spare parts in transito a bordo per M/V MED TOSCANA.",
+        "remarks": "Spare parts in transito a M/V MED TOSCANA. Precedente ETA rivista a July 5th.",
         "vesselId": "medtoscana"
       },
       {
@@ -218,6 +218,33 @@
         "status": "In Port, anchored at Vitoria Anchorage Area No.1 awaiting berthing",
         "remarks": "VSL ANCHORED AT VITORIA ANCH AREA NO.1 AWAITING FOR BERTHING",
         "vesselId": "medliguria"
+      },
+      {
+        "date": "2026-07-02",
+        "type": "port",
+        "lat": null,
+        "lon": null,
+        "positionText": "Vitoria, Brazil",
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": "subject to completion of previous vessel's operation, expected 01 July 2026",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": "2026-07-01T00:00",
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "next in line for berthing, subject to previous vessel's operations",
+        "remarks": "Vessel expected to berth after completion of previous vessel's operations (expected 01 July 2026). RightShip inspection scheduled for 03 July 2026 at 07:15 hrs.",
+        "vesselId": "medliguria"
       }
     ],
     "peppino": [
@@ -352,8 +379,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Vessel anchored at shelter position due to Typhoon Signal 1. Departed Hong Kong at 17:24 LT.",
-        "remarks": "Fresh water supply completed in Hong Kong. Vessel proceeded to shelter anchorage due to weather conditions (Typhoon Signal 1). Position confirmed via GPS.",
+        "status": "Anchored at shelter position due to Typhoon Signal 1",
+        "remarks": "Vessel departed Hong Kong at 17:24 LT and dropped anchor at 19:36 LT. Position confirmed via GPS. Fresh water supply completed before departure. Proceeding to shelter anchorage due to weather conditions.",
         "vesselId": "peppino"
       },
       {
@@ -490,10 +517,10 @@
           "fw": null
         },
         "status": null,
-        "remarks": "Email non contiene dati di NOON REPORT. Contenuto relativo a offerta di servizio per upgrade DP1 e audit.",
+        "remarks": null,
         "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-02T13:05:07.449Z"
+  "syncedAt": "2026-07-02T14:05:09.357Z"
 }
