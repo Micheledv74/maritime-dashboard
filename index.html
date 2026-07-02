@@ -6489,6 +6489,25 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .pp-tip-warn .pp-tip-txt{ color:#8f1219; }
 .pp-tip-good .pp-tip-txt{ color:#1f5a2c; }
 
+/* v0.29 — Gauge "Salute procurement" */
+.ph-wrap{ display:flex; align-items:center; gap:20px; background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px 22px; margin-bottom:16px; box-shadow:var(--shadow-card); flex-wrap:wrap; }
+.ph-gauge{ position:relative; width:128px; height:76px; flex:none; }
+.ph-score{ position:absolute; left:0; right:0; bottom:2px; text-align:center; font-family:var(--font-mono); font-size:26px; font-weight:700; }
+.ph-body{ flex:1; min-width:220px; }
+.ph-title{ font-size:15px; font-weight:700; color:#2a313c; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ph-badge{ font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; padding:3px 10px; border-radius:20px; }
+.ph-badge-good{ background:#e7f5ec; color:#1f8a4c; }
+.ph-badge-mid{ background:#fdf2dd; color:#b8740a; }
+.ph-badge-bad{ background:#fbdcde; color:#8f1219; }
+.ph-sub{ font-size:12px; color:#8a93a0; margin-top:5px; line-height:1.5; max-width:520px; }
+.ph-reasons{ margin-top:10px; display:flex; flex-direction:column; gap:4px; }
+.ph-reason{ display:flex; align-items:baseline; gap:8px; font-size:12.5px; }
+.ph-reason-pts{ font-family:var(--font-mono); font-weight:700; flex:none; min-width:32px; }
+.ph-reason.neg .ph-reason-pts{ color:#c8222a; }
+.ph-reason.pos .ph-reason-pts{ color:#1f8a4c; }
+.ph-reason-txt{ color:#5b6470; }
+.pp-sup-all{ float:right; font-size:11.5px; font-weight:700; color:var(--accent); background:none; border:none; cursor:pointer; }
+
 /* === Report certificati (modale) === */
 .cert-view-head-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .cert-report-btn{ flex:none; white-space:nowrap; }
@@ -7160,6 +7179,18 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
       <button class="btn" id="crr-copy"><svg class="icon icon-sm" style="vertical-align:-2px;margin-right:5px"><use href="#i-check"/></svg>Copia testo</button>
       <button class="btn btn-primary" id="crr-email"><svg class="icon icon-sm" style="vertical-align:-2px;margin-right:5px"><use href="#i-mail"/></svg>Apri in Outlook</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal: Tutti i fornitori (Performance procurement) -->
+<div class="modal" id="modal-all-suppliers">
+  <div class="modal-content" style="max-width:680px;">
+    <div class="modal-header">
+      <h2>Tutti i fornitori <span id="all-suppliers-count" class="muted" style="font-size:13px;font-weight:500;"></span></h2>
+      <button class="close" data-close-modal>✕</button>
+    </div>
+    <input type="search" class="search-input" id="all-suppliers-search" placeholder="Cerca fornitore…" style="width:100%;margin-bottom:14px;">
+    <div id="all-suppliers-body" style="max-height:60vh;overflow:auto;border:1px solid var(--border);border-radius:10px;"></div>
   </div>
 </div>
 
@@ -8765,6 +8796,71 @@ function generateProcurementTips(period, live) {
   return tips.slice(0, 4);
 }
 
+// v0.29 — "Salute procurement": indicatore sintetico 0-100, pesato su ciò che dipende da te (REQ→PO)
+function computeProcurementHealth(period, prevPeriod, live) {
+  const reasons = [];
+  let score = 100;
+
+  // Tasso di urgenza (soglia sana: 15%) — peso 35
+  const URG_BASE = 15;
+  if (live.urgencyRate != null) {
+    const over = Math.max(0, live.urgencyRate - URG_BASE);
+    const pen = Math.min(35, Math.round(over * 0.55));
+    if (pen > 0) { score -= pen; reasons.push({ sign: "-", pts: pen, text: `Tasso di urgenza al ${live.urgencyRate}% (soglia sana: ${URG_BASE}%)` }); }
+  }
+  // Ciclo REQ→PO (target 10gg) — peso 40, il più pesante: dipende soprattutto da te
+  const CYCLE_TARGET = 10;
+  if (period.avgCycle != null) {
+    const over = Math.max(0, period.avgCycle - CYCLE_TARGET);
+    const pen = Math.min(40, Math.round(over * 1.4));
+    if (pen > 0) { score -= pen; reasons.push({ sign: "-", pts: pen, text: `Ciclo REQ→PO a ${period.avgCycle}gg (target ${CYCLE_TARGET}gg)` }); }
+  }
+  // Fornitori inaffidabili ad alto volume — peso 20
+  const badSuppliers = period.suppliers.filter(s => s.count >= 3 && s.score < 55);
+  if (badSuppliers.length > 0) {
+    const pen = Math.min(20, badSuppliers.length * 8);
+    score -= pen;
+    reasons.push({ sign: "-", pts: pen, text: `${badSuppliers.length} fornitori con affidabilità bassa e volume alto` });
+  }
+  // Trend: ciclo migliorato vs periodo precedente — bonus fino a +8
+  if (period.avgCycle != null && prevPeriod.avgCycle != null && period.avgCycle < prevPeriod.avgCycle) {
+    const gain = Math.min(8, Math.round((prevPeriod.avgCycle - period.avgCycle) * 0.6));
+    if (gain > 0) { score += gain; reasons.push({ sign: "+", pts: gain, text: `Ciclo REQ→PO migliorato di ${prevPeriod.avgCycle - period.avgCycle}gg vs periodo precedente` }); }
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const tier = score >= 75 ? "good" : score >= 50 ? "mid" : "bad";
+  const label = score >= 75 ? "Sotto controllo" : score >= 50 ? "Attenzione" : "Da intervenire";
+  if (reasons.length === 0) reasons.push({ sign: "+", pts: 0, text: "Nessuna criticità rilevata: procurement scorrevole." });
+  return { score, tier, label, reasons };
+}
+
+function gaugeHTML(health) {
+  // Semicerchio SVG: arco di sfondo + arco colorato proporzionale allo score
+  const r = 54, cx = 64, cy = 64;
+  const circ = Math.PI * r; // lunghezza semicerchio
+  const pct = health.score / 100;
+  const colors = { good: "#1f8a4c", mid: "#b8740a", bad: "#c8222a" };
+  const color = colors[health.tier];
+  const reasonsHTML = health.reasons.map(r => `<div class="ph-reason ${r.sign === "+" ? "pos" : "neg"}"><span class="ph-reason-pts">${r.sign}${r.pts}</span><span class="ph-reason-txt">${escapeHTML(r.text)}</span></div>`).join("");
+  return `
+    <div class="ph-wrap">
+      <div class="ph-gauge">
+        <svg width="128" height="76" viewBox="0 0 128 76">
+          <path d="M 10 64 A ${r} ${r} 0 0 1 118 64" fill="none" stroke="#eef1f4" stroke-width="12" stroke-linecap="round"/>
+          <path d="M 10 64 A ${r} ${r} 0 0 1 118 64" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round"
+                stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - pct)}"/>
+        </svg>
+        <div class="ph-score" style="color:${color}">${health.score}</div>
+      </div>
+      <div class="ph-body">
+        <div class="ph-title">Salute procurement <span class="ph-badge ph-badge-${health.tier}">${escapeHTML(health.label)}</span></div>
+        <div class="ph-sub">Misura il processo (RFQ ferme, ciclo REQ→PO, fornitori), non te. Il ciclo REQ→PO pesa di più perché dipende soprattutto da come lavori tu; da PO in poi entrano fattori esterni.</div>
+        <div class="ph-reasons">${reasonsHTML}</div>
+      </div>
+    </div>`;
+}
+
 function renderPerformanceSection() {
   const live = computeLiveUrgency();
   if (live.openTotal === 0 && flatItemsWithVessel().every(it => !it.poDate)) return "";
@@ -8808,6 +8904,8 @@ function renderPerformanceSection() {
 
       <div class="pp-period-row">${periodChips}</div>
 
+      ${gaugeHTML(computeProcurementHealth(period, prevPeriod, live))}
+
       <div class="pp-grid">
         <div class="pp-kpi tier-${urgTier}">
           <div class="pp-kpi-num">${live.urgencyRate != null ? live.urgencyRate : "—"}<span class="pp-kpi-unit">${live.urgencyRate != null ? "%" : ""}</span></div>
@@ -8833,7 +8931,9 @@ function renderPerformanceSection() {
 
       ${period.suppliers.length ? `
       <div class="pp-suppliers">
-        <div class="pp-sup-head">Scorecard fornitori — ${escapeHTML(range.label)}</div>
+        <div class="pp-sup-head">Scorecard fornitori — ${escapeHTML(range.label)}
+          ${period.suppliers.length > 10 ? `<button class="pp-sup-all" onclick="window.openAllSuppliers()">Vedi tutti (${period.suppliers.length}) →</button>` : ""}
+        </div>
         <table class="pp-sup-table">
           <thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Affidabilità</th><th></th></tr></thead>
           <tbody>${supplierRows}</tbody>
@@ -8851,6 +8951,28 @@ window.setPerfPeriod = function(key) {
   state._perfPeriod = key;
   if (state.view === "overview") renderOverview();
 };
+
+// v0.29 — Modale "Tutti i fornitori" del periodo selezionato
+window.openAllSuppliers = function() {
+  const range = getPeriodRange(state._perfPeriod || "365");
+  const period = computePeriodStats(range.from, range.to);
+  window._allSuppliersData = period.suppliers;
+  renderAllSuppliersList("");
+  const searchInp = document.getElementById("all-suppliers-search");
+  if (searchInp) { searchInp.value = ""; searchInp.oninput = (e) => renderAllSuppliersList(e.target.value); }
+  document.getElementById("modal-all-suppliers").classList.add("open");
+};
+function renderAllSuppliersList(query) {
+  const q = (query || "").toLowerCase().trim();
+  const arr = (window._allSuppliersData || []).filter(s => !q || s.name.toLowerCase().includes(q));
+  const rows = arr.map(s => {
+    const scoreTier = s.score >= 75 ? "good" : s.score >= 50 ? "mid" : "bad";
+    const flag = s.refused > 0 ? `<span class="pp-sup-flag">⚠ ${s.refused} rifiutate</span>` : "";
+    return `<tr><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td><td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td><td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${flag}</td></tr>`;
+  }).join("");
+  document.getElementById("all-suppliers-body").innerHTML = `<table class="pp-sup-table"><thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Affidabilità</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="mo-empty">Nessun fornitore trovato.</td></tr>`}</tbody></table>`;
+  document.getElementById("all-suppliers-count").textContent = `${arr.length} fornitori`;
+}
 
 // ----- OVERVIEW VIEW -----------------------------------------------------
 function renderOverview() {
