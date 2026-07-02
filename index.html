@@ -30,6 +30,7 @@
   --c-toscana: #1565c0;       --c-toscana-soft: #e7f0fb;
   --c-liguria: #117a3a;       --c-liguria-soft: #e6f3eb;
   --c-norrbotten: #1a2c5e;    --c-norrbotten-soft: #e7eaf1;
+  --c-vega: #b8860b;          --c-vega-soft: #f7efd9;
 
   /* Scala tipografica v3 — armonica a 7 taglie */
   --fs-xs: 11px;
@@ -6471,6 +6472,39 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .crr-rcp-del:hover{ background:#fdecec; border-color:#f0c4c4; }
 .crr-rcp-edit-actions{ display:flex; gap:8px; justify-content:space-between; width:100%; margin-top:4px; }
 .todo-recur-badge{ display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; color:#5a2d8f; background:#efe6fb; border-radius:5px; padding:1px 7px; margin-left:2px; }
+
+/* === VEGA UNO (gestione manuale) — colore giallo ocra su tutte le regole nave === */
+.vessel-card[data-vid="vegauno"]{ border-top-color:var(--c-vega) !important; }
+.pill[data-vid="vegauno"] .pill-dot,
+.switcher-tab[data-vid="vegauno"] .pill-dot,
+.pill-row .pill[data-vid="vegauno"] .pill-dot{ background:var(--c-vega) !important; }
+.vessel-switcher .pill-row .pill[data-vid="vegauno"]{ background:var(--c-vega-soft) !important; color:#8a6508 !important; }
+.vessel-switcher .pill-row .pill[data-vid="vegauno"].active{ background:var(--c-vega) !important; color:#fff !important; }
+header.vessel-detail-banner[data-vid="vegauno"]{ background:var(--c-vega-soft) !important; border-left-color:var(--c-vega) !important; }
+header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !important; }
+.vessel-detail-banner[data-vid="vegauno"] .vdb-btn-primary{ background:var(--c-vega) !important; }
+.vd-subtabs[data-vid="vegauno"] .vd-subtab.active{ color:#8a6508; border-bottom-color:var(--c-vega); }
+.calg-vbar[data-vid="vegauno"]{ background:var(--c-vega); }
+.cal-vdot[data-vid="vegauno"]{ background:var(--c-vega); }
+.pr-vtag[data-vid="vegauno"]{ background:var(--c-vega-soft); color:#8a6508; }
+.cert-vessel-chip[data-vid="vegauno"]{ background:var(--c-vega); color:#fff; }
+.cert-vessel-section[data-vid="vegauno"]{ border-left:3px solid var(--c-vega); }
+.heatmap-vessel-dot[data-vid="vegauno"]{ background:var(--c-vega); }
+.pill-dot[data-vid="vegauno"]{ background:var(--c-vega); }
+
+/* Card nave a gestione manuale (VEGA UNO) */
+.vessel-card-manual{ cursor:pointer; }
+.vessel-card-manual .manual-tag{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#8a6508; background:var(--c-vega-soft); border:1px solid #e8d7a4; border-radius:20px; padding:3px 9px; white-space:nowrap; }
+.vessel-manual-sub{ font-size:12px; color:#8a93a0; margin:2px 0 14px; }
+.manual-stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.manual-stat{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:12px 14px; border-radius:11px; border:1px solid var(--border); background:#fff; cursor:pointer; text-align:left; }
+.manual-stat:hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
+.manual-stat .ms-num{ font-family:var(--font-mono); font-size:26px; font-weight:700; line-height:1; }
+.manual-stat .ms-lbl{ font-size:11px; font-weight:600; color:#8a93a0; }
+.manual-stat.red .ms-num{ color:#c8222a; }
+.manual-stat.amber .ms-num{ color:#b8740a; }
+.manual-stat.blue .ms-num{ color:#0a3f93; }
+.manual-stat.calm .ms-num{ color:#c2c9d2; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -7319,6 +7353,29 @@ const VESSELS = [
     driveUrl: "https://drive.google.com/drive/my-drive",
     notionUrl: "https://www.notion.so/NORRBOTTEN_PLACEHOLDER",
     infoshipUrl: "https://infoship.example.com/vessel/norrbotten"
+  },
+  {
+    vesselId: "vegauno",
+    displayName: "VEGA UNO",
+    manual: true,                // gestione manuale: nessun feed Infoship/procurement
+    imo: "",
+    mmsi: "247277600",
+    callSign: "IQYL",
+    aisClass: "Class B",
+    flag: "Italia",
+    flagEmoji: "\uD83C\uDDEE\uD83C\uDDF9",
+    type: "Nave oceanografica (16 m)",
+    generalType: "Research",
+    detailedType: "Oceanographic vessel",
+    masterName: "Cpt. ___",
+    masterEmail: "",
+    chiefEngName: "",
+    chiefEngEmail: "",
+    inspectorName: "",
+    inspectorEmail: "",
+    driveUrl: "https://drive.google.com/drive/my-drive",
+    notionUrl: "",
+    infoshipUrl: ""
   }
 ];
 
@@ -8538,13 +8595,37 @@ function renderOverview() {
   for (const cfg of VESSELS) {
     const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
     if (!v) {
-      cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}">
-        <div class="vessel-card-head">
-          <div class="vessel-name"><span class="pill-dot"></span>${cfg.displayName}</div>
-          <span class="vessel-meta faint">no data</span>
-        </div>
-        <div class="empty-state" style="padding: 16px;">Nessun dato disponibile per questa nave.</div>
-      </div>`;
+      // v0.26 — Nave a gestione manuale (es. VEGA UNO): card dedicata con cert + to-do
+      if (cfg.manual) {
+        const cs = getCertStatsForVessel(cfg.vesselId) || {};
+        const certExp = cs.expired || 0, certUrg = (cs.urgent || 0) + (cs.week || 0);
+        const vTodos = todosForVessel(cfg.vesselId, false);
+        cardsHTML += `<div class="vessel-card vessel-card-manual" data-vid="${cfg.vesselId}" data-vessel="${cfg.vesselId}">
+          <div class="vessel-card-head">
+            <div class="vessel-name"><span class="pill-dot" data-vid="${cfg.vesselId}"></span>${escapeHTML(cfg.displayName)}</div>
+            <span class="manual-tag">Gestione manuale</span>
+          </div>
+          <div class="vessel-manual-sub">${escapeHTML(cfg.type)} · ${cfg.flagEmoji || ""} ${escapeHTML(cfg.flag)}</div>
+          <div class="manual-stats">
+            <button class="manual-stat ${certExp>0?'red':certUrg>0?'amber':'calm'}" data-vessel-certs="${cfg.vesselId}">
+              <span class="ms-num">${certExp || certUrg || (cs.total||0)}</span>
+              <span class="ms-lbl">${certExp>0?'Cert. scaduti':certUrg>0?'Cert. in scadenza':'Certificati'}</span>
+            </button>
+            <button class="manual-stat ${vTodos.length>0?'blue':'calm'}" data-manual-todos="${cfg.vesselId}">
+              <span class="ms-num">${vTodos.length}</span>
+              <span class="ms-lbl">To-do aperte</span>
+            </button>
+          </div>
+        </div>`;
+      } else {
+        cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}">
+          <div class="vessel-card-head">
+            <div class="vessel-name"><span class="pill-dot"></span>${cfg.displayName}</div>
+            <span class="vessel-meta faint">no data</span>
+          </div>
+          <div class="empty-state" style="padding: 16px;">Nessun dato disponibile per questa nave.</div>
+        </div>`;
+      }
       continue;
     }
     const merged = { ...v, ...cfg };
@@ -8798,6 +8879,14 @@ function renderOverview() {
       if (certBadge) {
         e.stopPropagation();
         window.goCertificatesForVessel(certBadge.dataset.vesselCerts);
+        return;
+      }
+      // v0.26 — Click su stat "To-do aperte" di una nave manuale → scheda nave tab To-do
+      const mTodo = e.target.closest("[data-manual-todos]");
+      if (mTodo) {
+        e.stopPropagation();
+        state.view = "vessel"; state.selectedVesselId = mTodo.dataset.manualTodos; state.detailTab = "todo";
+        render();
         return;
       }
       // v0.20 — Click su badge insight procurement → Procurement della nave con filtro
@@ -9137,10 +9226,15 @@ window.toggleCalTodos = function() {
 // ----- VESSEL DETAIL VIEW ------------------------------------------------
 function renderVesselDetail() {
   const cfg = VESSELS.find(v => v.vesselId === state.selectedVesselId);
-  const v = state.data.vessels.find(x => x.vesselId === state.selectedVesselId);
-  if (!cfg || !v) {
+  let v = state.data.vessels.find(x => x.vesselId === state.selectedVesselId);
+  if (!cfg) {
     document.getElementById("view-root").innerHTML = `<div class="empty-state">Nave non trovata.</div>`;
     return;
+  }
+  // v0.26 — Nave a gestione manuale (es. VEGA UNO): nessun feed procurement.
+  // Sintetizzo un oggetto nave vuoto così i tab Certificati/To-do/Voyage/Diario funzionano.
+  if (!v) {
+    v = { vesselId: cfg.vesselId, items: [], rfqOpen: 0, rfqOverdue7: 0, readyForPO: 0, orders: 0, dnPending: 0, tracking: null };
   }
   const merged = { ...v, ...cfg };
   const trk = v.tracking;
