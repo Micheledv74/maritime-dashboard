@@ -6462,6 +6462,8 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .crr-rcp-edit:hover{ opacity:1; }
 .crr-rcp-add{ color:var(--accent); border-style:dashed; }
 .crr-rcp-manage{ color:var(--accent); border-style:dashed; }
+.crr-rcp-vessel{ background:#eef4ff; border-color:#c4d9f6; color:#0a3f93; font-weight:700; }
+.crr-rcp-vessel.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
 .crr-rcp-editrow{ display:flex; gap:8px; align-items:center; width:100%; margin-bottom:7px; }
 .crr-rcp-label{ flex:0 0 150px; height:38px; border:1px solid var(--border); border-radius:7px; padding:0 10px; font-family:inherit; font-size:13px; background:#fff; color:var(--text); }
 .crr-rcp-mail{ flex:1; min-width:0; height:38px; border:1px solid var(--border); border-radius:7px; padding:0 10px; font-family:inherit; font-size:13px; background:#fff; color:var(--text); }
@@ -7243,7 +7245,7 @@ const VESSELS = [
     generalType: "Cargo - Hazard A (Major)",
     detailedType: "Bulk Carrier",
     masterName: "Cpt. ___",
-    masterEmail: "master.peppino@example.com",
+    masterEmail: "mvpeppino@shipsemail.it",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.peppino@example.com",
     inspectorName: "Ispettore ___",
@@ -7265,7 +7267,7 @@ const VESSELS = [
     generalType: "Cargo",
     detailedType: "General Cargo",
     masterName: "Cpt. ___",
-    masterEmail: "master.medliguria@example.com",
+    masterEmail: "medliguria@shipsemail.it",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.medliguria@example.com",
     inspectorName: "Ispettore ___",
@@ -7287,7 +7289,7 @@ const VESSELS = [
     generalType: "Cargo",
     detailedType: "Bulk Carrier",
     masterName: "Cpt. ___",
-    masterEmail: "master.medtoscana@example.com",
+    masterEmail: "medtoscana@shipsemail.it",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.medtoscana@example.com",
     inspectorName: "Ispettore ___",
@@ -7309,7 +7311,7 @@ const VESSELS = [
     generalType: "Cargo",
     detailedType: "General Cargo",
     masterName: "Cpt. ___",
-    masterEmail: "master.norrbotten@example.com",
+    masterEmail: "norrbotten@shipsemail.it",
     chiefEngName: "C/Eng. ___",
     chiefEngEmail: "ce.norrbotten@example.com",
     inspectorName: "Ispettore ___",
@@ -13649,7 +13651,12 @@ function renderCertRecipients() {
   }
 
   // Modalità normale: chip toggle da includere nell'email
-  box.innerHTML = arr.map((r, i) => {
+  const vCfg = window._certReport.vessel !== "all" ? VESSELS.find(v => v.vesselId === window._certReport.vessel) : null;
+  const vMasterOk = vCfg && vCfg.masterEmail && !/example\.com|_{2,}/.test(vCfg.masterEmail);
+  const vesselChip = vMasterOk
+    ? `<button class="crr-rcp crr-rcp-vessel ${window._certReport._inclVesselMaster ? "active" : ""}" id="crr-rcp-vessel" title="${escapeAttr(vCfg.masterEmail)}">⚓ ${escapeHTML(vCfg.displayName)}</button>`
+    : "";
+  box.innerHTML = vesselChip + arr.map((r, i) => {
     const on = sel.includes(i);
     const hasMail = r.email && r.email.trim();
     return `<button class="crr-rcp ${on ? "active" : ""} ${hasMail ? "" : "noemail"}" data-rcp="${i}" title="${hasMail ? escapeAttr(r.email) : "Nessuna email — usa Gestisci per aggiungerla"}">${escapeHTML(r.label)}${hasMail ? "" : " ⚠"}</button>`;
@@ -13669,12 +13676,23 @@ function renderCertRecipients() {
     window._certReport._editRcp = true;
     renderCertRecipients();
   };
+  const vBtn = box.querySelector("#crr-rcp-vessel");
+  if (vBtn) vBtn.onclick = () => {
+    window._certReport._inclVesselMaster = !window._certReport._inclVesselMaster;
+    renderCertRecipients();
+  };
 }
 
 function certReportRecipientEmails() {
   const arr = loadCertRecipients();
   const sel = window._certReport.recipients || [];
-  return sel.map(i => arr[i] && arr[i].email).filter(Boolean).join(";");
+  const emails = sel.map(i => arr[i] && arr[i].email).filter(Boolean);
+  // Chip dinamico "Comandante nave" (se selezionato e la nave ha email)
+  if (window._certReport._inclVesselMaster && window._certReport.vessel !== "all") {
+    const cfg = VESSELS.find(v => v.vesselId === window._certReport.vessel);
+    if (cfg && cfg.masterEmail && !/example\.com|_{2,}/.test(cfg.masterEmail)) emails.push(cfg.masterEmail);
+  }
+  return emails.join(";");
 }
 
 window.openCertReport = function() {
@@ -13690,7 +13708,7 @@ window.openCertReport = function() {
   document.querySelectorAll("#crr-buckets .crr-bucket").forEach(b =>
     b.classList.toggle("active", window._certReport.buckets.includes(b.dataset.bucket)));
 
-  vsel.onchange = () => { window._certReport.vessel = vsel.value; refreshCertReportPreview(); };
+  vsel.onchange = () => { window._certReport.vessel = vsel.value; renderCertRecipients(); refreshCertReportPreview(); };
   document.querySelectorAll("#crr-buckets .crr-bucket").forEach(b => {
     b.onclick = () => {
       const k = b.dataset.bucket;
