@@ -6496,7 +6496,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 .vessel-card-manual{ cursor:pointer; }
 .vessel-card-manual .manual-tag{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#8a6508; background:var(--c-vega-soft); border:1px solid #e8d7a4; border-radius:20px; padding:3px 9px; white-space:nowrap; }
 .vessel-manual-sub{ font-size:12px; color:#8a93a0; margin:2px 0 14px; }
-.manual-stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.manual-stats{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
 .manual-stat{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:12px 14px; border-radius:11px; border:1px solid var(--border); background:#fff; cursor:pointer; text-align:left; }
 .manual-stat:hover{ box-shadow:var(--shadow-card); border-color:#cdd5de; }
 .manual-stat .ms-num{ font-family:var(--font-mono); font-size:26px; font-weight:700; line-height:1; }
@@ -6505,6 +6505,31 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 .manual-stat.amber .ms-num{ color:#b8740a; }
 .manual-stat.blue .ms-num{ color:#0a3f93; }
 .manual-stat.calm .ms-num{ color:#c2c9d2; }
+
+/* Registro ordini manuale (VEGA UNO) */
+.mo-manual-tag{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#8a6508; background:var(--c-vega-soft); border-radius:20px; padding:2px 9px; vertical-align:middle; margin-left:6px; }
+.mo-intro{ font-size:12.5px; color:#8a93a0; margin:0 0 14px; max-width:640px; line-height:1.5; }
+.mo-table-wrap{ border:1px solid var(--border); border-radius:12px; overflow:auto; box-shadow:var(--shadow-card); margin-bottom:14px; }
+.mo-table{ width:100%; border-collapse:collapse; background:#fff; min-width:720px; }
+.mo-table thead th{ background:#fafbfc; color:#aab2bd; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; text-align:left; padding:10px 12px; border-bottom:1px solid #eef1f4; }
+.mo-table tbody td{ padding:6px 8px; border-bottom:1px solid #f3f5f8; }
+.mo-table tbody tr:last-child td{ border-bottom:none; }
+.mo-in{ width:100%; border:1px solid transparent; border-radius:6px; padding:7px 8px; font-family:inherit; font-size:13px; background:transparent; color:var(--text); }
+.mo-in:hover{ border-color:#e3e8ee; }
+.mo-in:focus{ border-color:var(--accent); background:#fff; outline:none; }
+.mo-doc{ font-family:var(--font-mono); font-size:12px; min-width:110px; }
+.mo-desc{ min-width:180px; }
+.mo-supp{ min-width:130px; }
+.mo-amt{ text-align:right; min-width:70px; font-family:var(--font-mono); }
+.mo-status{ font-weight:700; font-size:12px; cursor:pointer; }
+.mo-status-rfq{ color:#9a4a00; }
+.mo-status-po{ color:#0a3f93; }
+.mo-status-delivered{ color:#1f5a2c; }
+.mo-row[data-mo-status="delivered"]{ opacity:.6; }
+.mo-del{ border:none; background:none; cursor:pointer; padding:6px; border-radius:6px; font-size:14px; }
+.mo-del:hover{ background:#fdecec; }
+.mo-empty{ text-align:center; color:#aab2bd; padding:24px; font-size:13px; }
+.mo-add{ }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .noon-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#0a3f93; }
@@ -8607,6 +8632,10 @@ function renderOverview() {
           </div>
           <div class="vessel-manual-sub">${escapeHTML(cfg.type)} · ${cfg.flagEmoji || ""} ${escapeHTML(cfg.flag)}</div>
           <div class="manual-stats">
+            <button class="manual-stat ${manualOrdersOpen(cfg.vesselId)>0?'blue':'calm'}" data-vid="${cfg.vesselId}">
+              <span class="ms-num">${manualOrdersOpen(cfg.vesselId)}</span>
+              <span class="ms-lbl">Ordini aperti</span>
+            </button>
             <button class="manual-stat ${certExp>0?'red':certUrg>0?'amber':'calm'}" data-vessel-certs="${cfg.vesselId}">
               <span class="ms-num">${certExp || certUrg || (cs.total||0)}</span>
               <span class="ms-lbl">${certExp>0?'Cert. scaduti':certUrg>0?'Cert. in scadenza':'Certificati'}</span>
@@ -9106,6 +9135,14 @@ function collectWeekEvents(fromISO, toISO, opts) {
       push(eff.date, { type: "delivery", vesselId: cfg.vesselId, label: truncate(it.description || "Consegna", 40) + tag, sub: eff.port || it.supplier || "", sort: 2 });
     }
   }
+  // 1b) Ordini manuali con data (navi a gestione manuale, es. VEGA UNO)
+  for (const cfg of VESSELS) {
+    if (!cfg.manual) continue;
+    for (const o of manualOrdersFor(cfg.vesselId)) {
+      if (!o.date || o.status === "delivered") continue;
+      push(o.date, { type: "delivery", vesselId: cfg.vesselId, label: truncate((o.docNum ? o.docNum + " " : "") + (o.description || "Ordine"), 40), sub: o.supplier || "", sort: 2 });
+    }
+  }
   // 2) Scadenze certificati
   if (state.certificates) {
     for (const cfg of VESSELS) {
@@ -9224,6 +9261,65 @@ window.toggleCalTodos = function() {
 };
 
 // ----- VESSEL DETAIL VIEW ------------------------------------------------
+// === REGISTRO ORDINI MANUALE (navi a gestione manuale, es. VEGA UNO) ===
+function loadAllManualOrders(){ try{ const o=JSON.parse(localStorage.getItem("mpd.manualOrders")||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
+function saveAllManualOrders(o){ try{ localStorage.setItem("mpd.manualOrders", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
+function manualOrdersFor(vid){ const all=loadAllManualOrders(); return Array.isArray(all[vid])?all[vid]:[]; }
+function manualOrdersOpen(vid){ return manualOrdersFor(vid).filter(o=>o.status!=="delivered").length; }
+window.addManualOrder = function(vid){
+  const all=loadAllManualOrders();
+  const arr=Array.isArray(all[vid])?all[vid]:[];
+  arr.push({ id:"mo_"+Date.now()+"_"+Math.random().toString(36).slice(2,6), docNum:"", description:"", supplier:"", status:"rfq", date:"", amount:"" });
+  all[vid]=arr; saveAllManualOrders(all);
+  renderManualOrdersInto(vid);
+};
+window.updateManualOrder = function(vid,id,field,value){
+  const all=loadAllManualOrders(); const arr=all[vid]||[]; const o=arr.find(x=>x.id===id);
+  if(!o) return; o[field]=value; all[vid]=arr; saveAllManualOrders(all);
+  // aggiorno solo i badge di stato senza ri-renderizzare tutto (mantiene focus input)
+  if(field==="status"){ renderManualOrdersInto(vid); }
+};
+window.deleteManualOrder = function(vid,id){
+  const all=loadAllManualOrders(); all[vid]=(all[vid]||[]).filter(x=>x.id!==id); saveAllManualOrders(all);
+  renderManualOrdersInto(vid);
+};
+function renderManualOrdersInto(vid){
+  const host=document.getElementById("manual-orders-host");
+  if(host) host.innerHTML=renderManualOrders(vid);
+}
+function renderManualOrders(vid){
+  const arr=manualOrdersFor(vid);
+  const open=arr.filter(o=>o.status!=="delivered").length;
+  const stOpt=(v)=>`
+    <option value="rfq" ${v==="rfq"?"selected":""}>RFQ</option>
+    <option value="po" ${v==="po"?"selected":""}>PO</option>
+    <option value="delivered" ${v==="delivered"?"selected":""}>Consegnato</option>`;
+  const rows=arr.map(o=>`
+    <tr class="mo-row" data-mo-status="${o.status}">
+      <td><input class="mo-in mo-doc" value="${escapeAttr(o.docNum||"")}" placeholder="N° RFQ/PO" oninput="window.updateManualOrder('${vid}','${o.id}','docNum',this.value)"></td>
+      <td><input class="mo-in mo-desc" value="${escapeAttr(o.description||"")}" placeholder="Descrizione" oninput="window.updateManualOrder('${vid}','${o.id}','description',this.value)"></td>
+      <td><input class="mo-in mo-supp" value="${escapeAttr(o.supplier||"")}" placeholder="Fornitore" oninput="window.updateManualOrder('${vid}','${o.id}','supplier',this.value)"></td>
+      <td><select class="mo-in mo-status mo-status-${o.status}" onchange="window.updateManualOrder('${vid}','${o.id}','status',this.value)">${stOpt(o.status)}</select></td>
+      <td><input type="date" class="mo-in mo-date" value="${escapeAttr(o.date||"")}" oninput="window.updateManualOrder('${vid}','${o.id}','date',this.value)"></td>
+      <td><input class="mo-in mo-amt" value="${escapeAttr(o.amount||"")}" placeholder="€" inputmode="decimal" oninput="window.updateManualOrder('${vid}','${o.id}','amount',this.value)"></td>
+      <td><button class="mo-del" title="Elimina" onclick="window.deleteManualOrder('${vid}','${o.id}')">🗑</button></td>
+    </tr>`).join("");
+  return `
+    <div class="section-title">
+      <h2>Registro ordini <span class="mo-manual-tag">manuale</span></h2>
+      <span class="section-meta">${arr.length} totali · ${open} aperti</span>
+    </div>
+    <p class="mo-intro">Traccia a mano RFQ, PO e consegne per questa nave. I dati restano solo qui (niente Infoship). Gli ordini con una data compaiono nel Carico settimana.</p>
+    <div class="mo-table-wrap">
+      <table class="mo-table">
+        <thead><tr><th>N° doc</th><th>Descrizione</th><th>Fornitore</th><th>Stato</th><th>Consegna</th><th>Importo</th><th></th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="7" class="mo-empty">Nessun ordine. Aggiungi il primo qui sotto.</td></tr>`}</tbody>
+      </table>
+    </div>
+    <button class="btn btn-primary mo-add" onclick="window.addManualOrder('${vid}')">+ Aggiungi ordine</button>
+  `;
+}
+
 function renderVesselDetail() {
   const cfg = VESSELS.find(v => v.vesselId === state.selectedVesselId);
   let v = state.data.vessels.find(x => x.vesselId === state.selectedVesselId);
@@ -9434,6 +9530,7 @@ function renderVesselDetail() {
     </div>
 
     <div class="vd-panel" data-tab="procurement" style="display:${_vtab==='procurement'?'':'none'};">
+      ${cfg.manual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : `
       ${ageBandsHTML}
       <div class="section-title"><h2>Pipeline procurement</h2></div>
       <div class="pipeline-grid">
@@ -9473,6 +9570,7 @@ function renderVesselDetail() {
           </table>
         </div>
       </section>
+      `}
     </div>
 
     <div class="vd-panel" data-tab="certificati" style="display:${_vtab==='certificati'?'':'none'};">
@@ -9507,15 +9605,17 @@ function renderVesselDetail() {
     window.scrollTo(0,0);
   };
 
-  // attach handlers
+  // attach handlers (guardati: le navi manuali non hanno la pipeline/items)
   document.querySelectorAll(".pipeline-col").forEach(col => {
     col.addEventListener("click", () => togglePipelineFilter(col.dataset.stage));
   });
-  document.getElementById("items-search").addEventListener("input", e => {
+  const _itemsSearch = document.getElementById("items-search");
+  if (_itemsSearch) _itemsSearch.addEventListener("input", e => {
     state.searchQuery = e.target.value;
     renderItemsTable(v);
   });
-  document.getElementById("supplier-filter").addEventListener("change", e => {
+  const _supplierFilter = document.getElementById("supplier-filter");
+  if (_supplierFilter) _supplierFilter.addEventListener("change", e => {
     state.supplierFilter = e.target.value;
     renderItemsTable(v);
   });
@@ -9533,9 +9633,10 @@ function renderVesselDetail() {
       goVesselWithFilter(cfg.vesselId, kpi.dataset.vdKpi);
     });
   });
-  document.getElementById("btn-export-pdf").addEventListener("click", () => exportVesselPDF(cfg.displayName));
+  const _exportBtn = document.getElementById("btn-export-pdf");
+  if (_exportBtn) _exportBtn.addEventListener("click", () => exportVesselPDF(cfg.displayName));
 
-  renderItemsTable(v);
+  if (document.getElementById("items-tbody")) renderItemsTable(v);
   attachActionHandlers(document.getElementById("view-root"));
 
   // KPI cliccabili in vessel-detail
