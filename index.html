@@ -6461,6 +6461,13 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .crr-rcp-edit{ opacity:.5; font-size:11px; }
 .crr-rcp-edit:hover{ opacity:1; }
 .crr-rcp-add{ color:var(--accent); border-style:dashed; }
+.crr-rcp-manage{ color:var(--accent); border-style:dashed; }
+.crr-rcp-editrow{ display:flex; gap:8px; align-items:center; width:100%; margin-bottom:7px; }
+.crr-rcp-label{ flex:0 0 150px; height:38px; border:1px solid var(--border); border-radius:7px; padding:0 10px; font-family:inherit; font-size:13px; background:#fff; color:var(--text); }
+.crr-rcp-mail{ flex:1; min-width:0; height:38px; border:1px solid var(--border); border-radius:7px; padding:0 10px; font-family:inherit; font-size:13px; background:#fff; color:var(--text); }
+.crr-rcp-del{ flex:none; width:38px; height:38px; border:1px solid var(--border); background:#fff; border-radius:7px; cursor:pointer; }
+.crr-rcp-del:hover{ background:#fdecec; border-color:#f0c4c4; }
+.crr-rcp-edit-actions{ display:flex; gap:8px; justify-content:space-between; width:100%; margin-top:4px; }
 .todo-recur-badge{ display:inline-flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; color:#5a2d8f; background:#efe6fb; border-radius:5px; padding:1px 7px; margin-left:2px; }
 @media(max-width:760px){ .noon-block.has-map{ grid-template-columns:1fr; } .noon-map{ min-height:180px; border-left:none; border-top:1px solid #cfe0fb; } }
 .noon-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
@@ -13607,18 +13614,49 @@ function renderCertRecipients() {
   if (!box) return;
   const arr = loadCertRecipients();
   const sel = window._certReport.recipients || [];
+  const editing = !!window._certReport._editRcp;
+
+  if (editing) {
+    // Modalità gestione: input inline (niente prompt, funziona ovunque)
+    box.innerHTML = arr.map((r, i) => `
+      <div class="crr-rcp-editrow">
+        <input class="crr-rcp-label" data-rcp-lbl="${i}" value="${escapeAttr(r.label)}" placeholder="Ruolo (es. Comandante)">
+        <input class="crr-rcp-mail" data-rcp-mail="${i}" value="${escapeAttr(r.email || "")}" placeholder="email@esempio.it" inputmode="email">
+        <button class="crr-rcp-del" data-rcp-del="${i}" title="Elimina">🗑</button>
+      </div>`).join("") + `
+      <div class="crr-rcp-edit-actions">
+        <button class="btn btn-sm" id="crr-rcp-addrow">+ Aggiungi destinatario</button>
+        <button class="btn btn-sm btn-primary" id="crr-rcp-done">Fatto</button>
+      </div>`;
+    // salva mentre digiti
+    box.querySelectorAll("[data-rcp-lbl]").forEach(inp => inp.oninput = () => {
+      const a = loadCertRecipients(); a[+inp.dataset.rcpLbl].label = inp.value; saveCertRecipients(a);
+    });
+    box.querySelectorAll("[data-rcp-mail]").forEach(inp => inp.oninput = () => {
+      const a = loadCertRecipients(); a[+inp.dataset.rcpMail].email = inp.value.trim(); saveCertRecipients(a);
+    });
+    box.querySelectorAll("[data-rcp-del]").forEach(btn => btn.onclick = () => {
+      const a = loadCertRecipients(); a.splice(+btn.dataset.rcpDel, 1); saveCertRecipients(a);
+      window._certReport.recipients = []; renderCertRecipients();
+    });
+    box.querySelector("#crr-rcp-addrow").onclick = () => {
+      const a = loadCertRecipients(); a.push({ label: "Nuovo", email: "" }); saveCertRecipients(a); renderCertRecipients();
+    };
+    box.querySelector("#crr-rcp-done").onclick = () => {
+      window._certReport._editRcp = false; renderCertRecipients();
+    };
+    return;
+  }
+
+  // Modalità normale: chip toggle da includere nell'email
   box.innerHTML = arr.map((r, i) => {
     const on = sel.includes(i);
     const hasMail = r.email && r.email.trim();
-    return `<button class="crr-rcp ${on ? "active" : ""} ${hasMail ? "" : "noemail"}" data-rcp="${i}" title="${hasMail ? escapeAttr(r.email) : "Nessuna email — tocca la matita per aggiungerla"}">
-        ${escapeHTML(r.label)}${hasMail ? "" : " ⚠"}
-        <span class="crr-rcp-edit" data-rcp-edit="${i}" title="Modifica">✎</span>
-      </button>`;
-  }).join("") + `<button class="crr-rcp crr-rcp-add" data-rcp-add="1" title="Aggiungi destinatario">+ Aggiungi</button>`;
+    return `<button class="crr-rcp ${on ? "active" : ""} ${hasMail ? "" : "noemail"}" data-rcp="${i}" title="${hasMail ? escapeAttr(r.email) : "Nessuna email — usa Gestisci per aggiungerla"}">${escapeHTML(r.label)}${hasMail ? "" : " ⚠"}</button>`;
+  }).join("") + `<button class="crr-rcp crr-rcp-manage" id="crr-rcp-manage" title="Aggiungi o modifica destinatari e indirizzi">✎ Gestisci</button>`;
 
   box.querySelectorAll(".crr-rcp[data-rcp]").forEach(btn => {
-    btn.onclick = (e) => {
-      if (e.target.closest("[data-rcp-edit]")) return;
+    btn.onclick = () => {
       const i = parseInt(btn.dataset.rcp, 10);
       const sel = window._certReport.recipients || [];
       const idx = sel.indexOf(i);
@@ -13627,29 +13665,8 @@ function renderCertRecipients() {
       renderCertRecipients();
     };
   });
-  box.querySelectorAll("[data-rcp-edit]").forEach(ed => {
-    ed.onclick = (e) => {
-      e.stopPropagation();
-      const i = parseInt(ed.dataset.rcpEdit, 10);
-      const arr = loadCertRecipients();
-      const cur = arr[i];
-      const label = prompt("Etichetta destinatario:", cur.label);
-      if (label === null) return;
-      const email = prompt("Email di " + label + ":", cur.email || "");
-      if (email === null) return;
-      arr[i] = { label: label.trim() || cur.label, email: (email || "").trim() };
-      saveCertRecipients(arr);
-      renderCertRecipients();
-    };
-  });
-  const addBtn = box.querySelector("[data-rcp-add]");
-  if (addBtn) addBtn.onclick = () => {
-    const arr = loadCertRecipients();
-    const label = prompt("Etichetta nuovo destinatario (es. Armatore):", "");
-    if (!label) return;
-    const email = prompt("Email di " + label + ":", "");
-    arr.push({ label: label.trim(), email: (email || "").trim() });
-    saveCertRecipients(arr);
+  box.querySelector("#crr-rcp-manage").onclick = () => {
+    window._certReport._editRcp = true;
     renderCertRecipients();
   };
 }
