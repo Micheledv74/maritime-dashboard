@@ -6435,6 +6435,26 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .cn-tile.tier-calm .cn-num{ color:#c2c9d2; }
 .cn-tile.tier-calm .cn-lbl{ color:#8a93a0; }
 
+/* === Performance procurement (v0.27) === */
+.pp-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+@media(max-width:700px){ .pp-grid{ grid-template-columns:1fr; } }
+.pp-kpi{ background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px 20px; }
+.pp-kpi-num{ font-family:var(--font-mono); font-size:34px; font-weight:700; line-height:1; }
+.pp-kpi-unit{ font-size:16px; font-weight:600; margin-left:3px; opacity:.7; }
+.pp-kpi-lbl{ font-size:13.5px; font-weight:700; color:#2a313c; margin-top:8px; }
+.pp-kpi-desc{ font-size:12px; color:#8a93a0; margin-top:5px; line-height:1.5; }
+.pp-kpi.tier-red .pp-kpi-num{ color:#c8222a; }
+.pp-kpi.tier-amber .pp-kpi-num{ color:#b8740a; }
+.pp-kpi.tier-calm .pp-kpi-num{ color:#1f8a4c; }
+.pp-suppliers{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
+.pp-sup-head{ padding:12px 16px; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#8a93a0; border-bottom:1px solid #eef1f4; }
+.pp-sup-table{ width:100%; border-collapse:collapse; }
+.pp-sup-table thead th{ background:#fafbfc; color:#aab2bd; font-weight:700; font-size:11px; letter-spacing:.05em; text-transform:uppercase; text-align:left; padding:9px 16px; border-bottom:1px solid #eef1f4; }
+.pp-sup-table tbody td{ padding:10px 16px; border-bottom:1px solid #f3f5f8; font-size:13px; color:#3a4250; }
+.pp-sup-table tbody tr:last-child td{ border-bottom:none; }
+.pp-sup-name{ font-weight:600; }
+.pp-sup-flag{ font-size:11px; font-weight:700; color:#b8740a; background:#fdf2dd; border-radius:6px; padding:2px 8px; white-space:nowrap; }
+
 /* === Report certificati (modale) === */
 .cert-view-head-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .cert-report-btn{ flex:none; white-space:nowrap; }
@@ -8565,6 +8585,92 @@ function renderError() {
     </div>`;
 }
 
+// === PERFORMANCE PROCUREMENT (v0.27) — ciclo RFQ, tasso urgenza, mini-registro fornitori ===
+function computeProcurementPerformance() {
+  const threshold = state.settings.overdueDays || 7;
+  let openRfqAll = [];       // tutte le RFQ ancora aperte (non evase, non rifiutate, non PO)
+  const bySupplier = {};    // nome fornitore -> { count, ageSum, ageN, refused }
+
+  for (const v of (state.data && state.data.vessels) || []) {
+    for (const it of v.items || []) {
+      const isOpenRFQ = it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" && it.rfqStatus !== "RFQ Refused" && (!it.poStatus || it.poStatus === "");
+      if (isOpenRFQ && it.rfqDays != null) openRfqAll.push(it);
+
+      const supName = it.supplier && it.supplier !== "—" ? it.supplier : null;
+      if (supName && it.rfqStatus) {
+        const s = (bySupplier[supName] = bySupplier[supName] || { count: 0, ageSum: 0, ageN: 0, refused: 0 });
+        s.count++;
+        if (it.rfqDays != null) { s.ageSum += it.rfqDays; s.ageN++; }
+        if (it.rfqStatus === "RFQ Refused") s.refused++;
+      }
+    }
+  }
+
+  // 1) Tempo medio di ciclo: età media (giorni) delle RFQ attualmente aperte
+  const avgCycleDays = openRfqAll.length
+    ? Math.round(openRfqAll.reduce((s, it) => s + it.rfqDays, 0) / openRfqAll.length)
+    : null;
+
+  // 2) Tasso di urgenza: quota di RFQ aperte oltre soglia (stessa soglia usata per "Sollecita")
+  const urgentCount = openRfqAll.filter(it => it.rfqDays > threshold).length;
+  const urgencyRate = openRfqAll.length ? Math.round((urgentCount / openRfqAll.length) * 100) : null;
+
+  // 3) Mini-registro fornitori: top per volume, con tempo medio ed eventuali rifiuti
+  const suppliers = Object.entries(bySupplier)
+    .map(([name, s]) => ({ name, count: s.count, avgDays: s.ageN ? Math.round(s.ageSum / s.ageN) : null, refused: s.refused }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  return { avgCycleDays, urgencyRate, urgentCount, openTotal: openRfqAll.length, threshold, suppliers };
+}
+
+function renderPerformanceSection() {
+  const p = computeProcurementPerformance();
+  if (p.openTotal === 0 && p.suppliers.length === 0) return "";  // niente da mostrare, non ingombro
+
+  const cycleTier = p.avgCycleDays == null ? "calm" : p.avgCycleDays > 15 ? "red" : p.avgCycleDays > 7 ? "amber" : "calm";
+  const urgTier = p.urgencyRate == null ? "calm" : p.urgencyRate > 40 ? "red" : p.urgencyRate > 15 ? "amber" : "calm";
+
+  const supplierRows = p.suppliers.map(s => {
+    const flag = s.refused > 0 ? `<span class="pp-sup-flag" title="${s.refused} RFQ rifiutate da questo fornitore">⚠ ${s.refused} rifiutate</span>` : "";
+    return `<tr>
+      <td class="pp-sup-name">${escapeHTML(s.name)}</td>
+      <td class="mono">${s.count}</td>
+      <td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td>
+      <td>${flag}</td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <section style="margin-bottom:24px;">
+      <div class="section-title">
+        <h2><svg class="icon icon-md"><use href="#i-truck"/></svg>Performance procurement</h2>
+        <span class="section-meta">indicatori sulle RFQ aperte in flotta</span>
+      </div>
+      <div class="pp-grid">
+        <div class="pp-kpi tier-${cycleTier}">
+          <div class="pp-kpi-num">${p.avgCycleDays != null ? p.avgCycleDays : "—"}<span class="pp-kpi-unit">${p.avgCycleDays != null ? "gg" : ""}</span></div>
+          <div class="pp-kpi-lbl">Tempo medio di attesa RFQ</div>
+          <div class="pp-kpi-desc">Da quanti giorni, in media, le RFQ aperte aspettano una risposta. Più è basso, più il procurement è scorrevole.</div>
+        </div>
+        <div class="pp-kpi tier-${urgTier}">
+          <div class="pp-kpi-num">${p.urgencyRate != null ? p.urgencyRate : "—"}<span class="pp-kpi-unit">${p.urgencyRate != null ? "%" : ""}</span></div>
+          <div class="pp-kpi-lbl">Tasso di urgenza</div>
+          <div class="pp-kpi-desc">${p.urgencyRate != null ? `${p.urgentCount} RFQ su ${p.openTotal} aperte sono ferme da oltre ${p.threshold} giorni.` : "Nessuna RFQ aperta al momento."} Se sale, stai lavorando troppo "in emergenza" invece che con anticipo — un segnale per pianificare prima.</div>
+        </div>
+      </div>
+      ${p.suppliers.length ? `
+      <div class="pp-suppliers">
+        <div class="pp-sup-head">Fornitori più utilizzati</div>
+        <table class="pp-sup-table">
+          <thead><tr><th>Fornitore</th><th>RFQ inviate</th><th>Tempo medio</th><th></th></tr></thead>
+          <tbody>${supplierRows}</tbody>
+        </table>
+      </div>` : ""}
+    </section>
+  `;
+}
+
 // ----- OVERVIEW VIEW -----------------------------------------------------
 function renderOverview() {
   const root = document.getElementById("view-root");
@@ -8882,6 +8988,8 @@ function renderOverview() {
       </div>
       <div class="heatmap">${renderHeatmap()}</div>
     </section>
+
+    ${renderPerformanceSection()}
 
     <section class="fusi-section">
       <div class="fusi-bar">
