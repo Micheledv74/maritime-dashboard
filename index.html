@@ -9824,7 +9824,10 @@ function renderVesselDetail() {
   </div>`;
 
   // RFQ age bands: vista a colpo d'occhio degli RFQ per fascia di età
-  const rfqItems = (v.items || []).filter(it => it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" && (!it.poStatus || it.poStatus === ""));
+  // v0.30 fix — uso lo stage RFQ canonico di computePipeline() (stesso usato dalla tabella/pipeline),
+  // così il conteggio per fascia combacia sempre con quello che si vede cliccandoci sopra.
+  const pipelineForAge = computePipeline(v);
+  const rfqItems = pipelineForAge.RFQ.items;
   const band17 = rfqItems.filter(it => it.rfqDays != null && it.rfqDays >= 1 && it.rfqDays <= 7).length;
   const band815 = rfqItems.filter(it => it.rfqDays != null && it.rfqDays >= 8 && it.rfqDays <= 15).length;
   const band15plus = rfqItems.filter(it => it.rfqDays != null && it.rfqDays > 15).length;
@@ -9848,7 +9851,7 @@ function renderVesselDetail() {
     </section>` : "";
 
   // Pipeline counts per state
-  const pipeline = computePipeline(v);
+  const pipeline = pipelineForAge;
 
   // v0.10.5 — Uso renderActionsTodayV2 per uniformità con la home (con vessel forzato e lookback 7g)
   const actionsHTML = renderActionsTodayV2({
