@@ -13771,30 +13771,27 @@ window.openCertImport = function(vesselId) {
 // === Helper: stats per nave ===
 // v0.20 — Procurement insights per la card flotta e il blocco noon
 // B) PO con merce ricevuta/in ordine ma SENZA consegna pianificata (rischio "ordine perso")
+// v0.30 fix — uso lo stesso stage canonico di computePipeline() (quello che vedi cliccando il filtro PO),
+// così il badge e il click mostrano sempre lo stesso identico elenco.
 function getUnplannedPOs(vesselId){
   const v = (state.data && state.data.vessels || []).find(x => x.vesselId === vesselId);
   if(!v || !v.items) return [];
-  return v.items.filter(it => {
-    const hasPO = !!(it.poNumber && String(it.poNumber).trim());
-    if(!hasPO) return false;
-    // già consegnato (DN emessa/chiusa) → non serve pianificare
-    const delivered = !!(it.dnNumber && String(it.dnNumber).trim()) || /closed|delivered|consegn/i.test(it.dnStatus||"");
-    if(delivered) return false;
+  const pipeline = computePipeline(v);
+  return pipeline.PO.items.filter(it => {
     const plan = getDeliveryPlan(it.id);
     const eff = getEffectiveDelivery(it, vesselId);
     return !plan && !eff.date;  // nessun piano e nessuna data effettiva
   });
 }
 // C) RFQ ferme da troppo (oltre soglia giorni)
+// v0.30 fix — stesso stage canonico di computePipeline(): esclude cancellate/rifiutate-chiuse e quelle
+// già diventate PO, così il numero del badge combacia sempre con l'elenco che vedi cliccandoci sopra.
 function getStaleRFQs(vesselId, thresholdDays){
   thresholdDays = thresholdDays || 14;
   const v = (state.data && state.data.vessels || []).find(x => x.vesselId === vesselId);
   if(!v || !v.items) return [];
-  return v.items.filter(it => {
-    // RFQ aperta: ha rfqDays, non ancora diventata PO
-    const isOpenRFQ = it.rfqDays != null && !(it.poNumber && String(it.poNumber).trim());
-    return isOpenRFQ && it.rfqDays >= thresholdDays;
-  });
+  const pipeline = computePipeline(v);
+  return pipeline.RFQ.items.filter(it => it.rfqDays != null && it.rfqDays >= thresholdDays);
 }
 // D) Giorni all'arrivo dal voyage/noon (numero, può essere negativo se in ritardo)
 function getDaysToArrival(vesselId){
