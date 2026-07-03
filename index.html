@@ -6500,28 +6500,32 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .ph-badge-mid{ background:#fdf2dd; color:#b8740a; }
 .ph-badge-bad{ background:#fbdcde; color:#8f1219; }
 .ph-sub{ font-size:12px; color:#8a93a0; margin-top:5px; line-height:1.5; max-width:520px; }
-.ph-reasons{ margin-top:10px; display:flex; flex-direction:column; gap:4px; }
-.ph-reason{ display:flex; align-items:baseline; gap:8px; font-size:12.5px; }
+.ph-reasons{ margin-top:10px; display:flex; flex-direction:column; gap:7px; }
+.ph-reason{ display:flex; align-items:baseline; gap:8px; font-size:12.5px; line-height:1.45; }
 .ph-reason-pts{ font-family:var(--font-mono); font-weight:700; flex:none; min-width:32px; }
 .ph-reason.neg .ph-reason-pts{ color:#c8222a; }
 .ph-reason.pos .ph-reason-pts{ color:#1f8a4c; }
-.ph-reason-txt{ color:#5b6470; }
+.ph-reason-txt{ color:#5b6470; flex:1; min-width:0; }
 .pp-sup-all{ float:right; font-size:11.5px; font-weight:700; color:var(--accent); background:none; border:none; cursor:pointer; }
 
 /* v0.31 — Andamento Salute procurement (mini-trend a destra del gauge) */
 .ph-wrap{ align-items:stretch; }
-.ph-trend{ flex:none; width:170px; padding-left:18px; border-left:1px solid #eef1f4; display:flex; flex-direction:column; justify-content:center; }
-.ph-trend-head{ font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#aab2bd; margin-bottom:6px; }
-.ph-trend-svg{ display:block; width:100%; height:46px; }
-.ph-trend-labels{ display:flex; justify-content:space-between; margin-top:2px; }
+.ph-gauge-col{ flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+.ph-scale-hint{ font-size:9px; font-weight:600; color:#b0b8c2; text-align:center; }
+.ph-body{ display:flex; flex-direction:column; justify-content:center; }
+.ph-trend{ flex:none; width:210px; padding-left:20px; border-left:1px solid #eef1f4; display:flex; flex-direction:column; justify-content:center; }
+.ph-trend-head{ font-size:10.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:#aab2bd; margin-bottom:8px; display:flex; flex-direction:column; gap:2px; }
+.ph-trend-note{ font-size:9.5px; font-weight:600; letter-spacing:0; text-transform:none; color:#c2c9d2; }
+.ph-trend-svg{ display:block; width:100%; height:70px; border-radius:6px; overflow:hidden; }
+.ph-trend-labels{ display:flex; justify-content:space-between; margin-top:4px; }
 .ph-trend-labels span{ font-size:9px; font-weight:600; color:#c2c9d2; }
-.ph-trend-deltas{ display:flex; align-items:center; gap:6px; margin-top:8px; }
-.ph-trend-delta{ font-family:var(--font-mono); font-size:12.5px; font-weight:700; }
+.ph-trend-deltas{ display:flex; align-items:center; gap:6px; margin-top:9px; }
+.ph-trend-delta{ font-family:var(--font-mono); font-size:13px; font-weight:700; }
 .ph-trend-delta.up{ color:#1f8a4c; }
 .ph-trend-delta.down{ color:#c8222a; }
 .ph-trend-delta.flat{ color:#9aa3af; }
 .ph-trend-vs{ font-size:10.5px; color:#9aa3af; }
-.ph-trend-empty{ width:170px; }
+.ph-trend-empty{ width:210px; }
 .ph-trend-nodata{ font-size:11px; color:#b0b8c2; line-height:1.5; }
 @media(max-width:820px){ .ph-wrap{ flex-direction:column; } .ph-trend{ width:100%; padding-left:0; border-left:none; border-top:1px solid #eef1f4; padding-top:14px; margin-top:4px; } }
 
@@ -8882,33 +8886,32 @@ function gaugeHTML(health) {
   const color = colors[health.tier];
   const reasonsHTML = health.reasons.map(r => `<div class="ph-reason ${r.sign === "+" ? "pos" : "neg"}"><span class="ph-reason-pts">${r.sign}${r.pts}</span><span class="ph-reason-txt">${escapeHTML(r.text)}</span></div>`).join("");
 
-  // v0.31 — Andamento: mini-linea degli ultimi 6 mesi + delta vs mese scorso
+  // v0.31 — Andamento: mini-linea a SCALA FISSA 0-100 (proporzionata e leggibile) + delta vs mese scorso
   const trend = computeHealthTrend(6);
   const withData = trend.filter(m => m.hasData);
   let trendHTML = "";
   if (withData.length >= 2) {
-    const W = 150, H = 46;
+    const W = 190, H = 70, PAD = 6;
     const scores = trend.map(m => m.score);
-    const min = Math.min(...scores), max = Math.max(...scores);
-    const range = (max - min) || 1;
-    const pts = scores.map((s, i) => {
-      const x = (i / (scores.length - 1)) * W;
-      const y = H - ((s - min) / range) * H;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(" ");
-    const lastIdx = withData.length ? trend.lastIndexOf(withData[withData.length - 1]) : scores.length - 1;
+    const yOf = (s) => PAD + (H - PAD * 2) * (1 - s / 100);  // scala FISSA 0-100, non auto-min/max
+    const pts = scores.map((s, i) => `${((i / (scores.length - 1)) * W).toFixed(1)},${yOf(s).toFixed(1)}`).join(" ");
+    const lastIdx = scores.length - 1;
     const last = scores[lastIdx];
     const prev = lastIdx > 0 ? scores[lastIdx - 1] : null;
-    const first = scores[0];
     const deltaMonth = prev != null ? last - prev : null;
-    const delta6m = last - first;
     const arrowHTML = (d) => d == null ? "" : `<span class="ph-trend-delta ${d > 0 ? "up" : d < 0 ? "down" : "flat"}">${d > 0 ? "▲" : d < 0 ? "▼" : "="} ${Math.abs(d)}</span>`;
+    const y50 = yOf(50).toFixed(1), y75 = yOf(75).toFixed(1);
     trendHTML = `
       <div class="ph-trend">
-        <div class="ph-trend-head">Andamento 6 mesi</div>
+        <div class="ph-trend-head">Andamento 6 mesi <span class="ph-trend-note">100=ottimo, più alto è meglio</span></div>
         <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="ph-trend-svg">
+          <rect x="0" y="${yOf(100).toFixed(1)}" width="${W}" height="${(parseFloat(y75) - yOf(100)).toFixed(1)}" fill="#e7f5ec"/>
+          <rect x="0" y="${y75}" width="${W}" height="${(parseFloat(y50) - parseFloat(y75)).toFixed(1)}" fill="#fdf2dd"/>
+          <rect x="0" y="${y50}" width="${W}" height="${(yOf(0) - parseFloat(y50)).toFixed(1)}" fill="#fbdcde"/>
+          <line x1="0" y1="${y75}" x2="${W}" y2="${y75}" stroke="#d8dee5" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="0" y1="${y50}" x2="${W}" y2="${y50}" stroke="#d8dee5" stroke-width="1" stroke-dasharray="3,3"/>
           <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="${(scores.length - 1) / (scores.length - 1) * W}" cy="${H - ((last - min) / range) * H}" r="3.2" fill="${color}"/>
+          ${scores.map((s, i) => `<circle cx="${((i / (scores.length - 1)) * W).toFixed(1)}" cy="${yOf(s).toFixed(1)}" r="${i === lastIdx ? 3.6 : 2.2}" fill="${i === lastIdx ? color : "#fff"}" stroke="${color}" stroke-width="1.5"/>`).join("")}
         </svg>
         <div class="ph-trend-labels">${trend.map(m => `<span>${m.label}</span>`).join("")}</div>
         <div class="ph-trend-deltas">${arrowHTML(deltaMonth)}<span class="ph-trend-vs">vs mese scorso</span></div>
@@ -8919,13 +8922,16 @@ function gaugeHTML(health) {
 
   return `
     <div class="ph-wrap">
-      <div class="ph-gauge">
-        <svg width="128" height="76" viewBox="0 0 128 76">
-          <path d="M 10 64 A ${r} ${r} 0 0 1 118 64" fill="none" stroke="#eef1f4" stroke-width="12" stroke-linecap="round"/>
-          <path d="M 10 64 A ${r} ${r} 0 0 1 118 64" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round"
-                stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - pct)}"/>
-        </svg>
-        <div class="ph-score" style="color:${color}">${health.score}</div>
+      <div class="ph-gauge-col">
+        <div class="ph-gauge">
+          <svg width="128" height="76" viewBox="0 0 128 76">
+            <path d="M 10 64 A ${r} ${r} 0 0 1 118 64" fill="none" stroke="#eef1f4" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 10 64 A ${r} ${r} 0 0 1 118 64" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - pct)}"/>
+          </svg>
+          <div class="ph-score" style="color:${color}">${health.score}</div>
+        </div>
+        <div class="ph-scale-hint">0-100 · più alto è meglio</div>
       </div>
       <div class="ph-body">
         <div class="ph-title">Salute procurement <span class="ph-badge ph-badge-${health.tier}">${escapeHTML(health.label)}</span></div>
