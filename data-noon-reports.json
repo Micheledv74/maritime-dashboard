@@ -105,20 +105,20 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": null,
-        "remarks": "Email scambiata tra ufficio acquisti e nave per richiesta spare parts (motori elettrici e guarnizioni per scambiatori). Nessun dato operativo o posizione nave presente nel testo.",
+        "status": "Email exchange regarding critical spares (electrical motors and coolers) - no NOON REPORT data present",
+        "remarks": "Nessun NOON REPORT trovato nel testo fornito. Solo comunicazioni relative a richieste di parti di ricambio.",
         "vesselId": "medtoscana"
       },
       {
         "date": "2026-07-03",
-        "type": "port",
+        "type": "sea",
         "lat": null,
         "lon": null,
-        "positionText": "Galveston Fairway",
+        "positionText": null,
         "from": null,
-        "to": null,
+        "to": "Galveston Fairway",
         "nextPort": null,
-        "etaText": null,
+        "etaText": "p/s Galveston Fairway",
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "NOR submitted at Galveston Fairway",
-        "remarks": "NOR presented for Galveston Fairway; no additional operational data provided",
+        "status": "in navigazione",
+        "remarks": "NOR presentato per Galveston Fairway",
         "vesselId": "medtoscana"
       }
     ],
@@ -270,7 +270,7 @@
           "fw": null
         },
         "status": null,
-        "remarks": "RightShip inspection #73348 for vessel MED LIGURIA IMO 9604811 in Vitória, Brazil. Surveyor Petros Spanogiannis resides in Praia do Canto, Vitória/ES. Inspection scheduled for 03 July 2026 at 07:15 hrs. Previous inspection conducted on 28-29 June 2026. Vessel expected to berth after 01 July 2026 following completion of previous vessel operations.",
+        "remarks": "No valid noon report data found in the provided email text. Content relates to RightShip inspection arrangements for vessel MED LIGURIA IMO 9604811 in Vitória, Brazil.",
         "vesselId": "medliguria"
       },
       {
@@ -576,5 +576,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-03T03:05:09.567Z"
+  "syncedAt": "2026-07-03T04:05:09.664Z"
 }
