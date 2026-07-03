@@ -105,20 +105,20 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Email exchange regarding critical spares (electrical motors and coolers) - no NOON REPORT data present",
-        "remarks": "Nessun NOON REPORT trovato nel testo fornito. Solo comunicazioni relative a richieste di parti di ricambio.",
+        "status": null,
+        "remarks": "Email scambiata tra ufficio acquisti e nave per richiesta spare parts (motori elettrici e guarnizioni per scambiatori). Nessun dato operativo o posizione nave presente nel testo.",
         "vesselId": "medtoscana"
       },
       {
         "date": "2026-07-03",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Galveston Fairway",
         "from": null,
-        "to": "Galveston Fairway",
+        "to": null,
         "nextPort": null,
-        "etaText": "p/s Galveston Fairway",
+        "etaText": null,
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione",
-        "remarks": "NOR presentato per Galveston Fairway",
+        "status": "NOR submitted at Galveston Fairway",
+        "remarks": "NOR presented for Galveston Fairway; no additional operational data provided",
         "vesselId": "medtoscana"
       }
     ],
@@ -270,7 +270,7 @@
           "fw": null
         },
         "status": null,
-        "remarks": "No valid noon report data found in the provided email text. Content relates to RightShip inspection arrangements for vessel MED LIGURIA IMO 9604811 in Vitória, Brazil.",
+        "remarks": "RightShip inspection #73348 for vessel MED LIGURIA IMO 9604811 in Vitória, Brazil. Surveyor Petros Spanogiannis resides in Praia do Canto, Vitória/ES. Inspection scheduled for 03 July 2026 at 07:15 hrs. Previous inspection conducted on 28-29 June 2026. Vessel expected to berth after 01 July 2026 following completion of previous vessel operations.",
         "vesselId": "medliguria"
       },
       {
@@ -412,19 +412,19 @@
       },
       {
         "date": "2026-07-02",
-        "type": "anchor",
-        "lat": "22-02.29N",
-        "lon": "114-09.34E",
+        "type": "sea",
+        "lat": null,
+        "lon": null,
         "positionText": null,
-        "from": "Hong Kong",
-        "to": null,
+        "from": "Dong Guan",
+        "to": "Lobito/Tema",
         "nextPort": null,
         "etaText": null,
         "etbText": null,
-        "etdText": "17:24 LT",
+        "etdText": null,
         "etaISO": null,
         "etbISO": null,
-        "etdISO": "2026-07-02T17:24",
+        "etdISO": null,
         "speed": null,
         "course": null,
         "milesToGo": null,
@@ -433,8 +433,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Anchored at shelter position due to Typhoon Signal 1",
-        "remarks": "Vessel departed Hong Kong at 17:24 LT and dropped anchor at 19:36 LT. Position confirmed via GPS. Fresh water supply completed before departure. Proceeding to shelter anchorage due to weather conditions.",
+        "status": "In transito verso Lobito/Tema. Prossimo impiego: clinker 55,000 MT +/-10% (CLP 31.10.2025, Laycan 6-10 July 2026). Bunkeraggio programmato a Singapore e Port Louis.",
+        "remarks": "Nave in rotta ottimale secondo WRC (DTN). Carico: 55,000 MT clinker +/-10% (CLP 31.10.2025). Laycan 6-10 July 2026. Bunkeraggio: 1° a Singapore (LSFO max), 2° a Port Louis (circa 700 MT residui). Draft: Dong Guan 13.2m FW, Lobito 13.5m SW, Tema 10m SW. Scarico: 20,000 MT a Lobito, resto a Tema. Velocità ottimale secondo WRC (ballast 12.4 kts, laden 10 kts).",
         "vesselId": "peppino"
       },
       {
@@ -576,5 +576,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-03T02:05:08.458Z"
+  "syncedAt": "2026-07-03T03:05:09.567Z"
 }
