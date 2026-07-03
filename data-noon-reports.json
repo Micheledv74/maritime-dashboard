@@ -275,10 +275,10 @@
       },
       {
         "date": "2026-07-02",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Port Vitoria, Brazil",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -296,8 +296,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": null,
-        "remarks": "No valid noon report data found in the provided email text. Content relates to RightShip inspection arrangements for vessel MED LIGURIA IMO 9604811 in Vitória, Brazil.",
+        "status": "PSC inspection completed in Port Vitoria, Brazil. No deficiencies found.",
+        "remarks": "Right Ship inspection requested in Vitoria, Brazil. Surveyor visa issue pending confirmation.",
         "vesselId": "medliguria"
       },
       {
@@ -466,29 +466,29 @@
       },
       {
         "date": "2026-07-03",
-        "type": "anchor",
-        "lat": "22-02.4N",
-        "lon": "114-09.2E",
+        "type": null,
+        "lat": null,
+        "lon": null,
         "positionText": null,
-        "from": "SE LAMA ANCHORAGE HONGKONG",
-        "to": "Guishan China NO.10 DG Anchorage",
+        "from": "Dongguan",
+        "to": "Lobito/Tema",
         "nextPort": null,
-        "etaText": "TBA",
+        "etaText": null,
         "etbText": null,
-        "etdText": null,
+        "etdText": "6-10 July 2026",
         "etaISO": null,
         "etbISO": null,
-        "etdISO": null,
-        "speed": "4.44",
+        "etdISO": "2026-07-06T00:00",
+        "speed": null,
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": 817.7,
-          "lsmgo": 160.72,
-          "fw": 125
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
         },
-        "status": "In anchor at No.10 DG Anchorage after heaving up and anchoring again.",
-        "remarks": "Commenced heave up anchor at 1700LT, anchor aweigh at 1718LT, vessel on the way at 1724LT. Dropped anchor at 1936LT at Lat.22-02.29N Long.114-09.34E. Received FW: 150.0MT.",
+        "status": "Voyage pianificato: Dongguan -> Lobito/Tema con 55,000 MT +/-10% clinker. Laycan 6-10 luglio 2026.",
+        "remarks": "Cargo: 55,000 MT +/-10% CLINKER. Discharge: 20,000 MT a Lobito, resto a Tema. Bunker stop a Singapore e Port Louis. Velocità ottimale da seguire secondo WRC (DTN).",
         "vesselId": "peppino"
       },
       {
@@ -657,5 +657,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-03T08:05:08.898Z"
+  "syncedAt": "2026-07-03T09:05:09.184Z"
 }
