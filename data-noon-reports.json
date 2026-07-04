@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "port",
+        "type": "sea",
         "lat": null,
         "lon": null,
-        "positionText": "Galveston Fairway",
+        "positionText": null,
         "from": null,
-        "to": null,
+        "to": "Galveston Fairway",
         "nextPort": null,
-        "etaText": null,
+        "etaText": "p/s Galveston Fairway",
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,35 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "NOR submitted at Galveston Fairway",
-        "remarks": "NOR presented for Galveston Fairway; no additional operational data provided",
+        "status": "in navigazione",
+        "remarks": "NOR presentato per Galveston Fairway",
+        "vesselId": "medtoscana"
+      },
+      {
+        "date": "2026-07-04",
+        "type": "port",
+        "lat": null,
+        "lon": null,
+        "positionText": "HOUSTON ANCHORAGE",
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": "07.07.2026 LPM",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": "2026-07-07T00:00",
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 495.733,
+          "lsmgo": 118.39,
+          "fw": null
+        },
+        "status": "In port at Houston Anchorage",
+        "remarks": "Cargo loading operations pending (50,500 MT Pet Coke)",
         "vesselId": "medtoscana"
       },
       {
@@ -332,7 +359,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VITORIA, BRAZIL",
+        "positionText": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -350,8 +377,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
-        "remarks": "Vessel Condition: Ballast. Ballast quantity: 7784.00 MT. Port Consumption: Working. Main Engine Hrs: 0.00",
+        "status": "In Port at Vitoria, Brazil (Berth No. 207), Ballast condition, working on port consumption",
+        "remarks": "Vessel at Berth No. 207 Vitoria, Brazil. Ballast quantity: 7784.00 MT. Fresh water ROB: 351.000 MT. Ballast pump 1 used for 24.00 hrs. Ballast water treatment system used for 24.00 hrs. Cranes 1-4 used (4, 5, 8, 8 hrs respectively).",
         "vesselId": "medliguria"
       },
       {
@@ -433,8 +460,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Dongguan per operazioni di approvvigionamento",
-        "remarks": "ETA Dongguan 15/06/2026. Ordini aggiuntivi per EPIRB HRU e altri materiali. Starlink non consentito in porti cinesi.",
+        "status": "In arrivo a Dongguan per consegna ordini",
+        "remarks": "ETA Dongguan 15/06/2026. Ordini per consegna a nave in porto. Starlink non consentito in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -792,5 +819,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-04T17:05:08.207Z"
+  "syncedAt": "2026-07-04T18:05:10.905Z"
 }
