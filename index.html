@@ -6069,6 +6069,9 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .fusi-item.ph-dusk{ background:#e8623c; border-color:#d6502b; color:#fff; }
 .fusi-item.ph-dusk .fusi-code{ color:#ffd9cc; opacity:1; }
 .fusi-item .fusi-work{ background:#caff5e; box-shadow:0 0 0 2px rgba(0,0,0,.12); }
+.fusi-item.fusi-utc{ background:#111827; border-color:#111827; color:#fff; box-shadow:0 0 0 2px rgba(17,24,39,.15); font-weight:700; }
+.fusi-item.fusi-utc .fusi-code{ color:#ffd166; opacity:1; letter-spacing:.08em; }
+.fusi-item.fusi-utc .fusi-time{ color:#fff; }
 .fusi-item.ph-dawn .fusi-work{ background:#1f7a1f; box-shadow:0 0 0 2px rgba(255,255,255,.35); }
 .fusi-edit{ flex:none; width:28px; height:28px; border:1px solid var(--border); background:#fff; border-radius:7px; color:#9aa3af; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
 .fusi-edit:hover{ background:#f7f9fb; color:#475569; }
@@ -9391,7 +9394,9 @@ function renderPerformanceSection() {
 }
 window.setPerfPeriod = function(key) {
   state._perfPeriod = key;
-  if (state.view === "overview") renderOverview();
+  if (state.view === "performance") renderPerformancePage();
+  else if (state.view === "overview") renderOverview();
+  else render();
 };
 
 // v0.29 — Modale "Tutti i fornitori" del periodo selezionato
@@ -11082,19 +11087,45 @@ function renderWorldClock() {
     dusk:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6V2M4.9 10.9l1.4 1.4M2 18h20M17.7 12.3l1.4-1.4M22 18h-1M3 18H2"/><path d="M8 18a4 4 0 0 1 8 0"/><path d="M15 5l-3 3-3-3"/></svg>'
   };
   const PHASE_LABEL = { night: "notte", dawn: "alba", day: "giorno", dusk: "tramonto" };
-  return cities.map(c => {
+  // Offset UTC (in minuti) di un fuso, per ordinamento -12 → +12
+  function tzOffsetMinutes(tz) {
     try {
-      const t = new Date().toLocaleTimeString("it-IT", { timeZone: c.tz, hour: "2-digit", minute: "2-digit" });
+      const now = new Date();
+      const s = now.toLocaleString("en-US", { timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const m = s.match(/(\d+)\/(\d+)\/(\d+),?\s+(\d+):(\d+):(\d+)/);
+      if (!m) return 0;
+      const asUTC = Date.UTC(+m[3], +m[1] - 1, +m[2], +m[4], +m[5], +m[6]);
+      return Math.round((asUTC - now.getTime()) / 60000);
+    } catch (e) { return 0; }
+  }
+  const fmtOff = (min) => { const s = min < 0 ? "-" : "+"; const a = Math.abs(min); const h = Math.floor(a / 60); const mm = a % 60; return "UTC" + s + h + (mm ? ":" + String(mm).padStart(2, "0") : ""); };
+
+  // Riga UTC sempre presente ed evidenziata (riferimento per procurement/shipping)
+  const list = cities.slice();
+  if (!list.some(c => c.tz === "UTC" || c.tz === "Etc/UTC")) {
+    list.push({ label: "UTC", tz: "UTC", code: "UTC", _isUTC: true });
+  }
+  // Ordino per offset UTC crescente (-12 → +12)
+  const withOff = list.map(c => ({ c, off: c.tz === "UTC" ? 0 : tzOffsetMinutes(c.tz) }));
+  withOff.sort((a, b) => a.off - b.off);
+
+  return withOff.map(({ c, off }) => {
+    const isUTC = c._isUTC || c.tz === "UTC" || c.tz === "Etc/UTC";
+    try {
+      const t = new Date().toLocaleTimeString("it-IT", { timeZone: c.tz === "UTC" ? "Etc/UTC" : c.tz, hour: "2-digit", minute: "2-digit" });
       const hour = parseInt(t.split(":")[0], 10);
       let phase;
       if (hour < 6 || hour >= 21) phase = "night";
       else if (hour < 8) phase = "dawn";
       else if (hour < 18) phase = "day";
       else phase = "dusk";
-      const isWork = hour >= 9 && hour < 18;  // orario lavorativo locale → raggiungibile
+      const isWork = hour >= 9 && hour < 18;
       const code = c.code || c.flag || "•••";
+      if (isUTC) {
+        return `<span class="fusi-item fusi-utc" title="Tempo Coordinato Universale — riferimento shipping"><span class="fusi-code">UTC</span><span class="fusi-time">${escapeHTML(t)}</span></span>`;
+      }
       const workDot = isWork ? `<span class="fusi-work" title="orario lavorativo"></span>` : "";
-      const tip = `${c.label} — ${PHASE_LABEL[phase]}${isWork ? " · orario lavorativo" : ""}`;
+      const tip = `${c.label} — ${PHASE_LABEL[phase]} · ${fmtOff(off)}${isWork ? " · orario lavorativo" : ""}`;
       return `<span class="fusi-item ph-${phase}" title="${escapeAttr(tip)}"><span class="fusi-ph-ic">${ICONS[phase]}</span><span class="fusi-code">${escapeHTML(code)}</span><span class="fusi-time">${escapeHTML(t)}</span>${workDot}</span>`;
     } catch (e) {
       return `<span class="fusi-item ph-day" title="${escapeAttr(c.tz)}"><span class="fusi-code">${escapeHTML(c.code||c.label||'?')}</span><span class="fusi-time">--:--</span></span>`;
