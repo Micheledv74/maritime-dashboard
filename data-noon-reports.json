@@ -170,7 +170,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VITORIA, BRAZIL",
+        "positionText": "VITORIA, BRAZIL - BERTH NO. 207",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -188,8 +188,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Working condition.",
-        "remarks": "Vessel in ballast. Ballast pump 1 used for 24h. Ballast water treatment system used for 24h. Cranes 1-4 used (4h, 5h, 8h, 8h). No scrubber fitted.",
+        "status": "Vessel at berth, working condition, ballast",
+        "remarks": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Ballast quantity: 7784.00 MT. Ballast pump 1 used for 24.00 hrs. Ballast water treatment system used for 24.00 hrs. Cranes 1-4 used (4,5,8,8 hrs respectively).",
         "vesselId": "medliguria"
       },
       {
@@ -356,6 +356,33 @@
       }
     ],
     "peppino": [
+      {
+        "date": "2026-06-08",
+        "type": "sea",
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": "Dongguan, China",
+        "nextPort": null,
+        "etaText": "15/06/2026",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": "2026-06-15T00:00",
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "in transito verso Dongguan (ETA 15/06/2026)",
+        "remarks": "Ordine #2026-PEP-HQPO-00104 per consegna a Dongguan. Agency: Johnasia Shanghai. Spare parts per consegna a Guangzhou Huangpu (indirizzo fornito).",
+        "vesselId": "peppino"
+      },
       {
         "date": "2026-06-15",
         "type": "port",
@@ -738,5 +765,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-04T14:05:07.905Z"
+  "syncedAt": "2026-07-04T15:05:08.216Z"
 }
