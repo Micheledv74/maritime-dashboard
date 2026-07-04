@@ -6262,6 +6262,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .calg-badge.ev-cert{ background:#fbdcde; color:#8f1219; }
 .calg-badge.ev-delivery{ background:#dbe8ff; color:#0a3f93; }
 .calg-badge.ev-outlook{ background:#efe6fb; color:#5a2d8f; }
+.calg-badge.ev-personal{ background:#e6f0f7; color:#1a5c7a; }
 .calg-badge.ev-todo{ background:#e7f0e9; color:#1f5a2c; }
 .cal-legend{ display:flex; flex-wrap:wrap; gap:14px; }
 .cal-leg{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; color:#5b6470; }
@@ -6270,6 +6271,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .cal-leg-sw.ev-delivery{ background:#a8c4f4; }
 .cal-leg-sw.ev-todo{ background:#a9cdb3; }
 .cal-leg-sw.ev-outlook{ background:#c4a8ec; }
+.cal-leg-sw.ev-personal{ background:#8fbfd6; }
 .cal-leg-off{ color:#b4bcc6; }
 .cal-leg-off .cal-leg-sw{ opacity:.4; }
 @media(max-width:880px){
@@ -6705,6 +6707,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 .day-detail-row.ev-delivery{ border-left-color:#0e54c1; }
 .day-detail-row.ev-todo{ border-left-color:#1f8a4c; }
 .day-detail-row.ev-outlook{ border-left-color:#7a3fc0; }
+.day-detail-row.ev-personal{ border-left-color:#1a7ba8; }
 .day-detail-row .dd-ic{ font-size:16px; flex:none; }
 .day-detail-row .dd-main{ flex:1; min-width:0; }
 .day-detail-row .dd-label{ font-size:13.5px; font-weight:600; color:#2a313c; }
@@ -7580,7 +7583,8 @@ const DATA_URLS = {
   outlookTasks: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-tasks.json",  // v0.14
   outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json",  // v0.18 — appuntamenti calendario (opzionale, via n8n)
   noonReports: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-noon-reports.json",  // v0.19 — noon report estratti via AI (opzionale, via n8n)
-  pendingReplies: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-pending-replies.json"  // v0.21 — email in attesa di tua risposta (opzionale, via n8n)
+  pendingReplies: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-pending-replies.json",  // v0.21 — email in attesa di tua risposta (opzionale, via n8n)
+  personalCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-personal-calendar.json"  // v0.34 — calendario personale Apple/iCloud (opzionale, via n8n ICS)
 };
 
 // === Configurazione Google Drive Sync ===
@@ -7803,18 +7807,20 @@ async function loadData() {
   }
 
   try {
-    const [proc, trk, outlookData, calData, noonData, pendingData] = await Promise.all([
+    const [proc, trk, outlookData, calData, noonData, pendingData, personalCalData] = await Promise.all([
       fetchJSON(DATA_URLS.procurement),
       fetchJSON(DATA_URLS.tracking).catch(() => null),  // tracking opzionale
       fetchJSON(DATA_URLS.outlookTasks).catch(() => null),  // v0.14: outlook tasks opzionale
       fetchJSON(DATA_URLS.outlookCalendar).catch(() => null),  // v0.18: outlook calendar opzionale
       fetchJSON(DATA_URLS.noonReports).catch(() => null),  // v0.19: noon report opzionale
-      fetchJSON(DATA_URLS.pendingReplies).catch(() => null)  // v0.21: email in attesa di risposta opzionale
+      fetchJSON(DATA_URLS.pendingReplies).catch(() => null),  // v0.21: email in attesa di risposta opzionale
+      fetchJSON(DATA_URLS.personalCalendar).catch(() => null)  // v0.34: calendario personale opzionale
     ]);
     state.data = proc;
     state.tracking = trk;
     state.outlookTasks = outlookData;
     state.outlookCalendar = calData;  // {events:[{title,start,end,location,vesselId?}]} o null
+    state.personalCalendar = personalCalData;  // {events:[{title,start,location}]} o null
     state.noonReports = (noonData && noonData.vessels) ? noonData.vessels : (noonData || null);  // {vesselId:[report,...]}
     state.pendingReplies = (pendingData && Array.isArray(pendingData.items)) ? pendingData.items : (Array.isArray(pendingData) ? pendingData : null);
     writeCache({ procurement: proc, tracking: trk });
@@ -10056,6 +10062,15 @@ function collectWeekEvents(fromISO, toISO, opts) {
       push(dISO, { type: "outlook", vesselId: e.vesselId || null, label: truncate(e.title || e.subject || "Appuntamento", 40), sub: [time, e.location].filter(Boolean).join(" · "), sort: 1.5 });
     }
   }
+  // 5) Calendario personale Apple/iCloud (opzionale, da data-personal-calendar.json via n8n ICS)
+  const pcal = state.personalCalendar;
+  if (pcal && Array.isArray(pcal.events)) {
+    for (const e of pcal.events) {
+      const dISO = (e.start || e.date || "").slice(0, 10);
+      const time = (e.start && e.start.length > 10) ? e.start.slice(11, 16) : "";
+      push(dISO, { type: "personal", vesselId: null, label: truncate(e.title || e.subject || "Impegno", 40), sub: [time, e.location].filter(Boolean).join(" · "), sort: 1.6 });
+    }
+  }
   return byDay;
 }
 
@@ -10089,6 +10104,7 @@ function renderHeatmap() {
     cert:     { ic: "🛡️", short: "cert.",     cls: "ev-cert" },
     delivery: { ic: "📦", short: "consegne",  cls: "ev-delivery" },
     outlook:  { ic: "📅", short: "appunt.",   cls: "ev-outlook" },
+    personal: { ic: "🍎", short: "personale", cls: "ev-personal" },
     todo:     { ic: "✓",  short: "to-do",     cls: "ev-todo" }
   };
   const typeOrder = ["cert", "delivery", "outlook", "todo"];
@@ -10131,10 +10147,12 @@ function renderHeatmap() {
 
   // Barra: legenda + toggle to-do
   const hasOutlook = !!(state.outlookCalendar && Array.isArray(state.outlookCalendar.events) && state.outlookCalendar.events.length);
+  const hasPersonal = !!(state.personalCalendar && Array.isArray(state.personalCalendar.events) && state.personalCalendar.events.length);
   const legend = `<div class="cal-legend">
     <span class="cal-leg"><span class="cal-leg-sw ev-cert"></span>Certificati</span>
     <span class="cal-leg"><span class="cal-leg-sw ev-delivery"></span>Consegne</span>
     <span class="cal-leg ${hasOutlook ? "" : "cal-leg-off"}"><span class="cal-leg-sw ev-outlook"></span>Outlook${hasOutlook ? "" : " (non collegato)"}</span>
+    <span class="cal-leg ${hasPersonal ? "" : "cal-leg-off"}"><span class="cal-leg-sw ev-personal"></span>Personale${hasPersonal ? "" : " (non collegato)"}</span>
     ${showTodos ? `<span class="cal-leg"><span class="cal-leg-sw ev-todo"></span>To-do</span>` : ""}
   </div>`;
   const toggle = `<button class="cal-todo-toggle ${showTodos ? "on" : ""}" onclick="window.toggleCalTodos()">${showTodos ? "✓ To-do mostrate" : "Mostra to-do"}</button>`;
@@ -16205,6 +16223,7 @@ function openCellDetail(vesselId, dateISO) {
     cert:     { ic: "🛡️", name: "Certificato in scadenza" },
     todo:     { ic: "✓",  name: "To-do" },
     outlook:  { ic: "📅", name: "Appuntamento Outlook" },
+    personal: { ic: "🍎", name: "Impegno personale" },
     delivery: { ic: "📦", name: "Consegna prevista" }
   };
   document.getElementById("heatmap-detail-title").textContent = `${who} — ${formatDate(dateISO)}`;
@@ -16267,6 +16286,7 @@ function openDayDetail(dateISO) {
     cert:     { ic: "🛡️", name: "Certificato in scadenza" },
     todo:     { ic: "✓",  name: "To-do" },
     outlook:  { ic: "📅", name: "Appuntamento Outlook" },
+    personal: { ic: "🍎", name: "Impegno personale" },
     delivery: { ic: "📦", name: "Consegna prevista" }
   };
   const title = `${formatDate(dateISO)} — ${events.length} event${events.length === 1 ? "o" : "i"}`;
