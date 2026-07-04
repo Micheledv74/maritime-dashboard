@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Galveston Fairway",
         "from": null,
-        "to": "Galveston Fairway",
+        "to": null,
         "nextPort": null,
-        "etaText": "p/s Galveston Fairway",
+        "etaText": null,
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione",
-        "remarks": "NOR presentato per Galveston Fairway",
+        "status": "NOR submitted at Galveston Fairway",
+        "remarks": "NOR presented for Galveston Fairway; no additional operational data provided",
         "vesselId": "medtoscana"
       },
       {
@@ -519,6 +519,33 @@
         "vesselId": "peppino"
       },
       {
+        "date": "2026-07-04",
+        "type": "anchor",
+        "lat": "22-02.5N",
+        "lon": "114-09.3E",
+        "positionText": null,
+        "from": "SE LAMA ANCHORAGE HONGKONG",
+        "to": "Guishan China NO.10 DG Anchorage",
+        "nextPort": "Guishan China NO.10 DG Anchorage",
+        "etaText": "TBA",
+        "etbText": "06.07.2026 As per agent information (not final fixed, iagw/wp)",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": "2026-07-06T00:00",
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 814.7,
+          "lsmgo": 160.72,
+          "fw": 123
+        },
+        "status": "Vessel anchored No. 10 DG Anchorage",
+        "remarks": "Daily consumption: LSFO 3.00MT, LSMGO 0.00MT, FW 2.0MT. R.O.B. cylinder oil: 38300.0 Ltrs",
+        "vesselId": "peppino"
+      },
+      {
         "date": "2026-07-07",
         "type": "port",
         "lat": null,
@@ -679,10 +706,10 @@
           "fw": null
         },
         "status": null,
-        "remarks": "Email non contiene dati di navigazione o noon report. Solo comunicazione commerciale su richiesta di pompa idraulica per nave mv Norrbotten.",
+        "remarks": "Email non contiene dati di NOON REPORT per la nave mv Norrbotten. Solo richieste commerciali relative a pompa idraulica TE22285.",
         "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-04T06:05:08.610Z"
+  "syncedAt": "2026-07-04T07:05:08.532Z"
 }
