@@ -6230,6 +6230,12 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 
 /* === CARICO SETTIMANA — griglia righe-nave × giorni === */
 .calg-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.calg-top-right{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.calg-nav{ display:flex; align-items:center; gap:8px; }
+.calg-nav-btn{ width:32px; height:32px; border:1px solid var(--border); background:#fff; border-radius:8px; font-size:18px; line-height:1; color:#5b6470; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.calg-nav-btn:hover{ background:#f1f4f7; color:var(--accent); }
+.calg-nav-lbl{ font-size:13.5px; font-weight:700; color:#2a313c; min-width:130px; text-align:center; }
+.calg-nav-today{ font-size:12px; font-weight:600; color:var(--accent); background:#eaf1fc; border:1px solid #c4d9f6; border-radius:7px; padding:6px 11px; cursor:pointer; }
 .cal-todo-toggle{ flex:none; font-size:12px; font-weight:600; color:#5b6470; background:#fff; border:1px solid var(--border); border-radius:7px; padding:5px 11px; cursor:pointer; }
 .cal-todo-toggle:hover{ background:#f7f9fb; }
 .cal-todo-toggle.on{ background:#e7f0e9; border-color:#bcd9c4; color:#1f5a2c; }
@@ -10075,11 +10081,12 @@ function collectWeekEvents(fromISO, toISO, opts) {
 }
 
 function renderHeatmap() {
-  // Settimana corrente: lunedì → domenica
+  // Settimana corrente: lunedì → domenica (+ offset navigazione)
   const today = new Date();
   const day = today.getDay() === 0 ? 7 : today.getDay();
+  const weekOffset = state._calWeekOffset || 0;
   const monday = new Date(today);
-  monday.setDate(today.getDate() - (day - 1));
+  monday.setDate(today.getDate() - (day - 1) + weekOffset * 7);
   monday.setHours(0,0,0,0);
   const weekDays = [];
   for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDays.push(d); }
@@ -10107,7 +10114,7 @@ function renderHeatmap() {
     personal: { ic: "🍎", short: "personale", cls: "ev-personal" },
     todo:     { ic: "✓",  short: "to-do",     cls: "ev-todo" }
   };
-  const typeOrder = ["cert", "delivery", "outlook", "todo"];
+  const typeOrder = ["cert", "delivery", "outlook", "personal", "todo"];
 
   function cellHTML(vesselId, dISO, evs) {
     const isToday = dISO === todayStr;
@@ -10157,7 +10164,37 @@ function renderHeatmap() {
   </div>`;
   const toggle = `<button class="cal-todo-toggle ${showTodos ? "on" : ""}" onclick="window.toggleCalTodos()">${showTodos ? "✓ To-do mostrate" : "Mostra to-do"}</button>`;
 
-  return `<div class="calg-top">${legend}${toggle}</div>${grid}`;
+  // Navigazione settimane (una sola settimana visibile; si scorre avanti/indietro)
+  const rangeLabel = weekOffset === 0 ? "Questa settimana"
+    : `${monday.getDate()} ${months[monday.getMonth()]} – ${weekDays[6].getDate()} ${months[weekDays[6].getMonth()]}`;
+  const nav = `<div class="calg-nav">
+    <button class="calg-nav-btn" onclick="window.calWeekShift(-1)" title="Settimana precedente">‹</button>
+    <span class="calg-nav-lbl">${rangeLabel}</span>
+    <button class="calg-nav-btn" onclick="window.calWeekShift(1)" title="Settimana successiva">›</button>
+    ${weekOffset !== 0 ? `<button class="calg-nav-today" onclick="window.calWeekReset()">Oggi</button>` : ""}
+  </div>`;
+
+  return `<div class="calg-top">${nav}<div class="calg-top-right">${legend}${toggle}</div></div>${grid}`;
+}
+
+window.calWeekShift = function(delta) {
+  state._calWeekOffset = (state._calWeekOffset || 0) + delta;
+  refreshHeatmapOnly();
+};
+window.calWeekReset = function() {
+  state._calWeekOffset = 0;
+  refreshHeatmapOnly();
+};
+// Ridisegna solo il calendario nella Overview senza ricostruire tutta la pagina
+function refreshHeatmapOnly() {
+  const host = document.querySelector(".heatmap");
+  if (host) { host.innerHTML = renderHeatmap(); attachHeatmapHandlers(host); }
+  else render();
+}
+function attachHeatmapHandlers(root) {
+  root.querySelectorAll(".calg-cell.has-ev").forEach(cell => {
+    cell.addEventListener("click", () => openCellDetail(cell.dataset.vid, cell.dataset.date));
+  });
 }
 
 window.toggleCalTodos = function() {
