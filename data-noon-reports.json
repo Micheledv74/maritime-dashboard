@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Galveston Fairway",
         "from": null,
-        "to": "Galveston",
+        "to": null,
         "nextPort": null,
-        "etaText": "p/s Galveston Fairway",
+        "etaText": null,
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione",
-        "remarks": "NOR presentato per Galveston Fairway",
+        "status": "NOR submitted at Galveston Fairway",
+        "remarks": "Notice of Readiness submitted for Galveston Fairway. No additional operational data provided.",
         "vesselId": "medtoscana"
       },
       {
@@ -160,7 +160,7 @@
           "fw": null
         },
         "status": "In port at Houston Anchorage",
-        "remarks": "Cargo loading operations pending (50,500 MT Pet Coke)",
+        "remarks": "Cargo loading operations in progress (50,500 MT Pet Coke)",
         "vesselId": "medtoscana"
       },
       {
@@ -197,7 +197,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VITORIA, BRAZIL - BERTH NO. 207",
+        "positionText": "VITORIA, BRAZIL",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -215,8 +215,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "Vessel at berth, working condition, ballast",
-        "remarks": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Ballast quantity: 7784.00 MT. Ballast pump 1 used for 24.00 hrs. Ballast water treatment system used for 24.00 hrs. Cranes 1-4 used (4,5,8,8 hrs respectively).",
+        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
+        "remarks": "Vessel Condition: Ballast. Ballast quantity: 7784.00 MT. Port Consumption: Working. Main Engine Hrs: 0.00",
         "vesselId": "medliguria"
       },
       {
@@ -404,8 +404,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working.",
-        "remarks": "Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.0, 4.0, 7.0, 10.0 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
+        "status": "At berth No. 207, Vitoria, Brazil. Ballast condition. Port consumption working.",
+        "remarks": "Vessel at berth No. 207 Vitoria, Brazil. Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively).",
         "vesselId": "medliguria"
       }
     ],
@@ -444,7 +444,7 @@
         "lon": null,
         "positionText": null,
         "from": null,
-        "to": "Dongguan, China",
+        "to": "Dongguan",
         "nextPort": null,
         "etaText": "15/06/2026",
         "etbText": null,
@@ -460,8 +460,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Dongguan per ordine forniture (ETA 15/06/2026)",
-        "remarks": "Ordine forniture per arrivo a Dongguan. Starlink non consentito in porti cinesi. Festività Dragon Boat Festival 19-21/06/2026.",
+        "status": "In arrivo a Dongguan per consegna ordini",
+        "remarks": "ETA Dongguan 15/06/2026. Ordini per consegna a nave in porto. Starlink non consentito in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -655,29 +655,29 @@
       },
       {
         "date": "2026-07-05",
-        "type": "anchor",
-        "lat": "22-02.9N",
-        "lon": "113-53.9E",
-        "positionText": null,
-        "from": "Port Guishan China NO.10 DG Anchorage",
-        "to": "Guishan China NO.13 ZH Anchorage",
+        "type": "port",
+        "lat": null,
+        "lon": null,
+        "positionText": "Dongguan Humen terminal",
+        "from": null,
+        "to": null,
         "nextPort": null,
-        "etaText": "TBA",
-        "etbText": "06.07.2026 As per agent information (not final fixed, iagw/wp)",
+        "etaText": null,
+        "etbText": "07Jul iagw/wp",
         "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-06T00:00",
+        "etbISO": null,
         "etdISO": null,
-        "speed": "5.76",
+        "speed": null,
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": 810.3,
-          "lsmgo": 160.72,
-          "fw": 120
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
         },
-        "status": "Anchored at NO.13 ZH Anchorage after shifting from NO.10 DG Anchorage",
-        "remarks": "Vessel shifted from NO.10 DG Anchorage to NO.13 ZH Anchorage as per Agent advise. Anchor aweigh at 1638LT, dropped anchor at 1900LT.",
+        "status": "In port at Dongguan Humen terminal, ETB not fixed (iagw/wp)",
+        "remarks": "Port stay expected around 2 days if no heavy raining. Starlink equipment must be switched off during vessel in China ports.",
         "vesselId": "peppino"
       },
       {
@@ -846,5 +846,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T06:05:13.240Z"
+  "syncedAt": "2026-07-05T07:05:13.667Z"
 }
