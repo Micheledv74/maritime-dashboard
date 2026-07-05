@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Galveston Fairway",
         "from": null,
-        "to": "Galveston Fairway",
+        "to": null,
         "nextPort": null,
-        "etaText": "p/s Galveston Fairway",
+        "etaText": null,
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione",
-        "remarks": "NOR presentato per Galveston Fairway",
+        "status": "NOR submitted at Galveston Fairway",
+        "remarks": "NOR presented for port of Galveston Fairway",
         "vesselId": "medtoscana"
       },
       {
@@ -161,6 +161,33 @@
         },
         "status": "In port at Houston Anchorage",
         "remarks": "Cargo loading operations pending (50,500 MT Pet Coke)",
+        "vesselId": "medtoscana"
+      },
+      {
+        "date": "2026-07-05",
+        "type": "anchor",
+        "lat": null,
+        "lon": null,
+        "positionText": "Galveston Anchorage",
+        "from": null,
+        "to": null,
+        "nextPort": "Galveston Fairway / KM Deepwater",
+        "etaText": null,
+        "etbText": "July 7th - 8th",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": "2026-07-07T00:00",
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "At Galveston Anchorage, awaiting ETB July 7-8 at KM Deepwater",
+        "remarks": "Vessel Med Toscana (Navigo) - Launch services coordinated for provisions & bonded delivery. Customs closure and national holiday delayed initial launch. ETB alongside July 7-8 at KM Deepwater.",
         "vesselId": "medtoscana"
       },
       {
@@ -400,12 +427,12 @@
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": "835.99",
-          "lsmgo": "80.43",
-          "fw": "351.000"
+          "lsfo": 835.99,
+          "lsmgo": 80.43,
+          "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working",
-        "remarks": "Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively). No scrubber fitted.",
+        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working.",
+        "remarks": "Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.0, 4.0, 7.0, 10.0 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
         "vesselId": "medliguria"
       }
     ],
@@ -660,13 +687,13 @@
         "lon": null,
         "positionText": null,
         "from": null,
-        "to": null,
+        "to": "Dongguan (Humen Terminal)",
         "nextPort": null,
         "etaText": null,
         "etbText": "07Jul iagw/wp",
         "etdText": null,
         "etaISO": null,
-        "etbISO": null,
+        "etbISO": "2026-07-07T00:00",
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -676,8 +703,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In port at Dongguan Humen terminal, ETB not fixed (iagw/wp), port stay around 2 days if no heavy raining",
-        "remarks": "Starlink equipment must be switched off during vessel in China ports. VOA approval form for Pasquale Esposito expired on 02Jul; new application required with at least 3 working days processing time.",
+        "status": "Berthing schedule delayed, ETB not fixed (iagw/wp). Port stay expected around 2 days if no heavy rain.",
+        "remarks": "Starlink equipment must be switched off during vessel in China ports. VOA approval form for Supt Esposito expired on 02Jul; new application required (3 working days). ETA to Dongguan expected night of 08Jul (arrival PVG 08Jul 08:30-18:00LT).",
         "vesselId": "peppino"
       },
       {
@@ -846,5 +873,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T12:05:13.199Z"
+  "syncedAt": "2026-07-05T13:05:11.978Z"
 }
