@@ -359,7 +359,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VITORIA, BRAZIL",
+        "positionText": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -377,8 +377,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
-        "remarks": "Vessel Condition: Ballast. Ballast quantity: 7784.00 MT. Port Consumption: Working. Main Engine Hrs: 0.00",
+        "status": "In Port at Vitoria, Brazil (Berth 207), Ballast condition, working",
+        "remarks": "Vessel at Berth No. 207 Vitoria, Brazil. Ballast quantity: 7784.00 MT. Fresh water ROB: 351.000 MT. Ballast pump 1 used for 24.00 hrs. Ballast water treatment system used for 24.00 hrs. Cranes 1-4 used (4,5,8,8 hrs respectively).",
         "vesselId": "medliguria"
       },
       {
@@ -442,9 +442,9 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Dongguan, China",
         "from": null,
-        "to": "Dongguan, China",
+        "to": "Dongguan",
         "nextPort": null,
         "etaText": "15/06/2026",
         "etbText": null,
@@ -460,8 +460,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Dongguan per consegna ordini",
-        "remarks": "ETA per consegna ordini a Dongguan: 15/06/2026. Ordini aggiuntivi: 2026-PEP-HQPO-00110 (EPIRB HRU) e 2026-PEP-HQPO-00114. Starlink vietato in porti cinesi.",
+        "status": "In arrivo a Dongguan per operazioni di approvvigionamento",
+        "remarks": "ETA 15/06/2026 per ordine #2026-PEP-HQPO-00104. Starlink non consentito in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -654,6 +654,33 @@
         "vesselId": "peppino"
       },
       {
+        "date": "2026-07-05",
+        "type": "anchor",
+        "lat": "22-04.0N",
+        "lon": "113-53.8E",
+        "positionText": null,
+        "from": "Port Guishan China NO.10 DG Anchorage",
+        "to": "Guishan China NO.13 ZH Anchorage",
+        "nextPort": null,
+        "etaText": "TBA",
+        "etbText": "06.07.2026 As per agent information (not final fixed, iagw/wp)",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": "5.76",
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 810.3,
+          "lsmgo": 160.72,
+          "fw": 120
+        },
+        "status": "Shifted from NO.10 DG Anchorage to NO.13 ZH Anchorage. Anchor aweigh at 1638LT, dropped anchor at 1900LT.",
+        "remarks": "Vessel shifted as per Agent advise. ETB 06.07.2026 (not final fixed).",
+        "vesselId": "peppino"
+      },
+      {
         "date": "2026-07-07",
         "type": "port",
         "lat": null,
@@ -819,5 +846,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T04:05:13.299Z"
+  "syncedAt": "2026-07-05T05:05:13.413Z"
 }
