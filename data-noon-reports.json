@@ -138,7 +138,7 @@
       },
       {
         "date": "2026-07-04",
-        "type": "anchor",
+        "type": "port",
         "lat": null,
         "lon": null,
         "positionText": "HOUSTON ANCHORAGE",
@@ -159,8 +159,8 @@
           "lsmgo": 118.39,
           "fw": null
         },
-        "status": "In port at Houston Anchorage, awaiting cargo loading (PET COKE 50,500 MT)",
-        "remarks": "ETB scheduled for 07.07.2026 LPM",
+        "status": "In port at Houston Anchorage",
+        "remarks": "Cargo loading operations pending (50,500 MT Pet Coke)",
         "vesselId": "medtoscana"
       },
       {
@@ -405,7 +405,7 @@
           "fw": 351
         },
         "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working.",
-        "remarks": "Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively).",
+        "remarks": "Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.0, 4.0, 7.0, 10.0 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
         "vesselId": "medliguria"
       }
     ],
@@ -444,7 +444,7 @@
         "lon": null,
         "positionText": null,
         "from": null,
-        "to": "Dongguan",
+        "to": "Dongguan, China",
         "nextPort": null,
         "etaText": "15/06/2026",
         "etbText": null,
@@ -461,7 +461,7 @@
           "fw": null
         },
         "status": "In arrivo a Dongguan per consegna ordini",
-        "remarks": "ETA Dongguan 15/06/2026. Ordini per consegna a nave in porto. Starlink non consentito in porti cinesi.",
+        "remarks": "ETA per consegna ordini a Dongguan: 15/06/2026. Ordini aggiuntivi: 2026-PEP-HQPO-00110 (EPIRB HRU) e 2026-PEP-HQPO-00114. Starlink vietato in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -631,13 +631,13 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Dongguan Humen terminal",
         "from": null,
         "to": null,
         "nextPort": null,
         "etaText": null,
-        "etbText": "ETB 7",
-        "etdText": "ETD 10",
+        "etbText": "30/Jun or 01/Jul (not final fixed)",
+        "etdText": null,
         "etaISO": null,
         "etbISO": null,
         "etdISO": null,
@@ -649,8 +649,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in port",
-        "remarks": "Urgent requisition for long voyage maintenance",
+        "status": "Berthing schedule delayed, awaiting final confirmation. VOA approval for superintendent valid until 02Jul.",
+        "remarks": "Starlink equipment must be switched off during vessel in China ports. Superintendent flight to China postponed due to vessel schedule uncertainty.",
         "vesselId": "peppino"
       },
       {
@@ -819,5 +819,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T03:05:12.491Z"
+  "syncedAt": "2026-07-05T04:05:13.299Z"
 }
