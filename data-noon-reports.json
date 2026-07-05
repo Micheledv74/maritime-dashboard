@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "port",
+        "type": "sea",
         "lat": null,
         "lon": null,
-        "positionText": "Galveston Fairway",
+        "positionText": null,
         "from": null,
-        "to": null,
+        "to": "Galveston Fairway",
         "nextPort": null,
-        "etaText": null,
+        "etaText": "p/s Galveston Fairway",
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "NOR submitted at Galveston Fairway",
-        "remarks": "Notice of Readiness submitted for Galveston Fairway. No additional operational data provided.",
+        "status": "in navigazione",
+        "remarks": "NOR presentato per Galveston Fairway",
         "vesselId": "medtoscana"
       },
       {
@@ -160,7 +160,7 @@
           "fw": null
         },
         "status": "In port at Houston Anchorage",
-        "remarks": "Cargo loading operations in progress (50,500 MT Pet Coke)",
+        "remarks": "Cargo loading operations planned for PET COKE (50,500 MT)",
         "vesselId": "medtoscana"
       },
       {
@@ -404,8 +404,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "At berth No. 207, Vitoria, Brazil. Ballast condition. Port consumption working.",
-        "remarks": "Vessel at berth No. 207 Vitoria, Brazil. Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively).",
+        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Working condition. Ballast condition.",
+        "remarks": "Vessel in port at Vitoria, Brazil. Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
         "vesselId": "medliguria"
       }
     ],
@@ -666,7 +666,7 @@
         "etbText": "07Jul iagw/wp",
         "etdText": null,
         "etaISO": null,
-        "etbISO": null,
+        "etbISO": "2026-07-07T00:00",
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -676,8 +676,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In port at Dongguan Humen terminal, ETB not fixed (iagw/wp)",
-        "remarks": "Port stay expected around 2 days if no heavy raining. Starlink equipment must be switched off during vessel in China ports.",
+        "status": "In port at Dongguan Humen terminal, ETB not fixed (iagw/wp), port stay around 2 days if no heavy raining",
+        "remarks": "ETCD not fixed (iagw/wp) on 09/Jul. Starlink equipment not allowed in China ports.",
         "vesselId": "peppino"
       },
       {
@@ -846,5 +846,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T07:05:13.667Z"
+  "syncedAt": "2026-07-05T08:05:13.937Z"
 }
