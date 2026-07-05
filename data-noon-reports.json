@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "p/s Galveston Fairway",
         "from": null,
-        "to": "Galveston Fairway",
+        "to": "Galveston",
         "nextPort": null,
-        "etaText": "p/s Galveston Fairway",
+        "etaText": null,
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,13 +132,13 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione",
-        "remarks": "NOR presentato per Galveston Fairway",
+        "status": "NOR submitted at Galveston Fairway",
+        "remarks": "Nave in attesa di istruzioni dopo presentazione NOR. ETA non specificata nel report.",
         "vesselId": "medtoscana"
       },
       {
         "date": "2026-07-04",
-        "type": "port",
+        "type": "anchor",
         "lat": null,
         "lon": null,
         "positionText": "HOUSTON ANCHORAGE",
@@ -159,8 +159,8 @@
           "lsmgo": 118.39,
           "fw": null
         },
-        "status": "In port at Houston Anchorage",
-        "remarks": "Cargo loading operations pending (50,500 MT Pet Coke)",
+        "status": "In port at Houston Anchorage, loading 50,500 MT of pet coke",
+        "remarks": "Cargo loading in progress, no stoppages reported",
         "vesselId": "medtoscana"
       },
       {
@@ -442,7 +442,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Dongguan, China",
         "from": null,
         "to": "Dongguan",
         "nextPort": null,
@@ -460,8 +460,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Dongguan per consegna ordini",
-        "remarks": "ETA Dongguan 15/06/2026. Ordini per consegna a nave in porto. Starlink non consentito in porti cinesi.",
+        "status": "In arrivo a Dongguan per operazioni di approvvigionamento",
+        "remarks": "ETA 15/06/2026 per ordine #2026-PEP-HQPO-00104. Starlink non consentito in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -819,5 +819,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T00:05:10.238Z"
+  "syncedAt": "2026-07-05T01:05:12.256Z"
 }
