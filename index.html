@@ -6478,6 +6478,39 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .pp-sup-table tbody td{ padding:10px 16px; border-bottom:1px solid #f3f5f8; font-size:13px; color:#3a4250; }
 .pp-sup-table tbody tr:last-child td{ border-bottom:none; }
 .pp-sup-name{ font-weight:600; }
+.pp-sup-clickable{ cursor:pointer; }
+.pp-sup-clickable:hover{ background:#f6f9fc; }
+/* v0.35 — Scheda fornitore/agenzia */
+.ec-rating{ display:flex; align-items:center; gap:6px; margin-bottom:16px; }
+.ec-star{ background:none; border:none; font-size:24px; line-height:1; color:#d8dee5; cursor:pointer; padding:0 1px; }
+.ec-star.on{ color:#f0a500; }
+.ec-star:hover{ transform:scale(1.1); }
+.ec-verdict{ font-size:12.5px; font-weight:700; margin-left:8px; padding:3px 10px; border-radius:20px; }
+.ec-verdict.good{ background:#e7f5ec; color:#1f7a44; }
+.ec-verdict.mid{ background:#eef1f4; color:#5b6470; }
+.ec-verdict.bad{ background:#fbdcde; color:#a01b22; }
+.ec-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:16px; }
+.ec-stat{ background:#f7f9fb; border:1px solid #eef1f4; border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:3px; }
+.ec-stat-n{ font-family:var(--font-mono); font-size:22px; font-weight:700; color:#2a313c; }
+.ec-stat-l{ font-size:10.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:#8a93a0; }
+.ec-score-good{ color:#1f8a4c; } .ec-score-mid{ color:#b8740a; } .ec-score-bad{ color:#c8222a; }
+.ec-nostats{ font-size:13px; color:#8a93a0; background:#f7f9fb; border-radius:10px; padding:14px; margin-bottom:16px; }
+.ec-links{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.ec-link{ display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:600; padding:9px 14px; border-radius:9px; border:1px solid transparent; cursor:pointer; text-decoration:none; }
+.ec-email{ background:#eaf1fc; color:#0a3f93; border-color:#c4d9f6; }
+.ec-wa{ background:#e4f7ea; color:#0b7a38; border-color:#bfe6cc; }
+.ec-wc{ background:#e9f6ee; color:#1a7a4a; border-color:#c6e6d2; }
+.ec-link:hover{ filter:brightness(.97); }
+.ec-nolinks{ font-size:12.5px; color:#8a93a0; }
+.ec-form{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ec-field{ display:flex; flex-direction:column; gap:5px; }
+.ec-field-full{ grid-column:1 / -1; }
+.ec-field-l{ font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#8a93a0; }
+.ec-input{ border:1px solid var(--border); border-radius:8px; padding:9px 11px; font-family:inherit; font-size:13.5px; color:var(--text); background:#fff; }
+.ec-input:focus{ border-color:var(--accent); outline:none; }
+.ec-textarea{ min-height:64px; resize:vertical; }
+.ec-foot{ font-size:11px; color:#aab2bd; margin-top:14px; }
+@media(max-width:520px){ .ec-form{ grid-template-columns:1fr; } }
 .pp-sup-flag{ font-size:11px; font-weight:700; color:#b8740a; background:#fdf2dd; border-radius:6px; padding:2px 8px; white-space:nowrap; }
 
 /* v0.28 — selettore periodo, delta, grafico, score, consigli */
@@ -7288,6 +7321,17 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     </div>
     <input type="search" class="search-input" id="all-suppliers-search" placeholder="Cerca fornitore…" style="width:100%;margin-bottom:14px;">
     <div id="all-suppliers-body" style="max-height:60vh;overflow:auto;border:1px solid var(--border);border-radius:10px;"></div>
+  </div>
+</div>
+
+<!-- Modal: Scheda fornitore / agenzia (anagrafica + statistiche + contatti diretti) -->
+<div class="modal" id="modal-entity-card">
+  <div class="modal-content" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 id="entity-card-title">Fornitore</h2>
+      <button class="close" data-close-modal>✕</button>
+    </div>
+    <div id="entity-card-body"></div>
   </div>
 </div>
 
@@ -9282,7 +9326,7 @@ function renderPerformanceSection() {
   const supplierRows = period.suppliers.slice(0, 10).map(s => {
     const scoreTier = s.score >= 75 ? "good" : s.score >= 50 ? "mid" : "bad";
     const flag = s.refused > 0 ? `<span class="pp-sup-flag" title="${s.refused} RFQ rifiutate nel periodo">⚠ ${s.refused} rifiutate</span>` : "";
-    return `<tr>
+    return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')">
       <td class="pp-sup-name">${escapeHTML(s.name)}</td>
       <td class="mono">${s.count}</td>
       <td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td>
@@ -9409,13 +9453,131 @@ window.openAllSuppliers = function() {
   if (searchInp) { searchInp.value = ""; searchInp.oninput = (e) => renderAllSuppliersList(e.target.value); }
   document.getElementById("modal-all-suppliers").classList.add("open");
 };
+// ============================================================================
+// v0.35 — SCHEDA FORNITORE / AGENZIA (anagrafica + statistiche + contatti diretti)
+// ============================================================================
+function loadEntityProfiles(kind) {
+  // kind: "supplier" | "agency"
+  const key = kind === "agency" ? "mpd.agencyProfiles" : "mpd.supplierProfiles";
+  try { const o = JSON.parse(localStorage.getItem(key) || "{}"); return (o && typeof o === "object") ? o : {}; }
+  catch { return {}; }
+}
+function saveEntityProfiles(kind, obj) {
+  const key = kind === "agency" ? "mpd.agencyProfiles" : "mpd.supplierProfiles";
+  try { localStorage.setItem(key, JSON.stringify(obj)); if (typeof driveSchedulePush === "function") driveSchedulePush(); } catch {}
+}
+function getEntityProfile(kind, name) { return loadEntityProfiles(kind)[name] || {}; }
+window.updateEntityProfile = function(kind, name, field, value) {
+  const all = loadEntityProfiles(kind);
+  all[name] = Object.assign({}, all[name], { [field]: value });
+  saveEntityProfiles(kind, all);
+  // aggiorno solo la stellina/subito, senza chiudere la scheda
+  if (field === "rating") renderEntityCardInto(kind, name);
+};
+// numero -> solo cifre per wa.me
+function waDigits(s) { return (s || "").replace(/[^\d]/g, ""); }
+
+function ratingWidgetHTML(kind, name, rating) {
+  rating = rating || 0;
+  let stars = "";
+  for (let i = 1; i <= 5; i++) {
+    stars += `<button class="ec-star ${i <= rating ? "on" : ""}" onclick="window.updateEntityProfile('${kind}','${escapeAttr(name)}','rating',${i === rating ? 0 : i})" title="${i} stelle">★</button>`;
+  }
+  let verdict = "";
+  if (rating >= 4) verdict = `<span class="ec-verdict good">🟢 preferito</span>`;
+  else if (rating === 3) verdict = `<span class="ec-verdict mid">⚪ neutro</span>`;
+  else if (rating >= 1) verdict = `<span class="ec-verdict bad">🔴 da evitare</span>`;
+  return `<div class="ec-rating">${stars}${verdict}</div>`;
+}
+
+function computeEntityStats(kind, name) {
+  if (kind === "agency") return null;  // le agenzie non hanno pipeline procurement
+  try {
+    const range = getPeriodRange(state._perfPeriod || "365");
+    const period = computePeriodStats(range.from, range.to);
+    return (period.suppliers || []).find(s => s.name === name) || null;
+  } catch { return null; }
+}
+
+function renderEntityCardInto(kind, name) {
+  const p = getEntityProfile(kind, name);
+  const stats = computeEntityStats(kind, name);
+  const lang = kind === "supplier" ? (state.supplierLanguages && state.supplierLanguages[name]) : null;
+
+  // Statistiche automatiche (solo fornitori)
+  let statsHTML = "";
+  if (stats) {
+    const scoreTier = stats.score >= 75 ? "good" : stats.score >= 50 ? "mid" : "bad";
+    statsHTML = `
+      <div class="ec-stats">
+        <div class="ec-stat"><span class="ec-stat-n">${stats.count}</span><span class="ec-stat-l">Ordini (periodo)</span></div>
+        <div class="ec-stat"><span class="ec-stat-n">${stats.avgDays != null ? stats.avgDays + "g" : "—"}</span><span class="ec-stat-l">Tempo medio risposta</span></div>
+        <div class="ec-stat"><span class="ec-stat-n ec-score-${scoreTier}">${stats.score}</span><span class="ec-stat-l">Affidabilità</span></div>
+        ${stats.refused > 0 ? `<div class="ec-stat"><span class="ec-stat-n" style="color:#c8222a">${stats.refused}</span><span class="ec-stat-l">RFQ rifiutate</span></div>` : ""}
+      </div>`;
+  } else if (kind === "supplier") {
+    statsHTML = `<div class="ec-nostats">Nessun ordine nel periodo selezionato — le statistiche compaiono quando ci sono RFQ/PO.</div>`;
+  }
+
+  // Contatti diretti
+  const email = p.email || "";
+  const wa = waDigits(p.whatsapp || p.phone || "");
+  const wechat = p.wechat || "";
+  const linksHTML = `
+    <div class="ec-links">
+      ${email ? `<button class="ec-link ec-email" onclick="openComposeMail(buildComposeHref('', '', '${escapeAttr(email)}'))">📧 Email</button>` : ""}
+      ${wa ? `<a class="ec-link ec-wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
+      ${wechat ? `<button class="ec-link ec-wc" onclick="window.copyWeChat('${escapeAttr(wechat)}')">📱 WeChat: ${escapeHTML(wechat)} ⧉</button>` : ""}
+      ${!email && !wa && !wechat ? `<span class="ec-nolinks">Aggiungi i contatti qui sotto per attivare i pulsanti diretti.</span>` : ""}
+    </div>`;
+
+  // Form anagrafica (campi editabili)
+  const field = (lbl, key, ph, val) => `
+    <label class="ec-field">
+      <span class="ec-field-l">${lbl}</span>
+      <input class="ec-input" value="${escapeAttr(val || "")}" placeholder="${ph}" onchange="window.updateEntityProfile('${kind}','${escapeAttr(name)}','${key}',this.value)">
+    </label>`;
+
+  const body = `
+    ${ratingWidgetHTML(kind, name, p.rating)}
+    ${statsHTML}
+    ${linksHTML}
+    <div class="ec-form">
+      ${field("Referente", "contact", "Nome referente", p.contact)}
+      ${field("Email", "email", "nome@fornitore.com", p.email)}
+      ${field("Telefono", "phone", "+39…", p.phone)}
+      ${field("WhatsApp", "whatsapp", "+39… (se diverso dal telefono)", p.whatsapp)}
+      ${field("WeChat ID", "wechat", "ID WeChat", p.wechat)}
+      <label class="ec-field ec-field-full">
+        <span class="ec-field-l">Note</span>
+        <textarea class="ec-input ec-textarea" placeholder="Note tue: affidabilità, tempi, prezzi, referenti…" onchange="window.updateEntityProfile('${kind}','${escapeAttr(name)}','notes',this.value)">${escapeHTML(p.notes || "")}</textarea>
+      </label>
+    </div>
+    <div class="ec-foot">Dati salvati in locale e sincronizzati su Drive. In futuro collegabili alla tua rubrica Notion.</div>
+  `;
+  document.getElementById("entity-card-body").innerHTML = body;
+  document.getElementById("entity-card-title").innerHTML = `${kind === "agency" ? "Agenzia" : "Fornitore"} · <strong>${escapeHTML(name)}</strong>`;
+}
+
+window.copyWeChat = function(id) {
+  if (navigator.clipboard) navigator.clipboard.writeText(id).then(() => showToast("WeChat ID copiato: " + id)).catch(() => showToast("Copia non riuscita"));
+};
+window.openSupplierCard = function(name) {
+  renderEntityCardInto("supplier", name);
+  document.getElementById("modal-entity-card").classList.add("open");
+};
+window.openAgencyCard = function(name) {
+  renderEntityCardInto("agency", name);
+  document.getElementById("modal-entity-card").classList.add("open");
+};
+
 function renderAllSuppliersList(query) {
   const q = (query || "").toLowerCase().trim();
   const arr = (window._allSuppliersData || []).filter(s => !q || s.name.toLowerCase().includes(q));
   const rows = arr.map(s => {
     const scoreTier = s.score >= 75 ? "good" : s.score >= 50 ? "mid" : "bad";
     const flag = s.refused > 0 ? `<span class="pp-sup-flag">⚠ ${s.refused} rifiutate</span>` : "";
-    return `<tr><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td><td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td><td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${flag}</td></tr>`;
+    return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')"><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td><td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td><td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${flag}</td></tr>`;
   }).join("");
   document.getElementById("all-suppliers-body").innerHTML = `<table class="pp-sup-table"><thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Affidabilità</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="mo-empty">Nessun fornitore trovato.</td></tr>`}</tbody></table>`;
   document.getElementById("all-suppliers-count").textContent = `${arr.length} fornitori`;
