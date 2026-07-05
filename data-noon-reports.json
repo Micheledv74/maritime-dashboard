@@ -116,7 +116,7 @@
         "lon": null,
         "positionText": null,
         "from": null,
-        "to": "Galveston Fairway",
+        "to": "Galveston",
         "nextPort": null,
         "etaText": "p/s Galveston Fairway",
         "etbText": null,
@@ -359,7 +359,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
+        "positionText": "VITORIA, BRAZIL - BERTH NO. 207",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -377,8 +377,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "In Port at Vitoria, Brazil (Berth 207), Ballast condition, working",
-        "remarks": "Vessel at Berth No. 207 Vitoria, Brazil. Ballast quantity: 7784.00 MT. Fresh water ROB: 351.000 MT. Ballast pump 1 used for 24.00 hrs. Ballast water treatment system used for 24.00 hrs. Cranes 1-4 used (4,5,8,8 hrs respectively).",
+        "status": "Vessel at berth, ballast condition, working port consumption",
+        "remarks": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Ballast pump 1 used for 24h, ballast water treatment system used for 24h. Cranes 1-4 used (4h, 5h, 8h, 8h respectively).",
         "vesselId": "medliguria"
       },
       {
@@ -442,9 +442,9 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Dongguan, China",
+        "positionText": null,
         "from": null,
-        "to": "Dongguan",
+        "to": "Dongguan, China",
         "nextPort": null,
         "etaText": "15/06/2026",
         "etbText": null,
@@ -460,8 +460,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Dongguan per operazioni di approvvigionamento",
-        "remarks": "ETA 15/06/2026 per ordine #2026-PEP-HQPO-00104. Starlink non consentito in porti cinesi.",
+        "status": "In arrivo a Dongguan per ordine forniture (ETA 15/06/2026)",
+        "remarks": "Ordine forniture per arrivo a Dongguan. Starlink non consentito in porti cinesi. Festività Dragon Boat Festival 19-21/06/2026.",
         "vesselId": "peppino"
       },
       {
@@ -656,8 +656,8 @@
       {
         "date": "2026-07-05",
         "type": "anchor",
-        "lat": "22-04.0N",
-        "lon": "113-53.8E",
+        "lat": "22-02.9N",
+        "lon": "113-53.9E",
         "positionText": null,
         "from": "Port Guishan China NO.10 DG Anchorage",
         "to": "Guishan China NO.13 ZH Anchorage",
@@ -666,7 +666,7 @@
         "etbText": "06.07.2026 As per agent information (not final fixed, iagw/wp)",
         "etdText": null,
         "etaISO": null,
-        "etbISO": null,
+        "etbISO": "2026-07-06T00:00",
         "etdISO": null,
         "speed": "5.76",
         "course": null,
@@ -676,8 +676,8 @@
           "lsmgo": 160.72,
           "fw": 120
         },
-        "status": "Shifted from NO.10 DG Anchorage to NO.13 ZH Anchorage. Anchor aweigh at 1638LT, dropped anchor at 1900LT.",
-        "remarks": "Vessel shifted as per Agent advise. ETB 06.07.2026 (not final fixed).",
+        "status": "Anchored at NO.13 ZH Anchorage after shifting from NO.10 DG Anchorage",
+        "remarks": "Vessel shifted from NO.10 DG Anchorage to NO.13 ZH Anchorage as per Agent advise. Anchor aweigh at 1638LT, dropped anchor at 1900LT.",
         "vesselId": "peppino"
       },
       {
@@ -846,5 +846,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T05:05:13.413Z"
+  "syncedAt": "2026-07-05T06:05:13.240Z"
 }
