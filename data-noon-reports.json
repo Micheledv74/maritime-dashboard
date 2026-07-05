@@ -434,6 +434,33 @@
         "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working.",
         "remarks": "Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.0, 4.0, 7.0, 10.0 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
         "vesselId": "medliguria"
+      },
+      {
+        "date": "2026-07-05",
+        "type": "port",
+        "lat": null,
+        "lon": null,
+        "positionText": "VITORIA",
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": "08 JULY 2026 PM AGW WP",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": "2026-07-08T12:00",
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 832.19,
+          "lsmgo": 80.43,
+          "fw": 165
+        },
+        "status": "In port, loading cargo. Total cargo to load: 49500 MT. Balance to load: 25709 MT.",
+        "remarks": "Fresh water pumped out due to draft restriction.",
+        "vesselId": "medliguria"
       }
     ],
     "peppino": [
@@ -471,7 +498,7 @@
         "lon": null,
         "positionText": "Dongguan, China",
         "from": null,
-        "to": null,
+        "to": "Dongguan",
         "nextPort": null,
         "etaText": "15/06/2026",
         "etbText": null,
@@ -487,8 +514,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in arrivo a Dongguan per operazioni di approvvigionamento",
-        "remarks": "ETA Dongguan 15/06/2026. Ordini per approvvigionamento in Cina. Starlink non consentito in porti cinesi.",
+        "status": "In arrivo a Dongguan per operazioni di approvvigionamento",
+        "remarks": "ETA 15/06/2026 per ordine #2026-PEP-HQPO-00104. Starlink non consentito in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -682,18 +709,18 @@
       },
       {
         "date": "2026-07-05",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Dongguan Humen terminal",
         "from": null,
-        "to": "Dongguan (Humen Terminal)",
+        "to": null,
         "nextPort": null,
         "etaText": null,
         "etbText": "07Jul iagw/wp",
         "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-07T00:00",
+        "etbISO": null,
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -703,8 +730,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Berthing schedule delayed, ETB not fixed (iagw/wp). Port stay expected around 2 days if no heavy rain.",
-        "remarks": "Starlink equipment must be switched off during vessel in China ports. VOA approval form for Supt Esposito expired on 02Jul; new application required (3 working days). ETA to Dongguan expected night of 08Jul (arrival PVG 08Jul 08:30-18:00LT).",
+        "status": "In attesa di orario di attracco definitivo (iagw/wp). Porto di sosta stimato: 2 giorni se non pioggia intensa.",
+        "remarks": "ETB non confermato per il 07/07. VOA del superintendente scaduto (valido fino al 02/07). Requisiti VOA aggiornati: necessario libretto di navigazione per superintendenti. Starlink vietato in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -873,5 +900,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T15:05:10.215Z"
+  "syncedAt": "2026-07-05T16:05:12.113Z"
 }
