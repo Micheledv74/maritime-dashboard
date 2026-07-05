@@ -138,7 +138,7 @@
       },
       {
         "date": "2026-07-04",
-        "type": "port",
+        "type": "anchor",
         "lat": null,
         "lon": null,
         "positionText": "HOUSTON ANCHORAGE",
@@ -159,8 +159,8 @@
           "lsmgo": 118.39,
           "fw": null
         },
-        "status": "In port at Houston Anchorage",
-        "remarks": "Cargo loading operations planned for PET COKE (50,500 MT)",
+        "status": "In port at Houston Anchorage, awaiting loading operations",
+        "remarks": "Cargo to be loaded: 50,500 MT PET COKE",
         "vesselId": "medtoscana"
       },
       {
@@ -197,7 +197,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VITORIA, BRAZIL",
+        "positionText": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -215,8 +215,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
-        "remarks": "Vessel Condition: Ballast. Ballast quantity: 7784.00 MT. Port Consumption: Working. Main Engine Hrs: 0.00",
+        "status": "In Port, Working, Ballast",
+        "remarks": "Vessel at berth No. 207 Vitoria, Brazil. Ballast quantity: 7784.00 MT. Ballast pump 1 used for 24 hrs. Ballast water treatment system used for 24 hrs. Cranes 1-4 used (4,5,8,8 hrs respectively).",
         "vesselId": "medliguria"
       },
       {
@@ -404,8 +404,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Working condition. Ballast condition.",
-        "remarks": "Vessel in port at Vitoria, Brazil. Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
+        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working.",
+        "remarks": "Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.0, 4.0, 7.0, 10.0 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
         "vesselId": "medliguria"
       }
     ],
@@ -676,8 +676,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In port at Dongguan Humen terminal, ETB not fixed (iagw/wp), port stay around 2 days if no heavy raining",
-        "remarks": "ETCD not fixed (iagw/wp) on 09/Jul. Starlink equipment not allowed in China ports.",
+        "status": "In port (Dongguan Humen terminal), ETB not fixed, awaiting schedule confirmation",
+        "remarks": "Port stay expected around 2 days if no heavy rain. VOA approval form for Pasquale Esposito expired on 02Jul; new application required. Starlink equipment must be switched off in China ports.",
         "vesselId": "peppino"
       },
       {
@@ -846,5 +846,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T08:05:13.937Z"
+  "syncedAt": "2026-07-05T09:05:13.494Z"
 }
