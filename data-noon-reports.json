@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "sea",
+        "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": null,
+        "positionText": "Galveston Fairway",
         "from": null,
-        "to": "Galveston Fairway",
+        "to": null,
         "nextPort": null,
-        "etaText": "p/s Galveston Fairway",
+        "etaText": null,
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,13 +132,13 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "in navigazione",
-        "remarks": "NOR presentato per Galveston Fairway",
+        "status": "NOR submitted at Galveston Fairway",
+        "remarks": "Notice of Readiness (NOR) submitted for Galveston Fairway. No additional operational data provided.",
         "vesselId": "medtoscana"
       },
       {
         "date": "2026-07-04",
-        "type": "anchor",
+        "type": "port",
         "lat": null,
         "lon": null,
         "positionText": "HOUSTON ANCHORAGE",
@@ -159,8 +159,8 @@
           "lsmgo": 118.39,
           "fw": null
         },
-        "status": "In port at Houston Anchorage, awaiting loading operations",
-        "remarks": "Cargo to be loaded: 50,500 MT PET COKE",
+        "status": "In port at Houston Anchorage",
+        "remarks": "Cargo loading operations pending (50,500 MT Pet Coke)",
         "vesselId": "medtoscana"
       },
       {
@@ -359,7 +359,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "VITORIA, BRAZIL - BERTH NO. 207",
+        "positionText": "VITORIA, BRAZIL",
         "from": null,
         "to": null,
         "nextPort": null,
@@ -377,8 +377,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "Vessel at berth, ballast condition, working port consumption",
-        "remarks": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Ballast pump 1 used for 24h, ballast water treatment system used for 24h. Cranes 1-4 used (4h, 5h, 8h, 8h respectively).",
+        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
+        "remarks": "Vessel Condition: Ballast. Ballast quantity: 7784.00 MT. Port Consumption: Working. Main Engine Hrs: 0.00",
         "vesselId": "medliguria"
       },
       {
@@ -404,8 +404,8 @@
           "lsmgo": 80.43,
           "fw": 351
         },
-        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Vessel Condition: Ballast. Port Consumption: Working.",
-        "remarks": "Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.0, 4.0, 7.0, 10.0 hrs respectively). Air-conditioning compressor used for 24.00 hrs.",
+        "status": "At berth No. 207, Vitoria, Brazil. Ballast condition. Port consumption working.",
+        "remarks": "Vessel at berth No. 207 Vitoria, Brazil. Ballast quantity: 6946.00 MT. Ballast pump 1 used for 1.80 hrs. Ballast water treatment system used for 1.80 hrs. Cranes 1-4 used (3.00, 4.00, 7.00, 10.00 hrs respectively).",
         "vesselId": "medliguria"
       }
     ],
@@ -655,10 +655,10 @@
       },
       {
         "date": "2026-07-05",
-        "type": "port",
+        "type": null,
         "lat": null,
         "lon": null,
-        "positionText": "Dongguan Humen terminal",
+        "positionText": null,
         "from": null,
         "to": null,
         "nextPort": null,
@@ -666,7 +666,7 @@
         "etbText": "07Jul iagw/wp",
         "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-07T00:00",
+        "etbISO": null,
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -676,8 +676,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In port (Dongguan Humen terminal), ETB not fixed, awaiting schedule confirmation",
-        "remarks": "Port stay expected around 2 days if no heavy rain. VOA approval form for Pasquale Esposito expired on 02Jul; new application required. Starlink equipment must be switched off in China ports.",
+        "status": "In port at Dongguan Humen terminal, ETB not fixed (iagw/wp), port stay around 2 days if no heavy raining",
+        "remarks": "Starlink equipment must be switched off during vessel in China ports. VOA approval form for Pasquale Esposito expired on 02Jul; new application required with at least 3 working days processing time.",
         "vesselId": "peppino"
       },
       {
@@ -846,5 +846,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T09:05:13.494Z"
+  "syncedAt": "2026-07-05T10:05:13.235Z"
 }
