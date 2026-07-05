@@ -111,14 +111,14 @@
       },
       {
         "date": "2026-07-03",
-        "type": "port",
+        "type": "sea",
         "lat": null,
         "lon": null,
-        "positionText": "p/s Galveston Fairway",
+        "positionText": null,
         "from": null,
-        "to": "Galveston",
+        "to": "Galveston Fairway",
         "nextPort": null,
-        "etaText": null,
+        "etaText": "p/s Galveston Fairway",
         "etbText": null,
         "etdText": null,
         "etaISO": null,
@@ -132,8 +132,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "NOR submitted at Galveston Fairway",
-        "remarks": "Nave in attesa di istruzioni dopo presentazione NOR. ETA non specificata nel report.",
+        "status": "in navigazione",
+        "remarks": "NOR presentato per Galveston Fairway",
         "vesselId": "medtoscana"
       },
       {
@@ -159,8 +159,8 @@
           "lsmgo": 118.39,
           "fw": null
         },
-        "status": "In port at Houston Anchorage, loading 50,500 MT of pet coke",
-        "remarks": "Cargo loading in progress, no stoppages reported",
+        "status": "In port at Houston Anchorage, awaiting cargo loading (PET COKE 50,500 MT)",
+        "remarks": "ETB scheduled for 07.07.2026 LPM",
         "vesselId": "medtoscana"
       },
       {
@@ -442,7 +442,7 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Dongguan, China",
+        "positionText": null,
         "from": null,
         "to": "Dongguan",
         "nextPort": null,
@@ -460,8 +460,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Dongguan per operazioni di approvvigionamento",
-        "remarks": "ETA 15/06/2026 per ordine #2026-PEP-HQPO-00104. Starlink non consentito in porti cinesi.",
+        "status": "In arrivo a Dongguan per consegna ordini",
+        "remarks": "ETA Dongguan 15/06/2026. Ordini per consegna a nave in porto. Starlink non consentito in porti cinesi.",
         "vesselId": "peppino"
       },
       {
@@ -819,5 +819,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-05T01:05:12.256Z"
+  "syncedAt": "2026-07-05T02:05:11.281Z"
 }
