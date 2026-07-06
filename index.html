@@ -10122,21 +10122,34 @@ function initFxWidget() {
   const end = new Date();
   const start = new Date(); start.setDate(start.getDate() - 32);
   const iso = d => d.toISOString().slice(0,10);
-  fetch(`https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=USD&to=EUR`)
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      const days = Object.keys(data.rates || {}).sort();
-      const series = days.map(d => data.rates[d].EUR).filter(v => v != null);
-      if (!series.length) return;
-      const payload = { rate: series[series.length - 1], series, at: new Date().toISOString() };
+
+  // v0.39 — provo più fonti gratuite in sequenza (se una è bloccata/down, passo alla successiva)
+  const sources = [
+    // 1) Frankfurter (BCE) — serie storica 30gg
+    () => fetch(`https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=USD&to=EUR`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { const days = Object.keys(d.rates||{}).sort(); const s = days.map(k => d.rates[k].EUR).filter(v=>v!=null); if(!s.length) throw 0; return s; }),
+    // 2) exchangerate.host — serie storica 30gg
+    () => fetch(`https://api.exchangerate.host/timeseries?start_date=${iso(start)}&end_date=${iso(end)}&base=USD&symbols=EUR`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { const days = Object.keys(d.rates||{}).sort(); const s = days.map(k => d.rates[k] && d.rates[k].EUR).filter(v=>v!=null); if(!s.length) throw 0; return s; }),
+    // 3) open.er-api.com — solo valore attuale (nessuna serie), fallback minimo
+    () => fetch(`https://open.er-api.com/v6/latest/USD`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { const v = d && d.rates && d.rates.EUR; if(v==null) throw 0; return [v]; })
+  ];
+  (function tryNext(i){
+    if (i >= sources.length) {
+      const l = bar.querySelector(".fx-loading");
+      if (l && !localStorage.getItem("mpd.fxCache")) l.textContent = "cambio non disponibile ora";
+      return;
+    }
+    sources[i]().then(series => {
+      const payload = { rate: series[series.length-1], series, at: new Date().toISOString() };
       try { localStorage.setItem("mpd.fxCache", JSON.stringify(payload)); } catch(_) {}
       paintFx(payload);
-    })
-    .catch(() => {
-      const b = document.getElementById("fx-bar");
-      const l = b && b.querySelector(".fx-loading");
-      if (l) l.textContent = "cambio non disponibile ora";
-    });
+    }).catch(() => tryNext(i+1));
+  })(0);
 }
 function paintFx(p) {
   const bar = document.getElementById("fx-bar");
