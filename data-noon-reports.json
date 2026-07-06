@@ -165,18 +165,18 @@
       },
       {
         "date": "2026-07-05",
-        "type": "port",
+        "type": "anchor",
         "lat": null,
         "lon": null,
-        "positionText": "Galveston Fairway / KM Deepwater",
+        "positionText": "Houston anchorage",
         "from": null,
         "to": null,
-        "nextPort": "KM Deepwater",
+        "nextPort": "Houston",
         "etaText": null,
-        "etbText": "July 7th - 8th",
+        "etbText": "awaiting ETB time",
         "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-07T00:00",
+        "etbISO": null,
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -186,8 +186,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In Galveston Fairway, awaiting ETB at KM Deepwater (July 7-8)",
-        "remarks": "Vessel Med Toscana. Launch requested for July 3-4 but delayed due to customs closure and national holiday. ETB confirmed for July 7-8 at KM Deepwater. No bunkers data available.",
+        "status": "In Houston anchorage awaiting ETB time. High-pressure pump for Fixed Local Water Extinguishing system out of order.",
+        "remarks": "High-pressure pump failure during test on 2026-07-04. Port plate and pistons worn. Requisition 2026-MDT-SHPR-00066 created for new pump.",
         "vesselId": "medtoscana"
       },
       {
@@ -494,26 +494,26 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Port Vitoria",
+        "positionText": "VITORIA, BRAZIL",
         "from": null,
         "to": null,
         "nextPort": null,
         "etaText": null,
-        "etbText": "08 July 2026 AM (Hight tide)",
-        "etdText": "08 July 2026 AM (Hight tide)",
+        "etbText": null,
+        "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-08T00:00",
-        "etdISO": "2026-07-08T00:00",
+        "etbISO": null,
+        "etdISO": null,
         "speed": null,
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": null,
-          "lsmgo": null,
-          "fw": null
+          "lsfo": 828.49,
+          "lsmgo": 0,
+          "fw": 157
         },
-        "status": "In port Vitoria, detained by Harbor Master for investigation after collision. Expected departure 08 July AM (high tide).",
-        "remarks": "Collision with PLSV BGP Dragon on 04 July during berthing maneuver. Minor damage observed (scratches and dent on port side). Surveyor attendance requested for daylight inspection.",
+        "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL",
+        "remarks": "Vessel Condition: Ballast. Main Engine Hrs: 0.00. Port Consumption: Working. Fresh Water ROB: 157.000 MT. Fire pump used for 8.00 hrs. Air-conditioning compressor used for 24.00 hrs. Cranes 1-4 used (5.50, 8.00, 4.00, 4.50 hrs respectively).",
         "vesselId": "medliguria"
       }
     ],
@@ -1062,5 +1062,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-06T15:05:08.119Z"
+  "syncedAt": "2026-07-06T16:05:06.228Z"
 }
