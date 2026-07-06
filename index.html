@@ -6537,6 +6537,15 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .ec-input:focus{ border-color:var(--accent); outline:none; }
 .ec-textarea{ min-height:64px; resize:vertical; }
 .ec-foot{ font-size:11px; color:#aab2bd; margin-top:14px; }
+.ec-actions-row{ display:flex; gap:10px; margin-top:16px; }
+.ec-save{ flex:1; background:var(--accent); color:#fff; border:none; border-radius:9px; padding:11px; font-size:13.5px; font-weight:700; cursor:pointer; }
+.ec-save:hover{ filter:brightness(.95); }
+.ec-delete{ flex:none; background:#fff; color:#c8222a; border:1px solid #f0c4c7; border-radius:9px; padding:11px 16px; font-size:13.5px; font-weight:600; cursor:pointer; }
+.ec-delete:hover{ background:#fbeced; }
+.rub-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.rub-meta{ display:flex; gap:8px; align-items:center; }
+.rub-code{ font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:#0a3f93; background:#eaf1fc; border-radius:4px; padding:1px 6px; }
+.rub-loc{ font-size:11px; color:#8a93a0; }
 @media(max-width:520px){ .ec-form{ grid-template-columns:1fr; } }
 .pp-sup-flag{ font-size:11px; font-weight:700; color:#b8740a; background:#fdf2dd; border-radius:6px; padding:2px 8px; white-space:nowrap; }
 
@@ -9654,15 +9663,23 @@ function renderEntityCardInto(kind, name) {
     ${statsHTML}
     ${linksHTML}
     <div class="ec-form">
+      ${field("SSSDAm Code", "code", "Codice interno", p.code)}
       ${field("Referente", "contact", "Nome referente", p.contact)}
       ${field("Email", "email", "nome@fornitore.com", p.email)}
       ${field("Telefono", "phone", "+39…", p.phone)}
       ${field("WhatsApp", "whatsapp", "+39… (se diverso dal telefono)", p.whatsapp)}
       ${field("WeChat ID", "wechat", "ID WeChat", p.wechat)}
+      ${field("Indirizzo", "address", "Via, numero", p.address)}
+      ${field("Città", "city", "Città", p.city)}
+      ${field("Paese", "country", "Paese", p.country)}
       <label class="ec-field ec-field-full">
         <span class="ec-field-l">Note</span>
         <textarea class="ec-input ec-textarea" placeholder="Note tue: affidabilità, tempi, prezzi, referenti…" onchange="window.updateEntityProfile('${kind}','${escapeAttr(name)}','notes',this.value)">${escapeHTML(p.notes || "")}</textarea>
       </label>
+    </div>
+    <div class="ec-actions-row">
+      <button class="ec-save" onclick="window.saveEntityCard('${kind}','${escapeAttr(name)}')">💾 Salva${getNotionWebhookCfg().token ? " + Notion" : ""}</button>
+      <button class="ec-delete" onclick="window.deleteEntity('${kind}','${escapeAttr(name)}')">🗑 Elimina</button>
     </div>
     <div class="ec-foot">Dati salvati in locale e sincronizzati su Drive.${getNotionWebhookCfg().token ? " Le modifiche vengono inviate a Notion." : ` <button class="btn-mini-link" onclick="window.configNotionWebhook()">Collega Notion ↑</button>`}</div>
   `;
@@ -9672,6 +9689,27 @@ function renderEntityCardInto(kind, name) {
 
 window.copyWeChat = function(id) {
   if (navigator.clipboard) navigator.clipboard.writeText(id).then(() => showToast("WeChat ID copiato: " + id)).catch(() => showToast("Copia non riuscita"));
+};
+// v0.40 — Elimina un fornitore/agenzia dalla rubrica (locale + push cancellazione su Notion se configurato)
+window.deleteEntity = function(kind, name) {
+  if (!confirm(`Eliminare "${name}" dalla rubrica?\n\nViene rimosso da questa dashboard. Se è presente nel tuo register Notion e il sync è attivo, ricomparirà al prossimo aggiornamento: eliminalo anche in Notion per rimuoverlo del tutto.`)) return;
+  const all = loadEntityProfiles(kind);
+  delete all[name];
+  saveEntityProfiles(kind, all);
+  // se è un'agenzia, rimuovo anche dalla rubrica voyage
+  if (kind === "agency") {
+    try { const ag = (loadAgencies() || []).filter(a => a.name !== name); saveAgenciesDB(ag); } catch(_) {}
+  }
+  const modal = document.getElementById("modal-entity-card");
+  if (modal) modal.classList.remove("open");
+  showToast(name + " eliminato dalla rubrica");
+  if (state.view === "rubrica") renderRubricaPage();
+};
+// v0.40 — Salvataggio esplicito (i campi si salvano già on-change; questo forza il push a Notion + feedback)
+window.saveEntityCard = function(kind, name) {
+  saveEntityProfiles(kind, loadEntityProfiles(kind)); // persiste (già fatto on-change) + trigger Drive
+  pushEntityToNotion(kind, name);
+  showToast(getNotionWebhookCfg().token ? "Salvato e inviato a Notion" : "Salvato");
 };
 window.openSupplierCard = function(name) {
   renderEntityCardInto("supplier", name);
@@ -10231,10 +10269,11 @@ function renderRubricaPage() {
       (p.whatsapp || p.phone) ? `<span class="rub-chip">💬</span>` : "",
       p.wechat ? `<span class="rub-chip">📱</span>` : ""
     ].filter(Boolean).join("");
+    const meta = [p.code ? `<span class="rub-code">${escapeHTML(p.code)}</span>` : "", (p.city || p.country) ? `<span class="rub-loc">${escapeHTML([p.city, p.country].filter(Boolean).join(" · "))}</span>` : ""].filter(Boolean).join("");
     return `<button class="rub-row" onclick="window.${kind === "supplier" ? "openSupplierCard" : "openAgencyCard"}('${escapeAttr(name)}')">
       <span class="rub-star">${"★".repeat(p.rating||0)||""}</span>
       ${verdictBadge(p.rating)}
-      <span class="rub-name">${escapeHTML(name)}</span>
+      <span class="rub-main"><span class="rub-name">${escapeHTML(name)}</span>${meta ? `<span class="rub-meta">${meta}</span>` : ""}</span>
       <span class="rub-chips">${chips}</span>
       <span class="rub-go">›</span>
     </button>`;
