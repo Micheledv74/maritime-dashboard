@@ -192,19 +192,19 @@
       },
       {
         "date": "2026-07-06",
-        "type": "port",
+        "type": "anchor",
         "lat": null,
         "lon": null,
-        "positionText": "Houston",
+        "positionText": "Galveston Fairway / Galveston Anchorage",
         "from": null,
         "to": null,
-        "nextPort": null,
+        "nextPort": "Galveston (KM Deepwater)",
         "etaText": null,
-        "etbText": "July 6th Noon - PM",
-        "etdText": "July 9th early AM",
+        "etbText": "July 7th - 8th",
+        "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-06T12:00",
-        "etdISO": "2026-07-09T00:00",
+        "etbISO": null,
+        "etdISO": null,
         "speed": null,
         "course": null,
         "milesToGo": null,
@@ -213,8 +213,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In port at Houston",
-        "remarks": "Superintendent boarding coordination requested. CSO Nicola Salvemini planning to travel from Brazil on July 7th for port attendance.",
+        "status": "In Galveston Anchorage, awaiting launch for provisions delivery",
+        "remarks": "Vessel Med Toscana (Navigo) in Galveston Anchorage. Launch requested for chemicals and stores delivery. ETB alongside July 7th-8th at KM Deepwater. Launch costs discussed ($4,500 + terminal charge $917 + agency fee $850). Customs closure and national holiday delayed bonded orders.",
         "vesselId": "medtoscana"
       },
       {
@@ -739,12 +739,12 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Dongguan port",
-        "from": null,
-        "to": "Dongguan",
-        "nextPort": null,
-        "etaText": "around 6 of July",
-        "etbText": null,
+        "positionText": null,
+        "from": "Dong Guan",
+        "to": "Lobito / Tema",
+        "nextPort": "Singapore",
+        "etaText": null,
+        "etbText": "Singapore: max 900 MT VLSFO (stability limit), Port Louis: 300 MT VLSFO",
         "etdText": null,
         "etaISO": null,
         "etbISO": null,
@@ -753,12 +753,12 @@
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": null,
+          "lsfo": "900",
           "lsmgo": null,
           "fw": null
         },
-        "status": "Berthing planned for early July, awaiting final confirmation",
-        "remarks": "Agents changed to Sinoagent Dongguan. Starlink equipment must be switched off in China ports. Crew repatriation planned for 30/06/2026 (TK 299 or TK1879). Potential employment loading with steel billets from Fangcheng under consideration.",
+        "status": "In port (Dong Guan) preparing for voyage",
+        "remarks": "Bunker plan: Singapore max 900 MT VLSFO (stability limit), Port Louis 300 MT VLSFO. Voyage: Dong Guan -> Singapore -> Port Louis -> Lobito/Tema. Draft restrictions: Dong Guan 13.2m FW, Lobito 13.5m, Tema 10m SW. Cargo: 55,000 MT +/-10% clinker. Consumption: 10 knots laden, 12.4 knots ballast.",
         "vesselId": "peppino"
       },
       {
@@ -1008,5 +1008,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-06T08:05:07.762Z"
+  "syncedAt": "2026-07-06T09:05:06.139Z"
 }
