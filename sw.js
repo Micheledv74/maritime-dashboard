@@ -1,59 +1,42 @@
-/* ========================================================================
- * Maritime Procurement Dashboard — Service Worker
- * Strategia: stale-while-revalidate per la shell e i dati.
- * - La dashboard funziona anche offline mostrando l'ultima copia cachata.
- * - Al ritorno della rete, aggiorna in background.
- * ====================================================================== */
-
-const CACHE_NAME = "mpd-v0.1";
-const SHELL_URLS = [
+// Maritime Procurement — service worker (cache app shell per offline + PWA install)
+// v2 — network-first per l'app (così le nuove versioni si caricano subito), cache come fallback offline.
+const CACHE = "maritime-v2";
+const ASSETS = [
   "./",
-  "./index.html"
+  "./index.html",
+  "./manifest.json",
+  "./icon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-180.png",
+  "./icons/icon-32.png"
 ];
 
-// Install: precache shell minima
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(SHELL_URLS))
-      .then(() => self.skipWaiting())
+self.addEventListener("install", (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())
   );
 });
 
-// Activate: pulisce cache vecchie
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
+self.addEventListener("fetch", (e) => {
+  const req = e.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  // Solo richieste same-origin: lascia passare Drive/Google/GitHub senza intercettare
+  if (url.origin !== self.location.origin) return;
 
-// Fetch: stale-while-revalidate per quasi tutto, ignora gli external CDN
-self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
-
-  // Solo richieste GET dalla stessa origine + raw.githubusercontent.com per i JSON
-  if (event.request.method !== "GET") return;
-  const sameOrigin = url.origin === location.origin;
-  const isDataFile = url.host === "raw.githubusercontent.com" &&
-                     url.pathname.includes("/maritime-dashboard/");
-
-  if (!sameOrigin && !isDataFile) return;
-
-  event.respondWith(
-    caches.open(CACHE_NAME).then(cache =>
-      cache.match(event.request).then(cached => {
-        const network = fetch(event.request)
-          .then(res => {
-            if (res && res.status === 200) {
-              cache.put(event.request, res.clone());
-            }
-            return res;
-          })
-          .catch(() => cached);  // se la rete fallisce, ritorna cache se c'è
-        return cached || network;
-      })
-    )
+  // NETWORK-FIRST: prova sempre la rete (versione aggiornata); se offline, usa la cache.
+  e.respondWith(
+    fetch(req).then((res) => {
+      if (res && res.status === 200) {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+      }
+      return res;
+    }).catch(() => caches.match(req))
   );
 });
