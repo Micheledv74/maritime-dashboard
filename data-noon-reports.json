@@ -168,26 +168,26 @@
         "type": "anchor",
         "lat": null,
         "lon": null,
-        "positionText": "HOUSTON ANCHORAGE",
+        "positionText": "Galveston Anchorage",
         "from": null,
         "to": null,
-        "nextPort": null,
+        "nextPort": "Galveston Fairway / KM Deepwater",
         "etaText": null,
-        "etbText": "07.07.2026 PM",
+        "etbText": "July 7th - 8th",
         "etdText": null,
         "etaISO": null,
-        "etbISO": "2026-07-07T12:00",
+        "etbISO": "2026-07-07T00:00",
         "etdISO": null,
         "speed": null,
         "course": null,
         "milesToGo": null,
         "bunkers": {
-          "lsfo": 495.733,
-          "lsmgo": 115.39,
+          "lsfo": null,
+          "lsmgo": null,
           "fw": null
         },
-        "status": "In port at Houston Anchorage, awaiting loading operations",
-        "remarks": "Cargo to be loaded: 50,500 MT PET COKE",
+        "status": "At Galveston Anchorage, awaiting ETB July 7-8 at KM Deepwater",
+        "remarks": "Launch request for provisions & bonded delivery delayed due to customs closure and national holiday. Vessel expected to berth at KM Deepwater July 7-8.",
         "vesselId": "medtoscana"
       },
       {
@@ -512,8 +512,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In porto, detenuta dal Porto Authorities per incidente. Operazioni di carico completate il 07/07/2026 PM.",
-        "remarks": "Incidente con PLSV BGP Dragon il 04/07/2026 durante manovra di attracco. Danni minori riportati (graffi e ammaccatura lato sinistro). Detenzione in corso per indagini. Ispezione P&I surveyor prevista in daylight.",
+        "status": "In port Vitoria, detained by Harbor Master for investigation after collision. Expected departure 08 July AM (high tide).",
+        "remarks": "Collision with PLSV BGP Dragon on 04 July during berthing maneuver. Minor damage observed (scratches and dent on port side). Surveyor attendance requested for daylight inspection.",
         "vesselId": "medliguria"
       }
     ],
@@ -847,15 +847,15 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Dongguan Humen terminal",
+        "positionText": "Dongguan terminal (iagw/wp)",
         "from": null,
         "to": null,
         "nextPort": null,
         "etaText": null,
-        "etbText": "07Jul iagw/wp",
-        "etdText": null,
+        "etbText": "07Jul--1300lt ETB Dongguan terminal(iagw/wp)",
+        "etdText": "09-10/Jul--ETC/D(not final fixed, iagw/wp, if raining, etd will be delayed)",
         "etaISO": null,
-        "etbISO": "2026-07-07T00:00",
+        "etbISO": "2026-07-07T13:00",
         "etdISO": null,
         "speed": null,
         "course": null,
@@ -865,8 +865,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In attesa di orario di attracco definitivo (iagw/wp) con previsione di sosta di circa 2 giorni se non pioggia intensa.",
-        "remarks": "ETB non ancora confermato, previsione di arrivo a Dongguan Humen terminal il 07/07. Vietato l'uso di Starlink nelle acque cinesi.",
+        "status": "In port at Dongguan terminal (iagw/wp), ETB confirmed 07Jul 1300LT, ETD tentative 09-10Jul (weather dependent)",
+        "remarks": "VOA approval form expired; new application required. Starlink equipment must be switched off in China ports. Technical Superintendent flight: AF116 A 07JUL 2*CDGPVG HK1 2330 1800 (arrival PVG 08Jul 1800LT).",
         "vesselId": "peppino"
       }
     ],
@@ -1008,5 +1008,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-06T07:05:08.019Z"
+  "syncedAt": "2026-07-06T08:05:07.762Z"
 }
