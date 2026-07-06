@@ -6050,6 +6050,21 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 
 /* FUSI ORARI — striscia piatta (sotto Flotta) */
 .fusi-section{ margin-bottom:26px; }
+/* v0.38 — Widget USD/EUR */
+.fx-section{ margin-bottom:16px; }
+.fx-bar{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:11px; padding:12px 18px; box-shadow:var(--shadow-card); }
+.fx-title{ font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8a93a0; flex:none; }
+.fx-loading{ font-size:12.5px; color:#aab2bd; }
+.fx-main{ display:flex; flex-direction:column; gap:1px; }
+.fx-rate{ font-family:var(--font-mono); font-size:20px; font-weight:700; color:#1a2c5e; line-height:1; }
+.fx-sub{ font-size:10.5px; color:#9aa3af; }
+.fx-inv{ font-family:var(--font-mono); font-size:13px; color:#5b6470; }
+.fx-spark{ display:block; }
+.fx-delta{ display:inline-flex; align-items:baseline; gap:3px; font-family:var(--font-mono); font-size:14px; font-weight:700; }
+.fx-delta.up{ color:#1f8a4c; } .fx-delta.down{ color:#c8222a; } .fx-delta.flat{ color:#9aa3af; }
+.fx-delta-lbl{ font-size:10px; font-weight:600; color:#aab2bd; }
+.fx-src{ margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.05em; color:#c2c9d2; }
+@media(max-width:640px){ .fx-src{ margin-left:0; } }
 .fusi-bar{ display:flex; align-items:center; gap:16px; background:#fff; border:1px solid var(--border); border-radius:11px; padding:10px 16px; box-shadow:var(--shadow-card); }
 .fusi-bar-label{ flex:none; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8a93a0; }
 .fusi-list{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 18px; flex:1; }
@@ -6393,6 +6408,18 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .todo-kind-seg{ display:inline-flex; gap:3px; background:#eef1f5; border:1px solid #e3e8ee; border-radius:9px; padding:3px; }
 .tks-btn{ border:none; background:transparent; font-size:13px; font-weight:600; color:#8a93a0; padding:7px 14px; border-radius:6px; cursor:pointer; }
 .tks-btn.active{ background:#fff; color:var(--accent); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+/* v0.38 — Rubrica fornitori/agenzie */
+.rub-list{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); background:#fff; }
+.rub-row{ display:flex; align-items:center; gap:12px; padding:13px 16px; border:none; border-bottom:1px solid #f1f4f7; background:#fff; cursor:pointer; text-align:left; width:100%; }
+.rub-row:last-child{ border-bottom:none; }
+.rub-row:hover{ background:#f6f9fc; }
+.rub-star{ color:#f0a500; font-size:12px; letter-spacing:-1px; flex:none; min-width:0; white-space:nowrap; }
+.rub-verdict{ font-size:13px; flex:none; }
+.rub-verdict.none{ color:#d8dee5; }
+.rub-name{ flex:1; min-width:0; font-size:14px; font-weight:600; color:#2a313c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rub-chips{ display:flex; gap:4px; flex:none; }
+.rub-chip{ font-size:13px; }
+.rub-go{ flex:none; color:#c2c9d2; font-size:20px; font-weight:700; }
 
 /* === HOME v0.23 — Card nave: numero-eroe RFQ ferme === */
 .vessel-hero{ display:flex; align-items:center; gap:14px; padding:14px 16px; margin:2px 0 12px; border-radius:11px; cursor:pointer; border:1px solid transparent; transition:box-shadow .12s, transform .08s; }
@@ -7637,7 +7664,9 @@ const DATA_URLS = {
   outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json",  // v0.18 — appuntamenti calendario (opzionale, via n8n)
   noonReports: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-noon-reports.json",  // v0.19 — noon report estratti via AI (opzionale, via n8n)
   pendingReplies: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-pending-replies.json",  // v0.21 — email in attesa di tua risposta (opzionale, via n8n)
-  personalCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-personal-calendar.json"  // v0.34 — calendario personale Apple/iCloud (opzionale, via n8n ICS)
+  personalCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-personal-calendar.json",  // v0.34 — calendario personale Apple/iCloud (opzionale, via n8n ICS)
+  supplierProfiles: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-supplier-profiles.json",  // v0.37 — rubrica fornitori da Notion (opzionale, via n8n)
+  agencyProfiles: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-agency-profiles.json"  // v0.37 — rubrica agenzie da Notion (opzionale, via n8n)
 };
 
 // === Configurazione Google Drive Sync ===
@@ -7860,14 +7889,16 @@ async function loadData() {
   }
 
   try {
-    const [proc, trk, outlookData, calData, noonData, pendingData, personalCalData] = await Promise.all([
+    const [proc, trk, outlookData, calData, noonData, pendingData, personalCalData, supProfiles, agProfiles] = await Promise.all([
       fetchJSON(DATA_URLS.procurement),
       fetchJSON(DATA_URLS.tracking).catch(() => null),  // tracking opzionale
       fetchJSON(DATA_URLS.outlookTasks).catch(() => null),  // v0.14: outlook tasks opzionale
       fetchJSON(DATA_URLS.outlookCalendar).catch(() => null),  // v0.18: outlook calendar opzionale
       fetchJSON(DATA_URLS.noonReports).catch(() => null),  // v0.19: noon report opzionale
       fetchJSON(DATA_URLS.pendingReplies).catch(() => null),  // v0.21: email in attesa di risposta opzionale
-      fetchJSON(DATA_URLS.personalCalendar).catch(() => null)  // v0.34: calendario personale opzionale
+      fetchJSON(DATA_URLS.personalCalendar).catch(() => null),  // v0.34: calendario personale opzionale
+      fetchJSON(DATA_URLS.supplierProfiles).catch(() => null),  // v0.37: rubrica fornitori Notion opzionale
+      fetchJSON(DATA_URLS.agencyProfiles).catch(() => null)  // v0.37: rubrica agenzie Notion opzionale
     ]);
     state.data = proc;
     state.tracking = trk;
@@ -7876,6 +7907,9 @@ async function loadData() {
     state.personalCalendar = personalCalData;  // {events:[{title,start,location}]} o null
     state.noonReports = (noonData && noonData.vessels) ? noonData.vessels : (noonData || null);  // {vesselId:[report,...]}
     state.pendingReplies = (pendingData && Array.isArray(pendingData.items)) ? pendingData.items : (Array.isArray(pendingData) ? pendingData : null);
+    // v0.37 — Rubriche Notion: Notion vince sui conflitti (merge nei profili locali)
+    mergeNotionProfiles("supplier", supProfiles);
+    mergeNotionProfiles("agency", agProfiles);
     writeCache({ procurement: proc, tracking: trk });
     state.loading = false;
     mergeAndPrepare();
@@ -8626,6 +8660,7 @@ function render() {
   else if (state.view === "email") renderEmailPage();
   else if (state.view === "supplier") renderSupplierPulse();
   else if (state.view === "performance") renderPerformancePage();
+  else if (state.view === "rubrica") renderRubricaPage();
   else if (state.view === "debug") renderDebug();
   else if (state.view === "todos") renderTodosPage();
 }
@@ -8749,6 +8784,17 @@ function renderSwitcher() {
   if (state.view === "performance") perfOpt.selected = true;
   select.appendChild(perfOpt);
 
+  // v0.38 — Pill Rubrica (fornitori + agenzie)
+  const rubPill = makeEl(`<button class="pill ${state.view === "rubrica" ? "active" : ""}" data-view="rubrica" role="tab">
+    <svg class="icon icon-sm" style="vertical-align:-2px;margin-right:4px"><use href="#i-mail"/></svg>
+    <span>Rubrica</span>
+  </button>`);
+  row.appendChild(rubPill);
+  const rubOpt = document.createElement("option");
+  rubOpt.value = "__rubrica"; rubOpt.textContent = "📇 Rubrica";
+  if (state.view === "rubrica") rubOpt.selected = true;
+  select.appendChild(rubOpt);
+
   VESSELS.forEach((v, idx) => {
     const dataVessel = state.data ? state.data.vessels.find(x => x.vesselId === v.vesselId) : null;
     let status = "green";
@@ -8829,6 +8875,17 @@ function availablePerfYears() {
   flatItemsWithVessel().forEach(it => { if (it.poDate) { const y = new Date(it.poDate).getFullYear(); if (!isNaN(y)) years.add(y); } });
   return [...years].sort((a, b) => b - a);
 }
+// v0.38 — Un periodo è "corrente" (rolling 365 o anno in corso) → l'urgenza live si applica.
+// Un anno passato è chiuso → niente urgenza live (non deve muoversi col presente).
+function isCurrentPeriod(key) {
+  key = key || "365";
+  if (key === "365") return true;
+  return parseInt(key, 10) === new Date().getFullYear();
+}
+function liveForPeriod(key) {
+  return isCurrentPeriod(key) ? computeLiveUrgency() : null;
+}
+
 function getPeriodRange(key) {
   if (key === "365") {
     const to = new Date(); to.setHours(23, 59, 59, 999);
@@ -9110,7 +9167,7 @@ window.emailPerformanceReport = function() {
   const range = getPeriodRange(state._perfPeriod || "365");
   const period = computePeriodStats(range.from, range.to);
   const prevPeriod = computePeriodStats(range.prevFrom, range.prevTo);
-  const live = computeLiveUrgency();
+  const live = liveForPeriod(state._perfPeriod || "365");
   const health = computeProcurementHealth(period, prevPeriod, live);
   const onTime = computeOnTimeDelivery(range.from, range.to);
   const dept = computeDeptBottlenecks(range.from, range.to);
@@ -9121,7 +9178,7 @@ window.copyPerformanceReport = function() {
   const range = getPeriodRange(state._perfPeriod || "365");
   const period = computePeriodStats(range.from, range.to);
   const prevPeriod = computePeriodStats(range.prevFrom, range.prevTo);
-  const live = computeLiveUrgency();
+  const live = liveForPeriod(state._perfPeriod || "365");
   const health = computeProcurementHealth(period, prevPeriod, live);
   const onTime = computeOnTimeDelivery(range.from, range.to);
   const dept = computeDeptBottlenecks(range.from, range.to);
@@ -9184,9 +9241,10 @@ function computeProcurementHealth(period, prevPeriod, live) {
   const reasons = [];
   let score = 100;
 
-  // Tasso di urgenza (soglia sana: 15%) — peso 35
+  // Tasso di urgenza (soglia sana: 15%) — peso 35. Solo per il periodo CORRENTE:
+  // per un anno chiuso live è null (l'urgenza "di adesso" non riguarda un anno passato).
   const URG_BASE = 15;
-  if (live.urgencyRate != null) {
+  if (live && live.urgencyRate != null) {
     const over = Math.max(0, live.urgencyRate - URG_BASE);
     const pen = Math.min(35, Math.round(over * 0.55));
     if (pen > 0) { score -= pen; reasons.push({ sign: "-", pts: pen, text: `Tasso di urgenza al ${live.urgencyRate}% (soglia sana: ${URG_BASE}%)` }); }
@@ -9307,6 +9365,7 @@ function gaugeHTML(health) {
 function renderPerformanceSection() {
   const live = computeLiveUrgency();
   if (live.openTotal === 0 && flatItemsWithVessel().every(it => !it.poDate)) return "";
+  const _periodLive = liveForPeriod(state._perfPeriod || "365");
 
   if (!state._perfPeriod) state._perfPeriod = "365";
   const years = availablePerfYears();
@@ -9351,7 +9410,7 @@ function renderPerformanceSection() {
 
       <div class="pp-period-row">${periodChips}</div>
 
-      ${gaugeHTML(computeProcurementHealth(period, prevPeriod, live))}
+      ${gaugeHTML(computeProcurementHealth(period, prevPeriod, _periodLive))}
 
       ${(() => {
         const board = computeVesselLeaderboard(range);
@@ -9456,6 +9515,25 @@ window.openAllSuppliers = function() {
 // ============================================================================
 // v0.35 — SCHEDA FORNITORE / AGENZIA (anagrafica + statistiche + contatti diretti)
 // ============================================================================
+// v0.37 — Merge rubrica Notion nei profili locali (Notion vince sui conflitti)
+function mergeNotionProfiles(kind, data) {
+  if (!data) return;
+  const arr = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : (Array.isArray(data.records) ? data.records : null));
+  if (!arr) return;
+  const local = loadEntityProfiles(kind);
+  for (const rec of arr) {
+    const name = (rec.name || rec.Name || "").trim();
+    if (!name) continue;
+    // Notion vince: sovrascrivo i campi presenti nel record Notion, tengo il resto del locale
+    const incoming = {};
+    ["contact", "email", "phone", "whatsapp", "wechat", "notes", "rating"].forEach(f => {
+      if (rec[f] !== undefined && rec[f] !== null && rec[f] !== "") incoming[f] = rec[f];
+    });
+    local[name] = Object.assign({}, local[name], incoming, { _notionId: rec.id || rec._notionId || (local[name] && local[name]._notionId) });
+  }
+  saveEntityProfiles(kind, local);
+}
+
 function loadEntityProfiles(kind) {
   // kind: "supplier" | "agency"
   const key = kind === "agency" ? "mpd.agencyProfiles" : "mpd.supplierProfiles";
@@ -9467,10 +9545,43 @@ function saveEntityProfiles(kind, obj) {
   try { localStorage.setItem(key, JSON.stringify(obj)); if (typeof driveSchedulePush === "function") driveSchedulePush(); } catch {}
 }
 function getEntityProfile(kind, name) { return loadEntityProfiles(kind)[name] || {}; }
+
+// v0.38 — Sync scrittura verso Notion via webhook n8n (opzionale)
+function getNotionWebhookCfg(){ try{ return JSON.parse(localStorage.getItem("mpd.notionWebhook")||"null") || {}; }catch{ return {}; } }
+function setNotionWebhookCfg(cfg){ try{ localStorage.setItem("mpd.notionWebhook", JSON.stringify(cfg)); }catch{} }
+window.configNotionWebhook = function(){
+  const c = getNotionWebhookCfg();
+  const sup = prompt("URL webhook FORNITORI (n8n, produzione):", c.supplierUrl||"");
+  if(sup===null) return;
+  const ag = prompt("URL webhook AGENZIE (n8n, produzione):", c.agencyUrl||"");
+  if(ag===null) return;
+  const tok = prompt("Token (uguale a quello nel workflow n8n):", c.token||"");
+  if(tok===null) return;
+  setNotionWebhookCfg({ supplierUrl:sup.trim(), agencyUrl:ag.trim(), token:tok.trim() });
+  showToast("Webhook Notion salvato");
+};
+let _notionPushTimers = {};
+function scheduleNotionPush(kind, name){
+  const key = kind+"|"+name;
+  clearTimeout(_notionPushTimers[key]);
+  _notionPushTimers[key] = setTimeout(()=>pushEntityToNotion(kind, name), 900);
+}
+function pushEntityToNotion(kind, name){
+  const cfg = getNotionWebhookCfg();
+  const url = kind==="agency" ? cfg.agencyUrl : cfg.supplierUrl;
+  if(!url || !cfg.token) return;  // non configurato → non faccio nulla
+  const p = getEntityProfile(kind, name);
+  const body = { token: cfg.token, name, email:p.email||"", phone:p.phone||"", whatsapp:p.whatsapp||"", wechat:p.wechat||"", contact:p.contact||"", notes:p.notes||"", rating:p.rating||0 };
+  fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) })
+    .then(r=>{ if(r.ok && typeof showToast==="function") showToast("↑ "+name+" aggiornato su Notion"); })
+    .catch(()=>{ /* silenzioso: se n8n non è raggiungibile, resta comunque salvato in locale */ });
+}
+
 window.updateEntityProfile = function(kind, name, field, value) {
   const all = loadEntityProfiles(kind);
   all[name] = Object.assign({}, all[name], { [field]: value });
   saveEntityProfiles(kind, all);
+  scheduleNotionPush(kind, name);  // v0.38 — push verso Notion se webhook configurato (debounce)
   // aggiorno solo la stellina/subito, senza chiudere la scheda
   if (field === "rating") renderEntityCardInto(kind, name);
 };
@@ -9553,7 +9664,7 @@ function renderEntityCardInto(kind, name) {
         <textarea class="ec-input ec-textarea" placeholder="Note tue: affidabilità, tempi, prezzi, referenti…" onchange="window.updateEntityProfile('${kind}','${escapeAttr(name)}','notes',this.value)">${escapeHTML(p.notes || "")}</textarea>
       </label>
     </div>
-    <div class="ec-foot">Dati salvati in locale e sincronizzati su Drive. In futuro collegabili alla tua rubrica Notion.</div>
+    <div class="ec-foot">Dati salvati in locale e sincronizzati su Drive.${getNotionWebhookCfg().token ? " Le modifiche vengono inviate a Notion." : ` <button class="btn-mini-link" onclick="window.configNotionWebhook()">Collega Notion ↑</button>`}</div>
   `;
   document.getElementById("entity-card-body").innerHTML = body;
   document.getElementById("entity-card-title").innerHTML = `${kind === "agency" ? "Agenzia" : "Fornitore"} · <strong>${escapeHTML(name)}</strong>`;
@@ -9920,6 +10031,13 @@ function renderOverview() {
       </section>`;
     })()}
 
+    <section class="fx-section" id="fx-widget">
+      <div class="fx-bar" id="fx-bar">
+        <span class="fx-title">USD / EUR</span>
+        <span class="fx-loading">carico cambio…</span>
+      </div>
+    </section>
+
     <section class="fusi-section">
       <div class="fusi-bar">
         <span class="fusi-bar-label">Fusi orari</span>
@@ -9990,6 +10108,60 @@ function renderOverview() {
   attachActionHandlers(root);
   attachTodoHandlers(root);
   attachPerformanceHandlers(root);
+  if (typeof initFxWidget === "function") initFxWidget();
+}
+
+// v0.38 — Widget USD/EUR: cambio attuale + andamento 30gg (dati BCE via frankfurter.app, cache locale)
+function initFxWidget() {
+  const bar = document.getElementById("fx-bar");
+  if (!bar) return;
+  try {
+    const cached = JSON.parse(localStorage.getItem("mpd.fxCache") || "null");
+    if (cached && cached.rate) paintFx(cached);
+  } catch(_) {}
+  const end = new Date();
+  const start = new Date(); start.setDate(start.getDate() - 32);
+  const iso = d => d.toISOString().slice(0,10);
+  fetch(`https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=USD&to=EUR`)
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      const days = Object.keys(data.rates || {}).sort();
+      const series = days.map(d => data.rates[d].EUR).filter(v => v != null);
+      if (!series.length) return;
+      const payload = { rate: series[series.length - 1], series, at: new Date().toISOString() };
+      try { localStorage.setItem("mpd.fxCache", JSON.stringify(payload)); } catch(_) {}
+      paintFx(payload);
+    })
+    .catch(() => {
+      const b = document.getElementById("fx-bar");
+      const l = b && b.querySelector(".fx-loading");
+      if (l) l.textContent = "cambio non disponibile ora";
+    });
+}
+function paintFx(p) {
+  const bar = document.getElementById("fx-bar");
+  if (!bar) return;
+  const rate = p.rate;
+  const inv = rate ? (1 / rate) : 0;
+  const series = (p.series && p.series.length) ? p.series : [rate];
+  const first = series[0], last = series[series.length - 1];
+  const delta = last - first;
+  const pctDelta = first ? (delta / first) * 100 : 0;
+  const dir = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
+  const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "=";
+  const W = 120, H = 30;
+  const min = Math.min(...series), max = Math.max(...series), range = (max - min) || 1;
+  const pts = series.map((v, i) => `${((i/Math.max(1,series.length-1))*W).toFixed(1)},${(H - ((v-min)/range)*H).toFixed(1)}`).join(" ");
+  const color = dir === "up" ? "#1f8a4c" : dir === "down" ? "#c8222a" : "#8a93a0";
+  const when = p.at ? new Date(p.at).toLocaleDateString("it-IT", { day:"2-digit", month:"short" }) : "";
+  bar.innerHTML = `
+    <span class="fx-title">USD / EUR</span>
+    <span class="fx-main"><span class="fx-rate">${rate.toFixed(4)}</span><span class="fx-sub">1 USD = ${rate.toFixed(4)} €</span></span>
+    <span class="fx-inv">1 € = ${inv.toFixed(4)} $</span>
+    <svg class="fx-spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="fx-delta ${dir}">${arrow} ${Math.abs(pctDelta).toFixed(2)}%<span class="fx-delta-lbl"> 30gg</span></span>
+    <span class="fx-src" title="Dati BCE via frankfurter.app${when ? " · agg. "+when : ""}">BCE</span>
+  `;
 }
 
 // v0.33 — Handler condivisi della sezione Performance (usati sia in Overview che nella pagina dedicata)
@@ -10010,10 +10182,77 @@ function attachPerformanceHandlers(root) {
   });
 }
 
+// v0.38 — Pagina RUBRICA (fornitori + agenzie)
+function renderRubricaPage() {
+  const root = document.getElementById("view-root");
+  if (!state._rubricaTab) state._rubricaTab = "supplier";
+  const tab = state._rubricaTab;
+
+  // Fornitori: nomi da profili salvati + da chi ha ordini (period 365)
+  const supNames = new Set(Object.keys(loadEntityProfiles("supplier")));
+  try {
+    const range = getPeriodRange("365");
+    const period = computePeriodStats(range.from, range.to);
+    (period.suppliers || []).forEach(s => supNames.add(s.name));
+  } catch(_) {}
+  // Agenzie: nomi dalla rubrica voyage + profili agenzia
+  const agNames = new Set(Object.keys(loadEntityProfiles("agency")));
+  try { (loadAgencies() || []).forEach(a => a.name && agNames.add(a.name)); } catch(_) {}
+
+  const kind = tab;
+  const names = [...(kind === "supplier" ? supNames : agNames)].filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const q = (state._rubricaQuery || "").toLowerCase();
+  const filtered = q ? names.filter(n => n.toLowerCase().includes(q)) : names;
+
+  const verdictBadge = (r) => {
+    r = r || 0;
+    if (r >= 4) return `<span class="rub-verdict good">🟢</span>`;
+    if (r === 3) return `<span class="rub-verdict mid">⚪</span>`;
+    if (r >= 1) return `<span class="rub-verdict bad">🔴</span>`;
+    return `<span class="rub-verdict none">—</span>`;
+  };
+  const rows = filtered.map(name => {
+    const p = getEntityProfile(kind, name);
+    const chips = [
+      p.email ? `<span class="rub-chip">📧</span>` : "",
+      (p.whatsapp || p.phone) ? `<span class="rub-chip">💬</span>` : "",
+      p.wechat ? `<span class="rub-chip">📱</span>` : ""
+    ].filter(Boolean).join("");
+    return `<button class="rub-row" onclick="window.${kind === "supplier" ? "openSupplierCard" : "openAgencyCard"}('${escapeAttr(name)}')">
+      <span class="rub-star">${"★".repeat(p.rating||0)||""}</span>
+      ${verdictBadge(p.rating)}
+      <span class="rub-name">${escapeHTML(name)}</span>
+      <span class="rub-chips">${chips}</span>
+      <span class="rub-go">›</span>
+    </button>`;
+  }).join("");
+
+  root.innerHTML = `
+    <header class="todo-page-header">
+      <div>
+        <h1>Rubrica</h1>
+        <div class="todo-page-stats"><span class="stat">${supNames.size} fornitori · ${agNames.size} agenzie</span><span class="stat">dai tuoi register Notion + profili locali</span></div>
+      </div>
+    </header>
+    <div class="todo-mode-switch" role="tablist" style="margin-bottom:16px;">
+      <button class="tms-btn ${tab==='supplier'?'active':''}" onclick="window.setRubricaTab('supplier')">🏭 Fornitori <span class="tms-badge">${supNames.size}</span></button>
+      <button class="tms-btn ${tab==='agency'?'active':''}" onclick="window.setRubricaTab('agency')">⚓ Agenzie <span class="tms-badge">${agNames.size}</span></button>
+    </div>
+    <input type="search" class="search-input" id="rubrica-search" placeholder="Cerca ${kind==='supplier'?'fornitore':'agenzia'}…" value="${escapeAttr(state._rubricaQuery||"")}" style="margin-bottom:14px;max-width:360px;">
+    <div class="rub-list">${rows || `<div class="mo-empty" style="padding:32px;text-align:center;">Nessun ${kind==='supplier'?'fornitore':'agenzia'} ${q?'per questa ricerca':'ancora in rubrica'}.</div>`}</div>
+  `;
+  const si = document.getElementById("rubrica-search");
+  if (si) si.addEventListener("input", e => { state._rubricaQuery = e.target.value; const l = root.querySelector(".rub-list"); renderRubricaPage(); const s2 = document.getElementById("rubrica-search"); if (s2) { s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); } });
+}
+window.setRubricaTab = function(t){ state._rubricaTab = t; state._rubricaQuery = ""; renderRubricaPage(); };
+
 // v0.33 — Pagina dedicata Performance procurement
 function renderPerformancePage() {
   const root = document.getElementById("view-root");
   const section = renderPerformanceSection();
+  root.innerHTML = section
+    ? section
+    : `<div class="empty-state" style="padding:48px 24px;text-align:center;"><p style="font-weight:600;color:#3a4250;">Ancora nessun dato di procurement da analizzare.</p></div>`;
   root.innerHTML = section
     ? section
     : `<div class="empty-state" style="padding:48px 24px;text-align:center;"><p style="font-weight:600;color:#3a4250;">Ancora nessun dato di procurement da analizzare.</p></div>`;
@@ -13987,11 +14226,15 @@ function getEffectiveDelivery(it, vesselId){
   if (plan && plan.mode === "voyage" && vesselId){
     const voy = (typeof getVoyage === "function") ? getVoyage(vesselId) : null;
     const leg = voy ? (plan.leg === "next" ? voy.next : voy.current) : null;
-    if (leg && (leg.eta || leg.etb)){
-      return { date: (leg.eta || leg.etb).slice(0,10), port: leg.to || "", source: "voyage", legLabel: plan.leg === "next" ? "Voyage successivo" : "Voyage in corso" };
+    const legName = plan.leg === "next" ? "Voyage successivo" : "Voyage in corso";
+    if (leg && (leg.etb || leg.eta)){
+      // La consegna avviene in banchina: preferisco ETB; se manca uso ETA (fonda/arrivo).
+      const useEtb = !!leg.etb;
+      const ref = useEtb ? leg.etb : leg.eta;
+      return { date: ref.slice(0,10), port: leg.to || "", source: "voyage", legLabel: legName + (useEtb ? " · ETB" : " · ETA"), refKind: useEtb ? "ETB" : "ETA" };
     }
-    // voyage selezionato ma senza ETA → resta pianificato senza data
-    return { date: "", port: (leg && leg.to) || "", source: "voyage", legLabel: plan.leg === "next" ? "Voyage successivo" : "Voyage in corso" };
+    // voyage selezionato ma senza date → resta pianificato senza data
+    return { date: "", port: (leg && leg.to) || "", source: "voyage", legLabel: legName, refKind: null };
   }
   if (plan && plan.mode === "manual"){
     return { date: plan.date || "", port: plan.port || "", source: "manual", legLabel: "Manuale" };
@@ -14024,12 +14267,13 @@ function deliveryPlannerHTML(it, vesselId){
   </div>`;
 
   const legOptions = legs.map(l => {
-    const when = l.eta || l.etb;
-    return `<option value="${l.key}" ${plan.leg === l.key ? "selected" : ""}>${escapeHTML(l.lbl)} → ${escapeHTML(l.to || "porto n/d")}${when ? " · ETA " + formatDate(when.slice(0,10)) : " · ETA n/d"}</option>`;
+    const when = l.etb || l.eta;
+    const kind = l.etb ? "ETB" : "ETA";
+    return `<option value="${l.key}" ${plan.leg === l.key ? "selected" : ""}>${escapeHTML(l.lbl)} → ${escapeHTML(l.to || "porto n/d")}${when ? " · " + kind + " " + formatDate(when.slice(0,10)) : " · data n/d"}</option>`;
   }).join("");
   const voyageBlock = legs.length
     ? `<select id="deliv-leg-${escapeAttr(it.id)}" class="deliv-select">${legOptions}</select>
-       <div class="deliv-hint">La data segue l'ETA dello scalo: se aggiorni il Voyage, la consegna si allinea da sola.</div>`
+       <div class="deliv-hint">La data segue lo scalo (banchina/ETB se disponibile, altrimenti ETA): se aggiorni il Voyage, la consegna si allinea da sola.</div>`
     : `<div class="deliv-hint">Nessuno scalo nel Voyage di questa nave. <button class="btn-mini-link" onclick="window.closeItemDetailPopover(); window.openVoyageEditor('${escapeAttr(vesselId||"")}')">Compila il Voyage →</button></div>`;
 
   return `
@@ -14113,6 +14357,7 @@ function agencyBlock(which, ag){
         <select id="voy-${which}-agency-sel" onchange="window.voyAgencySelect('${which}')">${agencyOptions(inDB?ag.name:"")}</select>
         <input type="text" id="voy-${which}-agency-name" placeholder="Nome nuova agenzia" value="${escapeAttr(ag.name||"")}" style="display:${(ag.name && !inDB)?"":"none"};">
         <button type="button" class="btn btn-sm" onclick="window.copyAgency('${which}')" title="Copia agenzia e contatti negli appunti">📋 Copia</button>
+        <button type="button" class="btn btn-sm" onclick="window.openAgencyCardFromVoyage('${which}')" title="Apri scheda agenzia (contatti, giudizio, note)">🗂 Scheda</button>
       </div>
       <textarea id="voy-${which}-agency-contacts" rows="2" class="agency-contacts" placeholder="Contatti agenzia: referente, tel, email… (salvati e riproposti)">${escapeHTML(ag.contacts||"")}</textarea>
     </div>`;
@@ -14131,10 +14376,23 @@ window.copyAgency = function(which){
   const name=(document.getElementById(`voy-${which}-agency-name`)?.value||"").trim();
   const contacts=(document.getElementById(`voy-${which}-agency-contacts`)?.value||"").trim();
   if(!name && !contacts){ showToast("Nessuna agenzia da copiare"); return; }
-  const text = name + (contacts? "\n"+contacts : "");
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(()=>showToast("Agenzia copiata negli appunti")).catch(()=>showToast("Copia non riuscita"));
-  } else { showToast("Copia non supportata"); }
+  const text = name + (contacts ? "\n"+contacts : "");
+  if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>showToast("Agenzia copiata")).catch(()=>showToast("Copia non riuscita"));
+};
+// v0.36 — Apre la scheda agenzia dal blocco agenzia dell'editor voyage
+window.openAgencyCardFromVoyage = function(which){
+  const name=(document.getElementById(`voy-${which}-agency-name`)?.value||"").trim();
+  if(!name){ showToast("Scegli o scrivi prima il nome dell'agenzia"); return; }
+  // pre-popolo il profilo con i contatti già scritti nel voyage, se il profilo è vuoto
+  const prof = getEntityProfile("agency", name);
+  const voyContacts=(document.getElementById(`voy-${which}-agency-contacts`)?.value||"").trim();
+  if(voyContacts && !prof.notes && !prof.email){
+    const em = voyContacts.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+    const all=loadEntityProfiles("agency");
+    all[name]=Object.assign({}, all[name], { notes: voyContacts, email: em?em[0]:"" });
+    saveEntityProfiles("agency", all);
+  }
+  window.openAgencyCard(name);
 };
 
 // Editor modale per compilare/modificare voyage
@@ -15626,7 +15884,7 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
           const ctx = {
             vesselName: supItems[0].vesselName || "",
             supplier: sup,
-            items: supItems.map(i => ({ description: i.description || "", days: i.ageDays || "?" }))
+            items: supItems.map(i => ({ description: i.description || "", days: i.ageDays || "?", rfqNumber: i.rfqNumber || i.docNumber || (Array.isArray(i.docAllNumbers) && i.docAllNumbers[0]) || "" }))
           };
           const ctxJson = encodeURIComponent(JSON.stringify(ctx));
           batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')"><svg class="icon icon-sm"><use href="#i-send"/></svg> Sollecita tutti (${supItems.length}) →</button>`;
@@ -17661,6 +17919,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (pill.dataset.view === "email") goEmail();
     else if (pill.dataset.view === "certificates") window.goCertificates();
     else if (pill.dataset.view === "performance") goPerformance();
+    else if (pill.dataset.view === "rubrica") { state.view = "rubrica"; render(); window.scrollTo({top:0,behavior:"smooth"}); }
     else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
   document.getElementById("vessel-select").addEventListener("change", e => {
@@ -17670,6 +17929,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (v === "__email") goEmail();
     else if (v === "__certificates") window.goCertificates();
     else if (v === "__performance") goPerformance();
+    else if (v === "__rubrica") { state.view = "rubrica"; render(); }
     else goVessel(v);
   });
 
