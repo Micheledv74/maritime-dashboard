@@ -6620,6 +6620,26 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 /* v0.31 — Andamento Salute procurement (mini-trend a destra del gauge) */
 .ph-gauge-col{ flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; }
 .ph-scale-hint{ font-size:10.5px; font-weight:600; color:#a7afb9; text-align:center; }
+/* v0.43 — Gauge doppio Reale/Giustificato */
+.ph-gauge-duo{ flex-direction:row; gap:18px; align-items:flex-start; }
+.ph-gauge-unit{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.ph-gauge-lbl{ font-size:12.5px; font-weight:700; color:#3a4250; margin-top:2px; }
+.ph-gauge-sub{ font-size:10.5px; font-weight:600; color:#a7afb9; text-align:center; }
+.ph-delta-note{ margin-top:12px; padding:10px 12px; background:#f6f9fc; border:1px solid var(--border); border-radius:9px; font-size:12px; line-height:1.5; color:#5a6472; }
+.ph-delta-note .btn-mini-link{ margin-left:4px; }
+/* v0.43 — Item card: input inline logistica + esclusione performance */
+.detail-inline-input{ font:inherit; font-size:13px; color:#2a313c; border:1px solid var(--border); border-radius:7px; padding:6px 9px; min-width:150px; background:#fff; text-align:right; }
+.detail-inline-input:focus{ outline:none; border-color:var(--accent); }
+.detail-edited-tag{ color:var(--accent); font-size:11px; }
+.perf-excl-row{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:600; color:#2a313c; cursor:pointer; }
+.perf-excl-row input{ width:17px; height:17px; accent-color:var(--accent); cursor:pointer; }
+.perf-excl-reason{ display:flex; gap:8px; flex-wrap:wrap; margin-top:9px; }
+.perf-reason-opt{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#5a6472; border:1px solid var(--border); border-radius:8px; padding:6px 11px; cursor:pointer; }
+.perf-reason-opt.on{ border-color:var(--accent); color:var(--accent); background:#eef4ff; }
+.perf-reason-opt input{ accent-color:var(--accent); }
+.parked-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 4px; border-bottom:1px solid var(--border); }
+.parked-row:last-child{ border-bottom:none; }
+.ph-trend-hit{ cursor:help; }
 .ph-body{ display:flex; flex-direction:column; justify-content:center; min-width:0; }
 .ph-trend{ width:230px; padding-left:20px; border-left:1px solid #eef1f4; display:flex; flex-direction:column; justify-content:center; }
 .ph-trend-head{ font-size:12px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:#8a93a0; margin-bottom:10px; display:flex; flex-direction:column; gap:3px; }
@@ -8938,9 +8958,10 @@ function monthsOfRange(from, to) {
   return months;
 }
 
-function computePeriodStats(from, to) {
+function computePeriodStats(from, to, opts) {
   const all = flatItemsWithVessel();
-  const inRange = all.filter(it => it.poDate && (() => { const d = new Date(it.poDate); return d >= from && d <= to; })());
+  const skip = (opts && opts.excludeParked) ? (it => isPerfExcluded(it)) : (() => false);
+  const inRange = all.filter(it => !skip(it) && it.poDate && (() => { const d = new Date(it.poDate); return d >= from && d <= to; })());
   const cycles = inRange.map(itemRealCycleDays).filter(x => x != null);
   const avgCycle = cycles.length ? Math.round(cycles.reduce((s, x) => s + x, 0) / cycles.length) : null;
   const volume = inRange.length;
@@ -8957,6 +8978,7 @@ function computePeriodStats(from, to) {
     if (c != null) { s.cycleSum += c; s.cycleN++; }
   });
   all.forEach(it => {
+    if (skip(it)) return;
     if (it.rfqStatus === "RFQ Refused" && it.reqDate && it.supplier && it.supplier !== "—") {
       const d = new Date(it.reqDate);
       if (d >= from && d <= to) { const s = (bySup[it.supplier] = bySup[it.supplier] || { count: 0, cycleSum: 0, cycleN: 0, refused: 0 }); s.refused++; }
@@ -8976,9 +8998,10 @@ function computePeriodStats(from, to) {
 }
 
 // Statistiche "live" (adesso, indipendenti dal periodo selezionato)
-function computeLiveUrgency() {
+function computeLiveUrgency(opts) {
   const threshold = state.settings.overdueDays || 7;
-  const openRfqAll = flatItemsWithVessel().filter(it => it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" && it.rfqStatus !== "RFQ Refused" && (!it.poStatus || it.poStatus === "") && it.rfqDays != null);
+  const excl = !!(opts && opts.excludeParked);
+  const openRfqAll = flatItemsWithVessel().filter(it => it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" && it.rfqStatus !== "RFQ Refused" && (!it.poStatus || it.poStatus === "") && it.rfqDays != null && !(excl && isPerfExcluded(it)));
   const avgAge = openRfqAll.length ? Math.round(openRfqAll.reduce((s, it) => s + it.rfqDays, 0) / openRfqAll.length) : null;
   const urgentCount = openRfqAll.filter(it => it.rfqDays > threshold).length;
   const urgencyRate = openRfqAll.length ? Math.round((urgentCount / openRfqAll.length) * 100) : null;
@@ -9316,18 +9339,41 @@ function computeHealthTrend(monthsBack) {
     const period = computePeriodStats(from, to);
     const prevPeriod = computePeriodStats(prevFrom, prevTo);
     const h = computeProcurementHealth(period, prevPeriod, live);
-    out.push({ label: mesi[d.getMonth()], score: h.score, hasData: period.volume > 0 });
+    out.push({ label: mesi[d.getMonth()], year: d.getFullYear(), monthName: mesi[d.getMonth()], score: h.score, tier: h.tier, hasData: period.volume > 0, volume: period.volume, avgCycle: period.avgCycle, reasons: h.reasons || [] });
   }
   return out;
 }
 
-function gaugeHTML(health) {
+function gaugeHTML(health, healthAdj, parkedCount) {
   // Semicerchio SVG: arco di sfondo + arco colorato proporzionale allo score
   const r = 74, cx = 85, cy = 84;
   const circ = Math.PI * r; // lunghezza semicerchio
   const pct = health.score / 100;
   const colors = { good: "#1f8a4c", mid: "#b8740a", bad: "#c8222a" };
   const color = colors[health.tier];
+  const _adj = healthAdj || health;
+  const _duo = (parkedCount || 0) > 0;
+  const gaugeUnitHTML = (h, lbl, sub, big) => {
+    const c = colors[h.tier], circ2 = Math.PI * 74, off = circ2 * (1 - h.score / 100);
+    const w = big ? 170 : 150, ht = big ? 98 : 88;
+    return `<div class="ph-gauge-unit">
+      <div class="ph-gauge" style="width:${w}px;height:${ht}px;">
+        <svg width="${w}" height="${ht}" viewBox="0 0 170 98" preserveAspectRatio="xMidYMid meet">
+          <path d="M 12 84 A 74 74 0 0 1 158 84" fill="none" stroke="#eef1f4" stroke-width="15" stroke-linecap="round"/>
+          <path d="M 12 84 A 74 74 0 0 1 158 84" fill="none" stroke="${c}" stroke-width="15" stroke-linecap="round" stroke-dasharray="${circ2}" stroke-dashoffset="${off}"/>
+        </svg>
+        <div class="ph-score" style="color:${c};${big ? "" : "font-size:30px;"}">${h.score}</div>
+      </div>
+      <div class="ph-gauge-lbl">${lbl}</div>
+      <div class="ph-gauge-sub">${sub}</div>
+    </div>`;
+  };
+  const gaugeColHTML = _duo
+    ? `<div class="ph-gauge-col ph-gauge-duo">${gaugeUnitHTML(health, "Reale", "tutto incluso", false)}${gaugeUnitHTML(_adj, "Giustificato", parkedCount + " esclus" + (parkedCount === 1 ? "o" : "i"), false)}</div>`
+    : `<div class="ph-gauge-col">${gaugeUnitHTML(health, "Salute", "0-100 · più alto è meglio", true)}</div>`;
+  const deltaNoteHTML = _duo
+    ? `<div class="ph-delta-note">${_adj.score > health.score ? `<b>+${_adj.score - health.score}</b> punti sospesi` : "nessuno scarto"} per <b>${parkedCount}</b> item deliberati (chiusi fuori sistema o strategici). Il <b>Reale</b> resta lo specchio onesto; il <b>Giustificato</b> è ciò che dipende dal processo. <button class="btn-mini-link" onclick="window.showParkedItems()">Vedi esclusi →</button></div>`
+    : "";
   const reasonsHTML = health.reasons.map(r => `<div class="ph-reason ${r.sign === "+" ? "pos" : "neg"}"><span class="ph-reason-pts">${r.sign}${r.pts}</span><span class="ph-reason-txt">${escapeHTML(r.text)}</span></div>`).join("");
 
   // v0.31 — Andamento: mini-linea a SCALA FISSA 0-100 (proporzionata e leggibile) + delta vs mese scorso
@@ -9339,6 +9385,10 @@ function gaugeHTML(health) {
     const scores = trend.map(m => m.score);
     const yOf = (s) => PAD + (H - PAD * 2) * (1 - s / 100);  // scala FISSA 0-100, non auto-min/max
     const pts = scores.map((s, i) => `${((i / (scores.length - 1)) * W).toFixed(1)},${yOf(s).toFixed(1)}`).join(" ");
+    // v0.44 — media mobile a 3 mesi (centrata, consapevole dei bordi): smorza le oscillazioni ingannevoli
+    const movAvg = scores.map((_, i) => { const a = Math.max(0, i - 1), b = Math.min(scores.length - 1, i + 1); let sum = 0, n = 0; for (let k = a; k <= b; k++){ sum += scores[k]; n++; } return sum / n; });
+    const smPts = movAvg.map((s, i) => `${((i / (scores.length - 1)) * W).toFixed(1)},${yOf(s).toFixed(1)}`).join(" ");
+    const titleOf = (m) => { const rs = (m.reasons || []).map(r => `${r.sign}${r.pts} ${r.text}`).join("\n"); return `${m.monthName} ${m.year} — ${m.score}/100\nOrdini: ${m.volume}${m.avgCycle != null ? ` · ciclo ${m.avgCycle}gg` : ""}${rs ? "\n" + rs : ""}`; };
     const lastIdx = scores.length - 1;
     const last = scores[lastIdx];
     const prev = lastIdx > 0 ? scores[lastIdx - 1] : null;
@@ -9347,15 +9397,16 @@ function gaugeHTML(health) {
     const y50 = yOf(50).toFixed(1), y75 = yOf(75).toFixed(1);
     trendHTML = `
       <div class="ph-trend">
-        <div class="ph-trend-head">Andamento 6 mesi <span class="ph-trend-note">100=ottimo, più alto è meglio</span></div>
+        <div class="ph-trend-head">Andamento 6 mesi <span class="ph-trend-note">linea = media mobile · punti = mese (passa sopra)</span></div>
         <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="ph-trend-svg">
           <rect x="0" y="${yOf(100).toFixed(1)}" width="${W}" height="${(parseFloat(y75) - yOf(100)).toFixed(1)}" fill="#e7f5ec"/>
           <rect x="0" y="${y75}" width="${W}" height="${(parseFloat(y50) - parseFloat(y75)).toFixed(1)}" fill="#fdf2dd"/>
           <rect x="0" y="${y50}" width="${W}" height="${(yOf(0) - parseFloat(y50)).toFixed(1)}" fill="#fbdcde"/>
           <line x1="0" y1="${y75}" x2="${W}" y2="${y75}" stroke="#d8dee5" stroke-width="1" stroke-dasharray="3,3"/>
           <line x1="0" y1="${y50}" x2="${W}" y2="${y50}" stroke="#d8dee5" stroke-width="1" stroke-dasharray="3,3"/>
-          <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          ${scores.map((s, i) => `<circle cx="${((i / (scores.length - 1)) * W).toFixed(1)}" cy="${yOf(s).toFixed(1)}" r="${i === lastIdx ? 3.6 : 2.2}" fill="${i === lastIdx ? color : "#fff"}" stroke="${color}" stroke-width="1.5"/>`).join("")}
+          <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1" stroke-opacity="0.35" stroke-dasharray="2,2" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="${smPts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${trend.map((m, i) => { const cxp = ((i / (scores.length - 1)) * W).toFixed(1); const cyp = yOf(scores[i]).toFixed(1); return `<circle cx="${cxp}" cy="${cyp}" r="${i === lastIdx ? 3.6 : 2.2}" fill="${i === lastIdx ? color : "#fff"}" stroke="${color}" stroke-width="1.5"/><circle class="ph-trend-hit" cx="${cxp}" cy="${cyp}" r="9" fill="transparent"><title>${escapeHTML(titleOf(m))}</title></circle>`; }).join("")}
         </svg>
         <div class="ph-trend-labels">${trend.map(m => `<span>${m.label}</span>`).join("")}</div>
         <div class="ph-trend-deltas">${arrowHTML(deltaMonth)}<span class="ph-trend-vs">vs mese scorso</span></div>
@@ -9366,21 +9417,12 @@ function gaugeHTML(health) {
 
   return `
     <div class="ph-wrap">
-      <div class="ph-gauge-col">
-        <div class="ph-gauge">
-          <svg width="170" height="98" viewBox="0 0 170 98">
-            <path d="M 12 84 A ${r} ${r} 0 0 1 158 84" fill="none" stroke="#eef1f4" stroke-width="15" stroke-linecap="round"/>
-            <path d="M 12 84 A ${r} ${r} 0 0 1 158 84" fill="none" stroke="${color}" stroke-width="15" stroke-linecap="round"
-                  stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - pct)}"/>
-          </svg>
-          <div class="ph-score" style="color:${color}">${health.score}</div>
-        </div>
-        <div class="ph-scale-hint">0-100 · più alto è meglio</div>
-      </div>
+      ${gaugeColHTML}
       <div class="ph-body">
         <div class="ph-title">Salute procurement <span class="ph-badge ph-badge-${health.tier}">${escapeHTML(health.label)}</span></div>
         <div class="ph-sub">Misura il processo (RFQ ferme, ciclo REQ→PO, fornitori), non te. Il ciclo REQ→PO pesa di più perché dipende soprattutto da come lavori tu; da PO in poi entrano fattori esterni.</div>
         <div class="ph-reasons">${reasonsHTML}</div>
+        ${deltaNoteHTML}
       </div>
       ${trendHTML}
     </div>`;
@@ -9396,6 +9438,10 @@ function renderPerformanceSection() {
   const range = getPeriodRange(state._perfPeriod);
   const period = computePeriodStats(range.from, range.to);
   const prevPeriod = computePeriodStats(range.prevFrom, range.prevTo);
+  const periodAdj = computePeriodStats(range.from, range.to, { excludeParked: true });
+  const prevPeriodAdj = computePeriodStats(range.prevFrom, range.prevTo, { excludeParked: true });
+  const _periodLiveAdj = isCurrentPeriod(state._perfPeriod || "365") ? computeLiveUrgency({ excludeParked: true }) : null;
+  const _parkedCount = flatItemsWithVessel().filter(isPerfExcluded).length;
   const months = monthsOfRange(range.from, range.to);
   const tips = generateProcurementTips(period, live);
 
@@ -9434,7 +9480,7 @@ function renderPerformanceSection() {
 
       <div class="pp-period-row">${periodChips}</div>
 
-      ${gaugeHTML(computeProcurementHealth(period, prevPeriod, _periodLive))}
+      ${gaugeHTML(computeProcurementHealth(period, prevPeriod, _periodLive), computeProcurementHealth(periodAdj, prevPeriodAdj, _periodLiveAdj), _parkedCount)}
 
       ${(() => {
         const board = computeVesselLeaderboard(range);
@@ -9570,36 +9616,9 @@ function saveEntityProfiles(kind, obj) {
 }
 function getEntityProfile(kind, name) { return loadEntityProfiles(kind)[name] || {}; }
 
-// v0.38 — Sync scrittura verso Notion via webhook n8n (opzionale)
-function getNotionWebhookCfg(){ try{ return JSON.parse(localStorage.getItem("mpd.notionWebhook")||"null") || {}; }catch{ return {}; } }
-function setNotionWebhookCfg(cfg){ try{ localStorage.setItem("mpd.notionWebhook", JSON.stringify(cfg)); }catch{} }
-window.configNotionWebhook = function(){
-  const c = getNotionWebhookCfg();
-  const sup = prompt("URL webhook FORNITORI (n8n, produzione):", c.supplierUrl||"");
-  if(sup===null) return;
-  const ag = prompt("URL webhook AGENZIE (n8n, produzione):", c.agencyUrl||"");
-  if(ag===null) return;
-  const tok = prompt("Token (uguale a quello nel workflow n8n):", c.token||"");
-  if(tok===null) return;
-  setNotionWebhookCfg({ supplierUrl:sup.trim(), agencyUrl:ag.trim(), token:tok.trim() });
-  showToast("Webhook Notion salvato");
-};
-let _notionPushTimers = {};
-function scheduleNotionPush(kind, name){
-  const key = kind+"|"+name;
-  clearTimeout(_notionPushTimers[key]);
-  _notionPushTimers[key] = setTimeout(()=>pushEntityToNotion(kind, name), 900);
-}
-function pushEntityToNotion(kind, name){
-  const cfg = getNotionWebhookCfg();
-  const url = kind==="agency" ? cfg.agencyUrl : cfg.supplierUrl;
-  if(!url || !cfg.token) return;  // non configurato → non faccio nulla
-  const p = getEntityProfile(kind, name);
-  const body = { token: cfg.token, name, email:p.email||"", phone:p.phone||"", whatsapp:p.whatsapp||"", wechat:p.wechat||"", contact:p.contact||"", notes:p.notes||"", rating:p.rating||0, code:p.code||"", city:p.city||"", country:p.country||"", address:p.address||"" };
-  fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) })
-    .then(r=>{ if(r.ok && typeof showToast==="function") showToast("↑ "+name+" aggiornato su Notion"); })
-    .catch(()=>{ /* silenzioso: se n8n non è raggiungibile, resta comunque salvato in locale */ });
-}
+// v0.42 — Push webhook rimosso: la sincronizzazione verso Notion avviene ora via export CSV (Esporta CSV nella Rubrica → Merge with CSV su Notion). Il pull da Notion resta attivo.
+function scheduleNotionPush(){}
+function pushEntityToNotion(){}
 
 window.updateEntityProfile = function(kind, name, field, value) {
   const all = loadEntityProfiles(kind);
@@ -9693,10 +9712,10 @@ function renderEntityCardInto(kind, name) {
       </label>
     </div>
     <div class="ec-actions-row">
-      <button class="ec-save" onclick="window.saveEntityCard('${kind}','${escapeAttr(name)}')">💾 Salva${getNotionWebhookCfg().token ? " + Notion" : ""}</button>
+      <button class="ec-save" onclick="window.saveEntityCard('${kind}','${escapeAttr(name)}')">💾 Salva</button>
       <button class="ec-delete" onclick="window.deleteEntity('${kind}','${escapeAttr(name)}')">🗑 Elimina</button>
     </div>
-    <div class="ec-foot">Dati salvati in locale e sincronizzati su Drive.${getNotionWebhookCfg().token ? " Le modifiche vengono inviate a Notion." : ` <button class="btn-mini-link" onclick="window.configNotionWebhook()">Collega Notion ↑</button>`}</div>
+    <div class="ec-foot">Dati salvati in locale e sincronizzati su Drive. Usa <strong>Esporta CSV</strong> nella Rubrica per aggiornare Notion.</div>
   `;
   document.getElementById("entity-card-body").innerHTML = body;
   document.getElementById("entity-card-title").innerHTML = `${kind === "agency" ? "Agenzia" : "Fornitore"} · <strong>${escapeHTML(name)}</strong>`;
@@ -9724,7 +9743,7 @@ window.deleteEntity = function(kind, name) {
 window.saveEntityCard = function(kind, name) {
   saveEntityProfiles(kind, loadEntityProfiles(kind)); // persiste (già fatto on-change) + trigger Drive
   pushEntityToNotion(kind, name);
-  showToast(getNotionWebhookCfg().token ? "Salvato e inviato a Notion" : "Salvato");
+  showToast("Salvato");
 };
 window.openSupplierCard = function(name) {
   renderEntityCardInto("supplier", name);
@@ -11347,8 +11366,9 @@ function renderItemsTable(v) {
       `<span class="muted" style="font-size: 11px;">${escapeHTML(it.supplier)}</span>` : "";
     // v0.9 — Badge logistici (Origin / Transport mode) — il chip orario è ora nel widget mondiale Overview
     const logBadges = [];
-    if (it.origin) logBadges.push(`<span class="log-badge log-origin" title="Origine: ${escapeAttr(it.origin)}">🌍 ${escapeHTML(it.origin)}</span>`);
-    if (it.transportMode) logBadges.push(`<span class="log-badge log-transport" title="Trasporto: ${escapeAttr(it.transportMode)}">✈️ ${escapeHTML(it.transportMode)}</span>`);
+    const _bo = itemOrigin(it), _bt = itemTransport(it);
+    if (_bo) logBadges.push(`<span class="log-badge log-origin" title="Origine: ${escapeAttr(_bo)}">🌍 ${escapeHTML(_bo)}</span>`);
+    if (_bt) logBadges.push(`<span class="log-badge log-transport" title="Trasporto: ${escapeAttr(_bt)}">✈️ ${escapeHTML(_bt)}</span>`);
     const _eff = getEffectiveDelivery(it);
     const _delivCell = _eff.date
       ? `<span class="deliv-cell-date deliv-${_eff.source}" title="${escapeAttr((_eff.legLabel||"") + (_eff.port? " · "+_eff.port : ""))}">${formatDate(_eff.date)}${_eff.source==="voyage"?" ⚓":_eff.source==="manual"?" ✎":_eff.source==="infoship"?" ~":""}</span>`
@@ -11851,6 +11871,57 @@ window.closeItemDetailPopover = function() {
   if (backdrop) backdrop.classList.remove("open");
 };
 
+// v0.43 — Handler override per-item (esclusione performance + logistica manuale)
+window.setItemLogistics = function(id, field, val){
+  setItemOverride(id, { [field]: (val || "").trim() });
+  if (typeof render === "function") render();
+};
+window.togglePerfExclude = function(id, on, reopenCard){
+  const patch = { excludePerf: !!on };
+  if (on){ const cur = getItemOverride(id) || {}; if (!cur.excludeReason) patch.excludeReason = "strategic"; }
+  setItemOverride(id, patch);
+  if (typeof render === "function") render();
+  if (reopenCard) window.openItemDetailPopover(id);
+  if (typeof showToast === "function") showToast(on ? "Item escluso dal punteggio" : "Item reincluso nel punteggio");
+};
+window.setPerfExcludeReason = function(id, reason){
+  setItemOverride(id, { excludeReason: reason });
+  if (typeof render === "function") render();
+};
+window.showParkedItems = function(){
+  const ov = loadItemOverrides();
+  const ids = Object.keys(ov).filter(id => ov[id].excludePerf);
+  const all = flatItemsWithVessel();
+  const rows = ids.map(id => {
+    const it = all.find(x => x.id === id);
+    if (!it) return "";
+    const rlbl = ov[id].excludeReason === "closed" ? "Chiuso fuori sistema" : "Strategico / speculativo";
+    return `<div class="parked-row">
+      <div style="min-width:0;">
+        <div style="font-weight:600;">${escapeHTML(truncate(it.description || "—", 52))}</div>
+        <div class="muted" style="font-size:11px;">${escapeHTML(it.supplier || "—")} · ${rlbl}</div>
+      </div>
+      <div style="display:flex; gap:6px; flex:none;">
+        <button class="btn btn-sm" onclick="window.closeParkedItems(); window.openItemDetailPopover('${escapeAttr(id)}')">Apri</button>
+        <button class="btn btn-sm" onclick="window.togglePerfExclude('${escapeAttr(id)}', false, false); window.showParkedItems()">Reincludi</button>
+      </div>
+    </div>`;
+  }).filter(Boolean).join("") || `<div class="muted" style="padding:16px; text-align:center;">Nessun item escluso dal punteggio.</div>`;
+  let bd = document.getElementById("parked-backdrop");
+  if (!bd){ bd = document.createElement("div"); bd.id = "parked-backdrop"; bd.className = "item-detail-backdrop"; document.body.appendChild(bd); bd.addEventListener("click", e => { if (e.target === bd) window.closeParkedItems(); }); }
+  bd.innerHTML = `<div class="item-detail-popover" style="max-width:540px;">
+    <div class="item-detail-header">
+      <div class="item-detail-title"><h2>Item esclusi dal punteggio</h2>
+        <div class="item-detail-meta"><span class="muted">Restano in gioco ovunque; pesano solo sul punteggio Reale.</span></div>
+      </div>
+      <button class="item-detail-close" onclick="window.closeParkedItems()" title="Chiudi">✕</button>
+    </div>
+    <div class="item-detail-body">${rows}</div>
+  </div>`;
+  bd.classList.add("open");
+};
+window.closeParkedItems = function(){ const b = document.getElementById("parked-backdrop"); if (b) b.classList.remove("open"); };
+
 function buildItemDetailHTML(it, vessel, vesselCfg) {
   // Helper per riga "label / valore copiabile"
   function infoRow(label, value, copyable = false) {
@@ -11968,10 +12039,9 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       `).join("")}
     </div>` : "";
 
-  // === v0.8/v0.10.2 — Sezione Logistica (Origin / Transport / Timezone / Lingua) ===
-  const hasLogistics = !!(it.origin || it.transportMode || it.supplier);
+  // === v0.8/v0.10.2 — Sezione Logistica (Origin / Transport / Timezone / Lingua) — ora sempre visibile ed editabile ===
   let logisticsSection = "";
-  if (hasLogistics) {
+  {
     // Timezone supplier
     const supplierTz = it.supplier && state.supplierTimezones ?
                        state.supplierTimezones[it.supplier] : null;
@@ -11990,16 +12060,23 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       </div>
     ` : "";
 
-    // Buttons riga
     const setTzBtn = it.supplier && !supplierTz ?
       `<button class="btn btn-sm" onclick="window.openSupplierTzPicker('${escapeAttr(it.supplier)}')" style="font-size: 11px;">🕐 Imposta fuso orario</button>` : "";
+
+    const ovO = getItemOverride(it.id) || {};
+    const oOrigin = ovO.origin || it.origin || "";
+    const oTransport = ovO.transportMode || it.transportMode || "";
+    const editedO = ovO.origin ? `<span class="detail-edited-tag" title="Modificato manualmente">✎</span>` : "";
+    const editedT = ovO.transportMode ? `<span class="detail-edited-tag" title="Modificato manualmente">✎</span>` : "";
 
     logisticsSection = `
       <div class="detail-section">
         <h4>Logistica</h4>
         <div class="detail-logistics-grid">
-          ${it.origin ? `<div class="detail-row"><span class="detail-label">🌍 Origine</span><span class="detail-value">${escapeHTML(it.origin)}</span></div>` : ""}
-          ${it.transportMode ? `<div class="detail-row"><span class="detail-label">✈️ Trasporto</span><span class="detail-value">${escapeHTML(it.transportMode)}</span></div>` : ""}
+          <div class="detail-row"><span class="detail-label">🌍 Origine ${editedO}</span>
+            <input class="detail-inline-input" value="${escapeAttr(oOrigin)}" placeholder="es. Rotterdam, NL" onchange="window.setItemLogistics('${escapeAttr(it.id)}','origin',this.value)"></div>
+          <div class="detail-row"><span class="detail-label">✈️ Trasporto ${editedT}</span>
+            <input class="detail-inline-input" value="${escapeAttr(oTransport)}" placeholder="es. Air / Sea / Courier" onchange="window.setItemLogistics('${escapeAttr(it.id)}','transportMode',this.value)"></div>
           ${tzInfo}
           ${langRow}
         </div>
@@ -12007,6 +12084,26 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       </div>
     `;
   }
+
+  // v0.43 — Sezione "Conteggio performance": escludi questo item dal punteggio (resta visibile ovunque)
+  const _ov = getItemOverride(it.id) || {};
+  const _excluded = !!_ov.excludePerf;
+  const _reason = _ov.excludeReason || "strategic";
+  const exclusionSection = `
+    <div class="detail-section">
+      <h4>Conteggio performance</h4>
+      <label class="perf-excl-row">
+        <input type="checkbox" ${_excluded ? "checked" : ""} onchange="window.togglePerfExclude('${escapeAttr(it.id)}', this.checked, true)">
+        <span>Escludi dal punteggio Performance</span>
+      </label>
+      ${_excluded ? `
+        <div class="perf-excl-reason">
+          <label class="perf-reason-opt ${_reason === "closed" ? "on" : ""}"><input type="radio" name="excl-${escapeAttr(it.id)}" ${_reason === "closed" ? "checked" : ""} onchange="window.setPerfExcludeReason('${escapeAttr(it.id)}','closed')"> Chiuso fuori sistema</label>
+          <label class="perf-reason-opt ${_reason === "strategic" ? "on" : ""}"><input type="radio" name="excl-${escapeAttr(it.id)}" ${_reason === "strategic" ? "checked" : ""} onchange="window.setPerfExcludeReason('${escapeAttr(it.id)}','strategic')"> Strategico / speculativo</label>
+        </div>` : ""}
+      <div class="muted" style="font-size:11px;margin-top:6px;">Resta visibile in liste e semafori. Non entra nel punteggio Performance; il numero <b>Reale</b> lo calcola comunque.</div>
+    </div>
+  `;
 
   // Nota locale editabile
   const noteValue = state.notes[it.id] || "";
@@ -12047,6 +12144,8 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
         </div>
 
         ${logisticsSection}
+
+        ${exclusionSection}
 
         ${deliveryPlannerHTML(it, vessel && vessel.vesselId)}
 
@@ -14343,6 +14442,22 @@ function vesselIdOfItem(itemId){
   const v = (state.data && state.data.vessels || []).find(vv => (vv.items||[]).some(i => i.id === itemId));
   return v ? v.vesselId : null;
 }
+
+// v0.43 — Override locali per-item (Tracker ID): esclusione dal punteggio performance + Origine/Trasporto manuali.
+// Salvati in locale + sync Drive, non toccano Infoship/Notion.
+function loadItemOverrides(){ try{ const d=JSON.parse(localStorage.getItem("mpd.itemOverrides")||"{}"); return (d&&typeof d==="object")?d:{}; }catch{ return {}; } }
+function saveItemOverrides(o){ try{ localStorage.setItem("mpd.itemOverrides", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
+function getItemOverride(id){ return loadItemOverrides()[id] || null; }
+function setItemOverride(id, patch){
+  const all = loadItemOverrides();
+  const next = Object.assign({}, all[id] || {}, patch);
+  Object.keys(next).forEach(k => { const v = next[k]; if (v === "" || v == null || v === false) delete next[k]; });
+  if (Object.keys(next).length) all[id] = next; else delete all[id];
+  saveItemOverrides(all);
+}
+function isPerfExcluded(it){ const o = getItemOverride(it && it.id); return !!(o && o.excludePerf); }
+function itemOrigin(it){ const o = getItemOverride(it && it.id); return (o && o.origin) || (it && it.origin) || ""; }
+function itemTransport(it){ const o = getItemOverride(it && it.id); return (o && o.transportMode) || (it && it.transportMode) || ""; }
 // Risolve la consegna effettiva: override voyage (live da ETA) / manuale / fallback Infoship.
 function getEffectiveDelivery(it, vesselId){
   vesselId = vesselId || vesselIdOfItem(it.id);
