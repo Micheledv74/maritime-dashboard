@@ -224,14 +224,14 @@
         "lon": null,
         "positionText": null,
         "from": null,
-        "to": null,
+        "to": "Houston",
         "nextPort": null,
         "etaText": null,
         "etbText": null,
-        "etdText": "10/07/2026",
+        "etdText": null,
         "etaISO": null,
         "etbISO": null,
-        "etdISO": "2026-07-10T00:00",
+        "etdISO": null,
         "speed": null,
         "course": null,
         "milesToGo": null,
@@ -240,8 +240,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Incorrect delivery / Missing items (Alkaline batteries D-20, ICOM IC-F61 headsets)",
-        "remarks": "ETD vessel: 10/07/2026. Missing items: 50 pcs Alkaline D-20 batteries and 2 sets original ICOM IC-F61 headsets/accessories. Replacement and delivery requested.",
+        "status": "In porto a Houston per consegna errata",
+        "remarks": "Consegna sbagliata: headset non accettabile (ordine 2026-MDT-SHPR-00061). Nuovo ordine 2026-MDT-SHPR-00065 non ancora ricevuto.",
         "vesselId": "medtoscana"
       },
       {
@@ -901,16 +901,16 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Singapore (IAGW,WP)",
+        "positionText": "Dongguan",
         "from": null,
-        "to": "Singapore",
+        "to": null,
         "nextPort": null,
-        "etaText": "16.07.2026",
-        "etbText": null,
-        "etdText": null,
-        "etaISO": "2026-07-16T00:00",
-        "etbISO": null,
-        "etdISO": null,
+        "etaText": null,
+        "etbText": "07/07/2026",
+        "etdText": "09/07/2026",
+        "etaISO": null,
+        "etbISO": "2026-07-07T00:00",
+        "etdISO": "2026-07-09T00:00",
         "speed": null,
         "course": null,
         "milesToGo": null,
@@ -919,8 +919,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "In arrivo a Singapore per bunkering",
-        "remarks": "ETA aggiornata a 16.07.2026 (precedentemente 15.07.2026 e 30.06.2026)",
+        "status": "In porto per servizio ECDIS",
+        "remarks": "Servizio tecnico confermato per 07/07/2026, ETD 09/07/2026. Engineer Mr. Zhang Jiewen (MP: 136-6069-1380) in arrivo domani.",
         "vesselId": "peppino"
       }
     ],
@@ -1086,8 +1086,35 @@
         "status": null,
         "remarks": "Email non contiene dati di navigazione o noon report. Contiene solo comunicazioni amministrative relative alla nave 'NORRBOTTEN' (in conversione a 'ATLAS') presso cantiere Ozata Shipyard, Turchia.",
         "vesselId": "norrbotten"
+      },
+      {
+        "date": "2026-07-07",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": null,
+        "remarks": "Email non contiene dati di NOON REPORT. Solo comunicazioni commerciali relative a bow thruster Jastram BU 2889 per MV NORRBOTTEN (IMO 9191931).",
+        "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-07T13:05:05.852Z"
+  "syncedAt": "2026-07-07T14:05:08.000Z"
 }
