@@ -6056,6 +6056,9 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .fx-title{ font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8a93a0; flex:none; }
 .fx-loading{ font-size:12.5px; color:#aab2bd; }
 .fx-main{ display:flex; flex-direction:column; gap:1px; }
+.fx-rateline{ display:inline-flex; align-items:center; gap:7px; }
+.fx-arrow{ font-size:16px; font-weight:700; line-height:1; }
+.fx-arrow.up{ color:#1f8a4c; } .fx-arrow.down{ color:#c8222a; } .fx-arrow.flat{ color:#9aa3af; }
 .fx-rate{ font-family:var(--font-mono); font-size:20px; font-weight:700; color:#1a2c5e; line-height:1; }
 .fx-sub{ font-size:10.5px; color:#9aa3af; }
 .fx-inv{ font-family:var(--font-mono); font-size:13px; color:#5b6470; }
@@ -9535,7 +9538,7 @@ function mergeNotionProfiles(kind, data) {
     if (!name) continue;
     // Notion vince: sovrascrivo i campi presenti nel record Notion, tengo il resto del locale
     const incoming = {};
-    ["contact", "email", "phone", "whatsapp", "wechat", "notes", "rating"].forEach(f => {
+    ["contact", "email", "phone", "whatsapp", "wechat", "notes", "rating", "code", "city", "country", "address"].forEach(f => {
       if (rec[f] !== undefined && rec[f] !== null && rec[f] !== "") incoming[f] = rec[f];
     });
     local[name] = Object.assign({}, local[name], incoming, { _notionId: rec.id || rec._notionId || (local[name] && local[name]._notionId) });
@@ -9580,7 +9583,7 @@ function pushEntityToNotion(kind, name){
   const url = kind==="agency" ? cfg.agencyUrl : cfg.supplierUrl;
   if(!url || !cfg.token) return;  // non configurato → non faccio nulla
   const p = getEntityProfile(kind, name);
-  const body = { token: cfg.token, name, email:p.email||"", phone:p.phone||"", whatsapp:p.whatsapp||"", wechat:p.wechat||"", contact:p.contact||"", notes:p.notes||"", rating:p.rating||0 };
+  const body = { token: cfg.token, name, email:p.email||"", phone:p.phone||"", whatsapp:p.whatsapp||"", wechat:p.wechat||"", contact:p.contact||"", notes:p.notes||"", rating:p.rating||0, code:p.code||"", city:p.city||"", country:p.country||"", address:p.address||"" };
   fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) })
     .then(r=>{ if(r.ok && typeof showToast==="function") showToast("↑ "+name+" aggiornato su Notion"); })
     .catch(()=>{ /* silenzioso: se n8n non è raggiungibile, resta comunque salvato in locale */ });
@@ -10163,7 +10166,11 @@ function initFxWidget() {
 
   // v0.39 — provo più fonti gratuite in sequenza (se una è bloccata/down, passo alla successiva)
   const sources = [
-    // 1) Frankfurter (BCE) — serie storica 30gg
+    // 0) Frankfurter (BCE) — nuovo dominio .dev, serie storica 30gg
+    () => fetch(`https://api.frankfurter.dev/v1/${iso(start)}..${iso(end)}?base=USD&symbols=EUR`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { const days = Object.keys(d.rates||{}).sort(); const s = days.map(k => d.rates[k].EUR).filter(v=>v!=null); if(!s.length) throw 0; return s; }),
+    // 1) Frankfurter (BCE) — vecchio dominio .app
     () => fetch(`https://api.frankfurter.app/${iso(start)}..${iso(end)}?from=USD&to=EUR`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(d => { const days = Object.keys(d.rates||{}).sort(); const s = days.map(k => d.rates[k].EUR).filter(v=>v!=null); if(!s.length) throw 0; return s; }),
@@ -10183,7 +10190,25 @@ function initFxWidget() {
       return;
     }
     sources[i]().then(series => {
-      const payload = { rate: series[series.length-1], series, at: new Date().toISOString() };
+      // v0.41 — mantengo uno storico locale giornaliero: così la freccetta mostra la direzione
+      // anche quando risponde solo la fonte "valore attuale" (serie di 1 punto).
+      let hist = [];
+      try { hist = JSON.parse(localStorage.getItem("mpd.fxHistory") || "[]"); if(!Array.isArray(hist)) hist = []; } catch(_) { hist = []; }
+      const today = iso(new Date());
+      const todayRate = series[series.length-1];
+      if (series.length >= 2) {
+        // serie storica completa dall'API: la uso come base dello storico
+        const base = new Date(); base.setDate(base.getDate() - (series.length-1));
+        hist = series.map((r, k) => { const d = new Date(base); d.setDate(base.getDate()+k); return { d: iso(d), r }; });
+      } else {
+        // solo valore attuale: aggiungo/aggiorno il punto di oggi
+        hist = hist.filter(h => h && h.d && h.d !== today);
+        hist.push({ d: today, r: todayRate });
+      }
+      hist = hist.slice(-40); // ~40 giorni
+      try { localStorage.setItem("mpd.fxHistory", JSON.stringify(hist)); } catch(_) {}
+      const effSeries = hist.length >= 2 ? hist.map(h => h.r) : series;
+      const payload = { rate: todayRate, series: effSeries, at: new Date().toISOString() };
       try { localStorage.setItem("mpd.fxCache", JSON.stringify(payload)); } catch(_) {}
       paintFx(payload);
     }).catch(() => tryNext(i+1));
@@ -10205,9 +10230,10 @@ function paintFx(p) {
   const pts = series.map((v, i) => `${((i/Math.max(1,series.length-1))*W).toFixed(1)},${(H - ((v-min)/range)*H).toFixed(1)}`).join(" ");
   const color = dir === "up" ? "#1f8a4c" : dir === "down" ? "#c8222a" : "#8a93a0";
   const when = p.at ? new Date(p.at).toLocaleDateString("it-IT", { day:"2-digit", month:"short" }) : "";
+  const bigArrow = `<span class="fx-arrow ${dir}" title="${dir==="up"?"in salita":dir==="down"?"in discesa":"stabile"}">${arrow}</span>`;
   bar.innerHTML = `
     <span class="fx-title">USD / EUR</span>
-    <span class="fx-main"><span class="fx-rate">${rate.toFixed(4)}</span><span class="fx-sub">1 USD = ${rate.toFixed(4)} €</span></span>
+    <span class="fx-main"><span class="fx-rateline"><span class="fx-rate">${rate.toFixed(4)}</span>${bigArrow}</span><span class="fx-sub">1 USD = ${rate.toFixed(4)} €</span></span>
     <span class="fx-inv">1 € = ${inv.toFixed(4)} $</span>
     <svg class="fx-spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="fx-delta ${dir}">${arrow} ${Math.abs(pctDelta).toFixed(2)}%<span class="fx-delta-lbl"> 30gg</span></span>
