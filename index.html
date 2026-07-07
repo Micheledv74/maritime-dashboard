@@ -6549,6 +6549,18 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .rub-meta{ display:flex; gap:8px; align-items:center; }
 .rub-code{ font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:#0a3f93; background:#eaf1fc; border-radius:4px; padding:1px 6px; }
 .rub-loc{ font-size:11px; color:#8a93a0; }
+.rub-star{ display:inline-flex; flex:none; font-size:12px; letter-spacing:-1px; white-space:nowrap; }
+.rub-star .on{ color:#f0a500; } .rub-star .off{ color:#e0e4ea; }
+.rub-code-empty{ color:#c2c9d2 !important; background:#f4f6f8 !important; font-weight:600 !important; }
+.rub-line{ flex:1; min-width:0; display:flex; align-items:baseline; gap:7px; overflow:hidden; }
+.rub-line .rub-name{ flex:0 1 auto; }
+.rub-line .rub-loc{ font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; }
+.rub-toolbar{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+.rub-toolbar .search-input{ flex:1; max-width:360px; margin-bottom:0 !important; }
+.rub-actions{ margin-left:auto; display:flex; gap:8px; }
+.rub-newbtn,.rub-expbtn{ display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; border-radius:8px; padding:9px 15px; cursor:pointer; border:1px solid var(--border); background:#fff; color:#3a4250; white-space:nowrap; }
+.rub-newbtn{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.rub-newbtn:hover{ filter:brightness(1.06); } .rub-expbtn:hover{ background:#f6f9fc; }
 @media(max-width:520px){ .ec-form{ grid-template-columns:1fr; } }
 .pp-sup-flag{ font-size:11px; font-weight:700; color:#b8740a; background:#fdf2dd; border-radius:6px; padding:2px 8px; white-space:nowrap; }
 
@@ -10281,25 +10293,19 @@ function renderRubricaPage() {
   const q = (state._rubricaQuery || "").toLowerCase();
   const filtered = q ? names.filter(n => n.toLowerCase().includes(q)) : names;
 
-  const verdictBadge = (r) => {
-    r = r || 0;
-    if (r >= 4) return `<span class="rub-verdict good">🟢</span>`;
-    if (r === 3) return `<span class="rub-verdict mid">⚪</span>`;
-    if (r >= 1) return `<span class="rub-verdict bad">🔴</span>`;
-    return `<span class="rub-verdict none">—</span>`;
-  };
+  const stars = (r) => { r = Math.max(0, Math.min(5, parseInt(r,10)||0)); return `<span class="rub-star"><span class="on">${"\u2605".repeat(r)}</span><span class="off">${"\u2605".repeat(5-r)}</span></span>`; };
   const rows = filtered.map(name => {
     const p = getEntityProfile(kind, name);
     const chips = [
-      p.email ? `<span class="rub-chip">📧</span>` : "",
+      p.email ? `<span class="rub-chip" title="${escapeAttr(p.email)}">📧</span>` : "",
       (p.whatsapp || p.phone) ? `<span class="rub-chip">💬</span>` : "",
       p.wechat ? `<span class="rub-chip">📱</span>` : ""
     ].filter(Boolean).join("");
-    const meta = [p.code ? `<span class="rub-code">${escapeHTML(p.code)}</span>` : "", (p.city || p.country) ? `<span class="rub-loc">${escapeHTML([p.city, p.country].filter(Boolean).join(" · "))}</span>` : ""].filter(Boolean).join("");
+    const loc = [p.city, p.country].filter(Boolean).join(", ");
     return `<button class="rub-row" onclick="window.${kind === "supplier" ? "openSupplierCard" : "openAgencyCard"}('${escapeAttr(name)}')">
-      <span class="rub-star">${"★".repeat(p.rating||0)||""}</span>
-      ${verdictBadge(p.rating)}
-      <span class="rub-main"><span class="rub-name">${escapeHTML(name)}</span>${meta ? `<span class="rub-meta">${meta}</span>` : ""}</span>
+      ${stars(p.rating)}
+      ${p.code ? `<span class="rub-code">${escapeHTML(p.code)}</span>` : `<span class="rub-code rub-code-empty" title="SSSDAm da inserire a mano">—</span>`}
+      <span class="rub-line"><span class="rub-name">${escapeHTML(name)}</span>${loc ? `<span class="rub-loc">· ${escapeHTML(loc)}</span>` : ""}</span>
       <span class="rub-chips">${chips}</span>
       <span class="rub-go">›</span>
     </button>`;
@@ -10309,20 +10315,60 @@ function renderRubricaPage() {
     <header class="todo-page-header">
       <div>
         <h1>Rubrica</h1>
-        <div class="todo-page-stats"><span class="stat">${supNames.size} fornitori · ${agNames.size} agenzie</span><span class="stat">dai tuoi register Notion + profili locali</span></div>
+        <div class="todo-page-stats"><span class="stat">${supNames.size} fornitori · ${agNames.size} agenzie</span><span class="stat">profili locali · esporta in CSV per Notion</span></div>
       </div>
     </header>
     <div class="todo-mode-switch" role="tablist" style="margin-bottom:16px;">
       <button class="tms-btn ${tab==='supplier'?'active':''}" onclick="window.setRubricaTab('supplier')">🏭 Fornitori <span class="tms-badge">${supNames.size}</span></button>
       <button class="tms-btn ${tab==='agency'?'active':''}" onclick="window.setRubricaTab('agency')">⚓ Agenzie <span class="tms-badge">${agNames.size}</span></button>
     </div>
-    <input type="search" class="search-input" id="rubrica-search" placeholder="Cerca ${kind==='supplier'?'fornitore':'agenzia'}…" value="${escapeAttr(state._rubricaQuery||"")}" style="margin-bottom:14px;max-width:360px;">
+    <div class="rub-toolbar">
+      <input type="search" class="search-input" id="rubrica-search" placeholder="Cerca ${kind==='supplier'?'fornitore':'agenzia'}…" value="${escapeAttr(state._rubricaQuery||"")}">
+      <div class="rub-actions">
+        <button class="rub-newbtn" onclick="window.addNewEntity('${kind}')">+ Nuovo</button>
+        <button class="rub-expbtn" onclick="window.exportRubricaCSV('${kind}')">⬇ Esporta CSV</button>
+      </div>
+    </div>
     <div class="rub-list">${rows || `<div class="mo-empty" style="padding:32px;text-align:center;">Nessun ${kind==='supplier'?'fornitore':'agenzia'} ${q?'per questa ricerca':'ancora in rubrica'}.</div>`}</div>
   `;
   const si = document.getElementById("rubrica-search");
   if (si) si.addEventListener("input", e => { state._rubricaQuery = e.target.value; const l = root.querySelector(".rub-list"); renderRubricaPage(); const s2 = document.getElementById("rubrica-search"); if (s2) { s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); } });
 }
 window.setRubricaTab = function(t){ state._rubricaTab = t; state._rubricaQuery = ""; renderRubricaPage(); };
+
+// v0.42 — Aggiungi manualmente un fornitore/agenzia
+window.addNewEntity = function(kind){
+  const label = kind === "supplier" ? "fornitore" : "agenzia";
+  const name = prompt("Nome nuovo " + label + ":", "");
+  if (name === null) return;
+  const nm = name.trim();
+  if (!nm) { showToast("Nome vuoto"); return; }
+  const all = loadEntityProfiles(kind);
+  if (all[nm]) { showToast("Esiste già: " + nm); }
+  else { all[nm] = { rating: 0 }; saveEntityProfiles(kind, all); }
+  if (state.view === "rubrica") renderRubricaPage();
+  if (kind === "supplier") window.openSupplierCard(nm); else window.openAgencyCard(nm);
+};
+
+// v0.42 — Esporta la rubrica in CSV (pronto per import/merge su Notion; Excel lo apre)
+window.exportRubricaCSV = function(kind){
+  const set = new Set(Object.keys(loadEntityProfiles(kind)));
+  if (kind === "supplier") { try { const range = getPeriodRange("365"); const period = computePeriodStats(range.from, range.to); (period.suppliers||[]).forEach(s => set.add(s.name)); } catch(_) {} }
+  else { try { (loadAgencies()||[]).forEach(a => a.name && set.add(a.name)); } catch(_) {} }
+  const names = [...set].filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const cols = ["Name","SSSDAm Code","Reference Contact","Email","Phone","WhatsApp","WeChat","Address","City","Country","Reliability Rating","Critical Notes"];
+  const esc = v => { v = (v==null?"":String(v)); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+  const lines = [cols.join(",")];
+  names.forEach(n => { const p = getEntityProfile(kind, n); lines.push([n, p.code, p.contact, p.email, p.phone, p.whatsapp, p.wechat, p.address, p.city, p.country, (p.rating||""), p.notes].map(esc).join(",")); });
+  const csv = "\ufeff" + lines.join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "rubrica-" + kind + "-" + new Date().toISOString().slice(0,10) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  showToast("Esportati " + names.length + " " + (kind==="supplier"?"fornitori":"agenzie") + " in CSV");
+};
 
 // v0.33 — Pagina dedicata Performance procurement
 function renderPerformancePage() {
