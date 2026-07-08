@@ -6343,6 +6343,12 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .noon-map-open{ position:absolute; bottom:8px; right:8px; z-index:2; background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:11px; font-weight:600; color:var(--accent); text-decoration:none; box-shadow:0 1px 4px rgba(0,0,0,.12); }
 .noon-map-stale{ position:absolute; top:8px; left:8px; z-index:2; background:rgba(255,255,255,.92); border:1px solid #e0d3a8; color:#8a6d1a; border-radius:6px; padding:3px 8px; font-size:10.5px; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.1); }
 .noon-shiptime{ font-size:12px; color:#0a3f93; font-weight:600; }
+.noon-map-actions{ position:absolute; bottom:8px; right:8px; z-index:2; display:flex; gap:6px; }
+.noon-map-actions .noon-map-open{ position:static; }
+.noon-setpos-mini{ background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:11px; font-weight:600; color:#3a4250; cursor:pointer; }
+.noon-setpos-mini:hover{ background:#f6f9fc; }
+.noon-setpos-btn{ background:#eef4ff; border:1px solid #cfe0fb; border-radius:7px; padding:5px 11px; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; }
+.noon-setpos-btn:hover{ background:#e2edff; }
 
 /* v0.20 — Badge insight procurement nella card flotta */
 .vessel-proc-badges{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 12px; }
@@ -14099,11 +14105,89 @@ const PORT_GAZETTEER = [
 ];
 function geocodeNoonText(n){
   if(!n) return null;
-  const hay = [n.positionText, n.status, n.to, n.nextPort, n.from].filter(Boolean).join(" ").toLowerCase();
-  if(!hay) return null;
-  for(const p of PORT_GAZETTEER){ for(const k of p.kw){ if(hay.includes(k)) return { lat:p.lat, lon:p.lon, approx:true, matched:k }; } }
+  const hay = [n.positionText, n.status, n.to, n.nextPort, n.from].filter(Boolean).join(" ");
+  return geoLookupSync(hay);
+}
+
+// v0.46 — Geocoder automatico: gazetteer (istantaneo) → cache locale → Nominatim (OpenStreetMap).
+// Nessuna lista da mantenere a mano: qualsiasi città/porto citato nel report viene risolto e messo in cache.
+function loadGeoCache(){ try{ const d=JSON.parse(localStorage.getItem("mpd.geocache")||"{}"); return (d&&typeof d==="object")?d:{}; }catch{ return {}; } }
+function saveGeoCache(o){ try{ localStorage.setItem("mpd.geocache", JSON.stringify(o)); }catch{} }
+// estrae il toponimo più significativo da un testo libero (ultima parte "Città, Paese" o parola chiave)
+function extractPlace(text){
+  if(!text) return "";
+  let t = String(text).replace(/\s+/g," ").trim();
+  // rimuovo rumore comune
+  t = t.replace(/\b(anchorage|anch(orage)?\s*area|terminal|berth\s*no\.?\s*\d+|berth|deep\s*water|bulk|roads?|offshore|no\.?\s*\d+)\b/gi," ");
+  t = t.replace(/[^\p{L}\s,.\-\/]/gu," ").replace(/\s+/g," ").trim();
+  // se c'è una virgola tipo "Vitoria, Brazil" tengo tutto; altrimenti prime 3 parole
+  if(t.includes(",")) return t.split(/[\/]/)[0].trim();
+  return t.split(" ").slice(0,3).join(" ").trim();
+}
+function normPlace(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim(); }
+
+const _geoQueue = [];
+let _geoBusy = false, _geoRerenderTimer = null;
+function _scheduleGeoRerender(){ clearTimeout(_geoRerenderTimer); _geoRerenderTimer = setTimeout(()=>{ if(state.view==="vessel" && typeof render==="function") render(); }, 400); }
+function _processGeoQueue(){
+  if(_geoBusy) return;
+  const job = _geoQueue.shift();
+  if(!job) return;
+  _geoBusy = true;
+  const cache = loadGeoCache();
+  const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(job);
+  fetch(url, { headers: { "Accept":"application/json" } })
+    .then(r=>r.ok?r.json():[])
+    .then(arr=>{
+      const c = loadGeoCache();
+      if(arr && arr[0] && arr[0].lat){ c[job] = { lat:parseFloat(arr[0].lat), lon:parseFloat(arr[0].lon) }; }
+      else { c[job] = "notfound"; }
+      saveGeoCache(c);
+      _scheduleGeoRerender();
+    })
+    .catch(()=>{ const c=loadGeoCache(); c[job]="notfound"; saveGeoCache(c); })
+    .finally(()=>{ _geoBusy=false; setTimeout(_processGeoQueue, 1100); }); // rispetto ~1 req/sec di Nominatim
+}
+function _enqueueGeocode(key){ if(!key) return; if(_geoQueue.indexOf(key)<0) _geoQueue.push(key); if(!_geoBusy) _processGeoQueue(); }
+
+// Lookup sincrono: gazetteer → cache. Se sconosciuto, accoda la geocodifica async e restituisce null (per ora).
+function geoLookupSync(text){
+  const place = extractPlace(text);
+  const key = normPlace(place);
+  if(!key || key.length<3) return null;
+  // 1) gazetteer (match parziale su parole chiave)
+  for(const p of PORT_GAZETTEER){ for(const k of p.kw){ if(key.includes(normPlace(k))) return { lat:p.lat, lon:p.lon, approx:true, matched:k }; } }
+  // 2) cache locale
+  const cache = loadGeoCache();
+  const hit = cache[key];
+  if(hit && hit!=="notfound") return { lat:hit.lat, lon:hit.lon, approx:true, matched:place };
+  if(hit==="notfound") return null;
+  // 3) sconosciuto → geocodifica in background
+  _enqueueGeocode(key);
   return null;
 }
+
+// v0.46 — Posizione manuale per nave (città). Usata quando i noon non danno coordinate né luogo (es. Norrbotten in cantiere, Vega).
+function loadVesselPos(){ try{ const d=JSON.parse(localStorage.getItem("mpd.vesselPos")||"{}"); return (d&&typeof d==="object")?d:{}; }catch{ return {}; } }
+function saveVesselPos(o){ try{ localStorage.setItem("mpd.vesselPos", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
+function getVesselManualPos(vesselId){
+  const rec = loadVesselPos()[vesselId];
+  if(!rec || !rec.city) return null;
+  const g = geoLookupSync(rec.city);
+  return g ? { coords:{ lat:g.lat, lon:g.lon }, city:rec.city, manual:true } : { coords:null, city:rec.city, manual:true, pending:true };
+}
+window.setVesselManualPos = function(vesselId){
+  const cur = (loadVesselPos()[vesselId] || {}).city || "";
+  const city = prompt("Città / porto della nave (posizione manuale):", cur);
+  if(city===null) return;
+  const all = loadVesselPos();
+  const c = city.trim();
+  if(c) all[vesselId] = { city:c }; else delete all[vesselId];
+  saveVesselPos(all);
+  if(c) geoLookupSync(c); // avvia geocodifica
+  if(typeof showToast==="function") showToast(c ? "Posizione impostata: "+c : "Posizione manuale rimossa");
+  if(state.view==="vessel" && typeof render==="function") render();
+};
 function noonDateLabel(iso){
   if(!iso) return "";
   const d = new Date(iso + (iso.length<=10?"T00:00:00":""));
@@ -14136,11 +14220,14 @@ function getLastKnownPosition(vesselId){
     const c = parseNoonLatLon(arr[i]);
     if(c) return { coords:c, report:arr[i], approx:false };
   }
-  // 2) fallback: nome porto/ancoraggio dal gazetteer (posizione approssimata)
+  // 2) nome porto/città dai noon (gazetteer o geocodifica automatica)
   for(let i=arr.length-1; i>=0; i--){
     const g = geocodeNoonText(arr[i]);
     if(g) return { coords:{ lat:g.lat, lon:g.lon }, report:arr[i], approx:true };
   }
+  // 3) posizione manuale della nave (Norrbotten in cantiere, Vega, ecc.)
+  const mp = getVesselManualPos(vesselId);
+  if(mp && mp.coords) return { coords:mp.coords, report:null, approx:true, manual:true, city:mp.city };
   return null;
 }
 // Giorni trascorsi da una data ISO (0 = oggi)
@@ -14198,25 +14285,35 @@ function bunkerTrendHTML(vesselId){
 // Blocco "Ultimo noon report" + proposta da Applicare al Voyage + mappa posizione (sempre attiva)
 function noonReportBlockHTML(vesselId){
   const n = getLatestNoon(vesselId);
-  if(!n) return "";
-  const pos = n.positionText || [n.lat, n.lon].filter(Boolean).join(" / ");
-  const statusTxt = n.status || (n.type==="port"?"In porto":n.type==="anchor"?"In rada":"In navigazione");
-  // Posizione per la mappa: ultima nota, anche di giorni fa
   const last = getLastKnownPosition(vesselId);
+  // Nessun noon E nessuna posizione (manuale o geocodificata) → mostro solo l'invito a impostare la città a mano
+  if(!n && !last){
+    return `<div class="noon-block"><div class="noon-info">
+      <div class="noon-head"><span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mappin"/></svg> Posizione</span></div>
+      <div class="noon-pos"><span class="noon-pos-val muted">Nessuna posizione dai noon report.</span>
+        <button class="noon-setpos-btn" onclick="window.setVesselManualPos('${escapeAttr(vesselId)}')">📍 Imposta città</button>
+      </div>
+    </div></div>`;
+  }
+  const pos = n ? (n.positionText || [n.lat, n.lon].filter(Boolean).join(" / ")) : (last && last.city ? last.city : "");
+  const statusTxt = n ? (n.status || (n.type==="port"?"In porto":n.type==="anchor"?"In rada":"In navigazione")) : "Posizione manuale";
   const coords = last ? last.coords : null;
   const approxPos = !!(last && last.approx);
-  const staleDays = last ? noonDaysAgo(last.report.date) : null;
-  const isStale = last && last.report.date !== n.date;
+  const isManual = !!(last && last.manual);
+  const staleDays = (last && last.report) ? noonDaysAgo(last.report.date) : null;
+  const isStale = !!(last && last.report && n && last.report.date !== n.date);
   // Ora a bordo stimata dalla longitudine dell'ultima posizione nota
   const shipTime = coords ? shipLocalTimeFromLon(coords.lon) : null;
   // valori proponibili al voyage (solo se presenti)
   const prop = [];
-  if(n.from || n.to || n.nextPort) prop.push(`${escapeHTML(n.from||"—")} → ${escapeHTML(n.to||n.nextPort||"—")}`);
-  if(n.etaText) prop.push(`ETA ${escapeHTML(n.etaText)}`);
-  if(n.etbText) prop.push(`ETB ${escapeHTML(n.etbText)}`);
-  if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
+  if(n){
+    if(n.from || n.to || n.nextPort) prop.push(`${escapeHTML(n.from||"—")} → ${escapeHTML(n.to||n.nextPort||"—")}`);
+    if(n.etaText) prop.push(`ETA ${escapeHTML(n.etaText)}`);
+    if(n.etbText) prop.push(`ETB ${escapeHTML(n.etbText)}`);
+    if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
+  }
   const propLine = prop.length ? prop.join(" · ") : "";
-  const bunk = n.bunkers ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
+  const bunk = (n && n.bunkers) ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
   // A) Bunker trend: mini-sparkline LSFO/LSMGO dagli ultimi report
   const bunkTrend = bunkerTrendHTML(vesselId);
   // mappa: OSM embed sempre attiva sull'ultima posizione nota
@@ -14226,26 +14323,29 @@ function noonReportBlockHTML(vesselId){
     const bbox = `${coords.lon-d},${coords.lat-d},${coords.lon+d},${coords.lat+d}`;
     const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${coords.lat},${coords.lon}`;
     const osmLink = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lon}#map=6/${coords.lat}/${coords.lon}`;
-    const staleTag = (isStale || approxPos) ? `<span class="noon-map-stale">📍 ${approxPos ? "posizione ≈ porto" : ""}${approxPos && isStale ? " · " : ""}${isStale ? `rilevata ${staleDays===1?"ieri":staleDays+" giorni fa"}` : ""}</span>` : "";
+    const posNote = isManual ? `📍 manuale: ${escapeHTML(last.city||pos)}` : (approxPos ? `📍 posizione ≈ ${escapeHTML(extractPlace(pos)||"porto")}` : "");
+    const staleTxt = isStale ? `rilevata ${staleDays===1?"ieri":staleDays+" giorni fa"}` : "";
+    const staleTag = (posNote || staleTxt) ? `<span class="noon-map-stale">${posNote}${posNote && staleTxt ? " · " : ""}${staleTxt}</span>` : "";
     mapHTML = `<div class="noon-map">
       <iframe class="noon-map-frame" loading="lazy" src="${src}" title="Posizione ${escapeAttr(pos)}"></iframe>
       ${staleTag}
-      <a class="noon-map-open" href="${osmLink}" target="_blank" rel="noopener">Apri mappa ↗</a>
+      <div class="noon-map-actions"><button class="noon-setpos-mini" onclick="window.setVesselManualPos('${escapeAttr(vesselId)}')" title="Correggi posizione a mano">✎ città</button><a class="noon-map-open" href="${osmLink}" target="_blank" rel="noopener">Apri mappa ↗</a></div>
     </div>`;
   }
   const infoHTML = `
     <div class="noon-info">
       <div class="noon-head">
-        <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Noon report ${noonDateLabel(n.date)}</span>
+        <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> ${n ? `Noon report ${noonDateLabel(n.date)}` : "Posizione"}</span>
         <span class="noon-status">${escapeHTML(statusTxt)}</span>
       </div>
       <div class="noon-pos">
         <span class="noon-pos-label">Posizione</span>
         <span class="noon-pos-val">${pos ? escapeHTML(pos) : "—"}</span>
-        ${n.speed?`<span class="noon-meta">${escapeHTML(n.speed)} kts</span>`:""}
-        ${n.course?`<span class="noon-meta">rotta ${escapeHTML(n.course)}</span>`:""}
-        ${n.milesToGo?`<span class="noon-meta">${escapeHTML(n.milesToGo)} NM al porto</span>`:""}
+        ${(n&&n.speed)?`<span class="noon-meta">${escapeHTML(n.speed)} kts</span>`:""}
+        ${(n&&n.course)?`<span class="noon-meta">rotta ${escapeHTML(n.course)}</span>`:""}
+        ${(n&&n.milesToGo)?`<span class="noon-meta">${escapeHTML(n.milesToGo)} NM al porto</span>`:""}
         ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine${approxPos?" del porto (approssimata)":""} (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
+        ${!coords?`<button class="noon-setpos-btn" onclick="window.setVesselManualPos('${escapeAttr(vesselId)}')">📍 Imposta città</button>`:""}
       </div>
       ${bunk?`<div class="noon-bunk">${bunk}</div>`:""}
       ${bunkTrend}
