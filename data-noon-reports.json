@@ -563,11 +563,11 @@
         "milesToGo": null,
         "bunkers": {
           "lsfo": 825.09,
-          "lsmgo": 80.43,
+          "lsmgo": 0,
           "fw": 153
         },
         "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Working condition.",
-        "remarks": "Vessel in ballast. Cranes and air-conditioning compressor in use. No scrubber fitted.",
+        "remarks": "Vessel in ballast. Fresh water ROB: 153 MT. Cranes and air-conditioning compressor used.",
         "vesselId": "medliguria"
       }
     ],
@@ -951,6 +951,33 @@
         "vesselId": "peppino"
       },
       {
+        "date": "2026-07-08",
+        "type": "port",
+        "lat": "22-52.2N",
+        "lon": "113-34.3E",
+        "positionText": null,
+        "from": "Hong Kong",
+        "to": "Dongguan China, DCT Terminal",
+        "nextPort": null,
+        "etaText": "TBA",
+        "etbText": null,
+        "etdText": "TBA",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 794.9,
+          "lsmgo": 160.72,
+          "fw": 106
+        },
+        "status": "In porto a Dongguan, operazioni di carico in corso",
+        "remarks": "Carico totale: 7178.26MT; Resto da caricare: 47661.74MT; Operazioni di carico interrotte per pioggia tra le 0345-0525LT e 0953LT; Carico in corso nei compartimenti 2 e 4.",
+        "vesselId": "peppino"
+      },
+      {
         "date": "2026-07-16",
         "type": "port",
         "lat": null,
@@ -1165,10 +1192,37 @@
           "fw": null
         },
         "status": null,
-        "remarks": "Email non contiene dati di NOON REPORT. Contiene comunicazioni relative a certificazioni e conversioni della nave 'NORRBOTTEN' (in seguito 'ATLAS').",
+        "remarks": "Email non contiene dati di NOON REPORT. Contiene comunicazioni relative a richieste di quotazione per certificazione e aggiornamento manuali della nave M/V NORRBOTTEN (in conversione a ATLAS) presso cantiere Ozata Shipyard, Turchia.",
+        "vesselId": "norrbotten"
+      },
+      {
+        "date": "2026-07-08",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "nave in cantiere per lavori (turbocharger reinstallation pianificato)",
+        "remarks": "NORRBOTTEN IMO 9191931 - nave attualmente in yard, lavori turbocharger in programma. Nessun dato di posizione/speed/ETA disponibile nel testo fornito.",
         "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-08T06:05:08.646Z"
+  "syncedAt": "2026-07-08T07:05:10.103Z"
 }
