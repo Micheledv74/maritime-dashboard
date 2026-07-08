@@ -219,7 +219,7 @@
       },
       {
         "date": "2026-07-07",
-        "type": null,
+        "type": "port",
         "lat": null,
         "lon": null,
         "positionText": null,
@@ -227,11 +227,11 @@
         "to": null,
         "nextPort": null,
         "etaText": null,
-        "etbText": null,
-        "etdText": null,
+        "etbText": "7 Jul/1100",
+        "etdText": "9 Jul/early AM",
         "etaISO": null,
-        "etbISO": null,
-        "etdISO": null,
+        "etbISO": "2026-07-07T11:00",
+        "etdISO": "2026-07-09T00:00",
         "speed": null,
         "course": null,
         "milesToGo": null,
@@ -240,8 +240,8 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "Dentist visit arranged for July 8, 2026 morning. Payment in cash upon agent's arrival.",
-        "remarks": "Dental visit scheduled for July 8, 2026 morning in Houston. Total estimated cost: $2,250 (dentist $1,000, agency $650, transport $600). Payment to be made in cash upon agent's arrival. 6-hour advance notice required for coordination.",
+        "status": "In porto, completamento carico previsto per stasera. ETB confermato per oggi 7 Luglio alle 11:00 LT, ETD previsto per mattina presto del 9 Luglio LT.",
+        "remarks": "Terminal fees non ancora saldati; necessaria conferma pagamento per programmare consegna. Fornitore deve presentarsi oggi per consegna, altrimenti non ci sarà altra possibilità.",
         "vesselId": "medtoscana"
       },
       {
@@ -568,6 +568,33 @@
         },
         "status": "VESSEL AT BERTH NO. 207 VITORIA, BRAZIL. Working condition.",
         "remarks": "Vessel in ballast. Fresh water ROB: 153 MT. Cranes and air-conditioning compressor used.",
+        "vesselId": "medliguria"
+      },
+      {
+        "date": "2026-07-08",
+        "type": null,
+        "lat": null,
+        "lon": null,
+        "positionText": null,
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": null,
+          "fw": null
+        },
+        "status": "Survey in corso, nessun intervento richiesto",
+        "remarks": "RINA Status e Survey Endorsement Sheet (preliminare) allegati, nessun Condition/Memo emesso",
         "vesselId": "medliguria"
       }
     ],
@@ -1218,11 +1245,11 @@
           "lsmgo": null,
           "fw": null
         },
-        "status": "nave in cantiere per lavori (turbocharger reinstallation pianificato)",
-        "remarks": "NORRBOTTEN IMO 9191931 - nave attualmente in yard, lavori turbocharger in programma. Nessun dato di posizione/speed/ETA disponibile nel testo fornito.",
+        "status": null,
+        "remarks": "Email non contiene dati di NOON REPORT. Contiene solo comunicazioni tecniche/operative relative a lavori su turbocharger.",
         "vesselId": "norrbotten"
       }
     ]
   },
-  "syncedAt": "2026-07-08T12:36:58.074Z"
+  "syncedAt": "2026-07-08T13:05:08.912Z"
 }
