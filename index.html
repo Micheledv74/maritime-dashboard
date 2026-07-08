@@ -14066,7 +14066,43 @@ function getNoonReports(vesselId){
 }
 function getLatestNoon(vesselId){
   const arr = getNoonReports(vesselId);
-  return arr.length ? arr[arr.length-1] : null;
+  if(!arr.length) return null;
+  // v0.45 — preferisci l'ultimo report con contenuto operativo reale (evita gusci vuoti)
+  for(let i=arr.length-1; i>=0; i--){ if(noonHasContent(arr[i])) return arr[i]; }
+  return arr[arr.length-1];
+}
+// v0.45 — un report ha davvero contenuto operativo?
+function noonHasContent(n){
+  if(!n) return false;
+  const b = n.bunkers || {};
+  return !!(n.type || n.lat || n.lon || n.positionText || n.from || n.to || n.nextPort ||
+            n.etaText || n.etbText || n.etdText || n.speed || n.course || n.milesToGo ||
+            b.lsfo || b.lsmgo || b.fw || (n.status && String(n.status).length>3));
+}
+// v0.45 — Gazetteer porti/ancoraggi ricorrenti: consente pin mappa e "ora a bordo" anche quando
+// il noon report ha solo il NOME del luogo (senza coordinate numeriche).
+const PORT_GAZETTEER = [
+  { kw:["kinder morgan","deep water bulk","deepwater terminal","houston"], lat:29.72, lon:-95.10 },
+  { kw:["galveston"], lat:29.31, lon:-94.79 },
+  { kw:["vitoria","vitória"], lat:-20.32, lon:-40.33 },
+  { kw:["dongguan","humen","dct terminal"], lat:22.82, lon:113.66 },
+  { kw:["guishan"], lat:22.15, lon:113.80 },
+  { kw:["hong kong","south lamma","lamma"], lat:22.20, lon:114.13 },
+  { kw:["singapore"], lat:1.26, lon:103.83 },
+  { kw:["giacarta","jakarta"], lat:-6.10, lon:106.88 },
+  { kw:["surabaya"], lat:-7.20, lon:112.73 },
+  { kw:["guangzhou","huangpu"], lat:23.10, lon:113.42 },
+  { kw:["port louis"], lat:-20.16, lon:57.50 },
+  { kw:["lobito"], lat:-12.34, lon:13.55 },
+  { kw:["tema"], lat:5.62, lon:0.00 },
+  { kw:["ozata","altinova","yalova"], lat:40.66, lon:29.51 }
+];
+function geocodeNoonText(n){
+  if(!n) return null;
+  const hay = [n.positionText, n.status, n.to, n.nextPort, n.from].filter(Boolean).join(" ").toLowerCase();
+  if(!hay) return null;
+  for(const p of PORT_GAZETTEER){ for(const k of p.kw){ if(hay.includes(k)) return { lat:p.lat, lon:p.lon, approx:true, matched:k }; } }
+  return null;
 }
 function noonDateLabel(iso){
   if(!iso) return "";
@@ -14095,9 +14131,15 @@ function parseNoonLatLon(n){
 // Ultima posizione NOTA (scorre lo storico dal più recente all'indietro finché trova coordinate valide)
 function getLastKnownPosition(vesselId){
   const arr = getNoonReports(vesselId); // crescente
+  // 1) coordinate numeriche esatte (priorità)
   for(let i=arr.length-1; i>=0; i--){
     const c = parseNoonLatLon(arr[i]);
-    if(c) return { coords:c, report:arr[i] };
+    if(c) return { coords:c, report:arr[i], approx:false };
+  }
+  // 2) fallback: nome porto/ancoraggio dal gazetteer (posizione approssimata)
+  for(let i=arr.length-1; i>=0; i--){
+    const g = geocodeNoonText(arr[i]);
+    if(g) return { coords:{ lat:g.lat, lon:g.lon }, report:arr[i], approx:true };
   }
   return null;
 }
@@ -14162,6 +14204,7 @@ function noonReportBlockHTML(vesselId){
   // Posizione per la mappa: ultima nota, anche di giorni fa
   const last = getLastKnownPosition(vesselId);
   const coords = last ? last.coords : null;
+  const approxPos = !!(last && last.approx);
   const staleDays = last ? noonDaysAgo(last.report.date) : null;
   const isStale = last && last.report.date !== n.date;
   // Ora a bordo stimata dalla longitudine dell'ultima posizione nota
@@ -14183,7 +14226,7 @@ function noonReportBlockHTML(vesselId){
     const bbox = `${coords.lon-d},${coords.lat-d},${coords.lon+d},${coords.lat+d}`;
     const src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${coords.lat},${coords.lon}`;
     const osmLink = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lon}#map=6/${coords.lat}/${coords.lon}`;
-    const staleTag = isStale ? `<span class="noon-map-stale">📍 rilevata ${staleDays===1?"ieri":staleDays+" giorni fa"}</span>` : "";
+    const staleTag = (isStale || approxPos) ? `<span class="noon-map-stale">📍 ${approxPos ? "posizione ≈ porto" : ""}${approxPos && isStale ? " · " : ""}${isStale ? `rilevata ${staleDays===1?"ieri":staleDays+" giorni fa"}` : ""}</span>` : "";
     mapHTML = `<div class="noon-map">
       <iframe class="noon-map-frame" loading="lazy" src="${src}" title="Posizione ${escapeAttr(pos)}"></iframe>
       ${staleTag}
@@ -14202,7 +14245,7 @@ function noonReportBlockHTML(vesselId){
         ${n.speed?`<span class="noon-meta">${escapeHTML(n.speed)} kts</span>`:""}
         ${n.course?`<span class="noon-meta">rotta ${escapeHTML(n.course)}</span>`:""}
         ${n.milesToGo?`<span class="noon-meta">${escapeHTML(n.milesToGo)} NM al porto</span>`:""}
-        ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
+        ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine${approxPos?" del porto (approssimata)":""} (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
       </div>
       ${bunk?`<div class="noon-bunk">${bunk}</div>`:""}
       ${bunkTrend}
@@ -14236,7 +14279,7 @@ window.applyNoonToVoyage = function(vesselId){
 };
 // Storico (Diario di bordo): tabella della cronologia posizioni/porti
 function renderNoonDiario(vesselId){
-  const arr = getNoonReports(vesselId).slice().reverse(); // più recenti in alto
+  const arr = getNoonReports(vesselId).filter(noonHasContent).slice().reverse(); // solo report con contenuto, più recenti in alto
   if(!arr.length){
     return `<div class="vd-empty" style="padding:40px;text-align:center">
       <p style="margin:0 0 6px;font-weight:600;color:#5b6470">Nessun noon report ancora archiviato</p>
