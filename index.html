@@ -6402,6 +6402,39 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .pr-more{ font-size:12px; color:#8a93a0; padding:6px 4px; }
 @media(max-width:720px){ .pr-row{ flex-wrap:wrap; } .pr-actions{ width:100%; justify-content:flex-end; } }
 
+/* v0.38 — Assistente Email: filtri categoria, badge, link REQ/RFQ/PO, bozza AI */
+.pr-chiprow{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.pr-chip{ font-family:var(--font-mono); font-size:11.5px; font-weight:600; border:1px solid var(--chip-bg,#e2e8f0); background:var(--chip-bg,#f1f5f9); color:var(--chip-c,#475569); border-radius:20px; padding:6px 12px; cursor:pointer; }
+.pr-chip.on{ background:var(--chip-c,#0a3f93); color:#fff; border-color:var(--chip-c,#0a3f93); }
+.pr-chip-n{ opacity:.75; margin-left:3px; }
+.pr-tagrow{ display:flex; gap:6px; align-items:center; margin-top:5px; flex-wrap:wrap; }
+.pr-headrow{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.pr-waitlabel{ font-family:var(--font-mono); font-size:11px; font-weight:700; color:#c8362f; white-space:nowrap; }
+.pr-whatbox{ display:flex; align-items:flex-start; gap:9px; background:#f6f9fe; border:1px solid #e2ecfb; border-radius:8px; padding:9px 12px; margin-top:9px; }
+.pr-what-arrow{ font-size:13px; flex-shrink:0; color:#7a8bb0; }
+.pr-what-text{ flex:1; }
+.pr-what-label{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:#7a8bb0; margin-bottom:2px; }
+.pr-what-action{ font-size:13px; color:#1f2937; font-weight:500; }
+.pr-whatbox .pr-dismiss{ flex-shrink:0; }
+.pr-cat{ font-size:10px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; padding:2px 8px; border-radius:6px; }
+.pr-doclink{ font-family:var(--font-mono); font-size:11px; font-weight:600; color:#0a3f93; background:#eaf1fd; border:1px solid #cfe0fb; border-radius:6px; padding:2px 8px; cursor:pointer; }
+.pr-doclink:hover{ background:#dbe8ff; }
+.pr-btn.pr-draft{ color:#5b21b6; }
+.pr-folded{ margin-top:16px; }
+.pr-folded summary{ cursor:pointer; font-size:12.5px; color:#8a93a0; padding:8px 4px; }
+.draft-modal-overlay{ position:fixed; inset:0; background:rgba(20,30,50,.45); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; }
+.draft-modal{ background:#fff; border-radius:14px; width:100%; max-width:560px; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.draft-modal-head{ display:flex; align-items:center; gap:10px; padding:16px 18px; border-bottom:1px solid var(--border); }
+.draft-modal-head strong{ flex:1; font-size:14.5px; }
+.draft-lang-toggle{ display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.dlt-btn{ font-family:var(--font-mono); font-size:11.5px; font-weight:700; padding:6px 10px; background:#fff; border:none; cursor:pointer; color:#5b6470; }
+.dlt-btn.on{ background:#0e54c1; color:#fff; }
+.draft-modal-close{ background:none; border:none; font-size:16px; color:#9aa3af; cursor:pointer; padding:4px 6px; }
+.draft-modal-body{ padding:16px 18px; overflow:auto; flex:1; }
+.draft-loading{ font-size:13px; color:#9aa3af; text-align:center; padding:24px 0; }
+.draft-textarea{ width:100%; min-height:220px; border:1px solid var(--border); border-radius:8px; padding:12px; font-family:var(--font-sans,inherit); font-size:13.5px; line-height:1.55; resize:vertical; }
+.draft-modal-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-top:1px solid var(--border); }
+
 /* v0.22 — Segmented control pagina To-do (Le mie to-do | Azioni flotta) */
 .todo-mode-switch{ display:inline-flex; gap:4px; background:#eef1f5; border:1px solid #e3e8ee; border-radius:10px; padding:4px; margin:4px 0 20px; }
 .tms-btn{ display:inline-flex; align-items:center; gap:7px; border:none; background:transparent; color:#5b6470; font-size:13.5px; font-weight:600; padding:8px 16px; border-radius:7px; cursor:pointer; }
@@ -10465,6 +10498,66 @@ function dismissReply(id){
   const arr = loadDismissedReplies(); if(!arr.includes(id)){ arr.push(id); }
   try{ localStorage.setItem("mpd.repliesDismissed", JSON.stringify(arr.slice(-500))); }catch{}
 }
+// === v0.38 — AI Email Assistant: categorizzazione euristica + link automatico a REQ/RFQ/PO/DN ===
+const EMAIL_CATS = {
+  invoice_reminder: { label: "Fattura in sollecito", color: "#8a1414", bg: "#fbe6e6" },
+  rfq_chase:        { label: "Sollecito RFQ",         color: "#b15800", bg: "#fbf1dd" },
+  certificate:      { label: "Certificato",           color: "#a01b22", bg: "#fbeae9" },
+  po:               { label: "Ordine / PO",           color: "#0a3f93", bg: "#e7f0fb" },
+  logistics:        { label: "Logistica / Consegna",  color: "#1a2c5e", bg: "#e9ecf4" },
+  system:           { label: "Sistema / IT",          color: "#334155", bg: "#eef1f5" },
+  agency_ops:       { label: "Non tocca a te",        color: "#7a8290", bg: "#f1f5f9" },
+  noise:            { label: "Rumore",                color: "#8a93a0", bg: "#f1f5f9" },
+  generic:          { label: "Da valutare",            color: "#3a4250", bg: "#eef1f5" }
+};
+// Frase euristica "cosa richiede" — sempre visibile, senza bisogno di generare la bozza
+function emailActionText(r){
+  const days = r.days;
+  switch(r.category){
+    case "invoice_reminder": return "Verificare e chiudere il pagamento" + (r.link ? " — " + r.link.docLabel + " " + r.link.docNumber : "") + (days>=5 ? " (sollecito ripetuto, rischio relazione)" : ".");
+    case "rfq_chase": return r.link ? `Valutare/sollecitare l'offerta per ${r.link.docLabel} ${r.link.docNumber}${days>=3?" — in attesa da "+days+"g":""}.` : `Rispondere o sollecitare l'offerta richiesta a ${r.fromName}.`;
+    case "certificate": return "Verificare la scadenza/documento citato e pianificare il seguito.";
+    case "po": return r.link ? `Confermare o aggiornare l'ordine ${r.link.docLabel} ${r.link.docNumber}.` : "Confermare o gestire l'ordine di acquisto.";
+    case "logistics": return "Aggiornare stato consegna/spedizione e confermare ricezione.";
+    case "system": return "Verificare il problema IT/Infoship segnalato.";
+    default: return `Leggere e rispondere a ${r.fromName}${days>=3?" — in attesa da "+days+"g":""}.`;
+  }
+}
+function classifyPendingReply(m, known){
+  const s = (m.subject||""); const u = s.toUpperCase();
+  if(/REMINDER|3RD REMINDER|2ND REMINDER|KINDLY PAY|AWAITING PAYMENT|URGENT.*INVOICE|SALES INVOICE/.test(u)) return "invoice_reminder";
+  if(/CERTIFIC|SURVEY|CLASS\b|P&I|DRY ?DOCK/.test(u)) return "certificate";
+  if(/\bPO\b|HQPO|PURCHASE ORDER|ORDER CONFIRM/.test(u)) return "po";
+  if(/HQRQ|\bRFQ\b|\bPR\d|QUOTATION|QUOTE|RICHIESTA PREVENTIVO|OFFER/.test(u)) return "rfq_chase";
+  if(/PRE-?ALERT|DELIVERY|SPEDIZ|SHPR|STOCK|GIACENZ/.test(u)) return "logistics";
+  if(/INFOSHIP|MALFUNZIONAMENTO|LICENSE KEY|CONNECTIVITY/.test(u)) return "system";
+  if(known && known.kind==="agenzia") return "agency_ops";
+  if(/BUNKER PRICE REPORT|PORT.*LINE.?UP|FRESH ARRIVAL|NEWSLETTER|DISCOVER OUR|COMPACT THERMAL|DEALERS|COMMERCIAL OFFER/.test(u)) return "noise";
+  return "generic";
+}
+// Cerca nei numeri REQ/RFQ/PO/DN di tutti gli item flotta un riferimento citato nell'oggetto email
+function linkEmailToProcurement(subject){
+  if(!subject) return null;
+  const U = subject.toUpperCase();
+  for(const cfg of VESSELS){
+    const v = state.data && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
+    if(!v || !v.items) continue;
+    for(const it of v.items){
+      const cand = [
+        it.poNumber ? {n:it.poNumber, l:"PO"} : null,
+        it.dnNumber ? {n:it.dnNumber, l:"DN"} : null,
+        it.reqNumber ? {n:it.reqNumber, l:"REQ"} : null,
+        ...(Array.isArray(it.rfqNumbers) ? it.rfqNumbers.map(n=>({n,l:"RFQ"})) : [])
+      ].filter(Boolean);
+      for(const c of cand){
+        if(c.n && U.includes(c.n.toUpperCase())){
+          return { vesselId: cfg.vesselId, vesselName: cfg.displayName, itemId: it.id, docLabel: c.l, docNumber: c.n, description: it.description || "" };
+        }
+      }
+    }
+  }
+  return null;
+}
 // Restituisce le email in attesa, arricchite e ordinate (priorità: contatto noto + giorni d'attesa)
 function getPendingReplies(){
   const raw = state.pendingReplies;
@@ -10480,17 +10573,22 @@ function getPendingReplies(){
     const days = m.waitingDays != null ? m.waitingDays : noonDaysAgo((m.receivedDate||"").slice(0,10));
     // priorità: contatto nave > agenzia > fornitore > sconosciuto, poi più giorni
     const kindRank = known ? (known.kind==="nave"?0:known.kind==="agenzia"?1:2) : 3;
+    const category = classifyPendingReply(m, known);
+    const link = linkEmailToProcurement(m.subject||"");
     out.push({
       id, fromEmail,
       fromName: m.fromName || m.from || fromEmail,
       subject: m.subject || "(senza oggetto)",
+      preview: m.preview || m.bodyPreview || "",
       receivedDate: m.receivedDate || "",
       days: days==null ? 0 : days,
       webLink: m.webLink || m.webUrl || "",
-      vesselId: (m.vesselId || (known && known.vesselId)) || null,
+      vesselId: (m.vesselId || (known && known.vesselId) || (link && link.vesselId)) || null,
       role: known ? known.role : null,
       kind: known ? known.kind : "altro",
-      kindRank
+      kindRank,
+      category,
+      link
     });
   }
   out.sort((a,b)=> a.kindRank - b.kindRank || b.days - a.days);
@@ -10498,53 +10596,178 @@ function getPendingReplies(){
 }
 // Render della sezione "In attesa di tua risposta" (solo se ci sono email)
 function renderPendingRepliesSection(){ return ""; }
-// Render della PAGINA dedicata "In attesa di tua risposta"
+// Render della PAGINA dedicata "Assistente Email" (v0.38 — categorizzazione + link REQ/RFQ/PO + bozze AI)
+window._emailFilter = window._emailFilter || "all";
 function renderEmailPage(){
-  const list = getPendingReplies();
+  const all = getPendingReplies();
   const vName = id => (VESSELS.find(v=>v.vesselId===id)||{}).displayName || "";
   const connected = state.pendingReplies != null;
+  const NOISE_CATS = new Set(["noise","agency_ops"]);
+  const active = all.filter(r=>!NOISE_CATS.has(r.category));
+  const folded = all.filter(r=>NOISE_CATS.has(r.category));
+
+  const filter = window._emailFilter;
+  const shown = filter==="all" ? active : active.filter(r=>r.category===filter);
+
+  // conteggi per i filtri (solo categorie presenti tra le attive)
+  const counts = {};
+  active.forEach(r=>{ counts[r.category] = (counts[r.category]||0)+1; });
+  const catChips = ["all", ...Object.keys(counts)].map(k=>{
+    const isAll = k==="all";
+    const meta = isAll ? {label:"Tutte", color:"#0a3f93", bg:"#e7f0fb"} : EMAIL_CATS[k];
+    const cnt = isAll ? active.length : counts[k];
+    const on = filter===k;
+    return `<button class="pr-chip ${on?"on":""}" style="--chip-c:${meta.color};--chip-bg:${meta.bg}" onclick="window.setEmailFilter('${k}')">${escapeHTML(meta.label)} <span class="pr-chip-n">${cnt}</span></button>`;
+  }).join("");
+
+  function rowHTML(r){
+    const vtag = r.vesselId ? `<span class="pr-vtag" data-vid="${escapeAttr(r.vesselId)}">${escapeHTML(vName(r.vesselId))}</span>` : "";
+    const roleTag = r.role ? `<span class="pr-role pr-${r.kind}">${escapeHTML(r.role)}</span>` : "";
+    const cat = EMAIL_CATS[r.category] || EMAIL_CATS.generic;
+    const catBadge = `<span class="pr-cat" style="background:${cat.bg};color:${cat.color}">${escapeHTML(cat.label)}</span>`;
+    const linkChip = r.link ? `<button class="pr-doclink" onclick="window.handleInternalLink('${encodeURIComponent(JSON.stringify({view:"vessel",vesselId:r.link.vesselId,tab:"procurement",itemId:r.link.itemId}))}')" title="${escapeAttr(r.link.description)}">${escapeHTML(r.link.docLabel)} ${escapeHTML(r.link.docNumber)}</button>` : "";
+    const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
+    const openBtn = r.webLink ? `<a class="pr-btn pr-open" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" title="Apri in Outlook">Apri ↗</a>`
+      : `<button class="pr-btn pr-open" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')" title="Rispondi">Rispondi</button>`;
+    return `<div class="pr-row" data-pr-id="${escapeAttr(r.id)}">
+      <div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>
+      <div class="pr-main">
+        <div class="pr-headrow">
+          <div class="pr-tagrow">${catBadge}${linkChip}</div>
+          <span class="pr-waitlabel">Tocca a te</span>
+        </div>
+        <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
+        <div class="pr-subj">${escapeHTML(r.subject)}</div>
+        <div class="pr-whatbox">
+          <span class="pr-what-arrow">→</span>
+          <div class="pr-what-text">
+            <div class="pr-what-label">Cosa richiede</div>
+            <div class="pr-what-action">${escapeHTML(emailActionText(r))}</div>
+          </div>
+          <button class="pr-btn pr-dismiss" onclick="window.dismissReplyUI('${escapeAttr(r.id)}')" title="Ho già risposto / ignora">Fatto</button>
+        </div>
+      </div>
+      <div class="pr-actions">
+        <button class="pr-btn pr-draft" onclick="window.openDraftAssist('${escapeAttr(r.id)}')" title="Genera bozza di risposta (IT/EN)">✎ Bozza</button>
+        ${openBtn}
+        <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
+      </div>
+    </div>`;
+  }
+
   let body;
-  if(!list.length){
+  if(!all.length){
     body = `<div class="empty-state" style="padding:48px 24px;text-align:center;">
       <div style="font-size:34px;margin-bottom:10px;">✅</div>
       <p style="margin:0 0 6px;font-weight:600;color:#3a4250;">${connected ? "Nessuna email in attesa di risposta" : "Rilevamento email non ancora collegato"}</p>
       <p style="margin:0;font-size:13px;color:#9aa3af;">${connected ? "Hai risposto a tutti — oppure le hai archiviate qui." : "Quando il flusso n8n scrive data-pending-replies.json, le email senza risposta compaiono qui."}</p>
     </div>`;
   } else {
-    const rows = list.map(r=>{
-      const vtag = r.vesselId ? `<span class="pr-vtag" data-vid="${escapeAttr(r.vesselId)}">${escapeHTML(vName(r.vesselId))}</span>` : "";
-      const roleTag = r.role ? `<span class="pr-role pr-${r.kind}">${escapeHTML(r.role)}</span>` : "";
-      const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
-      const openBtn = r.webLink ? `<a class="pr-btn pr-open" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" title="Apri in Outlook">Apri ↗</a>`
-        : `<button class="pr-btn pr-open" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')" title="Rispondi">Rispondi</button>`;
-      return `<div class="pr-row" data-pr-id="${escapeAttr(r.id)}">
-        <div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>
-        <div class="pr-main">
-          <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
-          <div class="pr-subj">${escapeHTML(r.subject)}</div>
-        </div>
-        <div class="pr-actions">
-          ${openBtn}
-          <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
-          <button class="pr-btn pr-dismiss" onclick="window.dismissReplyUI('${escapeAttr(r.id)}')" title="Ho già risposto / ignora">✓ Fatto</button>
-        </div>
-      </div>`;
-    }).join("");
-    body = `<div class="pr-list">${rows}</div>`;
+    const foldedHTML = folded.length ? `
+      <details class="pr-folded">
+        <summary>${folded.length} email non richiedono una tua risposta (rumore, cc operativi) — mostra</summary>
+        <div class="pr-list" style="margin-top:8px;">${folded.map(rowHTML).join("")}</div>
+      </details>` : "";
+    body = shown.length
+      ? `<div class="pr-list">${shown.map(rowHTML).join("")}</div>${foldedHTML}`
+      : `<div class="empty-state" style="padding:32px 16px;text-align:center;color:#9aa3af;">Nessuna email in questa categoria.</div>${foldedHTML}`;
   }
   document.getElementById("view-root").innerHTML = `
     <header class="todo-page-header">
       <div>
-        <h1>In attesa di tua risposta</h1>
+        <h1>Assistente Email</h1>
         <div class="todo-page-stats">
-          <span class="stat ${list.length>0?"warn":""}"><strong>${list.length}</strong> email senza risposta</span>
-          <span class="stat">ordinate per priorità · navi, agenzie, fornitori</span>
+          <span class="stat ${active.length>0?"warn":""}"><strong>${active.length}</strong> richiedono attenzione</span>
+          <span class="stat">${folded.length} filtrate come rumore/non tue</span>
         </div>
       </div>
     </header>
+    <div class="pr-chiprow">${catChips}</div>
     ${body}
+    <div id="draft-assist-modal" class="draft-modal-overlay" style="display:none;" onclick="if(event.target===this) window.closeDraftAssist()">
+      <div class="draft-modal">
+        <div class="draft-modal-head">
+          <strong id="draft-modal-title">Bozza di risposta</strong>
+          <div class="draft-lang-toggle">
+            <button class="dlt-btn on" data-lang="it" onclick="window.regenDraft('it')">IT</button>
+            <button class="dlt-btn" data-lang="en" onclick="window.regenDraft('en')">EN</button>
+          </div>
+          <button class="draft-modal-close" onclick="window.closeDraftAssist()">✕</button>
+        </div>
+        <div id="draft-modal-body" class="draft-modal-body">
+          <div class="draft-loading">Genero la bozza…</div>
+        </div>
+        <div class="draft-modal-foot">
+          <span style="font-size:12px;color:#9aa3af;">Solo un suggerimento — nulla viene inviato automaticamente.</span>
+          <div style="display:flex;gap:8px;">
+            <button class="pr-btn" onclick="window.copyDraft()">Copia testo</button>
+            <button class="pr-btn pr-open" onclick="window.useDraftInCompose()">Usa in Outlook →</button>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 }
+window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage(); };
+
+// --- Bozza AI (solo suggerimento, mai invio automatico) ---
+window._draftState = { id:null, lang:"it", text:"" };
+window.openDraftAssist = async function(id){
+  const r = getPendingReplies().find(x=>x.id===id);
+  if(!r) return;
+  const guessLang = /[àèéìòù]|\bbuongiorno\b|\bgrazie\b|\bcordiali\b/i.test((r.subject||"")+" "+(r.preview||"")) ? "it" : (/[a-z]/i.test(r.fromEmail) && !/\.it$/.test(r.fromEmail) ? "en" : "it");
+  window._draftState = { id, lang: guessLang, text:"" };
+  const modal = document.getElementById("draft-assist-modal");
+  modal.style.display = "flex";
+  document.getElementById("draft-modal-title").textContent = "Bozza per: " + r.fromName;
+  document.querySelectorAll(".dlt-btn").forEach(b=>b.classList.toggle("on", b.dataset.lang===guessLang));
+  await window.regenDraft(guessLang);
+};
+window.closeDraftAssist = function(){ document.getElementById("draft-assist-modal").style.display="none"; };
+window.regenDraft = async function(lang){
+  const st = window._draftState; if(!st.id) return;
+  st.lang = lang;
+  document.querySelectorAll(".dlt-btn").forEach(b=>b.classList.toggle("on", b.dataset.lang===lang));
+  const bodyEl = document.getElementById("draft-modal-body");
+  bodyEl.innerHTML = `<div class="draft-loading">Genero la bozza…</div>`;
+  const r = getPendingReplies().find(x=>x.id===st.id);
+  if(!r){ bodyEl.innerHTML = `<div class="draft-loading">Email non trovata.</div>`; return; }
+  const ctxBits = [];
+  if(r.link) ctxBits.push(`Riferimento: ${r.link.docLabel} ${r.link.docNumber} — ${r.link.description}`);
+  if(r.vesselId) ctxBits.push("Nave: " + vNameSafe(r.vesselId));
+  ctxBits.push("Categoria: " + ((EMAIL_CATS[r.category]||{}).label || "generica"));
+  ctxBits.push("In attesa da " + r.days + " giorni.");
+  const prompt = `Sei l'assistente email personale di un purchasing manager marittimo (procurement/supply chain). Scrivi SOLO il corpo di una bozza di risposta professionale, concisa, pronta da rileggere e inviare — senza oggetto, senza spiegazioni, senza markdown.
+Lingua: ${lang==="it"?"italiano":"inglese"}.
+Email ricevuta da: ${r.fromName} <${r.fromEmail}>
+Oggetto: ${r.subject}
+Estratto: ${(r.preview||"").slice(0,400)}
+Contesto: ${ctxBits.join(" · ")}
+Tono: professionale, cordiale, diretto. Firma con "Michele".`;
+  try{
+    const txt = await window.claude.complete(prompt);
+    st.text = String(txt||"").trim();
+    bodyEl.innerHTML = `<textarea id="draft-modal-textarea" class="draft-textarea">${escapeHTML(st.text)}</textarea>`;
+  }catch(e){
+    bodyEl.innerHTML = `<div class="draft-loading">Bozza non disponibile al momento. Riprova.</div>`;
+  }
+};
+function vNameSafe(id){ const v = VESSELS.find(v=>v.vesselId===id); return v ? v.displayName : ""; }
+window.copyDraft = function(){
+  const ta = document.getElementById("draft-modal-textarea");
+  const txt = ta ? ta.value : window._draftState.text;
+  if(!txt) return;
+  navigator.clipboard && navigator.clipboard.writeText(txt).then(()=>showToast("Bozza copiata"));
+};
+window.useDraftInCompose = function(){
+  const ta = document.getElementById("draft-modal-textarea");
+  const txt = ta ? ta.value : window._draftState.text;
+  const r = getPendingReplies().find(x=>x.id===window._draftState.id);
+  if(!r) return;
+  const subj = /^re:/i.test(r.subject) ? r.subject : "RE: " + r.subject;
+  openComposeMail(buildComposeHref(subj, txt||"", r.fromEmail));
+  window.closeDraftAssist();
+};
 window.composeReply = function(to, subject){
   const subj = /^re:/i.test(subject) ? subject : "RE: " + subject;
   openComposeMail(buildComposeHref(subj, "", to));
