@@ -305,8 +305,8 @@
         "lon": "090-40.4W",
         "positionText": null,
         "from": null,
-        "to": "Kandla",
-        "nextPort": "Kandla",
+        "to": "AGW WP, KANDLA",
+        "nextPort": "AGW WP, KANDLA",
         "etaText": "24.08.2026 0700 LT",
         "etbText": null,
         "etdText": null,
@@ -315,13 +315,13 @@
         "etdISO": null,
         "speed": "11.48",
         "course": "128",
-        "milesToGo": "12005",
+        "milesToGo": 12005,
         "bunkers": {
-          "lsfo": "1480.189",
-          "lsmgo": "67.991"
+          "lsfo": 1480.189,
+          "lsmgo": 67.991
         },
         "status": "in navigazione",
-        "remarks": "Nessuna deviazione o fermata segnalata",
+        "remarks": null,
         "vesselId": "medtoscana"
       }
     ],
@@ -699,6 +699,33 @@
           "lsfo": 778.64,
           "lsmgo": 80.43,
           "fw": 148
+        },
+        "status": "in navigazione",
+        "remarks": "NIL",
+        "vesselId": "medliguria"
+      },
+      {
+        "date": "2026-07-12",
+        "type": "sea",
+        "lat": "23-48.8S",
+        "lon": "026-44.9W",
+        "positionText": null,
+        "from": "VITORIA",
+        "to": "SINGAPORE",
+        "nextPort": "WP AGW",
+        "etaText": "10 AUG 2026 0800LT",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": "2026-08-10T08:00",
+        "etbISO": null,
+        "etdISO": null,
+        "speed": "11.17",
+        "course": null,
+        "milesToGo": 8069,
+        "bunkers": {
+          "lsfo": 759.44,
+          "lsmgo": 80.43,
+          "fw": 168
         },
         "status": "in navigazione",
         "remarks": "NIL",
@@ -1173,7 +1200,7 @@
         "positionText": null,
         "from": "DONGGUAN, CHINA",
         "to": "SINGAPORE",
-        "nextPort": "SINGAPORE",
+        "nextPort": "SG SIN PEBGG-B P/STN",
         "etaText": "17.07.2026 1600LT",
         "etbText": null,
         "etdText": null,
@@ -1188,7 +1215,7 @@
           "lsmgo": 160.72,
           "fw": 103
         },
-        "status": "in navigazione da Dongguan a Singapore",
+        "status": "in navigazione",
         "remarks": null,
         "vesselId": "peppino"
       },
@@ -1439,5 +1466,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-12T14:00:59.273Z"
+  "syncedAt": "2026-07-12T15:00:59.576Z"
 }
