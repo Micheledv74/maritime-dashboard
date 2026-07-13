@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-07-13T13:05:45.541Z",
+  "lastSync": "2026-07-13T13:10:48.102Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -9712,19 +9712,19 @@
     {
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
-      "totalReq": 136,
-      "rfqOpen": 7,
+      "totalReq": 137,
+      "rfqOpen": 3,
       "rfqOverdue7": 0,
       "rfqOverdue15": 0,
       "readyForPO": 0,
-      "orders": 9,
+      "orders": 13,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 11,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 95,
-      "pctPOToDN": 93,
+      "pctReqToPO": 97,
+      "pctPOToDN": 90,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -9735,6 +9735,40 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "peppino::spa req transportable pump unit top urgent",
+          "description": "SPA Req. TRANSPORTABLE PUMP UNIT - TOP URGENT",
+          "supplier": "MacGregor Pte Ltd",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-PEP-SHPR-00110",
+          "rfqNumbers": [
+            "2026-PEP-HQRQ-00197",
+            "2026-PEP-HQRQ-00196",
+            "2026-PEP-HQRQ-00195"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 3,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
+          "reqDate": "2026-07-13",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
         {
           "id": "peppino::hatch covers cleats",
           "description": "HATCH COVER'S CLEATS",
@@ -9748,15 +9782,15 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "reqDate": "2026-07-12",
           "poDate": "",
@@ -9776,28 +9810,28 @@
           "rfqNumbers": [
             "2026-PEP-HQRQ-00193"
           ],
-          "poNumber": "",
+          "poNumber": "2026-PEP-HQPO-00133",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "reqDate": "2026-07-12",
-          "poDate": "",
+          "poDate": "2026-07-13",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-07-27",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-07-27"
         },
         {
           "id": "peppino::deck/engine/electrical/safety store for deck maintenance urgent",
@@ -9872,28 +9906,28 @@
           "rfqNumbers": [
             "2026-PEP-HQRQ-00191"
           ],
-          "poNumber": "",
+          "poNumber": "2026-PEP-HQPO-00134",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "reqDate": "2026-07-09",
-          "poDate": "",
+          "poDate": "2026-07-13",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-07-27",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-07-27"
         },
         {
           "id": "peppino::paint urgent",
@@ -9904,28 +9938,28 @@
           "rfqNumbers": [
             "2026-PEP-HQRQ-00192"
           ],
-          "poNumber": "",
+          "poNumber": "2026-PEP-HQPO-00132",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "reqDate": "2026-07-09",
-          "poDate": "",
+          "poDate": "2026-07-13",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-07-27",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-07-27"
         },
         {
           "id": "peppino::store grinder angle electric singapore ugrent",
@@ -9936,28 +9970,28 @@
           "rfqNumbers": [
             "2026-PEP-HQRQ-00190"
           ],
-          "poNumber": "",
+          "poNumber": "2026-PEP-HQPO-00131",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "reqDate": "2026-07-12",
-          "poDate": "",
+          "poDate": "2026-07-13",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-07-27",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-07-27"
         },
         {
           "id": "peppino::imsbc code 2025 edition amendment 0825",
