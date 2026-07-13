@@ -15568,67 +15568,143 @@ async function parseCertificateExcel(file) {
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
   console.log("[Cert] Parsing file:", file.name, "righe totali:", rows.length);
 
-  // Header riga: cerco la riga che contiene "N°" e "Expiry" (di solito è la riga 1)
+  // Header riga: cerco la riga che contiene "N°" e "Expiry"/"Scadenza" (di solito è la riga 1)
+  // v0.12 — accetto anche header in italiano (SCADENZA/DATA) per adattarsi a template diversi per nave
+  const normHdr = s => String(s || "").toUpperCase().replace(/[°.]/g, "").trim();
+  // v0.12 — match per-cella esatto (non substring sulla riga intera concatenata): un titolo
+  // tipo "SCADENZARIO CERTIFICATI..." contiene "SCADENZA" come sottostringa e altrimenti
+  // veniva scambiato per la riga header.
   let headerRowIdx = -1;
-  for (let i = 0; i < Math.min(5, rows.length); i++) {
+  for (let i = 0; i < Math.min(6, rows.length); i++) {
     const r = rows[i];
     if (!r) continue;
-    const rowStr = r.map(c => String(c || "")).join("|").toUpperCase();
-    if (rowStr.includes("N°") && (rowStr.includes("EXPIRY") || rowStr.includes("ISSUE"))) {
+    const cellsNorm = r.map(c => normHdr(c));
+    const hasN = cellsNorm.some(t => t === "N" || t === "NR" || /^NUM/.test(t));
+    const hasExpiry = cellsNorm.some(t => t === "SCADENZA" || t === "EXPIRY");
+    const hasIssue = cellsNorm.some(t => t === "DATA" || t === "ISSUE");
+    if (hasN && (hasExpiry || hasIssue)) {
       headerRowIdx = i;
       break;
     }
   }
   if (headerRowIdx === -1) {
-    throw new Error("Formato file non riconosciuto: manca riga header con 'N°' e 'Expiry'");
+    throw new Error("Formato file non riconosciuto: manca riga header con 'N°' e 'Expiry'/'Scadenza'");
   }
+
+  // v0.12 — individuo dinamicamente le colonne dai testi dell'header, invece di indici fissi:
+  // file diversi (nave diversa, lingua diversa) possono avere layout di colonne diversi.
+  const headerRow = rows[headerRowIdx] || [];
+  const cols = {};
+  headerRow.forEach((cell, idx) => {
+    const t = normHdr(cell);
+    if (!t) return;
+    if (cols.place == null && /RILASCIATO|ISSUED\s*BY|ISSUER|PLACE/.test(t)) cols.place = idx;
+    else if (cols.expiry == null && /SCADENZA|EXPIRY/.test(t)) cols.expiry = idx;
+    else if (cols.intermediate == null && /INTERMEDI/.test(t)) cols.intermediate = idx;
+    else if (cols.issue == null && (/^DATA$/.test(t) || /ISSUE/.test(t))) cols.issue = idx;
+    else if (cols.certNum == null && /CERT.*NUM|NUMERO\s*CERT/.test(t)) cols.certNum = idx;
+    else if (cols.notes == null && /NOTE|NOTA|ANNOTAZ/.test(t)) cols.notes = idx;
+    else if (cols.n == null && /^N$|^NR$|^NUM/.test(t)) cols.n = idx;
+    else if (cols.name == null && /PROPRIET|CERTIFICAT|DESCRIZ|DOCUMENT/.test(t)) cols.name = idx;
+  });
+  // Fallback sul layout storico (template inglese a colonne fisse) se la detection non trova nome/scadenza
+  if (cols.n == null) cols.n = 0;
+  if (cols.name == null) cols.name = 2;
+  if (cols.issue == null) cols.issue = 3;
+  if (cols.expiry == null) cols.expiry = 4;
+  if (cols.place == null) cols.place = 7;
+  if (cols.certNum == null) cols.certNum = 8;
+  if (cols.notes == null) cols.notes = 9;
+
+  // Etichette originali dell'header, per riconoscere righe di sotto-intestazione ripetute
+  // dentro il foglio (es. sezioni "RINA — SURVEY STATUS", "BUSSOLE", ecc. che ripetono
+  // "Rilasciato da / Data / Scadenza" come se fossero dati)
+  const headerLabels = {};
+  [cols.place, cols.issue, cols.expiry].forEach(idx => {
+    if (idx != null && headerRow[idx] != null) headerLabels[idx] = normHdr(headerRow[idx]);
+  });
+
+  // Estraggo date — possono essere Date objects, stringhe o numeri seriali Excel
+  // v0.12 — aggiunto supporto dd.mm.yy(yy) e seriali Excel non formattati come data
+  const parseDate = (v) => {
+    if (v === null || v === undefined || v === "") return "";
+    // 1. Date object reale (SheetJS con cellDates:true)
+    if (v instanceof Date) {
+      if (isNaN(v.getTime())) return "";
+      const y = v.getFullYear();
+      const m = String(v.getMonth() + 1).padStart(2, "0");
+      const d = String(v.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+    // 2. Numero puro: probabile seriale data Excel salvato senza formato data
+    //    (accetto solo se cade in un intervallo di anni plausibile, altrimenti
+    //    è più probabile una sigla tipo "102025" e la lascio vuota per revisione manuale)
+    if (typeof v === "number") {
+      const d = new Date(Date.UTC(1899, 11, 30) + v * 86400000);
+      const y = d.getUTCFullYear();
+      if (!isNaN(d.getTime()) && y >= 1990 && y <= 2100) {
+        return `${y}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+      }
+      return "";
+    }
+    const s = String(v).trim();
+    if (!s) return "";
+    // 3. ISO yyyy-mm-dd (anche con time)
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+    // 4. dd/mm/yyyy, dd-mm-yyyy o dd.mm.yyyy (4 cifre anno)
+    m = s.match(/^(\d{1,2})[\.\/\-](\d{1,2})[\.\/\-](\d{4})/);
+    if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+    // 5. dd/mm/yy, dd-mm-yy o dd.mm.yy (2 cifre anno — interpretiamo 00-50 come 2000-2050)
+    m = s.match(/^(\d{1,2})[\.\/\-](\d{1,2})[\.\/\-](\d{2})$/);
+    if (m) {
+      const yr = parseInt(m[3], 10);
+      const fullYr = yr < 50 ? 2000 + yr : 1900 + yr;
+      return `${fullYr}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+    }
+    return "";
+  };
 
   const items = [];
   for (let i = headerRowIdx + 1; i < rows.length; i++) {
     const row = rows[i] || [];
-    const n = row[0] != null ? String(row[0]).trim() : "";
-    const name = row[2] != null ? String(row[2]).trim() : "";
+
+    // Righe di sotto-intestazione ripetute dentro il foglio (nuova sezione/categoria):
+    // colonna Rilasciato-da/Data/Scadenza contiene di nuovo l'etichetta dell'header → salto.
+    const isSubheaderRow = [cols.place, cols.issue, cols.expiry].some(idx =>
+      idx != null && headerLabels[idx] && normHdr(row[idx]) === headerLabels[idx]
+    );
+    if (isSubheaderRow) continue;
+
+    const n = row[cols.n] != null ? String(row[cols.n]).trim() : "";
+    const name = row[cols.name] != null ? String(row[cols.name]).trim() : "";
     if (!name) continue;
     // Skip righe header intra-foglio (sezioni "BRIDGE", "LIFEBOATS / FREE-FALL", "MASTER CABIN")
     const sectionHeaders = ["BRIDGE", "LIFEBOATS / FREE-FALL", "MASTER CABIN", "LIFEBOATS", "FREE-FALL"];
     if (!n && sectionHeaders.includes(name.toUpperCase())) continue;
 
-    // Estraggo date — possono essere Date objects o stringhe
-    // v0.11.1 — parseDate tollerante: Date obj, ISO, dd/mm/yyyy, dd-mm-yyyy, dd/mm/yy
-    const parseDate = (v) => {
-      if (!v && v !== 0) return "";
-      // 1. Date object reale (SheetJS con cellDates:true)
-      if (v instanceof Date) {
-        if (isNaN(v.getTime())) return "";
-        // Uso componenti locali (non UTC) per evitare shift di un giorno per tz
-        const y = v.getFullYear();
-        const m = String(v.getMonth() + 1).padStart(2, "0");
-        const d = String(v.getDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
-      }
-      const s = String(v).trim();
-      if (!s) return "";
-      // 2. ISO yyyy-mm-dd (anche con time)
-      let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-      if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
-      // 3. dd/mm/yyyy o dd-mm-yyyy (formato italiano, 4 cifre anno)
-      m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-      if (m) return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
-      // 4. dd/mm/yy o dd-mm-yy (2 cifre anno — interpretiamo 00-50 come 2000-2050)
-      m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/);
-      if (m) {
-        const yr = parseInt(m[3], 10);
-        const fullYr = yr < 50 ? 2000 + yr : 1900 + yr;
-        return `${fullYr}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
-      }
-      return "";
-    };
+    const issueRaw = row[cols.issue];
+    const expiryRaw = row[cols.expiry];
+    const issueDate = parseDate(issueRaw);
+    const expiryDate = parseDate(expiryRaw);
+    const intermediateDate = cols.intermediate != null ? parseDate(row[cols.intermediate]) : "";
+    const place = row[cols.place] != null ? String(row[cols.place]).trim() : "";
+    const certNum = row[cols.certNum] != null ? String(row[cols.certNum]).trim() : "";
+    let notes = row[cols.notes] != null ? String(row[cols.notes]).trim() : "";
 
-    const issueDate = parseDate(row[3]);
-    const expiryDate = parseDate(row[4]);
-    const place = row[7] != null ? String(row[7]).trim() : "";
-    const certNum = row[8] != null ? String(row[8]).trim() : "";
-    const notes = row[9] != null ? String(row[9]).trim() : "";
+    // Segnalo in nota i valori data non riconosciuti (es. sigle "102025"), invece di perderli
+    const flagUnparsed = (raw, parsed, label) => {
+      if (parsed || raw === null || raw === undefined || raw === "") return "";
+      const s = String(raw).trim();
+      if (!s || /^vari$/i.test(s)) return "";
+      return `${label} non riconosciuta nel file: "${s}" — verificare a mano.`;
+    };
+    const flags = [
+      flagUnparsed(issueRaw, issueDate, "Data"),
+      flagUnparsed(expiryRaw, expiryDate, "Scadenza")
+    ].filter(Boolean);
+    if (intermediateDate) flags.push(`Ann. intermedia: ${intermediateDate}`);
+    if (flags.length) notes = [notes, ...flags].filter(Boolean).join(" · ");
 
     items.push({
       n: n,
