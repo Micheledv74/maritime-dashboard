@@ -6452,6 +6452,8 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .ews-quick-chip{ text-align:left; font-family:inherit; font-size:13px; color:#1f2937; background:#f6f9fe; border:1px solid #e2ecfb; border-radius:8px; padding:9px 12px; cursor:pointer; }
 .ews-quick-chip:hover{ background:#eaf1fc; border-color:#bcd3f5; }
 .pr-thread-tag{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; color:#5b6470; background:#eef1f4; border-radius:6px; padding:2px 7px; }
+.pr-deadline-tag{ font-family:inherit; font-size:10.5px; font-weight:700; color:#8a4b00; background:#fdf0dc; border:1px solid #f3ddb3; border-radius:6px; padding:2px 8px; cursor:pointer; }
+.pr-deadline-tag:hover{ background:#fbe6c4; }
 .pr-wait.pr-wait-none{ background:#f1f4f7; color:#c2cad4; }
 
 /* v0.22 — Segmented control pagina To-do (Le mie to-do | Azioni flotta) */
@@ -10532,6 +10534,49 @@ const EMAIL_CATS = {
   noise:            { label: "Rumore / newsletter",   color: "#8a93a0", bg: "#f1f5f9" },
   generic:          { label: "Da valutare",            color: "#3a4250", bg: "#eef1f5" }
 };
+// v0.49 — Rilevo scadenze esplicite (data + parola chiave tipo "entro/scadenza/deadline/by")
+// nell'oggetto o anteprima di un'email, SENZA AI: euristica leggera, sempre attiva, zero costo.
+// Serve solo a segnalare — la to-do la crea l'utente con un click esplicito.
+function isoDateSafe(y, mo, d){
+  const dt = new Date(y, mo - 1, d);
+  if (isNaN(dt.getTime())) return null;
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+function detectEmailDeadline(subject, preview) {
+  const text = `${subject || ""} ${preview || ""}`;
+  if (!text.trim()) return null;
+  const triggerRe = /(entro|scadenza|scade\b|valid[oa]?\s*fino|deadline|due\s*(?:by|date)|\bby\b|no later than|expires?|expiry)/i;
+  const triggerMatch = text.match(triggerRe);
+  if (!triggerMatch) return null; // niente parola-chiave di scadenza esplicita → non mi fido di nessuna data trovata
+
+  const monthsIT = { gennaio:1, febbraio:2, marzo:3, aprile:4, maggio:5, giugno:6, luglio:7, agosto:8, settembre:9, ottobre:10, novembre:11, dicembre:12 };
+  const monthsEN = { january:1, february:2, march:3, april:4, may:5, june:6, july:7, august:8, september:9, october:10, november:11, december:12 };
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const thisYear = now.getFullYear();
+  const candidates = [];
+  const pushIfValid = (idx, y, mo, d, hadYear) => {
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) return;
+    if (!hadYear) { const cand = new Date(y, mo - 1, d); if (cand < now) y += 1; }
+    const iso = isoDateSafe(y, mo, d);
+    if (iso) candidates.push({ idx, iso });
+  };
+  let re, m;
+  re = /\b(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{4})\b/g;
+  while ((m = re.exec(text))) pushIfValid(m.index, parseInt(m[3],10), parseInt(m[2],10), parseInt(m[1],10), true);
+  re = /\b(\d{1,2})[\/\.\-](\d{1,2})\b(?!\d)/g;
+  while ((m = re.exec(text))) pushIfValid(m.index, thisYear, parseInt(m[2],10), parseInt(m[1],10), false);
+  re = /\b(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\b(?:\s+(\d{4}))?/gi;
+  while ((m = re.exec(text))) pushIfValid(m.index, m[3] ? parseInt(m[3],10) : thisYear, monthsIT[m[2].toLowerCase()], parseInt(m[1],10), !!m[3]);
+  re = /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:,?\s+(\d{4}))?/gi;
+  while ((m = re.exec(text))) pushIfValid(m.index, m[3] ? parseInt(m[3],10) : thisYear, monthsEN[m[1].toLowerCase()], parseInt(m[2],10), !!m[3]);
+  re = /\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)(?:\s+(\d{4}))?/gi;
+  while ((m = re.exec(text))) pushIfValid(m.index, m[3] ? parseInt(m[3],10) : thisYear, monthsEN[m[2].toLowerCase()], parseInt(m[1],10), !!m[3]);
+
+  if (!candidates.length) return null;
+  const triggerIdx = triggerMatch.index;
+  candidates.sort((a, b) => Math.abs(a.idx - triggerIdx) - Math.abs(b.idx - triggerIdx));
+  return { iso: candidates[0].iso };
+}
 // Frase euristica "cosa richiede" — sempre visibile, senza bisogno di aprire l'email
 function emailActionText(r){
   const days = r.days;
@@ -10630,11 +10675,12 @@ function getEmailThreads(){
     const known = idx[base.fromEmail] || null;
     const category = classifyEmail({ subject: base.subject, preview: base.preview }, known);
     const link = linkEmailToProcurement(base.subject || "");
+    const deadline = detectEmailDeadline(base.subject, base.preview);
     return Object.assign({}, base, {
       vesselId: base.vesselId || (known && known.vesselId) || (link && link.vesselId) || null,
       role: base.role || (known ? known.role : null),
       kind: base.kind || (known ? known.kind : "altro"),
-      category, link
+      category, link, deadline
     });
   }
 
@@ -10702,6 +10748,8 @@ function renderEmailPage(){
     const catBadge = `<span class="pr-cat" style="background:${cat.bg};color:${cat.color}">${escapeHTML(cat.label)}</span>`;
     const linkChip = r.link ? `<button class="pr-doclink" onclick="window.handleInternalLink('${encodeURIComponent(JSON.stringify({view:"vessel",vesselId:r.link.vesselId,tab:"procurement",itemId:r.link.itemId}))}')" title="${escapeAttr(r.link.description)}">${escapeHTML(r.link.docLabel)} ${escapeHTML(r.link.docNumber)}</button>` : "";
     const threadTag = (r.messages && r.messages.length>1) ? `<span class="pr-thread-tag" title="${r.messages.length} messaggi in questo scambio">💬 ${r.messages.length}</span>` : "";
+    const deadlineFmt = r.deadline ? new Date(r.deadline.iso + "T00:00:00").toLocaleDateString("it-IT", { day:"2-digit", month:"short" }) : "";
+    const deadlineBadge = r.deadline ? `<button class="pr-deadline-tag" onclick="window.createTodoFromDeadline('${escapeAttr(r.id)}');event.stopPropagation();" title="Scadenza rilevata nel testo — clicca per creare una to-do">📅 ${escapeHTML(deadlineFmt)}</button>` : "";
     const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
     const waitBox = r.waiting
       ? `<div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>`
@@ -10712,7 +10760,7 @@ function renderEmailPage(){
       ${waitBox}
       <div class="pr-main">
         <div class="pr-headrow">
-          <div class="pr-tagrow">${catBadge}${linkChip}${threadTag}</div>
+          <div class="pr-tagrow">${catBadge}${linkChip}${threadTag}${deadlineBadge}</div>
           ${r.waiting ? `<span class="pr-waitlabel">Tocca a te</span>` : ""}
         </div>
         <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
@@ -10812,6 +10860,13 @@ function renderEmailPage(){
             <div class="ews-section-head"><span>⚡ Risposte rapide</span><button class="pr-btn" onclick="window.wsQuickReplies()">Genera 3 opzioni</button></div>
             <div id="ews-quick-body" class="ews-quick-body"></div>
           </div>
+
+          <div class="ews-section">
+            <div class="ews-section-head"><span>🗓️ Scadenze nel testo</span><button class="pr-btn" onclick="window.wsDetectDeadlines()">Rileva scadenze</button></div>
+            <div id="ews-deadlines-body" class="ews-quick-body">
+              <div class="ews-section-body muted">Cerca date o termini (anche impliciti, es. "tra una settimana") nel testo e propone to-do — nessuna creata senza il tuo click.</div>
+            </div>
+          </div>
         </div>
         <div class="draft-modal-foot">
           <span style="font-size:12px;color:#9aa3af;">Solo suggerimenti — nulla viene inviato o tradotto automaticamente senza il tuo click.</span>
@@ -10873,6 +10928,7 @@ window.openEmailWorkspace = function(id){
 
   document.getElementById("ews-draft-body").innerHTML = `<div class="draft-loading">Genera una bozza per iniziare, o scrivi qualche parola chiave qui sopra.</div>`;
   document.getElementById("ews-quick-body").innerHTML = "";
+  document.getElementById("ews-deadlines-body").innerHTML = `<div class="ews-section-body muted">Cerca date o termini (anche impliciti, es. "tra una settimana") nel testo e propone to-do — nessuna creata senza il tuo click.</div>`;
   document.getElementById("ews-keywords").value = "";
   document.querySelectorAll("#email-ws-modal .dlt-btn").forEach(b=>b.classList.toggle("on", b.dataset.lang===guessLang));
 };
@@ -10987,6 +11043,55 @@ window.wsUseQuickReply = function(i){
   const q = (window._ws.quickReplies||[])[i]; if(!q) return;
   window._ws.draftText = q;
   document.getElementById("ews-draft-body").innerHTML = `<textarea id="ews-draft-textarea" class="draft-textarea">${escapeHTML(q)}</textarea>`;
+};
+
+// v0.49 — Rilevamento scadenze via AI (oltre all'euristica sempre-attiva su oggetto/anteprima):
+// legge tutto lo scambio e riconosce anche termini impliciti ("tra una settimana", "entro venerdì").
+// Propone soltanto — ogni to-do va creata con un click esplicito sulla singola proposta.
+window.wsDetectDeadlines = async function(){
+  const r = window._ws.thread; if(!r) return;
+  const el = document.getElementById("ews-deadlines-body");
+  el.innerHTML = `<div class="draft-loading">Cerco scadenze…</div>`;
+  const today = todayISO();
+  const convo = (r.messages && r.messages.length)
+    ? r.messages.map(m=>`[${m.date||""}] ${m.fromName||m.from||"?"}: ${(m.preview||"").slice(0,300)}`).join("\n")
+    : `${r.subject}\n${r.preview||""}`;
+  const prompt = `Oggi è ${today}. Analizza questo scambio email di un purchasing manager marittimo e individua eventuali scadenze/termini entro cui è richiesta un'azione (date esplicite O espressioni relative come "tra una settimana", "entro venerdì", "il prima possibile entro fine mese").
+Per ognuna, restituisci una data assoluta calcolata rispetto a oggi (${today}) e una brevissima etichetta dell'azione da fare.
+Rispondi SOLO con un array JSON, es: [{"date":"2026-07-20","label":"Confermare l'ordine"}]. Se non trovi nessuna scadenza reale, rispondi con [].
+
+Oggetto: ${r.subject}
+Scambio:
+${convo}`;
+  try{
+    const txt = await window.claude.complete(prompt);
+    const s = String(txt||"");
+    const a = s.indexOf("["), b = s.lastIndexOf("]");
+    const arr = JSON.parse(s.slice(a, b+1)).filter(x => x && x.date && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
+    window._ws.deadlineSuggestions = arr;
+    if(!arr.length){
+      el.innerHTML = `<div class="ews-section-body muted">Nessuna scadenza rilevata in questo scambio.</div>`;
+      return;
+    }
+    el.innerHTML = arr.map((d,i)=>{
+      const fmt = new Date(d.date+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"});
+      return `<button type="button" class="ews-quick-chip" onclick="window.wsCreateTodoFromSuggestion(${i})">📅 ${escapeHTML(fmt)} — ${escapeHTML(d.label||"Azione richiesta")} <span class="ews-primary">+ to-do</span></button>`;
+    }).join("");
+  }catch(e){ el.innerHTML = `<div class="draft-loading">Rilevamento non disponibile. Riprova.</div>`; }
+};
+window.wsCreateTodoFromSuggestion = function(i){
+  const r = window._ws.thread; if(!r) return;
+  const d = (window._ws.deadlineSuggestions||[])[i]; if(!d) return;
+  addTodo({ action: d.label || ("Rispondere a " + r.fromName), vessel: r.vesselId || null, category: "Email", reference: r.subject || "", dueDate: d.date, note: "Da email: " + (r.fromName||r.fromEmail||"") });
+  showToast("✓ To-do creata per " + new Date(d.date+"T00:00:00").toLocaleDateString("it-IT"));
+};
+// Creazione rapida to-do dalla scadenza euristica mostrata nella riga elenco (senza aprire il workspace)
+window.createTodoFromDeadline = function(id){
+  const r = getEmailThreads().find(x=>x.id===id);
+  if(!r || !r.deadline) return;
+  addTodo({ action: "Rispondere a " + r.fromName + " — " + r.subject, vessel: r.vesselId || null, category: "Email", reference: r.subject || "", dueDate: r.deadline.iso, note: "Scadenza rilevata automaticamente nel testo dell'email." });
+  showToast("✓ To-do creata per " + new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT"));
+  if (state.view === "email") render();
 };
 
 window.wsCopyDraft = function(){
