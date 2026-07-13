@@ -14703,6 +14703,7 @@ function renderVoyageWidget(vesselId) {
         </div>
         <div class="vct-right">
           ${updated ? `<span class="voyage-updated">agg. ${updated}</span>` : ""}
+          ${(nxt.from || nxt.to || nxt.eta || nxt.etb) ? `<button class="btn-mini-link" onclick="window.advanceVoyage('${escapeAttr(vesselId)}')" title="Promuove il viaggio successivo a viaggio in corso" style="color:#0a3f93;">⇥ avanza</button>` : ""}
           <button class="btn-mini-link" onclick="window.openVoyageEditor('${escapeAttr(vesselId)}')"><svg class="icon icon-sm"><use href="#i-edit"/></svg> modifica</button>
         </div>
       </div>
@@ -14748,7 +14749,11 @@ function itemsForLeg(vesselId, which){
     const plan = getDeliveryPlan(it.id);
     if(!plan) continue;
     let match = false;
-    if(plan.mode==="voyage" && plan.leg===(which==='next'?'next':'current')) match = true;
+    if(plan.mode==="voyage"){
+      // risolvo per id stabile quando disponibile; altrimenti fallback storico per posizione
+      if(plan.voyageLegId && leg.id) match = plan.voyageLegId === leg.id;
+      else match = plan.leg===(which==='next'?'next':'current');
+    }
     else if(plan.mode==="manual" && legPort && (plan.port||"").trim().toLowerCase()===legPort) match = true;
     if(match) out.push(it);
   }
@@ -14798,6 +14803,7 @@ Best regards,`;
 function loadDeliveries(){ try{ const d=JSON.parse(localStorage.getItem("mpd.deliveries")||"{}"); return (d && typeof d==="object")?d:{}; }catch{ return {}; } }
 function saveDeliveriesDB(obj){ try{ localStorage.setItem("mpd.deliveries", JSON.stringify(obj)); }catch{} }
 function getDeliveryPlan(itemId){ return loadDeliveries()[itemId] || null; }
+function genVoyageId(){ return 'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function setDeliveryPlan(itemId, plan){
   const all = loadDeliveries();
   if (plan) all[itemId] = plan; else delete all[itemId];
@@ -14830,16 +14836,41 @@ function getEffectiveDelivery(it, vesselId){
   const plan = getDeliveryPlan(it.id);
   if (plan && plan.mode === "voyage" && vesselId){
     const voy = (typeof getVoyage === "function") ? getVoyage(vesselId) : null;
-    const leg = voy ? (plan.leg === "next" ? voy.next : voy.current) : null;
-    const legName = plan.leg === "next" ? "Voyage successivo" : "Voyage in corso";
+    // v0.47 — risoluzione per ID stabile del leg (non per posizione corrente/successivo):
+    // così, se il Voyage avanza, un item collegato al viaggio ormai concluso non "salta"
+    // in automatico sulle date del nuovo viaggio in corso, ma resta congelato sullo storico.
+    let leg = null, legName = "";
+    if (voy && plan.voyageLegId){
+      if (voy.current && voy.current.id && voy.current.id === plan.voyageLegId){ leg = voy.current; legName = "Voyage in corso"; }
+      else if (voy.next && voy.next.id && voy.next.id === plan.voyageLegId){ leg = voy.next; legName = "Voyage successivo"; }
+    } else if (voy && !plan.voyageLegId){
+      // legacy: piani salvati prima dell'introduzione degli id — comportamento storico per posizione
+      leg = plan.leg === "next" ? voy.next : voy.current;
+      legName = plan.leg === "next" ? "Voyage successivo" : "Voyage in corso";
+    }
     if (leg && (leg.etb || leg.eta)){
       // La consegna avviene in banchina: preferisco ETB; se manca uso ETA (fonda/arrivo).
       const useEtb = !!leg.etb;
       const ref = useEtb ? leg.etb : leg.eta;
+      // congelo uno snapshot: se in futuro il leg collegato scompare (voyage avanzato), lo uso come fallback
+      if (plan.voyageLegId){
+        const snap = { from: leg.from||"", to: leg.to||"", eta: leg.eta||"", etb: leg.etb||"" };
+        if (JSON.stringify(plan.snapshot||{}) !== JSON.stringify(snap)) setDeliveryPlan(it.id, Object.assign({}, plan, { snapshot: snap }));
+      }
       return { date: ref.slice(0,10), port: leg.to || "", source: "voyage", legLabel: legName + (useEtb ? " · ETB" : " · ETA"), refKind: useEtb ? "ETB" : "ETA" };
     }
-    // voyage selezionato ma senza date → resta pianificato senza data
-    return { date: "", port: (leg && leg.to) || "", source: "voyage", legLabel: legName, refKind: null };
+    if (leg){
+      // voyage selezionato ma senza date → resta pianificato senza data
+      return { date: "", port: (leg && leg.to) || "", source: "voyage", legLabel: legName, refKind: null };
+    }
+    // il leg collegato non esiste più (voyage avanzato oltre) → uso lo snapshot congelato, se c'è
+    if (plan.snapshot && (plan.snapshot.to || plan.snapshot.eta || plan.snapshot.etb)){
+      const s = plan.snapshot;
+      const useEtb = !!s.etb;
+      const ref = useEtb ? s.etb : s.eta;
+      return { date: ref ? ref.slice(0,10) : "", port: s.to || "", source: "voyage", legLabel: "Voyage concluso (congelato)", refKind: useEtb ? "ETB" : "ETA", stale: true };
+    }
+    return { date: "", port: "", source: "voyage", legLabel: "Voyage avanzato — da riassegnare", refKind: null, stale: true };
   }
   if (plan && plan.mode === "manual"){
     return { date: plan.date || "", port: plan.port || "", source: "manual", legLabel: "Manuale" };
@@ -14861,7 +14892,7 @@ function deliveryPlannerHTML(it, vesselId){
 
   const mode = plan.mode || (eff.source === "infoship" ? "none" : "none");
   const srcBadge = {
-    voyage:   `<span class="deliv-src voyage">⚓ ${escapeHTML(eff.legLabel || "Voyage")}</span>`,
+    voyage:   `<span class="deliv-src voyage" style="${eff.stale?'background:#fbf1dd;color:#b15800;':''}">${eff.stale?'⏸':'⚓'} ${escapeHTML(eff.legLabel || "Voyage")}</span>`,
     manual:   `<span class="deliv-src manual">✎ Manuale</span>`,
     infoship: `<span class="deliv-src infoship">~ Stima Infoship</span>`,
     none:     `<span class="deliv-src none">Da pianificare</span>`
@@ -14918,7 +14949,15 @@ window.saveDeliveryFromForm = function(itemId){
   const mode = sel ? sel.value : "none";
   if (mode === "voyage"){
     const leg = (document.getElementById(`deliv-leg-${itemId}`) || {}).value || "current";
-    setDeliveryPlan(itemId, { mode: "voyage", leg });
+    const vid = vesselIdOfItem(itemId);
+    const voy = vid ? getVoyage(vid) : {};
+    const legObj = leg === "next" ? (voy.next||{}) : (voy.current||{});
+    // v0.47 — ancoro il collegamento all'id stabile del leg (non alla posizione corrente/successivo)
+    setDeliveryPlan(itemId, {
+      mode: "voyage", leg,
+      voyageLegId: legObj.id || null,
+      snapshot: legObj.id ? { from: legObj.from||"", to: legObj.to||"", eta: legObj.eta||"", etb: legObj.etb||"" } : null
+    });
   } else if (mode === "manual"){
     const port = (document.getElementById(`deliv-port-${itemId}`) || {}).value || "";
     const date = (document.getElementById(`deliv-date-${itemId}`) || {}).value || "";
@@ -15041,6 +15080,7 @@ window.openVoyageEditor = function(vesselId) {
 
         <div class="detail-section">
           <h4>Voyage in corso</h4>
+          <input type="hidden" id="voy-cur-id" value="${escapeAttr(cur.id || "")}">
           <div class="voyage-form-grid">
             <div class="voyage-form-row"><label>Da (porto)</label><input type="text" id="voy-cur-from" value="${escapeAttr(cur.from || "")}" placeholder="Es. Algeciras"></div>
             <div class="voyage-form-row"><label>A (porto)</label><input type="text" id="voy-cur-to" value="${escapeAttr(cur.to || "")}" placeholder="Es. Vitoria"></div>
@@ -15053,6 +15093,7 @@ window.openVoyageEditor = function(vesselId) {
 
         <div class="detail-section">
           <h4>Voyage successivo (se noto)</h4>
+          <input type="hidden" id="voy-nxt-id" value="${escapeAttr(nxt.id || "")}">
           <div class="voyage-form-grid">
             <div class="voyage-form-row"><label>Da</label><input type="text" id="voy-nxt-from" value="${escapeAttr(nxt.from || "")}" placeholder="Es. Vitoria"></div>
             <div class="voyage-form-row"><label>A</label><input type="text" id="voy-nxt-to" value="${escapeAttr(nxt.to || "")}" placeholder="Es. Rotterdam"></div>
@@ -15069,6 +15110,7 @@ window.openVoyageEditor = function(vesselId) {
       </div>
       <div class="item-detail-footer">
         ${(cur.from || cur.to || nxt.to || voy.notes) ? `<button class="btn btn-sm" onclick="window.clearVoyage('${escapeAttr(vesselId)}')" style="color: var(--c-red-fg);">🗑 Cancella tutto</button>` : ""}
+        ${(nxt.from || nxt.to || nxt.eta || nxt.etb) ? `<button class="btn btn-sm" onclick="window.advanceVoyage('${escapeAttr(vesselId)}')" title="Il viaggio successivo diventa il viaggio in corso; le consegne collegate al viaggio concluso restano congelate" style="color:#0a3f93;border-color:#b6d4f7;">⇥ Avanza al prossimo viaggio</button>` : ""}
         <div style="flex: 1;"></div>
         <button class="btn btn-sm" onclick="window.closeVoyageEditor()">Annulla</button>
         <button class="btn btn-sm btn-primary" onclick="window.saveVoyageFromEditor('${escapeAttr(vesselId)}')">Salva</button>
@@ -15091,15 +15133,22 @@ window.closeVoyageEditor = function() {
 
 window.saveVoyageFromEditor = function(vesselId) {
   if (!state.voyages) state.voyages = {};
+  const existing = getVoyage(vesselId); // v0.47 — preservo campi non gestiti dal form (es. history)
 
   const getVal = (id) => {
     const el = document.getElementById(id);
     return el ? el.value.trim() : "";
   };
 
-  const payload = {
+  const curHasData = getVal("voy-cur-from") || getVal("voy-cur-to") || getVal("voy-cur-eta") || getVal("voy-cur-etb") || getVal("voy-cur-etd");
+  const nxtHasData = getVal("voy-nxt-from") || getVal("voy-nxt-to") || getVal("voy-nxt-eta") || getVal("voy-nxt-etb");
+
+  const payload = Object.assign({}, existing, {
     status: getVal("voy-status"),
     current: {
+      // v0.47 — id stabile del leg: preservato tra i salvataggi, così gli item collegati
+      // continuano a risolvere lo stesso viaggio anche se la nave lo aggiorna via noon report.
+      id: curHasData ? (getVal("voy-cur-id") || genVoyageId()) : "",
       from: getVal("voy-cur-from"),
       to: getVal("voy-cur-to"),
       etd: getVal("voy-cur-etd"),
@@ -15108,6 +15157,7 @@ window.saveVoyageFromEditor = function(vesselId) {
       agency: (()=>{ const n=getVal("voy-cur-agency-name"), c=getVal("voy-cur-agency-contacts"); if(n) upsertAgency(n,c); return (n||c)?{name:n,contacts:c}:null; })()
     },
     next: {
+      id: nxtHasData ? (getVal("voy-nxt-id") || genVoyageId()) : "",
       from: getVal("voy-nxt-from"),
       to: getVal("voy-nxt-to"),
       etb: getVal("voy-nxt-etb"),
@@ -15116,7 +15166,7 @@ window.saveVoyageFromEditor = function(vesselId) {
     },
     notes: getVal("voy-notes"),
     updatedAt: new Date().toISOString()
-  };
+  });
 
   state.voyages[vesselId] = payload;
   saveVoyages();
@@ -15135,6 +15185,63 @@ window.clearVoyage = function(vesselId) {
   window.closeVoyageEditor();
   render();
 };
+
+// v0.47 — Avanza al prossimo viaggio: promuove "next" a "current" senza dover ricompilare nulla.
+// Gli item collegati al viaggio appena concluso NON seguono automaticamente il nuovo viaggio in corso:
+// restano congelati sull'ultimo dato noto (vedi getEffectiveDelivery/snapshot), così le date in
+// Procurement non "scalano" da sole. Chi era collegato al viaggio successivo lo segue naturalmente
+// (è lo stesso viaggio, solo promosso).
+window.advanceVoyage = function(vesselId){
+  if (!state.voyages) state.voyages = {};
+  const voy = getVoyage(vesselId);
+  const cur = voy.current || {};
+  const nxt = voy.next || {};
+  if (!nxt.from && !nxt.to && !nxt.eta && !nxt.etb){
+    showToast("Nessun viaggio successivo compilato da promuovere");
+    return;
+  }
+  const curCount = itemsForLeg(vesselId, "current").length;
+  const msg = `Il viaggio ${cur.from||"?"} → ${cur.to||"?"} si conclude.\n`+
+              `${nxt.from||"?"} → ${nxt.to||"?"} diventa il viaggio in corso.\n`+
+              (curCount ? `${curCount} consegne collegate al viaggio che si conclude resteranno con le date congelate.` : `Nessuna consegna collegata al viaggio che si conclude.`);
+  if (!confirm(msg)) return;
+
+  if (!cur.id) cur.id = genVoyageId();
+  if (!nxt.id) nxt.id = genVoyageId();
+
+  if (!Array.isArray(voy.history)) voy.history = [];
+  voy.history.unshift(Object.assign({}, cur, { closedAt: new Date().toISOString() }));
+  voy.history = voy.history.slice(0, 5);
+
+  // chi era collegato al viaggio successivo ora è collegato al viaggio in corso (stesso id, solo promosso)
+  reassignDeliveryLegsOnAdvance(vesselId, nxt.id);
+
+  voy.current = Object.assign({ etd: "" }, nxt);
+  voy.next = {};
+  voy.updatedAt = new Date().toISOString();
+  state.voyages[vesselId] = voy;
+  saveVoyages();
+  showToast("Viaggio avanzato → "+(nxt.to||""));
+  window.closeVoyageEditor();
+  render();
+};
+
+// Aggiorna il campo "leg" (posizione, solo per la UI del select) degli item il cui
+// voyageLegId corrisponde al viaggio appena promosso a "current".
+function reassignDeliveryLegsOnAdvance(vesselId, promotedLegId){
+  const v = state.data && state.data.vessels.find(x=>x.vesselId===vesselId);
+  if (!v || !v.items) return;
+  const all = loadDeliveries();
+  let changed = false;
+  for (const it of v.items){
+    const plan = all[it.id];
+    if (plan && plan.mode==="voyage" && plan.voyageLegId===promotedLegId && plan.leg!=="current"){
+      plan.leg = "current";
+      changed = true;
+    }
+  }
+  if (changed) saveDeliveriesDB(all);
+}
 
 // Helper per la card nave home: prossimo porto + giorni a ETA
 function getVoyageSummaryForCard(vesselId) {
