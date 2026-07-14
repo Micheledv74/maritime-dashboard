@@ -7139,6 +7139,22 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     </div>
 
     <div class="modal-section">
+      <h3>AI Email Assistant</h3>
+      <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
+        Nell'anteprima di progettazione l'AI funziona senza configurazione. Sul sito pubblicato (GitHub Pages) serve un proxy:
+        importa <code>n8n/AI Assistant (Webhook).json</code> in n8n, incolla la tua API key Gemini nel nodo, attiva il workflow e compila qui sotto indirizzo e token.
+      </p>
+      <div class="setting-row">
+        <label>Indirizzo webhook AI (n8n)</label>
+        <input type="text" placeholder="https://.../webhook/ai-complete" data-setting="aiWebhookUrl" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Token webhook AI</label>
+        <input type="text" placeholder="stesso token impostato nel workflow" data-setting="aiWebhookToken" style="width:220px;">
+      </div>
+    </div>
+
+    <div class="modal-section">
       <h3>Strumenti</h3>
       <div class="setting-row">
         <label>Apri Pulse del fornitore</label>
@@ -7794,7 +7810,9 @@ const DEFAULT_SETTINGS = {
   qcWebhook: "",
   refusedTTL: 14,        // RFQ Refused mostrate fino a 14 giorni
   readyForPOTTL: 60,     // Ready for PO mostrate fino a 60 giorni
-  batchTTL: 30           // Batch suggestion mostrate fino a 30 giorni
+  batchTTL: 30,          // Batch suggestion mostrate fino a 30 giorni
+  aiWebhookUrl: "",      // v0.50 — proxy n8n per le funzioni AI email quando pubblicato (fuori dall'anteprima Claude)
+  aiWebhookToken: ""
 };
 
 const ALERT_CONFIG = {
@@ -10887,6 +10905,28 @@ window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage();
 // ============================================================================
 window._ws = { id:null, thread:null, lang:"it", draftText:"" };
 
+// v0.50 — Wrapper unico per le chiamate AI: nell'anteprima di progettazione usa window.claude.complete
+// (gratis, nessuna configurazione). Sul sito pubblicato quella funzione non esiste: se l'utente ha
+// configurato un proxy n8n (Impostazioni → AI Email Assistant) passa da lì, altrimenti segnala chiaramente.
+async function aiComplete(prompt){
+  if (window.claude && typeof window.claude.complete === "function") {
+    return await window.claude.complete(prompt);
+  }
+  const url = (state.settings && state.settings.aiWebhookUrl || "").trim();
+  if (!url) throw new Error("AI non configurata per il sito pubblicato — imposta il proxy in Impostazioni → AI Email Assistant.");
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, token: (state.settings && state.settings.aiWebhookToken) || "" })
+  });
+  if (!res.ok) throw new Error("Proxy AI: errore HTTP " + res.status);
+  const data = await res.json();
+  const text = data && (data.text != null ? data.text : data.output);
+  if (typeof text !== "string") throw new Error("Proxy AI: risposta non valida");
+  return text;
+}
+
+
 function wsContextBits(r){
   const bits = [];
   if (r.link) bits.push(`Riferimento: ${r.link.docLabel} ${r.link.docNumber} — ${r.link.description}`);
@@ -10949,7 +10989,7 @@ Oggetto: ${r.subject}
 
 Scambio (dal più vecchio al più recente):
 ${convo}`;
-  try{ const txt = await window.claude.complete(prompt); el.textContent = String(txt||"").trim(); }
+  try{ const txt = await aiComplete(prompt); el.textContent = String(txt||"").trim(); }
   catch(e){ el.innerHTML = `<div class="draft-loading">Riassunto non disponibile. Riprova.</div>`; }
 };
 
@@ -10960,7 +11000,7 @@ window.wsTranslate = async function(){
   if(el.dataset.showingTranslation === "1"){ el.textContent = original; el.dataset.showingTranslation = "0"; return; }
   el.innerHTML = `<div class="draft-loading">Traduco…</div>`;
   const prompt = `Traduci in italiano SOLO il testo seguente, mantenendo senso e tono. Nessuna spiegazione, nessun markdown, solo la traduzione:\n\n${original}`;
-  try{ const txt = await window.claude.complete(prompt); el.textContent = String(txt||"").trim(); el.dataset.showingTranslation = "1"; }
+  try{ const txt = await aiComplete(prompt); el.textContent = String(txt||"").trim(); el.dataset.showingTranslation = "1"; }
   catch(e){ el.textContent = original; showToast("Traduzione non disponibile"); }
 };
 
@@ -10979,7 +11019,7 @@ Contesto: ${wsContextBits(r)}
 ${keywords.trim() ? `Il purchasing manager vuole che la risposta dica, in sostanza: "${keywords.trim()}". Sviluppa questi punti in una bozza completa e professionale.` : "Nessuna indicazione specifica: proponi una risposta sensata basata sul contesto sopra."}
 Tono: professionale, cordiale, diretto. Firma con "Michele".`;
   try{
-    const txt = await window.claude.complete(prompt);
+    const txt = await aiComplete(prompt);
     window._ws.draftText = String(txt||"").trim();
     bodyEl.innerHTML = `<textarea id="ews-draft-textarea" class="draft-textarea">${escapeHTML(window._ws.draftText)}</textarea>`;
   }catch(e){ bodyEl.innerHTML = `<div class="draft-loading">Bozza non disponibile. Riprova.</div>`; }
@@ -10994,7 +11034,7 @@ window.wsApplyTone = async function(tone){
   const toneMap = { formale:"più formale e istituzionale", informale:"più informale e diretto, come tra colleghi", persuasivo:"più persuasivo, con argomentazioni convincenti", empatico:"più empatico e comprensivo" };
   const prompt = `Riscrivi il seguente messaggio email rendendolo ${toneMap[tone]||tone}, mantenendo stesso contenuto/informazioni e stessa lingua. Restituisci SOLO il testo riscritto, nessuna spiegazione, nessun markdown.\n\n${current}`;
   try{
-    const txt = await window.claude.complete(prompt);
+    const txt = await aiComplete(prompt);
     window._ws.draftText = String(txt||"").trim();
     bodyEl.innerHTML = `<textarea id="ews-draft-textarea" class="draft-textarea">${escapeHTML(window._ws.draftText)}</textarea>`;
   }catch(e){
@@ -11011,7 +11051,7 @@ window.wsCorrect = async function(){
   bodyEl.innerHTML = `<div class="draft-loading">Correggo…</div>`;
   const prompt = `Correggi ortografia, grammatica e fluidità del seguente testo email, mantenendo lingua, tono e contenuto invariati. Restituisci SOLO il testo corretto, nessuna spiegazione.\n\n${current}`;
   try{
-    const txt = await window.claude.complete(prompt);
+    const txt = await aiComplete(prompt);
     window._ws.draftText = String(txt||"").trim();
     bodyEl.innerHTML = `<textarea id="ews-draft-textarea" class="draft-textarea">${escapeHTML(window._ws.draftText)}</textarea>`;
   }catch(e){
@@ -11031,7 +11071,7 @@ Oggetto: ${r.subject}
 Estratto: ${(r.preview||"").slice(0,400)}
 Contesto: ${wsContextBits(r)}`;
   try{
-    const txt = await window.claude.complete(prompt);
+    const txt = await aiComplete(prompt);
     const s = String(txt||"");
     const a = s.indexOf("["), b = s.lastIndexOf("]");
     const arr = JSON.parse(s.slice(a, b+1));
@@ -11064,7 +11104,7 @@ Oggetto: ${r.subject}
 Scambio:
 ${convo}`;
   try{
-    const txt = await window.claude.complete(prompt);
+    const txt = await aiComplete(prompt);
     const s = String(txt||"");
     const a = s.indexOf("["), b = s.lastIndexOf("]");
     const arr = JSON.parse(s.slice(a, b+1)).filter(x => x && x.date && /^\d{4}-\d{2}-\d{2}$/.test(x.date));
