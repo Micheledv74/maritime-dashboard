@@ -101,9 +101,10 @@
   --c-yellow-bg: #fef6d4;
   --c-yellow-fg: #854d0e;
 
-  --radius-sm: 5px;
-  --radius: 8px;
-  --radius-lg: 10px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
 
   /* Ombre v3 — bottoni "premibili" */
   --shadow-sm: 0 1px 2px rgba(20,30,50,0.04);
@@ -1144,8 +1145,8 @@ a:hover { text-decoration: underline; }
 
 /* === NOTE PIENE (evidenziate) ============================================ */
 .notes-input.has-content {
-  background: #fef3c7;
-  border-color: #fcd34d;
+  background: var(--c-amber-bg);
+  border-color: var(--c-amber-dot);
   border-style: solid;
   color: var(--c-amber-fg);
 }
@@ -1153,7 +1154,7 @@ a:hover { text-decoration: underline; }
 :root:not([data-theme="light"]) .notes-input.has-content {
   background: rgba(217, 119, 6, 0.18);
   border-color: rgba(217, 119, 6, 0.45);
-  color: #fcd34d;
+  color: var(--c-amber-fg);
 }
 .notes-input.has-content::before {
   content: '✎';
@@ -2708,14 +2709,14 @@ a:hover { text-decoration: underline; }
   vertical-align: middle;
 }
 .lang-badge.lang-it {
-  background: #e8f5e8;
-  color: #2e7d32;
-  border-color: #4caf50;
+  background: var(--c-green-bg);
+  color: var(--c-green-fg);
+  border-color: var(--c-green-dot);
 }
 .lang-badge.lang-en {
-  background: #e3f2fd;
-  color: #1565c0;
-  border-color: #2196f3;
+  background: var(--c-blue-bg);
+  color: var(--c-blue-fg);
+  border-color: var(--c-blue-dot);
 }
 
 /* Picker lingua */
@@ -3084,14 +3085,14 @@ a:hover { text-decoration: underline; }
 
 
 /* v0.14.2 — Bottone "📧 Apri" su to-do Outlook */.btn-outlook-open {
-  background: #e0f2fe;
-  border-color: #7dd3fc;
-  color: #0369a1;
+  background: var(--c-blue-bg);
+  border-color: var(--c-blue-dot);
+  color: var(--c-blue-fg);
   font-weight: 600;
 }
 .btn-outlook-open:hover {
-  background: #bae6fd;
-  color: #075985;
+  background: var(--c-blue-dot);
+  color: #fff;
 }
 
 /* ============================================================================ */
@@ -4974,7 +4975,7 @@ a:hover { text-decoration: underline; }
 /* Pill stato (OK/Attenzione/Critica) sull'header */
 .vessel-state-pill {
   font-size: 10px; font-weight: 700; background: rgba(255,255,255,.25); color: #fff;
-  padding: 3px 9px; border-radius: 10px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap;
+  padding: 3px 9px; border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap;
 }
 
 /* ---- BADGE NAVE colorato (usato nelle azioni e ovunque) ---- */
@@ -5033,7 +5034,7 @@ a:hover { text-decoration: underline; }
 
 /* ---- PAGINA DETTAGLIO NAVE — header colorato ---- */
 .vessel-detail-banner {
-  padding: 18px 22px; border-radius: 10px; margin-bottom: 18px; color: #fff;
+  padding: 18px 22px; border-radius: var(--radius); margin-bottom: 18px; color: #fff;
   display: flex; align-items: center; gap: 14px;
 }
 .vessel-detail-banner[data-vid="peppino"]    { background: var(--c-peppino); }
@@ -5324,10 +5325,10 @@ a:hover { text-decoration: underline; }
 
 :root{
   --v4-head-dark: #2a3344;
-  --v4-red:    #d8403d;  --v4-red-2: #b32a28;  --v4-red-bg: #fdecec;
-  --v4-orange: #e88f30;  --v4-orange-2:#c46f17;--v4-orange-bg:#fdf1e0;
+  --v4-red:    var(--c-red-dot);   --v4-red-2: var(--c-red-fg);   --v4-red-bg: var(--c-red-bg);
+  --v4-orange: var(--c-amber-dot); --v4-orange-2: var(--c-amber-fg); --v4-orange-bg: var(--c-amber-bg);
   --v4-yellow: #e8c12d;  --v4-yellow-ink:#5a4500;--v4-yellow-bg:#fcf5d3;
-  --v4-green:  #3aa860;  --v4-green-2:#228544;  --v4-green-bg:#e0f3e8;
+  --v4-green:  var(--c-green-dot); --v4-green-2: var(--c-green-fg); --v4-green-bg: var(--c-green-bg);
   --v4-blue:   #2a8fb8;  --v4-blue-2:#1a6f93;   --v4-blue-bg:#def0f8;
   --v4-purple: #7c4ca8;  --v4-purple-2:#5c2e87; --v4-purple-bg:#ede4f7;
   --v4-shadow-card: 0 1px 2px rgba(20,30,50,0.04), 0 1px 4px rgba(20,30,50,0.06);
@@ -5363,7 +5364,7 @@ a:hover { text-decoration: underline; }
 /* Bottoni testata: stile pulito v4 */
 .app-header .icon-btn{
   border:1px solid var(--border-strong); background:#fff; color:var(--text);
-  border-radius:6px; box-shadow:var(--shadow-btn); font-weight:600;
+  border-radius:var(--radius-sm); box-shadow:var(--shadow-btn); font-weight:600;
 }
 .app-header .icon-btn:hover{ background:var(--bg-muted); transform:translateY(-1px); }
 
@@ -5532,7 +5533,7 @@ a:hover { text-decoration: underline; }
 .action-row .btn.btn-sm{
   background:var(--v4-blue); color:#fff; border:1px solid var(--v4-blue-2);
   font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
-  border-radius:5px; box-shadow:var(--shadow-btn);
+  border-radius:var(--radius-sm); box-shadow:var(--shadow-btn);
 }
 .action-row .btn.btn-sm:hover{ background:var(--v4-blue-2); }
 .action-row .btn-done.btn-mini-done:hover{ background:var(--v4-green); color:#fff; border-color:var(--v4-green-2); }
@@ -5753,7 +5754,7 @@ a:hover { text-decoration: underline; }
 /* HERO "Cosa serve ora" */
 .pl-hero{ display:grid; grid-template-columns:1.25fr 1.25fr 1fr; gap:14px; }
 @media(max-width:900px){ .pl-hero{ grid-template-columns:1fr; } }
-.pl-hcard{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px 22px; box-shadow:var(--shadow-card); }
+.pl-hcard{ background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 22px; box-shadow:var(--shadow-card); }
 .pl-hcard-cert{ border-left:5px solid var(--c-red-strong); cursor:pointer; }
 .pl-hcard-dn{ border-left:5px solid #6d28d9; }
 .pl-hcard-lbl{ font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:8px; }
@@ -5773,7 +5774,7 @@ a:hover { text-decoration: underline; }
 .pl-mn.green{ color:#1f7a2a; } .pl-mn.blue{ color:#0e54c1; } .pl-mn.amber{ color:#9a4a00; }
 
 /* AZIONI — wrap a pannello + header colonne CHIARO (era scuro) */
-.actions-table-wrap{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
+.actions-table-wrap{ background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); }
 .actions-table-head{ background:#fafbfc !important; border-bottom:1px solid #eef1f4 !important; }
 .actions-table-head span{ color:#aab2bd !important; font-weight:700 !important; }
 
@@ -5902,7 +5903,7 @@ a:hover { text-decoration: underline; }
 .app-header .icon-btn{
   width:36px !important; height:36px !important; min-width:36px !important; min-height:36px !important;
   border:1px solid #d8dee5 !important; background:#fff !important; color:#374151 !important;
-  border-radius:8px !important; box-shadow:none !important; font-weight:500;
+  border-radius:var(--radius-sm) !important; box-shadow:none !important; font-weight:500;
 }
 .app-header .icon-btn:hover{ background:#f7f9fb !important; transform:none !important; }
 .app-header .icon-btn .icon{ width:17px; height:17px; }
@@ -5992,7 +5993,7 @@ a:hover { text-decoration: underline; }
 /* Tabella Items: header CHIARO (era scuro v4) */
 .items-table thead{ background:#fafbfc !important; }
 .items-table thead th{ background:#fafbfc !important; color:#aab2bd !important; font-weight:700 !important; border-bottom:1px solid #eef1f4 !important; }
-.items-table-wrap{ border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
+.items-table-wrap{ border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); }
 
 /* Toolbar / ricerca pulita */
 .search-input, .filter-select{ border-radius:8px !important; }
@@ -6035,7 +6036,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
   letter-spacing:.06em !important; border-bottom:1px solid #eef1f4 !important;
 }
 .cert-table-section, .cert-view .cert-table{ border-radius:12px; }
-.cert-view .cert-table-section{ border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); background:#fff; }
+.cert-view .cert-table-section{ border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); background:#fff; }
 .cert-view-header h1{ font-size:24px !important; font-weight:700 !important; letter-spacing:-.02em; margin:0 0 4px !important; }
 /* chip filtro come "stagechip" del riferimento */
 .cert-view .cert-filter-chip{ border-radius:8px !important; padding:6px 12px !important; background:#f1f4f7 !important; border:1px solid var(--border) !important; color:#475569 !important; font-weight:500; }
@@ -6052,7 +6053,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .fusi-section{ margin-bottom:26px; }
 /* v0.38 — Widget USD/EUR */
 .fx-section{ margin-bottom:16px; }
-.fx-bar{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:11px; padding:12px 18px; box-shadow:var(--shadow-card); }
+.fx-bar{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 18px; box-shadow:var(--shadow-card); }
 .fx-title{ font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8a93a0; flex:none; }
 .fx-loading{ font-size:12.5px; color:#aab2bd; }
 .fx-main{ display:flex; flex-direction:column; gap:1px; }
@@ -6068,7 +6069,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .fx-delta-lbl{ font-size:10px; font-weight:600; color:#aab2bd; }
 .fx-src{ margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.05em; color:#c2c9d2; }
 @media(max-width:640px){ .fx-src{ margin-left:0; } }
-.fusi-bar{ display:flex; align-items:center; gap:16px; background:#fff; border:1px solid var(--border); border-radius:11px; padding:10px 16px; box-shadow:var(--shadow-card); }
+.fusi-bar{ display:flex; align-items:center; gap:16px; background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:10px 16px; box-shadow:var(--shadow-card); }
 .fusi-bar-label{ flex:none; font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8a93a0; }
 .fusi-list{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 18px; flex:1; }
 .fusi-item{ display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); white-space:nowrap; padding:3px 9px; border-radius:7px; border:1px solid transparent; }
@@ -7004,6 +7005,8 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 #mobile-app{ display:none; }
 @media (max-width: 768px){
   #view-root, .vessel-switcher, .fab{ display:none !important; }
+  /* Header: lascia spazio alla status bar del telefono (notch/isola) */
+  .app-header{ height:auto !important; min-height:var(--header-h); padding-top:env(safe-area-inset-top,0px) !important; box-sizing:content-box; }
   #mobile-app{
     display:block; background:#f5f6f8; min-height:100vh;
     padding:16px 14px calc(94px + env(safe-area-inset-bottom,0px));
