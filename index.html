@@ -6997,6 +6997,72 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .cn-grid{ gap:10px; }
   .vessel-hero .vh-num{ font-size:30px; }
 }
+
+/* === APP MOBILE (v0.54) — schermate native dedicate <=768px ================ */
+/* Sotto i 768px sostituiamo la UI desktop rimpicciolita con schermate mobile
+   vere (card, drill-down, one-tap, FAB) che leggono i dati reali. */
+#mobile-app{ display:none; }
+@media (max-width: 768px){
+  #view-root, .vessel-switcher, .fab{ display:none !important; }
+  #mobile-app{
+    display:block; background:#f5f6f8; min-height:100vh;
+    padding:16px 14px calc(94px + env(safe-area-inset-bottom,0px));
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  .ma-title{ font-size:24px; font-weight:800; color:#0a3f93; letter-spacing:-.02em; margin:2px 2px 14px; }
+  .ma-sec{ font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#8a93a0; margin:18px 2px 8px; }
+  .ma-empty{ color:#9aa3af; font-size:13.5px; padding:14px 4px; }
+  .ma-card{ display:block; width:100%; background:#fff; border:1px solid #eceef1; border-radius:14px; padding:14px 16px; margin-bottom:10px; text-align:left; box-shadow:0 1px 2px rgba(16,32,64,.03); }
+  /* --- Flotta: righe nave --- */
+  .ma-vrow{ display:flex; align-items:center; gap:12px; min-height:56px; }
+  .ma-dot{ width:11px; height:11px; border-radius:50%; flex:none; }
+  .ma-vbody{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .ma-vname{ font-size:15px; font-weight:700; color:#1a2c3a; }
+  .ma-vsub{ font-size:12.5px; color:#8a93a0; margin-top:2px; }
+  .ma-badge{ font-size:11.5px; font-weight:700; color:#c8362f; background:#fbe6e6; border-radius:8px; padding:3px 9px; }
+  .ma-chev{ color:#c8ccd2; font-size:20px; font-weight:700; margin-left:4px; }
+  /* --- Drill-down nave --- */
+  .ma-back{ display:inline-flex; align-items:center; gap:4px; background:none; border:none; color:#0a3f93; font-weight:600; font-size:15px; padding:6px 0 12px; }
+  .ma-hero{ border:1px solid; border-radius:14px; padding:16px; margin-bottom:12px; }
+  .ma-hero-name{ font-size:20px; font-weight:800; margin-bottom:6px; }
+  .ma-hero-route{ font-size:14.5px; color:#3a4250; font-weight:600; }
+  .ma-hero-meta{ font-size:12.5px; color:#5b6470; margin-top:8px; }
+  .ma-hero2{ display:flex; align-items:center; gap:14px; background:#fff; border:1px solid #eceef1; border-radius:14px; padding:14px 16px; margin-bottom:6px; }
+  .ma-hero2.warn{ background:#fff8ec; border-color:#f0d79a; }
+  .ma-hero2-num{ font-family:'JetBrains Mono',monospace; font-size:32px; font-weight:700; color:#1a2c3a; line-height:1; }
+  .ma-hero2.warn .ma-hero2-num{ color:#b8860b; }
+  .ma-hero2-lbl{ font-size:13.5px; font-weight:600; color:#5b6470; }
+  /* --- Email --- */
+  .ma-erow-top{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:5px; }
+  .ma-efrom{ font-size:13.5px; font-weight:700; color:#1a2c3a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+  .ma-ecat{ font-size:10.5px; font-weight:700; border-radius:6px; padding:2px 7px; white-space:nowrap; }
+  .ma-esubj{ font-size:13px; color:#4a5568; line-height:1.35; }
+  .ma-ewait{ font-size:11.5px; color:#b8860b; margin-top:5px; font-weight:600; }
+  /* --- To-do --- */
+  .ma-trow{ display:flex; align-items:center; gap:12px; padding:12px 14px; }
+  .ma-check{ width:30px; height:30px; border-radius:50%; border:2px solid #c8ccd2; background:transparent; flex:none; color:#fff; font-size:15px; display:flex; align-items:center; justify-content:center; }
+  .ma-check.on{ border:none; background:#117a3a; }
+  .ma-tbody{ flex:1; min-width:0; background:none; border:none; text-align:left; display:flex; flex-direction:column; padding:0; }
+  .ma-ttext{ font-size:13.5px; font-weight:600; color:#1a2c3a; }
+  .ma-tsub{ font-size:12px; color:#8a93a0; margin-top:2px; }
+  /* --- Certificati --- */
+  .ma-crow-name{ font-size:13.5px; font-weight:700; color:#1a2c3a; }
+  .ma-crow-sub{ font-size:12.5px; color:#8a93a0; margin-top:2px; }
+  .ma-crow-days{ font-size:12px; font-weight:700; margin-top:5px; }
+  /* --- Rubrica --- */
+  .ma-seg{ display:flex; gap:8px; margin-bottom:14px; }
+  .ma-seg-btn{ flex:1; min-height:44px; border:1px solid #dde1e6; background:#fff; border-radius:10px; font-size:13.5px; font-weight:600; color:#5b6470; }
+  .ma-seg-btn.on{ background:#0a3f93; border-color:#0a3f93; color:#fff; }
+  .ma-cname{ font-size:14.5px; font-weight:700; color:#1a2c3a; margin-bottom:2px; }
+  .ma-crole{ font-size:12px; color:#8a93a0; margin-bottom:10px; }
+  .ma-cbtns{ display:flex; gap:6px; flex-wrap:wrap; }
+  .ma-cbtn{ flex:1; text-align:center; padding:11px 6px; border-radius:10px; font-weight:700; font-size:12.5px; text-decoration:none; white-space:nowrap; min-height:44px; display:flex; align-items:center; justify-content:center; }
+  .ma-cbtn.call{ background:#117a3a1a; color:#117a3a; }
+  .ma-cbtn.mail{ background:#0a3f931a; color:#0a3f93; }
+  .ma-cbtn.wa{ background:#25d3661a; color:#1a9c4b; }
+  /* --- FAB --- */
+  .ma-fab{ position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom,0px)); width:54px; height:54px; border-radius:50%; background:#0a3f93; color:#fff; font-size:28px; line-height:1; border:none; box-shadow:0 6px 16px rgba(10,63,147,.35); z-index:210; }
+}
 </style>
 
 <header class="app-header">
@@ -7072,6 +7138,9 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 
 <!-- Floating Quick Capture -->
 <button class="fab" id="fab-quick" title="Aggiungi to-do" aria-label="Nuova to-do">+</button>
+
+<!-- App mobile (solo <=768px): schermate native, riempite da renderMobileApp() -->
+<main id="mobile-app"></main>
 
 <!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
 <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
@@ -8967,8 +9036,8 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const map = { overview: "overview", todos: "todos", email: "email", certificates: "certificates", rubrica: "rubrica" };
-  const activeView = state.view === "vessel" ? "overview" : (map[state.view] || "overview");
+  const scr2tab = { home:"overview", todo:"todos", email:"email", cert:"certificates", rubrica:"rubrica" };
+  const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "overview") : "overview";
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
   });
@@ -8982,7 +9051,216 @@ function updateMobileTabBar() {
     const certExp = (typeof getCertStatsGlobal === "function") ? ((getCertStatsGlobal() || {}).expired || 0) : 0;
     if (certDot) certDot.style.display = certExp > 0 ? "" : "none";
   } catch (e) { /* no-op */ }
+  try { renderMobileApp(); } catch (e) { /* no-op */ }
 }
+
+// ============================================================================
+// === APP MOBILE (v0.54) — schermate native <=768px =========================
+// Layer dedicato che sostituisce la UI desktop rimpicciolita sotto i 768px.
+// Legge i dati REALI (navi, to-do, certificati, email, rubrica) e li presenta
+// come card / drill-down / one-tap / FAB, in stile mockup approvato.
+// ============================================================================
+let mstate = { screen: "home", vessel: null, rubKind: "supplier" };
+function maIsMobile(){ return window.matchMedia("(max-width: 768px)").matches; }
+
+function maStatusColor(cfg){
+  try{
+    const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
+    if(!v) return "#9aa3af";
+    const st = vesselStatus({ ...v, ...cfg });
+    return st==="crit" ? "#c8362f" : st==="warn" ? "#b8860b" : "#117a3a";
+  }catch(_){ return "#9aa3af"; }
+}
+
+function maFlotta(){
+  let rows = "";
+  (VESSELS||[]).forEach(cfg=>{
+    const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
+    const color = maStatusColor(cfg);
+    const sub = (v && v.tracking && v.tracking.nextPort)
+      ? (v.tracking.nextPort + (v.tracking.eta ? " · ETA " + formatDate(v.tracking.eta) : ""))
+      : (cfg.manual ? "Gestione manuale" : "—");
+    let stale = 0, expired = 0;
+    try{ if(typeof getStaleRFQs==="function") stale = getStaleRFQs(cfg.vesselId, 8).length; }catch(_){}
+    try{ if(typeof getCertStatsForVessel==="function"){ const cs=getCertStatsForVessel(cfg.vesselId)||{}; expired=(cs.expired||0); } }catch(_){}
+    const alerts = stale + expired;
+    rows += `<button class="ma-card ma-vrow" onclick="maOpenVessel('${escapeAttr(cfg.vesselId)}')">
+      <span class="ma-dot" style="background:${color}"></span>
+      <span class="ma-vbody"><span class="ma-vname">${escapeHTML(cfg.displayName||cfg.vesselId)}</span><span class="ma-vsub">${escapeHTML(sub)}</span></span>
+      ${alerts>0?`<span class="ma-badge">${alerts}</span>`:""}<span class="ma-chev">›</span>
+    </button>`;
+  });
+  return `<div class="ma-title">Flotta</div>${rows||'<div class="ma-empty">Nessuna nave.</div>'}`;
+}
+
+function maCertRow(c, showVessel){
+  const d = (c.d!=null) ? c.d : daysToExpiry(c.expiry);
+  const cl = classifyCertExpiry(c.expiry);
+  const color = (cl==="expired"||cl==="urgent") ? "#c8362f" : cl==="week" ? "#b8860b" : "#117a3a";
+  const label = d==null ? "—" : (d<0 ? Math.abs(d)+"g scaduto" : d===0 ? "scade oggi" : "tra "+d+"g");
+  const vn = (showVessel && c.vesselName) ? `<div class="ma-crow-sub">${escapeHTML(c.vesselName)}</div>` : "";
+  return `<div class="ma-card ma-crow" style="border-left:4px solid ${color}">
+    <div class="ma-crow-name">${escapeHTML(c.name||"Certificato")}</div>${vn}
+    <div class="ma-crow-days" style="color:${color}">${escapeHTML(label)}</div>
+  </div>`;
+}
+
+function maTodoRow(t){
+  const cls = (typeof classifyDueDate==="function") ? classifyDueDate(t.dueDate) : "";
+  const late = cls==="overdue";
+  const due = t.dueDate ? (cls==="today"?"Oggi":cls==="overdue"?"Scaduto "+formatDate(t.dueDate):formatDate(t.dueDate)) : "—";
+  const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : (t.category||"—");
+  const text = escapeHTML(t.action || t.note || t.reference || "To-do");
+  return `<div class="ma-card ma-trow" style="${t.done?'opacity:.5;':''}">
+    <button class="ma-check ${t.done?'on':''}" onclick="maToggleTodo('${escapeAttr(t.id)}')">${t.done?'✓':''}</button>
+    <button class="ma-tbody" onclick="openTodoModal('${escapeAttr(t.id)}')">
+      <span class="ma-ttext" style="${t.done?'text-decoration:line-through;':''}">${text}</span>
+      <span class="ma-tsub" style="${late?'color:#c8362f;font-weight:700;':''}">${escapeHTML(vn)} · ${escapeHTML(due)}</span>
+    </button>
+  </div>`;
+}
+
+function maVesselDetail(vid){
+  const cfg = (VESSELS||[]).find(v=>v.vesselId===vid) || {};
+  const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===vid);
+  const color = maStatusColor(cfg);
+  let cur = {};
+  try{ if(typeof getVoyage==="function"){ const voy=getVoyage(vid); cur=(voy&&voy.current)||{}; } }catch(_){}
+  const nextPort = (v&&v.tracking&&v.tracking.nextPort)||"";
+  const to = cur.to || nextPort;
+  const route = (cur.from||to) ? `${escapeHTML(cur.from||"—")}  →  ${escapeHTML(to||"—")}` : "Rotta non impostata";
+  const eta = cur.eta || (v&&v.tracking&&v.tracking.eta);
+  let stale = 0;
+  try{ if(typeof getStaleRFQs==="function") stale = getStaleRFQs(vid, 8).length; }catch(_){}
+  const certs = (((state.certificates&&state.certificates[vid])||[]))
+    .filter(c=>!c.isPermanent && c.expiry)
+    .map(c=>({ ...c, d: daysToExpiry(c.expiry) }))
+    .sort((a,b)=>(a.d??1e9)-(b.d??1e9)).slice(0,4);
+  const certHTML = certs.length ? certs.map(c=>maCertRow(c,false)).join("") : `<div class="ma-empty">Nessun certificato in scadenza.</div>`;
+  let vtodos = [];
+  try{ vtodos = (state.todos||[]).filter(t=>!t.done && t.vessel===vid); }catch(_){}
+  const todoHTML = vtodos.length ? vtodos.map(maTodoRow).join("") : `<div class="ma-empty">Nessuna to-do aperta.</div>`;
+  return `
+    <button class="ma-back" onclick="maBack()">‹ Flotta</button>
+    <div class="ma-hero" style="background:${color}14;border-color:${color}40">
+      <div class="ma-hero-name" style="color:${color}">${escapeHTML(cfg.displayName||vid)}</div>
+      <div class="ma-hero-route">${route}</div>
+      ${eta?`<div class="ma-hero-meta">ETA ${escapeHTML(formatDate(eta))}${cur.etb?` · ETB ${escapeHTML(formatDate(cur.etb))}`:""}</div>`:""}
+    </div>
+    <div class="ma-hero2 ${stale>0?'warn':''}">
+      <div class="ma-hero2-num">${stale}</div>
+      <div class="ma-hero2-lbl">${stale>0?"RFQ da sollecitare":"RFQ sotto controllo"}</div>
+    </div>
+    <div class="ma-sec">Certificati in scadenza</div>${certHTML}
+    <div class="ma-sec">To-do aperte</div>${todoHTML}
+  `;
+}
+
+function maEmail(){
+  let list = [];
+  try{ if(typeof getPendingReplies==="function") list = getPendingReplies() || []; }catch(_){}
+  const rows = list.length ? list.map(e=>{
+    const kind = e.kind || "";
+    const kc = kind==="nave" ? "#0e54c1" : kind==="agenzia" ? "#5b6470" : "#8a93a0";
+    const cat = e.role || (kind==="nave"?"Nave":kind==="agenzia"?"Agenzia":"Email");
+    const tap = e.webLink ? `onclick="window.open('${escapeAttr(e.webLink)}','_blank')"` : "";
+    const d = e.days||0;
+    return `<div class="ma-card ma-erow" ${tap}>
+      <div class="ma-erow-top"><span class="ma-efrom">${escapeHTML(e.fromName||e.fromEmail||"—")}</span><span class="ma-ecat" style="color:${kc};background:${kc}1a">${escapeHTML(cat)}</span></div>
+      <div class="ma-esubj">${escapeHTML(e.subject||"(senza oggetto)")}</div>
+      <div class="ma-ewait">⏳ ${d>0?d+"g in attesa":"in attesa di risposta"}</div>
+    </div>`;
+  }).join("") : `<div class="ma-empty">Nessuna email in attesa di risposta.</div>`;
+  return `<div class="ma-title">Email in attesa</div>${rows}`;
+}
+
+function maTodo(){
+  const open = (state.todos||[]).filter(t=>!t.done);
+  open.sort((a,b)=>(a.dueDate||"9999").localeCompare(b.dueDate||"9999"));
+  const rows = open.length ? open.map(maTodoRow).join("") : `<div class="ma-empty">Nessuna to-do aperta. 🎉</div>`;
+  return `<div class="ma-title">To-do</div>${rows}`;
+}
+
+function maCert(){
+  const all = [];
+  (VESSELS||[]).forEach(cfg=>{
+    ((state.certificates&&state.certificates[cfg.vesselId])||[]).forEach(c=>{
+      if(c.isPermanent || !c.expiry) return;
+      all.push({ ...c, d: daysToExpiry(c.expiry), vesselName: cfg.displayName });
+    });
+  });
+  all.sort((a,b)=>(a.d??1e9)-(b.d??1e9));
+  const near = all.filter(c=>c.d!=null && c.d<=90);
+  const rows = near.length ? near.map(c=>maCertRow(c,true)).join("") : `<div class="ma-empty">Nessun certificato in scadenza nei prossimi 90 giorni.</div>`;
+  return `<div class="ma-title">Certificati</div>${rows}`;
+}
+
+function maRubrica(){
+  const kind = mstate.rubKind || "supplier";
+  const names = new Set();
+  try{ Object.keys(loadEntityProfiles(kind)||{}).forEach(n=>names.add(n)); }catch(_){}
+  if(kind==="supplier"){
+    try{ const r=getPeriodRange("365"); ((computePeriodStats(r.from,r.to).suppliers)||[]).forEach(s=>s.name&&names.add(s.name)); }catch(_){}
+  } else {
+    try{ (loadAgencies()||[]).forEach(a=>a.name&&names.add(a.name)); }catch(_){}
+  }
+  const arr = [...names].filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const rows = arr.length ? arr.map(name=>{
+    const p = getEntityProfile(kind,name) || {};
+    const phone = (p.phone||"").replace(/[^\d+]/g,"");
+    const wa = (typeof waDigits==="function") ? waDigits(p.whatsapp||p.phone||"") : "";
+    const loc = [p.city,p.country].filter(Boolean).join(", ");
+    const btns = [
+      phone?`<a class="ma-cbtn call" href="tel:${escapeAttr(phone)}" onclick="event.stopPropagation()">📞 Chiama</a>`:"",
+      p.email?`<a class="ma-cbtn mail" href="mailto:${escapeAttr(p.email)}" onclick="event.stopPropagation()">✉️ Email</a>`:"",
+      wa?`<a class="ma-cbtn wa" href="https://wa.me/${escapeAttr(wa)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">💬 WhatsApp</a>`:""
+    ].filter(Boolean).join("");
+    const opener = kind==="supplier" ? "openSupplierCard" : "openAgencyCard";
+    return `<div class="ma-card ma-crow2" onclick="window.${opener}&&window.${opener}('${escapeAttr(name)}')">
+      <div class="ma-cname">${escapeHTML(name)}</div>
+      <div class="ma-crole">${escapeHTML((kind==='supplier'?'Fornitore':'Agenzia')+(loc?' · '+loc:''))}</div>
+      ${btns?`<div class="ma-cbtns">${btns}</div>`:'<div class="ma-crole" style="color:#c2c9d2">Nessun contatto salvato</div>'}
+    </div>`;
+  }).join("") : `<div class="ma-empty">Nessun${kind==='supplier'?' fornitore':'\u2019agenzia'} in rubrica.</div>`;
+  return `<div class="ma-title">Rubrica</div>
+    <div class="ma-seg">
+      <button class="ma-seg-btn ${kind==='supplier'?'on':''}" onclick="maRubKind('supplier')">🏭 Fornitori</button>
+      <button class="ma-seg-btn ${kind==='agency'?'on':''}" onclick="maRubKind('agency')">⚓ Agenzie</button>
+    </div>${rows}`;
+}
+
+function renderMobileApp(){
+  if(!maIsMobile()) return;
+  const app = document.getElementById("mobile-app");
+  if(!app) return;
+  if(!state.data){ app.innerHTML = `<div class="ma-empty" style="margin-top:40px">Caricamento…</div>`; return; }
+  let html;
+  if(mstate.screen==="home" && mstate.vessel) html = maVesselDetail(mstate.vessel);
+  else if(mstate.screen==="home") html = maFlotta();
+  else if(mstate.screen==="todo") html = maTodo();
+  else if(mstate.screen==="email") html = maEmail();
+  else if(mstate.screen==="cert") html = maCert();
+  else if(mstate.screen==="rubrica") html = maRubrica();
+  else html = maFlotta();
+  const showFab = (mstate.screen==="todo" || (mstate.screen==="home" && !mstate.vessel));
+  app.innerHTML = html + (showFab?`<button class="ma-fab" onclick="openTodoModal()" aria-label="Nuova to-do">+</button>`:"");
+}
+
+function mgo(screen){
+  mstate.screen = screen; mstate.vessel = null;
+  renderMobileApp(); updateMobileTabBar();
+  try{ window.scrollTo({top:0}); }catch(_){}
+}
+window.maOpenVessel = function(vid){ mstate.screen="home"; mstate.vessel=vid; renderMobileApp(); try{window.scrollTo({top:0});}catch(_){} };
+window.maBack = function(){ mstate.vessel=null; renderMobileApp(); try{window.scrollTo({top:0});}catch(_){} };
+window.maRubKind = function(k){ mstate.rubKind=k; renderMobileApp(); };
+window.maToggleTodo = function(id){
+  const t = (state.todos||[]).find(x=>String(x.id)===String(id));
+  if(!t) return;
+  t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null;
+  try{ saveTodos(); }catch(_){}
+  try{ render(); }catch(_){ renderMobileApp(); }
+};
 
 function renderLoading() {
   document.getElementById("view-root").innerHTML = `<div class="empty-state">Caricamento dashboard…</div>`;
@@ -19252,11 +19530,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.addEventListener("click", () => {
       const t = tab.dataset.mtab;
-      if (t === "overview") goOverview();
-      else if (t === "todos") goTodos();
-      else if (t === "email") goEmail();
-      else if (t === "certificates") window.goCertificates();
-      else if (t === "rubrica") { state.view = "rubrica"; render(); window.scrollTo({top:0,behavior:"smooth"}); }
+      const tab2scr = { overview:"home", todos:"todo", email:"email", certificates:"cert", rubrica:"rubrica" };
+      mgo(tab2scr[t] || "home");
     });
   });
 
