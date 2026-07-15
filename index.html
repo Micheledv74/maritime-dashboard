@@ -6493,6 +6493,9 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .rub-name{ flex:1; min-width:0; font-size:14px; font-weight:600; color:#2a313c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .rub-chips{ display:flex; gap:4px; flex:none; }
 .rub-chip{ font-size:13px; }
+.rub-chip-action{ display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:7px; text-decoration:none; cursor:pointer; }
+.rub-chip-action:hover{ background:#eef1f4; }
+@media (max-width:768px){ .rub-chip-action{ width:34px; height:34px; font-size:15px; } }
 .rub-go{ flex:none; color:#c2c9d2; font-size:20px; font-weight:700; }
 
 /* === HOME v0.23 — Card nave: numero-eroe RFQ ferme === */
@@ -7090,6 +7093,10 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     <svg class="icon"><use href="#i-shield-check"/></svg>
     <span class="mtab-l">Cert.</span>
     <span class="mtab-dot" id="mtab-cert-dot" style="display:none;"></span>
+  </button>
+  <button class="mtab" data-mtab="rubrica" aria-label="Rubrica">
+    <svg class="icon"><use href="#i-building"/></svg>
+    <span class="mtab-l">Rubrica</span>
   </button>
 </nav>
 
@@ -8960,7 +8967,7 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const map = { overview: "overview", todos: "todos", email: "email", certificates: "certificates" };
+  const map = { overview: "overview", todos: "todos", email: "email", certificates: "certificates", rubrica: "rubrica" };
   const activeView = state.view === "vessel" ? "overview" : (map[state.view] || "overview");
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
@@ -9769,12 +9776,14 @@ function renderEntityCardInto(kind, name) {
   const email = p.email || "";
   const wa = waDigits(p.whatsapp || p.phone || "");
   const wechat = p.wechat || "";
+  const phoneHref = (p.phone || "").replace(/[^\d+]/g, "");
   const linksHTML = `
     <div class="ec-links">
+      ${phoneHref ? `<a class="ec-link ec-call" href="tel:${phoneHref}">📞 Chiama</a>` : ""}
       ${email ? `<button class="ec-link ec-email" onclick="openComposeMail(buildComposeHref('', '', '${escapeAttr(email)}'))">📧 Email</button>` : ""}
       ${wa ? `<a class="ec-link ec-wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
       ${wechat ? `<button class="ec-link ec-wc" onclick="window.copyWeChat('${escapeAttr(wechat)}')">📱 WeChat: ${escapeHTML(wechat)} ⧉</button>` : ""}
-      ${!email && !wa && !wechat ? `<span class="ec-nolinks">Aggiungi i contatti qui sotto per attivare i pulsanti diretti.</span>` : ""}
+      ${!phoneHref && !email && !wa && !wechat ? `<span class="ec-nolinks">Aggiungi i contatti qui sotto per attivare i pulsanti diretti.</span>` : ""}
     </div>`;
 
   // Form anagrafica (campi editabili)
@@ -10407,9 +10416,13 @@ function renderRubricaPage() {
   const stars = (r) => { r = Math.max(0, Math.min(5, parseInt(r,10)||0)); return `<span class="rub-star"><span class="on">${"\u2605".repeat(r)}</span><span class="off">${"\u2605".repeat(5-r)}</span></span>`; };
   const rows = filtered.map(name => {
     const p = getEntityProfile(kind, name);
+    const phoneHref = (p.phone || "").replace(/[^\d+]/g, "");
+    const waHref = waDigits(p.whatsapp || p.phone || "");
+    // v0.53 — Chip cliccabili: chiama/scrivi in un tocco dalla lista, senza aprire la scheda intera
     const chips = [
-      p.email ? `<span class="rub-chip" title="${escapeAttr(p.email)}">📧</span>` : "",
-      (p.whatsapp || p.phone) ? `<span class="rub-chip">💬</span>` : "",
+      phoneHref ? `<a class="rub-chip rub-chip-action" href="tel:${phoneHref}" onclick="event.stopPropagation()" title="Chiama ${escapeAttr(p.phone)}">📞</a>` : "",
+      p.email ? `<a class="rub-chip rub-chip-action" href="mailto:${escapeAttr(p.email)}" onclick="event.stopPropagation()" title="${escapeAttr(p.email)}">📧</a>` : "",
+      waHref ? `<a class="rub-chip rub-chip-action" href="https://wa.me/${waHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="WhatsApp">💬</a>` : "",
       p.wechat ? `<span class="rub-chip">📱</span>` : ""
     ].filter(Boolean).join("");
     const loc = [p.city, p.country].filter(Boolean).join(", ");
@@ -19243,6 +19256,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else if (t === "todos") goTodos();
       else if (t === "email") goEmail();
       else if (t === "certificates") window.goCertificates();
+      else if (t === "rubrica") { state.view = "rubrica"; render(); window.scrollTo({top:0,behavior:"smooth"}); }
     });
   });
 
