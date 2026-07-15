@@ -6321,6 +6321,17 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .deliv-modes{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
 .deliv-mode-opt{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:#3a4250; cursor:pointer; }
 .deliv-sub{ margin-bottom:10px; }
+.dh-voyage{ border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+.dh-voyage-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; margin-bottom:8px; }
+.dh-route{ font-weight:700; color:#1a2c5e; display:inline-flex; align-items:center; gap:4px; }
+.dh-closed{ color:#8a93a0; font-size:12px; }
+.dh-count{ margin-left:auto; font-size:11.5px; font-weight:600; color:#5b6470; background:#eef1f4; border-radius:6px; padding:2px 8px; }
+.dh-items{ display:flex; flex-direction:column; gap:5px; }
+.dh-item{ display:grid; grid-template-columns:90px 1fr 140px; gap:10px; font-size:12.5px; color:#3a4250; padding:4px 0; border-top:1px solid #f1f3f5; }
+.dh-po{ font-family:var(--font-mono); font-weight:600; }
+.dh-desc{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dh-supp{ color:#8a93a0; text-align:right; }
+.dh-empty{ color:#8a93a0; font-size:12.5px; }
 .deliv-select, .deliv-input{ height:38px; border:1px solid var(--border); border-radius:7px; padding:0 10px; font-family:inherit; font-size:13px; background:#fff; color:var(--text); width:100%; }
 .deliv-manual-row{ display:flex; gap:8px; }
 .deliv-manual-row .deliv-input{ flex:1; min-width:0; }
@@ -10613,6 +10624,13 @@ function emailActionText(r){
 }
 function classifyPendingReply(m, known){
   const s = (m.subject||""); const u = s.toUpperCase();
+  const fromU = (m.fromEmail||"").toUpperCase();
+  // v0.51 — Auto-reply/bounce/mittenti di sistema PRIMA di tutto il resto: altrimenti un
+  // "Undeliverable: 3rd reminder..." o un "Automatic reply: RFQ..." veniva letto come se
+  // fosse davvero un sollecito/RFQ da gestire.
+  if(/MAILER-DAEMON|POSTMASTER@/.test(fromU)) return "noise";
+  if(/UNDELIVERABLE|DELIVERY STATUS NOTIFICATION|DELIVERY HAS FAILED|MESSAGGIO NON CONSEGNATO|NON RECAPITABILE|IMPOSSIBILE CONSEGNARE|RETURNED TO SENDER|MAIL DELIVERY (FAILED|SUBSYSTEM)/.test(u)) return "noise";
+  if(/AUTOMATIC REPLY|AUTO.?REPLY|OUT OF OFFICE|OOO:|RISPOSTA AUTOMATICA|AUTORISPOSTA|FUORI SEDE|ASSENTE DAL(?:L'UFFICIO)?|CURRENTLY (OUT OF|AWAY)/.test(u)) return "noise";
   if(/REMINDER|3RD REMINDER|2ND REMINDER|KINDLY PAY|AWAITING PAYMENT|URGENT.*INVOICE|SALES INVOICE/.test(u)) return "invoice_reminder";
   if(/CERTIFIC|SURVEY|CLASS\b|P&I|DRY ?DOCK/.test(u)) return "certificate";
   if(/\bPO\b|HQPO|PURCHASE ORDER|ORDER CONFIRM/.test(u)) return "po";
@@ -10620,7 +10638,7 @@ function classifyPendingReply(m, known){
   if(/PRE-?ALERT|DELIVERY|SPEDIZ|SHPR|STOCK|GIACENZ/.test(u)) return "logistics";
   if(/INFOSHIP|MALFUNZIONAMENTO|LICENSE KEY|CONNECTIVITY/.test(u)) return "system";
   if(known && known.kind==="agenzia") return "agency_ops";
-  if(/BUNKER PRICE REPORT|PORT.*LINE.?UP|FRESH ARRIVAL|NEWSLETTER|DISCOVER OUR|COMPACT THERMAL|DEALERS|COMMERCIAL OFFER/.test(u)) return "noise";
+  if(/BUNKER PRICE REPORT|PORT.*LINE.?UP|FRESH ARRIVAL|NEWSLETTER|DISCOVER OUR|COMPACT THERMAL|DEALERS|COMMERCIAL OFFER|UNSUBSCRIBE|NO-?REPLY@|DO NOT REPLY|WEBINAR|WHITEPAPER|SPECIAL OFFER|LIMITED TIME|% OFF\b/.test(u)) return "noise";
   return "generic";
 }
 // Alias esplicito: stesso motore di classificazione, usato su TUTTA la posta recente (non solo le attese)
@@ -10691,7 +10709,7 @@ function getEmailThreads(){
 
   function enrich(base){
     const known = idx[base.fromEmail] || null;
-    const category = classifyEmail({ subject: base.subject, preview: base.preview }, known);
+    const category = classifyEmail({ subject: base.subject, preview: base.preview, fromEmail: base.fromEmail }, known);
     const link = linkEmailToProcurement(base.subject || "");
     const deadline = detectEmailDeadline(base.subject, base.preview);
     return Object.assign({}, base, {
@@ -15085,6 +15103,7 @@ function renderVoyageWidget(vesselId) {
         <div class="vct-right">
           ${updated ? `<span class="voyage-updated">agg. ${updated}</span>` : ""}
           ${(nxt.from || nxt.to || nxt.eta || nxt.etb) ? `<button class="btn-mini-link" onclick="window.advanceVoyage('${escapeAttr(vesselId)}')" title="Promuove il viaggio successivo a viaggio in corso" style="color:#0a3f93;">⇥ avanza</button>` : ""}
+          ${(voy.history && voy.history.length) ? `<button class="btn-mini-link" onclick="window.openDeliveryHistory('${escapeAttr(vesselId)}')" title="Vedi le consegne dei viaggi passati">📜 storico</button>` : ""}
           <button class="btn-mini-link" onclick="window.openVoyageEditor('${escapeAttr(vesselId)}')"><svg class="icon icon-sm"><use href="#i-edit"/></svg> modifica</button>
         </div>
       </div>
@@ -15512,6 +15531,56 @@ window.closeVoyageEditor = function() {
   if (bd) bd.classList.remove("open");
 };
 
+// v0.52 — Storico consegne: elenco dei viaggi conclusi con la merce arrivata a ciascuno scalo
+window.openDeliveryHistory = function(vesselId) {
+  const voy = getVoyage(vesselId);
+  const hist = voy.history || [];
+  const vName = (VESSELS.find(v => v.vesselId === vesselId) || {}).displayName || vesselId;
+
+  let bd = document.getElementById("delivery-history-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "delivery-history-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+
+  const rows = hist.length ? hist.map(h => {
+    const items = h.deliveredItems || [];
+    const closedFmt = h.closedAt ? new Date(h.closedAt).toLocaleDateString("it-IT", { day:"2-digit", month:"short", year:"numeric" }) : "";
+    const itemsHTML = items.length
+      ? `<div class="dh-items">${items.map(it => `<div class="dh-item"><span class="dh-po">PO ${escapeHTML(it.poNumber||"—")}</span><span class="dh-desc">${escapeHTML(it.description||"(senza descrizione)")}</span><span class="dh-supp">${escapeHTML(it.supplier||"—")}</span></div>`).join("")}</div>`
+      : `<div class="dh-empty">Nessuna consegna collegata a questo scalo.</div>`;
+    return `
+      <div class="dh-voyage">
+        <div class="dh-voyage-head">
+          <span class="dh-route">${escapeHTML(h.from||"?")} <svg class="icon icon-sm"><use href="#i-arrow-right"/></svg> <strong>${escapeHTML(h.to||"?")}</strong></span>
+          <span class="dh-closed">concluso ${escapeHTML(closedFmt)}</span>
+          <span class="dh-count">${items.length} consegn${items.length===1?"a":"e"}</span>
+        </div>
+        ${itemsHTML}
+      </div>`;
+  }).join("") : `<div class="dh-empty" style="padding:24px;text-align:center;">Nessun viaggio concluso ancora.</div>`;
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 640px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Storico consegne — ${escapeHTML(vName)}</h2>
+          <div class="item-detail-meta"><span class="muted">Ultimi ${hist.length} viaggi conclusi, più recente in alto</span></div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeDeliveryHistory()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">${rows}</div>
+    </div>
+  `;
+  requestAnimationFrame(() => bd.classList.add("open"));
+};
+window.closeDeliveryHistory = function() {
+  const bd = document.getElementById("delivery-history-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
 window.saveVoyageFromEditor = function(vesselId) {
   if (!state.voyages) state.voyages = {};
   const existing = getVoyage(vesselId); // v0.47 — preservo campi non gestiti dal form (es. history)
@@ -15590,12 +15659,18 @@ window.advanceVoyage = function(vesselId){
   if (!cur.id) cur.id = genVoyageId();
   if (!nxt.id) nxt.id = genVoyageId();
 
+  // v0.52 — Storico consegne: prima di promuovere il viaggio, congelo l'elenco merce
+  // consegnata a questo scalo (per rivederla in "Storico consegne"), non solo la rotta.
+  const deliveredItems = itemsForLeg(vesselId, "current").map(it => ({
+    poNumber: it.poNumber || "", description: it.description || "", supplier: it.supplier || ""
+  }));
+
   if (!Array.isArray(voy.history)) voy.history = [];
-  voy.history.unshift(Object.assign({}, cur, { closedAt: new Date().toISOString() }));
-  voy.history = voy.history.slice(0, 5);
+  voy.history.unshift(Object.assign({}, cur, { closedAt: new Date().toISOString(), deliveredItems }));
+  voy.history = voy.history.slice(0, 20);
 
   // chi era collegato al viaggio successivo ora è collegato al viaggio in corso (stesso id, solo promosso)
-  reassignDeliveryLegsOnAdvance(vesselId, nxt.id);
+  reassignDeliveryLegsOnAdvance(vesselId, nxt.id, cur.id);
 
   voy.current = Object.assign({ etd: "" }, nxt);
   voy.next = {};
@@ -15609,15 +15684,23 @@ window.advanceVoyage = function(vesselId){
 
 // Aggiorna il campo "leg" (posizione, solo per la UI del select) degli item il cui
 // voyageLegId corrisponde al viaggio appena promosso a "current".
-function reassignDeliveryLegsOnAdvance(vesselId, promotedLegId){
+function reassignDeliveryLegsOnAdvance(vesselId, promotedLegId, concludedLegId){
   const v = state.data && state.data.vessels.find(x=>x.vesselId===vesselId);
   if (!v || !v.items) return;
   const all = loadDeliveries();
   let changed = false;
   for (const it of v.items){
     const plan = all[it.id];
-    if (plan && plan.mode==="voyage" && plan.voyageLegId===promotedLegId && plan.leg!=="current"){
+    if (!plan || plan.mode!=="voyage") continue;
+    if (plan.voyageLegId===promotedLegId && plan.leg!=="current"){
       plan.leg = "current";
+      changed = true;
+    } else if (!plan.voyageLegId && plan.leg==="current"){
+      // v0.51 — piano legacy (salvato prima degli id) agganciato al viaggio che si conclude:
+      // senza un voyageLegId proprio, il match "storico per posizione" lo avrebbe seguito in
+      // avanti a ogni viaggio successivo, sommando le consegne già arrivate a quelle nuove
+      // nell'email al Capitano. Lo congelo assegnandogli l'id del viaggio concluso.
+      plan.voyageLegId = concludedLegId || null;
       changed = true;
     }
   }
