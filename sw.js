@@ -1,6 +1,6 @@
 // Maritime Procurement — service worker (cache app shell per offline + PWA install)
 // v2 — network-first per l'app (così le nuove versioni si caricano subito), cache come fallback offline.
-const CACHE = "maritime-v2";
+const CACHE = "maritime-v3";
 const ASSETS = [
   "./",
   "./index.html",
