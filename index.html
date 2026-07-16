@@ -100,6 +100,11 @@
 
   --c-yellow-bg: #fef6d4;
   --c-yellow-fg: #854d0e;
+  --c-yellow-dot: #e8c12d;
+  --c-yellow-ink: #5a4500;
+
+  /* Grigio-blu intestazioni tabelle/calendario (era hardcoded #2a3344 sparso) */
+  --head-dark: #2a3344;
 
   --radius-sm: 6px;
   --radius: 10px;
@@ -1202,7 +1207,8 @@ a:hover { text-decoration: underline; }
   line-height: 1.45;
 }
 .todo-body .todo-action {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text);
 }
 .todo-body .todo-target {
   color: var(--text-muted);
@@ -3116,9 +3122,9 @@ a:hover { text-decoration: underline; }
   display: inline-block;
   padding: 1px 7px;
   margin-right: 4px;
-  background: #d1ecf9;
-  color: #0c5d8a;
-  border: 1px solid #93cce8;
+  background: transparent;
+  color: var(--text-faint);
+  border: none;
   border-radius: 10px;
   font-size: 10.5px;
   font-weight: 600;
@@ -5057,7 +5063,7 @@ a:hover { text-decoration: underline; }
 /* ---- CERTIFICATI / TO-DO — header tabella scuro stile control room ---- */
 .cert-table thead th,
 .todo-table thead th {
-  background: #2a3344 !important;
+  background: var(--head-dark) !important;
   color: #fff !important;
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
 }
@@ -5121,7 +5127,7 @@ a:hover { text-decoration: underline; }
 
 /* Header tabella cert compatta scuro */
 .cert-table-compact thead th {
-  background: #2a3344 !important; color: #fff !important;
+  background: var(--head-dark) !important; color: #fff !important;
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
 }
 
@@ -5173,7 +5179,7 @@ a:hover { text-decoration: underline; }
   gap: 12px;
   align-items: center;
   padding: 10px 16px;
-  background: #2a3344;
+  background: var(--head-dark);
   color: #fff;
   font-size: 10px;
   font-weight: 700;
@@ -5259,7 +5265,7 @@ a:hover { text-decoration: underline; }
 
 /* ---- CALENDARIO (carico settimana) header giorni scuro come mockup ---- */
 .heatmap-label-h {
-  background: #2a3344 !important;
+  background: var(--head-dark) !important;
   color: #fff !important;
   font-weight: 700 !important;
   border-radius: 5px;
@@ -5324,13 +5330,13 @@ a:hover { text-decoration: underline; }
    ========================================================================== */
 
 :root{
-  --v4-head-dark: #2a3344;
+  --v4-head-dark: var(--head-dark);
   --v4-red:    var(--c-red-dot);   --v4-red-2: var(--c-red-fg);   --v4-red-bg: var(--c-red-bg);
   --v4-orange: var(--c-amber-dot); --v4-orange-2: var(--c-amber-fg); --v4-orange-bg: var(--c-amber-bg);
-  --v4-yellow: #e8c12d;  --v4-yellow-ink:#5a4500;--v4-yellow-bg:#fcf5d3;
+  --v4-yellow: var(--c-yellow-dot);  --v4-yellow-ink:var(--c-yellow-ink);--v4-yellow-bg:var(--c-yellow-bg);
   --v4-green:  var(--c-green-dot); --v4-green-2: var(--c-green-fg); --v4-green-bg: var(--c-green-bg);
-  --v4-blue:   #2a8fb8;  --v4-blue-2:#1a6f93;   --v4-blue-bg:#def0f8;
-  --v4-purple: #7c4ca8;  --v4-purple-2:#5c2e87; --v4-purple-bg:#ede4f7;
+  --v4-blue:   var(--c-blue-dot);  --v4-blue-2:var(--c-blue-fg);   --v4-blue-bg:var(--c-blue-bg);
+  --v4-purple: var(--c-purple-dot);  --v4-purple-2:var(--c-purple-fg); --v4-purple-bg:var(--c-purple-bg);
   --v4-shadow-card: 0 1px 2px rgba(20,30,50,0.04), 0 1px 4px rgba(20,30,50,0.06);
   --v4-shadow-card-hover: 0 4px 12px rgba(20,30,50,0.10);
 }
@@ -5350,7 +5356,7 @@ a:hover { text-decoration: underline; }
 .app-header .brand{ gap:10px; font-weight:800; letter-spacing:-0.01em; }
 .app-header .brand .brand-icon-svg{
   width:44px; height:44px; border-radius:50%;
-  background:linear-gradient(135deg,#1a6f93,#2a8fb8);
+  background:linear-gradient(135deg,var(--accent-2),var(--accent));
   display:flex; align-items:center; justify-content:center;
   color:#fff; flex-shrink:0;
   box-shadow:0 2px 6px rgba(42,143,184,0.25);
@@ -5586,11 +5592,11 @@ a:hover { text-decoration: underline; }
    7) FAB + Orologio mondiale — TENUTI, ristilizzati coerenti v4
    ========================================================================== */
 .fab{
-  background:linear-gradient(135deg,#1a6f93,#2a8fb8);
-  color:#fff; box-shadow:0 4px 14px rgba(42,143,184,0.35);
+  background:linear-gradient(135deg,var(--accent-2),var(--accent));
+  color:#fff; box-shadow:0 4px 14px rgba(14,84,193,0.35);
   border:none;
 }
-.fab:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(42,143,184,0.45); }
+.fab:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(14,84,193,0.38); }
 .world-clock-strip .wc-tile{ border-radius:8px; }
 .world-clock-strip .wc-tile.wc-day{ background:var(--v4-blue-bg); }
 
@@ -5899,6 +5905,15 @@ a:hover { text-decoration: underline; }
 .header-clock{ margin-left:auto; font-family:var(--font-mono); font-size:13px; color:#5b6470; white-space:nowrap; letter-spacing:.01em; }
 .header-clock .hc-time{ color:#2a313c; font-weight:600; }
 @media(max-width:900px){ .header-clock{ display:none; } }
+/* iPad Pro 12.9" portrait (1024) e fascia tablet: la riga testata andava in overflow
+   e tagliava header-actions (Aggiorna/Fine giornata/cerca/to-do). Recupero spazio
+   nascondendo orologio ed etichetta Drive (resta icona ☁ + tooltip). */
+@media (min-width:769px) and (max-width:1219px){
+  .app-header .header-clock{ display:none; }
+  .app-header .drive-sync-indicator .drive-label{ display:none; }
+  .app-header .header-inner{ gap:10px; }
+  .app-header .sync-info{ min-width:0; }
+}
 /* Bottoni testata puliti come mockup */
 .app-header .icon-btn{
   width:36px !important; height:36px !important; min-width:36px !important; min-height:36px !important;
@@ -5993,7 +6008,7 @@ a:hover { text-decoration: underline; }
 /* Tabella Items: header CHIARO (era scuro v4) */
 .items-table thead{ background:#fafbfc !important; }
 .items-table thead th{ background:#fafbfc !important; color:#aab2bd !important; font-weight:700 !important; border-bottom:1px solid #eef1f4 !important; }
-.items-table-wrap{ border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); }
+.items-table-wrap{ border:1px solid var(--border); border-radius:var(--radius-lg); overflow-x:auto; overflow-y:hidden; box-shadow:var(--shadow-card); }
 
 /* Toolbar / ricerca pulita */
 .search-input, .filter-select{ border-radius:8px !important; }
@@ -6014,14 +6029,14 @@ a:hover { text-decoration: underline; }
 header.vessel-detail-banner[data-vid]{
   background:var(--bg-surface) !important; color:var(--text) !important;
   border:1px solid var(--border) !important; border-left:6px solid #d0d5dd !important;
-  border-radius:13px !important; padding:20px 24px !important;
+  border-radius:13px !important; padding:13px 20px !important;
 }
 header.vessel-detail-banner[data-vid="peppino"]{    background:var(--c-peppino-soft) !important; border-left-color:var(--c-peppino) !important; }
 header.vessel-detail-banner[data-vid="medliguria"]{ background:var(--c-liguria-soft) !important; border-left-color:var(--c-liguria) !important; }
 header.vessel-detail-banner[data-vid="medtoscana"]{ background:var(--c-toscana-soft) !important; border-left-color:var(--c-toscana) !important; }
 header.vessel-detail-banner[data-vid="norrbotten"]{ background:var(--c-norrbotten-soft) !important; border-left-color:var(--c-norrbotten) !important; }
 header.vessel-detail-banner .vdb-icon{ display:none !important; }
-header.vessel-detail-banner .vdb-name{ font-size:24px !important; font-weight:700 !important; }
+header.vessel-detail-banner .vdb-name{ font-size:21px !important; font-weight:700 !important; }
 header.vessel-detail-banner[data-vid="peppino"] .vdb-name{    color:var(--c-peppino) !important; }
 header.vessel-detail-banner[data-vid="medliguria"] .vdb-name{ color:var(--c-liguria) !important; }
 header.vessel-detail-banner[data-vid="medtoscana"] .vdb-name{ color:var(--c-toscana) !important; }
@@ -6042,12 +6057,28 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
 .cert-view .cert-filter-chip{ border-radius:8px !important; padding:6px 12px !important; background:#f1f4f7 !important; border:1px solid var(--border) !important; color:#475569 !important; font-weight:500; }
 .cert-view .cert-filter-chip.active{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; font-weight:700; }
 .cert-import-card{ border-radius:11px !important; }
+/* v0.51 — "File per nave" comprimibile: dato prima quando i certificati sono già importati */
+details.cert-import-collapsible > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; }
+details.cert-import-collapsible > summary::-webkit-details-marker{ display:none; }
+details.cert-import-collapsible > summary::marker{ content:""; }
+details.cert-import-collapsible .cert-import-sum-meta{ font-size:12px; color:var(--text-faint); font-weight:500; }
+details.cert-import-collapsible .cert-chev{ margin-left:auto; width:16px; height:16px; color:var(--text-faint); stroke:currentColor; stroke-width:2.4; fill:none; stroke-linecap:round; stroke-linejoin:round; transition:transform .15s; }
+details.cert-import-collapsible[open] .cert-chev{ transform:rotate(90deg); }
+details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-muted); }
 
 /* ---- TO-DO page: titolo grande + chip puliti ---- */
 .todo-page-header h1{ font-size:24px !important; font-weight:700 !important; letter-spacing:-.02em; }
 .todo-page-header .btn.btn-primary{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; font-weight:600; border-radius:8px; }
 .time-chips-row .time-chip{ border-radius:8px !important; }
 .time-chips-row .time-chip.active{ background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important; }
+/* v0.51 — To-do: menu "Altro" (azioni secondarie: Da email / Queue Outlook / Esporta Excel) */
+.todo-more{ position:relative; }
+.todo-more > summary{ list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+.todo-more > summary::-webkit-details-marker{ display:none; }
+.todo-more > summary::marker{ content:""; }
+.todo-more-menu{ position:absolute; right:0; top:calc(100% + 6px); z-index:40; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow-lg); padding:6px; min-width:210px; display:flex; flex-direction:column; gap:2px; }
+.todo-more-item{ display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:none; border:none; border-radius:7px; padding:9px 11px; font-family:inherit; font-size:13px; color:var(--text); cursor:pointer; min-height:40px; white-space:nowrap; }
+.todo-more-item:hover{ background:var(--bg-muted); }
 
 /* FUSI ORARI — striscia piatta (sotto Flotta) */
 .fusi-section{ margin-bottom:26px; }
@@ -13763,9 +13794,14 @@ function renderTodosPage() {
       </div>
       <div class="flex gap-2">
         <button class="btn btn-primary" id="todo-new-from-page">+ Nuova to-do</button>
-        <button class="btn" id="todo-new-from-email" onclick="window.openEmailCapture()">📧 Da email</button>
-        <button class="btn" id="todo-outlook-export" onclick="window.openOutlookQueueExport()" title="Esporta queue completati Outlook">📤 Queue Outlook <span id="todo-outlook-export-count" class="badge-count" style="display:none;"></span></button>
-        <button class="btn" id="todo-export-excel">📥 Esporta Excel</button>
+        <details class="todo-more">
+          <summary class="btn">Altro <span style="font-size:10px;">▾</span></summary>
+          <div class="todo-more-menu">
+            <button class="todo-more-item" id="todo-new-from-email" onclick="window.openEmailCapture()">📧 Da email</button>
+            <button class="todo-more-item" id="todo-outlook-export" onclick="window.openOutlookQueueExport()" title="Esporta queue completati Outlook">📤 Queue Outlook <span id="todo-outlook-export-count" class="badge-count" style="display:none;"></span></button>
+            <button class="todo-more-item" id="todo-export-excel">📥 Esporta Excel</button>
+          </div>
+        </details>
       </div>
     </header>
 
@@ -13906,6 +13942,10 @@ function renderTodosPage() {
   // Handlers
   document.getElementById("todo-new-from-page").addEventListener("click", () => openTodoModal(null));
   document.getElementById("todo-export-excel").addEventListener("click", () => exportTodosToExcel(false));
+  // Menu "Altro": chiudi dopo la scelta
+  document.querySelectorAll(".todo-more-item").forEach(b => b.addEventListener("click", () => {
+    const m = b.closest("details.todo-more"); if (m) m.open = false;
+  }));
   updateOutlookQueueBadge();
 
   document.getElementById("todo-search").addEventListener("input", e => {
@@ -16667,10 +16707,14 @@ function renderCertificatesView() {
         </div>
       </header>
 
-      <section class="cert-import-toolbar">
-        <h3>File per nave</h3>
-        <div class="cert-import-grid">${importButtons}</div>
-      </section>
+      <details class="cert-import-toolbar cert-import-collapsible"${allItems.length === 0 ? " open" : ""}>
+        <summary>
+          <h3 style="margin:0;">File per nave</h3>
+          <span class="cert-import-sum-meta">${VESSELS.filter(v => (((state.certificates||{})[v.vesselId])||[]).length > 0).length}/${VESSELS.length} navi con file</span>
+          <svg class="cert-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </summary>
+        <div class="cert-import-grid" style="margin-top:12px;">${importButtons}</div>
+      </details>
 
       <section class="cert-filters-section">
         <div class="cert-filter-row">
@@ -17921,6 +17965,12 @@ function todoRowHTML(t) {
   const category = t.category || "Altro";
   const priority = t.priority || "media";
   const ref = t.reference || t.target || "";  // retrocompat con campo target
+  // v0.51 — molte to-do Outlook hanno action generica ("Altro" = categoria) e il testo vero nel reference:
+  // promuovo il testo reale a titolo ed evito il doppione categoria/azione.
+  const actionRaw = (t.action || "").trim();
+  const actionIsGeneric = !actionRaw || actionRaw.toLowerCase() === category.toLowerCase() || actionRaw.toLowerCase() === "altro";
+  const mainText = actionIsGeneric ? (ref || actionRaw || "—") : actionRaw;
+  const showRefInContext = ref && !actionIsGeneric;
   const vesselName = t.vessel ?
     (VESSELS.find(v => v.vesselId === t.vessel)?.displayName || t.vessel)
     : "";
@@ -17929,14 +17979,14 @@ function todoRowHTML(t) {
   // Sezione "contesto" (nave + riferimento + tag)
   let contextParts = [];
   if (vesselName) contextParts.push(`<span class="cert-vessel-chip" data-vid="${escapeAttr(t.vessel || '')}" style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;">${escapeHTML(vesselName)}</span>`);
-  if (ref) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
+  if (showRefInContext) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
 
   return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}" data-vid="${escapeAttr(t.vessel || '')}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
       ${t.outlookTaskId ? `<span class="todo-outlook-badge" title="Importato da Outlook ToDo">📧 Outlook</span>` : ""}
       <span class="todo-cat" data-cat="${escapeAttr(category)}">${escapeHTML(category)}</span>
-      <span class="todo-action">${escapeHTML(t.action)}</span>
+      <span class="todo-action">${escapeHTML(mainText)}</span>
       ${t.recur ? `<span class="todo-recur-badge" title="${escapeAttr(recurLabel(t.recur))}">↻ ${escapeHTML(recurLabel(t.recur))}</span>` : ""}
       ${contextParts.length > 0 ? "· " + contextParts.join(" · ") : ""}
       ${t.note ? `<span class="todo-note">${escapeHTML(t.note)}</span>` : ""}
