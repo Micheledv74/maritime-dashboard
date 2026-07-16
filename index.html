@@ -7261,26 +7261,6 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     </div>
 
     <div class="modal-section">
-      <h3>Sync multi-dispositivo (n8n)</h3>
-      <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
-        Tiene lo <b>stesso database</b> su iPhone, PC e tablet senza login Google (funziona anche dove Google Drive non si collega).
-        Importa <code>n8n/State Sync (Webhook).json</code> in n8n, imposta lo stesso token nel nodo e qui sotto, attiva il workflow e compila indirizzo e token.
-        Configura gli <b>stessi</b> valori su ogni dispositivo.
-      </p>
-      <div class="drive-connect-row" id="state-sync-row">
-        <div class="status">☁ Sync multi-dispositivo non configurato</div>
-      </div>
-      <div class="setting-row">
-        <label>Indirizzo webhook Sync (n8n)</label>
-        <input type="text" placeholder="https://.../webhook/state-sync" data-setting="stateSyncUrl" style="width:220px;">
-      </div>
-      <div class="setting-row">
-        <label>Token webhook Sync</label>
-        <input type="text" placeholder="stesso token impostato nel workflow" data-setting="stateSyncToken" style="width:220px;">
-      </div>
-    </div>
-
-    <div class="modal-section">
       <h3>Sync via GitHub (consigliato)</h3>
       <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
         Tiene lo <b>stesso database</b> su iPhone, PC e tablet salvando un file in un tuo repo GitHub <b>privato</b>.
@@ -19633,9 +19613,40 @@ async function ghSyncPush() {
     if (json.content && json.content.sha) GH_SYNC.sha = json.content.sha;
     GH_SYNC.lastPushAt = new Date().toISOString();
     ghSyncSetStatus("ok");
+    ghSyncDailyBackup();  // snapshot datato una volta al giorno
   } catch (e) {
     console.error("[Sync GitHub] push:", e);
     ghSyncSetStatus("error", e.message);
+  }
+}
+
+// Backup giornaliero completo: uno snapshot datato in backups/state-AAAA-MM-GG.json
+// nello stesso repo. File nuovo ogni giorno → non sovrascrive lo storico, così puoi
+// sempre recuperare uno stato precedente (copre i cancellati che tornano col merge).
+async function ghSyncDailyBackup() {
+  if (!ghSyncConfigured()) return;
+  try {
+    const today = new Date().toISOString().slice(0, 10);  // AAAA-MM-GG (UTC)
+    if (localStorage.getItem("mpd.ghLastBackup") === today) return;
+    const s = state.settings;
+    const repo = s.ghSyncRepo.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+    const branch = (s.ghSyncBranch || "main").trim();
+    const url = `https://api.github.com/repos/${repo}/contents/backups/state-${today}.json`;
+    // Se il backup di oggi esiste già (altro dispositivo), non serve riscriverlo
+    const head = await fetch(url + "?ref=" + encodeURIComponent(branch), { headers: ghSyncHeaders(), cache: "no-store" });
+    if (head.ok) { localStorage.setItem("mpd.ghLastBackup", today); return; }
+    const body = {
+      message: "daily backup " + today,
+      content: b64EncodeUtf8(JSON.stringify(buildStatePayload(), null, 2)),
+      branch
+    };
+    const res = await fetch(url, { method: "PUT", headers: ghSyncHeaders(), body: JSON.stringify(body) });
+    if (res.ok) {
+      localStorage.setItem("mpd.ghLastBackup", today);
+      console.log("[Sync GitHub] backup giornaliero salvato:", today);
+    }
+  } catch (e) {
+    console.warn("[Sync GitHub] backup giornaliero fallito:", e.message);
   }
 }
 
@@ -19658,6 +19669,7 @@ async function ghSyncInit(force) {
   await ghSyncPull({ render: true });   // scarico prima lo stato dal cloud
   ghSyncSchedulePush();                 // poi ripubblico (seed se il file non esiste)
   ghSyncStartPolling();
+  ghSyncDailyBackup();                  // snapshot datato del giorno (una volta al giorno)
 }
 
 function renderGhSyncRow() {
