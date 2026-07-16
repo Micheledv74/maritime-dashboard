@@ -7256,7 +7256,28 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
       </div>
       <p style="font-size:var(--fs-xs);color:var(--text-faint);margin:8px 0 0;">
         Sincronizza to-do, note locali e azioni archiviate tra PC, cellulare e tablet usando il tuo Google Drive personale.
+        <br><b>Nota:</b> il login Google non funziona su iPhone/Safari (popup bloccato). Su iPhone usa il “Sync multi-dispositivo (n8n)” qui sotto.
       </p>
+    </div>
+
+    <div class="modal-section">
+      <h3>Sync multi-dispositivo (n8n)</h3>
+      <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
+        Tiene lo <b>stesso database</b> su iPhone, PC e tablet senza login Google (funziona anche dove Google Drive non si collega).
+        Importa <code>n8n/State Sync (Webhook).json</code> in n8n, imposta lo stesso token nel nodo e qui sotto, attiva il workflow e compila indirizzo e token.
+        Configura gli <b>stessi</b> valori su ogni dispositivo.
+      </p>
+      <div class="drive-connect-row" id="state-sync-row">
+        <div class="status">☁ Sync multi-dispositivo non configurato</div>
+      </div>
+      <div class="setting-row">
+        <label>Indirizzo webhook Sync (n8n)</label>
+        <input type="text" placeholder="https://.../webhook/state-sync" data-setting="stateSyncUrl" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Token webhook Sync</label>
+        <input type="text" placeholder="stesso token impostato nel workflow" data-setting="stateSyncToken" style="width:220px;">
+      </div>
     </div>
 
     <div class="modal-section">
@@ -7933,7 +7954,9 @@ const DEFAULT_SETTINGS = {
   readyForPOTTL: 60,     // Ready for PO mostrate fino a 60 giorni
   batchTTL: 30,          // Batch suggestion mostrate fino a 30 giorni
   aiWebhookUrl: "",      // v0.50 — proxy n8n per le funzioni AI email quando pubblicato (fuori dall'anteprima Claude)
-  aiWebhookToken: ""
+  aiWebhookToken: "",
+  stateSyncUrl: "",     // v0.51 — sync stato multi-dispositivo via webhook n8n (funziona anche dove Google Drive non si collega, es. iPhone)
+  stateSyncToken: ""
 };
 
 const ALERT_CONFIG = {
@@ -12566,6 +12589,7 @@ function loadWorldClockCities() {
 function saveWorldClockCities(cities) {
   if (!Array.isArray(cities)) return;
   localStorage.setItem("mpd.worldClockCities", JSON.stringify(cities));
+  if (typeof driveSchedulePush === "function") driveSchedulePush();
 }
 
 // v0.9.1 — SVG icons stilizzate (più pulite delle emoji, uniformi su tutti i browser)
@@ -15535,7 +15559,7 @@ Best regards,`;
 // La data Infoship non è affidabile: qui l'utente fissa DOVE e QUANDO, scegliendo
 // uno scalo dal voyage (porto + ETA, che si aggiorna da solo) oppure manualmente.
 function loadDeliveries(){ try{ const d=JSON.parse(localStorage.getItem("mpd.deliveries")||"{}"); return (d && typeof d==="object")?d:{}; }catch{ return {}; } }
-function saveDeliveriesDB(obj){ try{ localStorage.setItem("mpd.deliveries", JSON.stringify(obj)); }catch{} }
+function saveDeliveriesDB(obj){ try{ localStorage.setItem("mpd.deliveries", JSON.stringify(obj)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
 function getDeliveryPlan(itemId){ return loadDeliveries()[itemId] || null; }
 function genVoyageId(){ return 'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function setDeliveryPlan(itemId, plan){
@@ -18986,6 +19010,64 @@ function mergeRemoteIntoLocal(remote) {
     }
     saveArchivedActions();
   }
+
+  // === v0.51 — chiavi aggiuntive per sync COMPLETO cross-dispositivo ===
+  // Convenzione coerente col resto del merge: in conflitto vince il remoto
+  // (spread {...local, ...remote}); le chiavi presenti solo da un lato si sommano.
+  if (remote.snoozed && typeof remote.snoozed === "object") {
+    state.snoozed = { ...state.snoozed, ...remote.snoozed };
+    saveSnoozed();
+  }
+  if (remote.manualOrders && typeof remote.manualOrders === "object" && typeof saveAllManualOrders === "function") {
+    saveAllManualOrders({ ...loadAllManualOrders(), ...remote.manualOrders });
+  }
+  if (remote.deliveries && typeof remote.deliveries === "object" && typeof saveDeliveriesDB === "function") {
+    saveDeliveriesDB({ ...loadDeliveries(), ...remote.deliveries });
+  }
+  if (remote.vesselPos && typeof remote.vesselPos === "object" && typeof saveVesselPos === "function") {
+    saveVesselPos({ ...loadVesselPos(), ...remote.vesselPos });
+  }
+  if (remote.supplierProfiles && typeof remote.supplierProfiles === "object" && typeof saveEntityProfiles === "function") {
+    saveEntityProfiles("supplier", { ...loadEntityProfiles("supplier"), ...remote.supplierProfiles });
+  }
+  if (remote.agencyProfiles && typeof remote.agencyProfiles === "object" && typeof saveEntityProfiles === "function") {
+    saveEntityProfiles("agency", { ...loadEntityProfiles("agency"), ...remote.agencyProfiles });
+  }
+  if (Array.isArray(remote.worldClockCities) && remote.worldClockCities.length && typeof saveWorldClockCities === "function") {
+    saveWorldClockCities(remote.worldClockCities);
+  }
+}
+
+// === PAYLOAD CONDIVISO (Drive + Sync n8n) =================================
+// v0.51 — unica fonte del blob di stato, così Drive e il sync n8n spediscono
+// esattamente lo stesso database. Include TUTTE le chiavi persistite, non più
+// solo un sottoinsieme (prima ordini manuali, consegne, profili, ecc. non
+// venivano sincronizzati anche se chiamavano driveSchedulePush()).
+function buildStatePayload() {
+  return {
+    schemaVersion: "1.3",
+    deviceId: getDeviceId(),
+    pushedAt: new Date().toISOString(),
+    todosCount: state.todos.length,
+    todos: state.todos,
+    notes: state.notes,
+    snoozed: state.snoozed || {},
+    archivedActions: state.archivedActions,
+    completionsHistory: state.completionsHistory || [],
+    supplierTimezones: state.supplierTimezones,
+    supplierLanguages: state.supplierLanguages || {},
+    pinnedActions: state.pinnedActions || [],
+    certificates: state.certificates || {},
+    certificatesMeta: state.certificatesMeta || {},
+    voyages: state.voyages || {},
+    outlookCompletionQueue: state.outlookCompletionQueue || [],
+    manualOrders: (typeof loadAllManualOrders === "function" ? loadAllManualOrders() : {}),
+    deliveries: (typeof loadDeliveries === "function" ? loadDeliveries() : {}),
+    vesselPos: (typeof loadVesselPos === "function" ? loadVesselPos() : {}),
+    supplierProfiles: (typeof loadEntityProfiles === "function" ? loadEntityProfiles("supplier") : {}),
+    agencyProfiles: (typeof loadEntityProfiles === "function" ? loadEntityProfiles("agency") : {}),
+    worldClockCities: (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : undefined)
+  };
 }
 
 // === PUSH (upload su Drive) — v0.5.1 con safeguard anti-svuotamento ===
@@ -19036,23 +19118,7 @@ async function drivePush() {
     drivePreviousBackup().catch(e => console.warn("[Drive] backup pre-push fallito:", e));
   }
 
-  const payload = {
-    schemaVersion: "1.2",
-    deviceId: getDeviceId(),
-    pushedAt: new Date().toISOString(),
-    todosCount: state.todos.length,  // diagnostico
-    todos: state.todos,
-    notes: state.notes,
-    archivedActions: state.archivedActions,
-    completionsHistory: state.completionsHistory || [],  // v0.10
-    supplierTimezones: state.supplierTimezones,             // v0.8
-    supplierLanguages: state.supplierLanguages || {},        // v0.10.2
-    pinnedActions: state.pinnedActions || [],                // v0.10.2
-    certificates: state.certificates || {},                  // v0.11
-    certificatesMeta: state.certificatesMeta || {},          // v0.11
-    voyages: state.voyages || {},                            // v0.12
-    outlookCompletionQueue: state.outlookCompletionQueue || []  // v0.14
-  };
+  const payload = buildStatePayload();
   const body = JSON.stringify(payload, null, 2);
 
   console.log(`[Drive] push: ${state.todos.length} to-do, ${Object.keys(state.notes).length} note, ${Object.keys(state.archivedActions).length} archived actions`);
@@ -19246,6 +19312,9 @@ async function driveRecoverFromDrive() {
 
 // === DEBOUNCED PUSH (chiamato a ogni modifica locale) =====================
 function driveSchedulePush() {
+  // v0.51 — il sync n8n è indipendente da Drive: va agganciato PRIMA dell'early-return,
+  // altrimenti su iPhone (dove Drive non è connesso) non partirebbe mai.
+  if (typeof stateSyncSchedulePush === "function") stateSyncSchedulePush();
   if (!state.drive.token || state.drive.status === "disconnected") return;
   if (state.drive.pushTimer) clearTimeout(state.drive.pushTimer);
   state.drive.pushTimer = setTimeout(() => {
@@ -19272,6 +19341,148 @@ function getDeviceId() {
     localStorage.setItem("mpd.deviceId", id);
   }
   return id;
+}
+
+// ============================================================================
+// === SYNC MULTI-DISPOSITIVO VIA n8n (v0.51) =================================
+// ============================================================================
+// Transport alternativo/aggiuntivo a Google Drive: una semplice fetch verso un
+// webhook n8n (stesso pattern del proxy AI). Non usa il login Google, quindi
+// funziona anche su iPhone/Safari dove il popup OAuth di Drive viene bloccato.
+// Il webhook conserva un unico blob JSON (buildStatePayload) e lo restituisce
+// su richiesta. Push debounced a ogni modifica + polling periodico.
+const STATE_SYNC = {
+  pushDebounceMs: 2500,
+  pollIntervalMs: 45000,
+  pushTimer: null,
+  pollTimer: null,
+  lastPushAt: null,
+  lastPullAt: null,
+  lastError: null,
+  status: "idle",       // idle | syncing | ok | error
+  suppressPush: false,  // true durante l'applicazione di un pull (evita l'eco immediato)
+  inited: false
+};
+
+function stateSyncConfigured() {
+  const s = state.settings || {};
+  return !!(s.stateSyncUrl && s.stateSyncUrl.trim());
+}
+
+async function stateSyncRequest(action, extra) {
+  const s = state.settings || {};
+  const url = (s.stateSyncUrl || "").trim();
+  if (!url) throw new Error("Sync n8n non configurato");
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: s.stateSyncToken || "", action, ...(extra || {}) })
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json();
+}
+
+function stateSyncSetStatus(st, err) {
+  STATE_SYNC.status = st;
+  STATE_SYNC.lastError = err || null;
+  if (typeof renderStateSyncRow === "function") renderStateSyncRow();
+}
+
+async function stateSyncPush() {
+  if (!stateSyncConfigured()) return;
+  // Safeguard anti-svuotamento: se locale ha 0 to-do ma il cloud ne ha, NON sovrascrivo.
+  if (!state.todos || state.todos.length === 0) {
+    try {
+      const remote = await stateSyncRequest("load");
+      if (remote && Array.isArray(remote.todos) && remote.todos.length > 0) {
+        console.warn("[Sync n8n] push saltato: locale 0 to-do, cloud ne ha", remote.todos.length);
+        stateSyncSetStatus("idle");
+        return;
+      }
+    } catch (_) { /* se la verifica fallisce, proseguo comunque */ }
+  }
+  stateSyncSetStatus("syncing");
+  try {
+    await stateSyncRequest("save", { payload: buildStatePayload() });
+    STATE_SYNC.lastPushAt = new Date().toISOString();
+    stateSyncSetStatus("ok");
+  } catch (e) {
+    console.error("[Sync n8n] push:", e);
+    stateSyncSetStatus("error", e.message);
+  }
+}
+
+async function stateSyncPull(opts) {
+  if (!stateSyncConfigured()) return;
+  stateSyncSetStatus("syncing");
+  try {
+    const remote = await stateSyncRequest("load");
+    if (remote && typeof remote === "object" && Object.keys(remote).length) {
+      STATE_SYNC.suppressPush = true;
+      try { mergeRemoteIntoLocal(remote); }
+      finally { STATE_SYNC.suppressPush = false; }
+      if (!opts || opts.render !== false) render();
+    }
+    STATE_SYNC.lastPullAt = new Date().toISOString();
+    stateSyncSetStatus("ok");
+  } catch (e) {
+    console.error("[Sync n8n] pull:", e);
+    stateSyncSetStatus("error", e.message);
+  }
+}
+
+function stateSyncSchedulePush() {
+  if (!stateSyncConfigured() || STATE_SYNC.suppressPush) return;
+  if (STATE_SYNC.pushTimer) clearTimeout(STATE_SYNC.pushTimer);
+  STATE_SYNC.pushTimer = setTimeout(() => { STATE_SYNC.pushTimer = null; stateSyncPush(); }, STATE_SYNC.pushDebounceMs);
+}
+
+function stateSyncStartPolling() {
+  if (STATE_SYNC.pollTimer) clearInterval(STATE_SYNC.pollTimer);
+  if (!stateSyncConfigured()) return;
+  STATE_SYNC.pollTimer = setInterval(() => { stateSyncPull({ render: true }); }, STATE_SYNC.pollIntervalMs);
+}
+
+async function stateSyncInit(force) {
+  if (!stateSyncConfigured()) return;
+  if (STATE_SYNC.inited && !force) return;
+  STATE_SYNC.inited = true;
+  await stateSyncPull({ render: true });   // scarico prima lo stato dal cloud
+  stateSyncSchedulePush();                 // poi ripubblico (seed se il cloud era vuoto)
+  stateSyncStartPolling();
+}
+
+// === UI: pannello sync n8n nelle Impostazioni ==============================
+function renderStateSyncRow() {
+  const row = document.getElementById("state-sync-row");
+  if (!row) return;
+  if (!stateSyncConfigured()) {
+    row.innerHTML = `<div class="status">\u2601 Sync multi-dispositivo non configurato<br><span style="font-size:var(--fs-xs);">Compila indirizzo e token qui sotto per sincronizzare iPhone, PC e tablet senza login Google.</span></div>`;
+    return;
+  }
+  const labels = { idle: "pronto", syncing: "sincronizzo\u2026", ok: "sincronizzato", error: "errore" };
+  const last = STATE_SYNC.lastPullAt || STATE_SYNC.lastPushAt;
+  row.innerHTML = `
+    <div class="status connected" style="flex:1;min-width:200px;">
+      \u2713 Sync multi-dispositivo attivo \u2014 ${labels[STATE_SYNC.status] || ""}
+      ${STATE_SYNC.lastError ? `<br><span style="font-size:var(--fs-xs);color:#c8362f;">${STATE_SYNC.lastError}</span>` : ""}
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">Ultimo sync: ${last ? new Date(last).toLocaleString("it-IT") : "mai"}</span>
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">State locale: ${state.todos.length} to-do</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <button class="btn btn-sm" id="statesync-now-btn">Sincronizza ora</button>
+      <button class="btn btn-sm" id="statesync-pull-btn" title="Scarica lo stato dal cloud e uniscilo al locale">\ud83d\udce5 Recupera ora</button>
+    </div>`;
+  document.getElementById("statesync-now-btn")?.addEventListener("click", async () => {
+    await stateSyncPull({ render: false });
+    await stateSyncPush();
+    render();
+    showToast("Sync completato");
+  });
+  document.getElementById("statesync-pull-btn")?.addEventListener("click", async () => {
+    await stateSyncPull();
+    showToast("Recuperato dal cloud");
+  });
 }
 
 // === UI: pannello connessione nelle Impostazioni ===========================
@@ -19459,6 +19670,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-settings").addEventListener("click", () => {
     document.getElementById("modal-settings").classList.add("open");
     renderDriveConnectRow();
+    renderStateSyncRow();
   });
   document.getElementById("btn-todos").addEventListener("click", () => openTodoModal(null));
 
@@ -19466,6 +19678,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("drive-sync-indicator").addEventListener("click", () => {
     document.getElementById("modal-settings").classList.add("open");
     renderDriveConnectRow();
+    renderStateSyncRow();
     // Scrolla alla sezione Drive
     setTimeout(() => {
       document.getElementById("drive-connect-row")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -19549,6 +19762,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const v = el.type === "number" ? Number(el.value) : el.value;
       state.settings[key] = v;
       saveSettings();
+      if (key === "stateSyncUrl" || key === "stateSyncToken") {
+        stateSyncStartPolling();
+        stateSyncInit(true);
+        renderStateSyncRow();
+      }
       render();
     });
   });
@@ -19674,6 +19892,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Auto-reconnect a Drive se l'utente era connesso (silent refresh)
   driveAutoReconnect();
+
+  // v0.51 — avvia il sync multi-dispositivo via n8n se configurato (funziona anche su iPhone)
+  stateSyncInit();
 });
 
 // ============================================================================
