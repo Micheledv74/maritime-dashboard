@@ -67,27 +67,27 @@
   --accent-2: #0a3f93;
 
   /* Palette semantica — backward compatible col vecchio sistema */
-  --c-red-bg: #fce8ea;
-  --c-red-fg: #a01b22;
+  --c-red-bg: #fbdcde;
+  --c-red-fg: #8f1219;
   --c-red-dot: #c8222a;
   --c-red-soft: rgba(200,34,42,0.08);
   --c-red-strong: #c8222a;
 
-  --c-amber-bg: #fef0db;
-  --c-amber-fg: #b15800;
+  --c-amber-bg: #fdf2dd;
+  --c-amber-fg: #9a4a00;
   --c-amber-dot: #d97706;
   --c-amber-soft: rgba(217,119,6,0.08);
   --c-orange-soft: rgba(217,119,6,0.08);
 
-  --c-blue-bg: #e2edff;
+  --c-blue-bg: #dbe8ff;
   --c-blue-fg: #0a3f93;
   --c-blue-dot: #0e54c1;
   --c-blue-soft: rgba(14,84,193,0.08);
 
   /* Verde tranquillità + verde successo */
-  --c-green-bg: #e3f3e6;
+  --c-green-bg: #e7f5ec;
   --c-green-fg: #145f1f;
-  --c-green-dot: #1f7a2a;
+  --c-green-dot: #1f8a4c;
   --c-green-soft: rgba(31,122,42,0.08);
   --c-green-active: #16a34a;
 
@@ -5764,7 +5764,7 @@ a:hover { text-decoration: underline; }
 .pl-hcard-cert{ border-left:5px solid var(--c-red-strong); cursor:pointer; }
 .pl-hcard-dn{ border-left:5px solid #6d28d9; }
 .pl-hcard-lbl{ font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:8px; }
-.pl-hcard-cert .pl-hcard-lbl{ color:#a01b22; }
+.pl-hcard-cert .pl-hcard-lbl{ color:#8f1219; }
 .pl-hcard-dn .pl-hcard-lbl{ color:#5b21b6; }
 .pl-hcard-row{ display:flex; align-items:baseline; gap:12px; }
 .pl-hnum{ font-family:var(--font-mono); font-size:48px; font-weight:600; line-height:.95; }
@@ -5777,7 +5777,7 @@ a:hover { text-decoration: underline; }
 .pl-mlbl{ font-size:12.5px; font-weight:600; color:#374151; }
 .pl-msub{ font-size:11px; color:var(--text-faint); }
 .pl-mn{ font-family:var(--font-mono); font-size:24px; font-weight:600; color:#374151; }
-.pl-mn.green{ color:#1f7a2a; } .pl-mn.blue{ color:#0e54c1; } .pl-mn.amber{ color:#9a4a00; }
+.pl-mn.green{ color:#1f8a4c; } .pl-mn.blue{ color:#0e54c1; } .pl-mn.amber{ color:#9a4a00; }
 
 /* AZIONI — wrap a pannello + header colonne CHIARO (era scuro) */
 .actions-table-wrap{ background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); }
@@ -5794,12 +5794,12 @@ a:hover { text-decoration: underline; }
 .actions-group .actions-group-title svg{ display:none; }
 .actions-group .actions-group-title::before{ content:""; width:9px; height:9px; border-radius:2px; background:currentColor; flex:none; }
 .actions-group[data-group="urgent"] .actions-group-title{ color:var(--c-red-strong) !important; }
-.actions-group[data-group="week"] .actions-group-title{ color:#b15800 !important; }
+.actions-group[data-group="week"] .actions-group-title{ color:#9a4a00 !important; }
 .actions-group[data-group="someday"] .actions-group-title{ color:#0a3f93 !important; }
 .actions-group.pinned-group .actions-group-title{ color:#5b21b6 !important; }
 .actions-group .actions-group-title .muted{ margin-left:auto; color:#fff !important; font-weight:700; border-radius:20px; padding:1px 9px; font-size:11px; font-family:var(--font-mono); background:currentColor; }
 .actions-group[data-group="urgent"] .actions-group-title .muted{ background:var(--c-red-strong) !important; color:#fff !important; }
-.actions-group[data-group="week"] .actions-group-title .muted{ background:#b15800 !important; color:#fff !important; }
+.actions-group[data-group="week"] .actions-group-title .muted{ background:#9a4a00 !important; color:#fff !important; }
 .actions-group[data-group="someday"] .actions-group-title .muted{ background:#0a3f93 !important; color:#fff !important; }
 .actions-group.pinned-group .actions-group-title .muted{ background:#5b21b6 !important; color:#fff !important; }
 
@@ -5847,8 +5847,8 @@ a:hover { text-decoration: underline; }
   background:#eef2f6 !important; color:#475569 !important; border:none !important;
   font-size:10.5px !important; font-weight:700 !important; padding:2px 9px !important; border-radius:20px !important;
 }
-.vessel-card[data-status="ok"] .vessel-state-pill{   background:#e3f3e6 !important; color:#145f1f !important; }
-.vessel-card[data-status="warn"] .vessel-state-pill{ background:#fbe6c8 !important; color:#9a4a00 !important; }
+.vessel-card[data-status="ok"] .vessel-state-pill{   background:#e7f5ec !important; color:#145f1f !important; }
+.vessel-card[data-status="warn"] .vessel-state-pill{ background:#fdf2dd !important; color:#9a4a00 !important; }
 .vessel-card[data-status="crit"] .vessel-state-pill{ background:#fbdcde !important; color:#8f1219 !important; }
 .vessel-card[data-status="drydock"] .vessel-state-pill{ background:var(--c-norrbotten-soft) !important; color:var(--c-norrbotten) !important; }
 .vessel-card[data-vid] .vessel-todo-badge{ background:#eef2f6 !important; color:#475569 !important; border:none !important; font-weight:700; }
@@ -5867,7 +5867,7 @@ a:hover { text-decoration: underline; }
 .vessel-card[data-vid] .vessel-foot{ padding-top:11px !important; border-top:1px solid #f1f4f7 !important; font-size:12px !important; color:var(--text-muted) !important; }
 .vessel-card[data-vid] .eta-badge{ background:#eef2f6 !important; color:#475569 !important; border:none !important; font-weight:600; border-radius:6px; padding:2px 8px; }
 .vessel-card[data-vid] .eta-badge.past{ background:#fbdcde !important; color:#8f1219 !important; }
-.vessel-card[data-vid] .eta-badge.urgent{ background:#fbe6c8 !important; color:#9a4a00 !important; }
+.vessel-card[data-vid] .eta-badge.urgent{ background:#fdf2dd !important; color:#9a4a00 !important; }
 
 /* Titoli sezione → etichetta piccola maiuscola grigia (come riferimento) */
 .section-title h2{ font-size:12px !important; font-weight:700 !important; letter-spacing:.1em !important; text-transform:uppercase !important; color:#8a93a0 !important; }
@@ -5892,7 +5892,7 @@ a:hover { text-decoration: underline; }
 }
 /* Sync: pill compatta verde (era barra larga flex:1) */
 .app-header .sync-info{
-  flex:none !important; background:#e8f5ec; border:1px solid #cfe9d8; color:#145f1f;
+  flex:none !important; background:#e7f5ec; border:1px solid #cfe9d8; color:#145f1f;
   border-radius:7px; padding:4px 11px; font-size:12px; font-weight:500; gap:7px; overflow:visible;
 }
 .app-header .sync-dot{ background:#2b8a3e; }
@@ -6131,9 +6131,9 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .action-row .pill-status{ display:inline-flex !important; align-items:center; gap:6px; padding:4px 10px !important; border-radius:6px !important; font-size:11px !important; font-weight:700 !important; text-transform:none !important; letter-spacing:0 !important; }
 .action-row .pill-status .pill-status-ic{ font-size:12px; line-height:1; flex:none; }
 .action-row .pill-status.crit, .action-row .pill-status.alert, .action-row .pill-status.urgent{ background:#fbdcde !important; color:#8f1219 !important; }
-.action-row .pill-status.warn{ background:#fbe6c8 !important; color:#9a4a00 !important; }
+.action-row .pill-status.warn{ background:#fdf2dd !important; color:#9a4a00 !important; }
 .action-row .pill-status.info{ background:#dbe8ff !important; color:#0a3f93 !important; }
-.action-row .pill-status.ok, .action-row .pill-status.success{ background:#d4eedb !important; color:#145f1f !important; }
+.action-row .pill-status.ok, .action-row .pill-status.success{ background:#e7f5ec !important; color:#145f1f !important; }
 .action-row .pill-status.neutral, .action-row .pill-status.grey{ background:#e9edf2 !important; color:#475569 !important; }
 </style>
 
@@ -6186,7 +6186,7 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 /* card preview (Prossime scadenze / To-do aperte) */
 .panel-card{ background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); }
 .panel-card-head{ display:flex; align-items:center; justify-content:space-between; padding:13px 18px; border-bottom:1px solid #eef1f4; font-size:12px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#3a4250; }
-.panel-card-head.red{ color:#a01b22; }
+.panel-card-head.red{ color:#8f1219; }
 .vd-link{ background:none; border:none; font-size:11.5px; font-weight:600; color:var(--accent); cursor:pointer; }
 .vd-prev-row{ display:flex; align-items:center; gap:10px; padding:10px 18px; border-bottom:1px solid #f3f5f8; }
 .vd-prev-row:last-child{ border-bottom:none; }
@@ -6348,7 +6348,7 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .deliv-src{ font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap; }
 .deliv-src.voyage{ background:#dbe8ff; color:#0a3f93; }
 .deliv-src.manual{ background:#e7f0e9; color:#1f5a2c; }
-.deliv-src.infoship{ background:#fdf0d8; color:#9a6a1a; }
+.deliv-src.infoship{ background:#fdf2dd; color:#9a6a1a; }
 .deliv-src.none{ background:#eef1f4; color:#8a93a0; }
 .deliv-modes{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
 .deliv-mode-opt{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:#3a4250; cursor:pointer; }
@@ -6391,14 +6391,14 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .noon-setpos-mini{ background:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 9px; font-size:11px; font-weight:600; color:#3a4250; cursor:pointer; }
 .noon-setpos-mini:hover{ background:#f6f9fc; }
 .noon-setpos-btn{ background:#eef4ff; border:1px solid #cfe0fb; border-radius:7px; padding:5px 11px; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; }
-.noon-setpos-btn:hover{ background:#e2edff; }
+.noon-setpos-btn:hover{ background:#dbe8ff; }
 
 /* v0.20 — Badge insight procurement nella card flotta */
 .vessel-proc-badges{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 12px; }
 .proc-badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 9px; border-radius:7px; cursor:pointer; border:1px solid transparent; }
-.proc-badge.unplanned{ background:#fdf0d8; color:#9a4a00; border-color:#f0d9ad; }
+.proc-badge.unplanned{ background:#fdf2dd; color:#9a4a00; border-color:#f0d9ad; }
 .proc-badge.unplanned:hover{ background:#fbe6c0; }
-.proc-badge.stale{ background:#fbe4e6; color:#8f1219; border-color:#f2c4c8; }
+.proc-badge.stale{ background:#fbdcde; color:#8f1219; border-color:#f2c4c8; }
 .proc-badge.stale:hover{ background:#f7d3d7; }
 .proc-badge .icon{ width:12px; height:12px; }
 /* arrivo tra X giorni nel footer card */
@@ -6430,7 +6430,7 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .pr-role{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:5px; text-transform:uppercase; letter-spacing:.03em; }
 .pr-role.pr-nave{ background:#dbe8ff; color:#0a3f93; }
 .pr-role.pr-agenzia{ background:#e7f0e9; color:#1f5a2c; }
-.pr-role.pr-fornitore{ background:#fdf0d8; color:#9a4a00; }
+.pr-role.pr-fornitore{ background:#fdf2dd; color:#9a4a00; }
 .pr-vtag{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; background:#f1f4f7; color:#5b6470; }
 .pr-vtag[data-vid="peppino"]{ background:var(--c-peppino-soft); color:var(--c-peppino); }
 .pr-vtag[data-vid="medliguria"]{ background:var(--c-liguria-soft); color:var(--c-liguria); }
@@ -6553,7 +6553,7 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .kpis.accent .kpis-v{ color:var(--accent); }
 .kpis.warnmute .kpis-v{ color:#9a6a1a; }
 /* mini-flag PO da pianificare */
-.vessel-mini-flag{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:#9a4a00; background:#fdf0d8; border:1px solid #f0d9ad; border-radius:7px; padding:5px 10px; margin-bottom:10px; cursor:pointer; }
+.vessel-mini-flag{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; color:#9a4a00; background:#fdf2dd; border:1px solid #f0d9ad; border-radius:7px; padding:5px 10px; margin-bottom:10px; cursor:pointer; }
 .vessel-mini-flag:hover{ background:#fbe6c0; }
 .vessel-mini-flag .icon{ width:12px; height:12px; }
 /* anticipazione viaggio nella card */
@@ -6622,9 +6622,9 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .ec-star.on{ color:#f0a500; }
 .ec-star:hover{ transform:scale(1.1); }
 .ec-verdict{ font-size:12.5px; font-weight:700; margin-left:8px; padding:3px 10px; border-radius:var(--radius-pill); }
-.ec-verdict.good{ background:#e7f5ec; color:#1f7a44; }
+.ec-verdict.good{ background:#e7f5ec; color:#145f1f; }
 .ec-verdict.mid{ background:#eef1f4; color:#5b6470; }
-.ec-verdict.bad{ background:#fbdcde; color:#a01b22; }
+.ec-verdict.bad{ background:#fbdcde; color:#8f1219; }
 .ec-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-bottom:16px; }
 .ec-stat{ background:#f7f9fb; border:1px solid #eef1f4; border-radius:10px; padding:12px 14px; display:flex; flex-direction:column; gap:3px; }
 .ec-stat-n{ font-family:var(--font-mono); font-size:22px; font-weight:700; color:#2a313c; }
@@ -10879,8 +10879,8 @@ function dismissReply(id){
 // === v0.48 — AI Email Assistant: categorizzazione su tutta la posta recente + workspace strumenti scrittura ===
 const EMAIL_CATS = {
   invoice_reminder: { label: "Fattura in sollecito", color: "#8a1414", bg: "#fbe6e6" },
-  rfq_chase:        { label: "Sollecito RFQ",         color: "#b15800", bg: "#fbf1dd" },
-  certificate:      { label: "Certificato",           color: "#a01b22", bg: "#fbeae9" },
+  rfq_chase:        { label: "Sollecito RFQ",         color: "#9a4a00", bg: "#fbf1dd" },
+  certificate:      { label: "Certificato",           color: "#8f1219", bg: "#fbeae9" },
   po:               { label: "Ordine / PO",           color: "#0a3f93", bg: "#e7f0fb" },
   logistics:        { label: "Logistica / Consegna",  color: "#1a2c5e", bg: "#e9ecf4" },
   system:           { label: "Sistema / IT",          color: "#334155", bg: "#eef1f5" },
@@ -15626,7 +15626,7 @@ function deliveryPlannerHTML(it, vesselId){
 
   const mode = plan.mode || (eff.source === "infoship" ? "none" : "none");
   const srcBadge = {
-    voyage:   `<span class="deliv-src voyage" style="${eff.stale?'background:#fbf1dd;color:#b15800;':''}">${eff.stale?'⏸':'⚓'} ${escapeHTML(eff.legLabel || "Voyage")}</span>`,
+    voyage:   `<span class="deliv-src voyage" style="${eff.stale?'background:#fbf1dd;color:#9a4a00;':''}">${eff.stale?'⏸':'⚓'} ${escapeHTML(eff.legLabel || "Voyage")}</span>`,
     manual:   `<span class="deliv-src manual">✎ Manuale</span>`,
     infoship: `<span class="deliv-src infoship">~ Stima Infoship</span>`,
     none:     `<span class="deliv-src none">Da pianificare</span>`
