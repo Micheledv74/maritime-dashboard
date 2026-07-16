@@ -7281,6 +7281,34 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     </div>
 
     <div class="modal-section">
+      <h3>Sync via GitHub (consigliato)</h3>
+      <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
+        Tiene lo <b>stesso database</b> su iPhone, PC e tablet salvando un file in un tuo repo GitHub <b>privato</b>.
+        Raggiungibile ovunque via HTTPS, senza server né login Google. Nessun tunnel.
+        <br>1) Crea un repo <b>privato</b> (es. <code>mpd-sync</code>). 2) Crea un <b>Personal Access Token</b> fine-grained con permesso <b>Contents: Read and write</b> su quel repo. 3) Compila i campi qui sotto, <b>identici</b> su ogni dispositivo.
+      </p>
+      <div class="drive-connect-row" id="gh-sync-row">
+        <div class="status">☁ Sync GitHub non configurato</div>
+      </div>
+      <div class="setting-row">
+        <label>Repo (owner/nome)</label>
+        <input type="text" placeholder="Micheledv74/mpd-sync" data-setting="ghSyncRepo" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Branch</label>
+        <input type="text" placeholder="main" data-setting="ghSyncBranch" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Percorso file</label>
+        <input type="text" placeholder="state.json" data-setting="ghSyncPath" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Personal Access Token</label>
+        <input type="password" placeholder="github_pat_…" data-setting="ghSyncToken" style="width:220px;">
+      </div>
+    </div>
+
+    <div class="modal-section">
       <h3>AI Email Assistant</h3>
       <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
         Nell'anteprima di progettazione l'AI funziona senza configurazione. Sul sito pubblicato (GitHub Pages) serve un proxy:
@@ -7956,7 +7984,11 @@ const DEFAULT_SETTINGS = {
   aiWebhookUrl: "",      // v0.50 — proxy n8n per le funzioni AI email quando pubblicato (fuori dall'anteprima Claude)
   aiWebhookToken: "",
   stateSyncUrl: "",     // v0.51 — sync stato multi-dispositivo via webhook n8n (funziona anche dove Google Drive non si collega, es. iPhone)
-  stateSyncToken: ""
+  stateSyncToken: "",
+  ghSyncRepo: "",       // v0.52 — sync via GitHub (repo PRIVATO come database). Es. "Micheledv74/mpd-sync"
+  ghSyncBranch: "main",
+  ghSyncPath: "state.json",
+  ghSyncToken: ""       // Personal Access Token (fine-grained) con permesso Contents read/write sul repo
 };
 
 const ALERT_CONFIG = {
@@ -19315,6 +19347,7 @@ function driveSchedulePush() {
   // v0.51 — il sync n8n è indipendente da Drive: va agganciato PRIMA dell'early-return,
   // altrimenti su iPhone (dove Drive non è connesso) non partirebbe mai.
   if (typeof stateSyncSchedulePush === "function") stateSyncSchedulePush();
+  if (typeof ghSyncSchedulePush === "function") ghSyncSchedulePush();
   if (!state.drive.token || state.drive.status === "disconnected") return;
   if (state.drive.pushTimer) clearTimeout(state.drive.pushTimer);
   state.drive.pushTimer = setTimeout(() => {
@@ -19482,6 +19515,180 @@ function renderStateSyncRow() {
   document.getElementById("statesync-pull-btn")?.addEventListener("click", async () => {
     await stateSyncPull();
     showToast("Recuperato dal cloud");
+  });
+}
+
+// ============================================================================
+// === SYNC VIA GITHUB (v0.52) ===============================================
+// ============================================================================
+// Usa un repo GitHub PRIVATO come database. Un unico file JSON (buildStatePayload)
+// letto/scritto via API GitHub Contents (api.github.com, HTTPS). Raggiungibile
+// ovunque, senza server proprio, senza tunnel, senza login Google. Ideale per
+// iPhone dove il popup OAuth di Drive viene bloccato.
+const GH_SYNC = {
+  pushDebounceMs: 3000,
+  pollIntervalMs: 45000,
+  pushTimer: null,
+  pollTimer: null,
+  sha: null,            // sha corrente del file (serve a GitHub per aggiornarlo)
+  lastPushAt: null,
+  lastPullAt: null,
+  lastError: null,
+  status: "idle",       // idle | syncing | ok | error
+  suppressPush: false,
+  inited: false
+};
+
+function ghSyncConfigured() {
+  const s = state.settings || {};
+  return !!(s.ghSyncRepo && s.ghSyncRepo.trim() && s.ghSyncToken && s.ghSyncToken.trim());
+}
+
+function ghSyncApiUrl() {
+  const s = state.settings;
+  const repo = s.ghSyncRepo.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+  const path = (s.ghSyncPath || "state.json").trim().replace(/^\/+/, "");
+  return `https://api.github.com/repos/${repo}/contents/${path}`;
+}
+
+function b64EncodeUtf8(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUtf8(b64) { return decodeURIComponent(escape(atob((b64 || "").replace(/\s/g, "")))); }
+
+function ghSyncHeaders() {
+  return {
+    "Authorization": "Bearer " + state.settings.ghSyncToken.trim(),
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+}
+
+function ghSyncSetStatus(st, err) {
+  GH_SYNC.status = st;
+  GH_SYNC.lastError = err || null;
+  if (typeof renderGhSyncRow === "function") renderGhSyncRow();
+}
+
+// Ritorna { payload, sha } oppure { payload: null, sha: null } se il file non esiste ancora
+async function ghSyncFetchRemote() {
+  const branch = (state.settings.ghSyncBranch || "main").trim();
+  const res = await fetch(ghSyncApiUrl() + "?ref=" + encodeURIComponent(branch), {
+    headers: ghSyncHeaders(), cache: "no-store"
+  });
+  if (res.status === 404) return { payload: null, sha: null };
+  if (!res.ok) throw new Error("GitHub HTTP " + res.status + (res.status === 401 ? " (token non valido)" : ""));
+  const json = await res.json();
+  GH_SYNC.sha = json.sha || null;
+  let payload = null;
+  try { payload = JSON.parse(b64DecodeUtf8(json.content)); } catch (_) { payload = null; }
+  return { payload, sha: json.sha || null };
+}
+
+async function ghSyncPull(opts) {
+  if (!ghSyncConfigured()) return;
+  ghSyncSetStatus("syncing");
+  try {
+    const { payload } = await ghSyncFetchRemote();
+    if (payload && typeof payload === "object" && Object.keys(payload).length) {
+      GH_SYNC.suppressPush = true;
+      try { mergeRemoteIntoLocal(payload); }
+      finally { GH_SYNC.suppressPush = false; }
+      if (!opts || opts.render !== false) render();
+    }
+    GH_SYNC.lastPullAt = new Date().toISOString();
+    ghSyncSetStatus("ok");
+  } catch (e) {
+    console.error("[Sync GitHub] pull:", e);
+    ghSyncSetStatus("error", e.message);
+  }
+}
+
+async function ghSyncPush() {
+  if (!ghSyncConfigured()) return;
+  // Safeguard anti-svuotamento: se locale ha 0 to-do ma il cloud ne ha, NON sovrascrivo.
+  ghSyncSetStatus("syncing");
+  try {
+    let remote;
+    try { remote = await ghSyncFetchRemote(); } catch (e) { remote = null; }
+    if ((!state.todos || state.todos.length === 0) && remote && remote.payload
+        && Array.isArray(remote.payload.todos) && remote.payload.todos.length > 0) {
+      console.warn("[Sync GitHub] push saltato: locale 0 to-do, cloud ne ha", remote.payload.todos.length);
+      ghSyncSetStatus("idle");
+      return;
+    }
+    const body = {
+      message: "state sync " + new Date().toISOString() + " (" + getDeviceId() + ")",
+      content: b64EncodeUtf8(JSON.stringify(buildStatePayload(), null, 2)),
+      branch: (state.settings.ghSyncBranch || "main").trim()
+    };
+    if (GH_SYNC.sha) body.sha = GH_SYNC.sha;
+    let res = await fetch(ghSyncApiUrl(), { method: "PUT", headers: ghSyncHeaders(), body: JSON.stringify(body) });
+    // sha stale (qualcuno ha scritto nel frattempo): rileggo e riprovo una volta
+    if (res.status === 409) {
+      const fresh = await ghSyncFetchRemote();
+      body.sha = fresh.sha || undefined;
+      res = await fetch(ghSyncApiUrl(), { method: "PUT", headers: ghSyncHeaders(), body: JSON.stringify(body) });
+    }
+    if (!res.ok) throw new Error("GitHub HTTP " + res.status + (res.status === 401 ? " (token non valido)" : ""));
+    const json = await res.json();
+    if (json.content && json.content.sha) GH_SYNC.sha = json.content.sha;
+    GH_SYNC.lastPushAt = new Date().toISOString();
+    ghSyncSetStatus("ok");
+  } catch (e) {
+    console.error("[Sync GitHub] push:", e);
+    ghSyncSetStatus("error", e.message);
+  }
+}
+
+function ghSyncSchedulePush() {
+  if (!ghSyncConfigured() || GH_SYNC.suppressPush) return;
+  if (GH_SYNC.pushTimer) clearTimeout(GH_SYNC.pushTimer);
+  GH_SYNC.pushTimer = setTimeout(() => { GH_SYNC.pushTimer = null; ghSyncPush(); }, GH_SYNC.pushDebounceMs);
+}
+
+function ghSyncStartPolling() {
+  if (GH_SYNC.pollTimer) clearInterval(GH_SYNC.pollTimer);
+  if (!ghSyncConfigured()) return;
+  GH_SYNC.pollTimer = setInterval(() => { ghSyncPull({ render: true }); }, GH_SYNC.pollIntervalMs);
+}
+
+async function ghSyncInit(force) {
+  if (!ghSyncConfigured()) return;
+  if (GH_SYNC.inited && !force) return;
+  GH_SYNC.inited = true;
+  await ghSyncPull({ render: true });   // scarico prima lo stato dal cloud
+  ghSyncSchedulePush();                 // poi ripubblico (seed se il file non esiste)
+  ghSyncStartPolling();
+}
+
+function renderGhSyncRow() {
+  const row = document.getElementById("gh-sync-row");
+  if (!row) return;
+  if (!ghSyncConfigured()) {
+    row.innerHTML = `<div class="status">\u2601 Sync GitHub non configurato<br><span style="font-size:var(--fs-xs);">Compila repo e token qui sotto per sincronizzare iPhone, PC e tablet.</span></div>`;
+    return;
+  }
+  const labels = { idle: "pronto", syncing: "sincronizzo\u2026", ok: "sincronizzato", error: "errore" };
+  const last = GH_SYNC.lastPullAt || GH_SYNC.lastPushAt;
+  row.innerHTML = `
+    <div class="status connected" style="flex:1;min-width:200px;">
+      \u2713 Sync GitHub attivo \u2014 ${labels[GH_SYNC.status] || ""}
+      ${GH_SYNC.lastError ? `<br><span style="font-size:var(--fs-xs);color:#c8362f;">${GH_SYNC.lastError}</span>` : ""}
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">Ultimo sync: ${last ? new Date(last).toLocaleString("it-IT") : "mai"}</span>
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">State locale: ${state.todos.length} to-do</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <button class="btn btn-sm" id="ghsync-now-btn">Sincronizza ora</button>
+      <button class="btn btn-sm" id="ghsync-pull-btn" title="Scarica lo stato dal repo e uniscilo al locale">\ud83d\udce5 Recupera ora</button>
+    </div>`;
+  document.getElementById("ghsync-now-btn")?.addEventListener("click", async () => {
+    await ghSyncPull({ render: false });
+    await ghSyncPush();
+    render();
+    showToast("Sync GitHub completato");
+  });
+  document.getElementById("ghsync-pull-btn")?.addEventListener("click", async () => {
+    await ghSyncPull();
+    showToast("Recuperato da GitHub");
   });
 }
 
@@ -19671,6 +19878,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal-settings").classList.add("open");
     renderDriveConnectRow();
     renderStateSyncRow();
+    renderGhSyncRow();
   });
   document.getElementById("btn-todos").addEventListener("click", () => openTodoModal(null));
 
@@ -19679,6 +19887,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal-settings").classList.add("open");
     renderDriveConnectRow();
     renderStateSyncRow();
+    renderGhSyncRow();
     // Scrolla alla sezione Drive
     setTimeout(() => {
       document.getElementById("drive-connect-row")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -19766,6 +19975,13 @@ document.addEventListener("DOMContentLoaded", () => {
         stateSyncStartPolling();
         stateSyncInit(true);
         renderStateSyncRow();
+      }
+      if (key === "ghSyncRepo" || key === "ghSyncToken" || key === "ghSyncBranch" || key === "ghSyncPath") {
+        GH_SYNC.sha = null;
+        GH_SYNC.inited = false;
+        ghSyncStartPolling();
+        ghSyncInit(true);
+        renderGhSyncRow();
       }
       render();
     });
@@ -19895,6 +20111,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // v0.51 — avvia il sync multi-dispositivo via n8n se configurato (funziona anche su iPhone)
   stateSyncInit();
+
+  // v0.52 — avvia il sync via GitHub se configurato (repo privato come database)
+  ghSyncInit();
 });
 
 // ============================================================================
