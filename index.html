@@ -7077,8 +7077,13 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .ma-check{ width:30px; height:30px; border-radius:50%; border:2px solid #c8ccd2; background:transparent; flex:none; color:#fff; font-size:15px; display:flex; align-items:center; justify-content:center; }
   .ma-check.on{ border:none; background:#117a3a; }
   .ma-tbody{ flex:1; min-width:0; background:none; border:none; text-align:left; display:flex; flex-direction:column; padding:0; }
-  .ma-ttext{ font-size:13.5px; font-weight:600; color:#1a2c3a; }
+  .ma-ttext{ font-size:14.5px; font-weight:650; color:#1a2c3a; line-height:1.3; white-space:normal; overflow-wrap:anywhere; }
   .ma-tsub{ font-size:12px; color:#8a93a0; margin-top:2px; }
+  .ma-tchips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+  .ma-tchip{ font-size:10.5px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#5a6675; background:#f0f2f5; border-radius:5px; padding:2px 7px; }
+  .ma-tchip-vessel{ color:#0a3f93; background:#e8eeff; }
+  .ma-tchip-outlook{ color:#0c5d8a; background:#e2f0f8; }
+  .ma-tdue{ font-size:12px; margin-top:6px; font-weight:600; color:#8a93a0; }
   /* --- Certificati --- */
   .ma-crow-name{ font-size:13.5px; font-weight:700; color:#1a2c3a; }
   .ma-crow-sub{ font-size:12.5px; color:#8a93a0; margin-top:2px; }
@@ -9176,15 +9181,33 @@ function maCertRow(c, showVessel){
 
 function maTodoRow(t){
   const cls = (typeof classifyDueDate==="function") ? classifyDueDate(t.dueDate) : "";
-  const late = cls==="overdue";
-  const due = t.dueDate ? (cls==="today"?"Oggi":cls==="overdue"?"Scaduto "+formatDate(t.dueDate):formatDate(t.dueDate)) : "—";
-  const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : (t.category||"—");
-  const text = escapeHTML(t.action || t.note || t.reference || "To-do");
-  return `<div class="ma-card ma-trow" style="${t.done?'opacity:.5;':''}">
+  const late = cls==="overdue", today = cls==="today";
+  const due = t.dueDate ? (today?"Oggi":late?"Scaduto "+formatDate(t.dueDate):formatDate(t.dueDate)) : "";
+  const category = t.category || "Altro";
+  const ref = (t.reference || t.target || "").trim();
+  const actionRaw = (t.action || "").trim();
+  // Molte to-do (spec. Outlook) hanno action generica ("Altro") e l'oggetto vero nel reference:
+  // promuovo il testo reale a titolo, così la card dice DI COSA si tratta.
+  const generic = !actionRaw || actionRaw.toLowerCase()===category.toLowerCase() || actionRaw.toLowerCase()==="altro";
+  const title = generic ? (ref || t.note || actionRaw || "To-do") : actionRaw;
+  const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : "";
+  const prio = t.priority || "media";
+  const prioColor = prio==="alta" ? "#c8362f" : prio==="bassa" ? "#c8ccd2" : "#b8860b";
+  const dueColor = late ? "#c8362f" : today ? "#b8860b" : "#8a93a0";
+  // Chip contesto: categoria ("che tipo di azione"), nave, origine Outlook. Se il titolo
+  // viene dal reference mostro anche l'azione originale quando è significativa (≠ categoria).
+  const chips = [];
+  chips.push(`<span class="ma-tchip">${escapeHTML(category)}</span>`);
+  if (!generic && actionRaw && actionRaw.toLowerCase()!==category.toLowerCase())
+    chips.push(`<span class="ma-tchip">${escapeHTML(actionRaw)}</span>`);
+  if (vn) chips.push(`<span class="ma-tchip ma-tchip-vessel">${escapeHTML(vn)}</span>`);
+  if (t.outlookTaskId) chips.push(`<span class="ma-tchip ma-tchip-outlook">📧 Outlook</span>`);
+  return `<div class="ma-card ma-trow" style="border-left:4px solid ${prioColor};${t.done?'opacity:.5;':''}">
     <button class="ma-check ${t.done?'on':''}" onclick="maToggleTodo('${escapeAttr(t.id)}')">${t.done?'✓':''}</button>
     <button class="ma-tbody" onclick="openTodoModal('${escapeAttr(t.id)}')">
-      <span class="ma-ttext" style="${t.done?'text-decoration:line-through;':''}">${text}</span>
-      <span class="ma-tsub" style="${late?'color:#c8362f;font-weight:700;':''}">${escapeHTML(vn)} · ${escapeHTML(due)}</span>
+      <span class="ma-ttext" style="${t.done?'text-decoration:line-through;':''}">${escapeHTML(title)}</span>
+      <span class="ma-tchips">${chips.join("")}</span>
+      ${due?`<span class="ma-tdue" style="color:${dueColor};">${escapeHTML(due)}</span>`:""}
     </button>
   </div>`;
 }
@@ -20213,6 +20236,17 @@ function openTodoModal(todoId, prefillVesselId, prefillItem) {
     const t = state.todos.find(x => x.id === todoId);
     if (!t) return;
     title.textContent = "Modifica to-do";
+    // Barra oggetto in alto: mostra subito DI COSA tratta la to-do (spec. quelle Outlook,
+    // dove l'oggetto vero sta nel reference e non nella categoria/azione).
+    const remEl = document.getElementById("todo-item-reminder");
+    const remText = document.getElementById("todo-item-reminder-text");
+    const remLabel = remEl && remEl.querySelector(".reminder-label");
+    const subject = (t.reference || t.target || t.note || "").trim();
+    if (remEl && remText && subject) {
+      if (remLabel) remLabel.textContent = t.outlookTaskId ? "Email:" : "Oggetto:";
+      remText.textContent = subject;
+      remEl.style.display = "block";
+    }
     document.getElementById("todo-category").value = t.category || (t.vessel ? "Nave" : "Altro");
     document.getElementById("todo-priority").value = t.priority || "media";
     vesselSelect.value = t.vessel || "";
