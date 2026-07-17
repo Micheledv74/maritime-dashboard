@@ -2508,6 +2508,9 @@ a:hover { text-decoration: underline; }
 
 
 /* Archivio completionsHistory */
+.da-seg-btn{ border:none; background:transparent; padding:5px 11px; border-radius:6px; font-size:12px; font-weight:600; color:#5b6470; cursor:pointer; }
+.da-seg-btn.active{ background:#fff; color:var(--accent); box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.da-row:hover{ background:var(--bg-muted); }
 .archive-day-section {
   margin-bottom: 22px;
 }
@@ -7132,6 +7135,9 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
       <button class="icon-btn desktop-only" id="btn-todos" title="Le mie to-do" aria-label="To-do">
         <svg class="icon icon-md"><use href="#i-checksquare"/></svg><span id="todos-badge" class="badge" style="display:none;">0</span>
       </button>
+      <button class="icon-btn desktop-only" id="btn-delivery-archive" title="Storico consegne (flotta)" aria-label="Storico consegne">
+        <svg class="icon icon-md"><use href="#i-truck"/></svg>
+      </button>
       <button class="icon-btn desktop-only" id="btn-report-ihm" title="Report IHM mensile (Excel)" aria-label="Report IHM">
         <svg class="icon icon-md"><use href="#i-download"/></svg>
       </button>
@@ -7155,6 +7161,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
       <button data-mm-action="todo-from-email"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-mail"/></svg>To-do da email</button>
       <button data-mm-action="palette"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-search"/></svg>Cerca</button>
       <div class="divider"></div>
+      <button data-mm-action="delivery-archive"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-truck"/></svg>Storico consegne</button>
       <button data-mm-action="report-ihm"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-download"/></svg>Report IHM (Excel)</button>
       <div class="divider"></div>
       <button data-mm-action="settings"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-settings"/></svg>Impostazioni</button>
@@ -7888,6 +7895,7 @@ const VESSELS = [
   {
     vesselId: "norrbotten",
     displayName: "NORRBOTTEN",
+    allowManual: true,           // oltre al feed Infoship, consente il registro ordini manuale
     imo: "9191931",
     mmsi: "255624000",
     callSign: "CQCK",
@@ -8474,13 +8482,24 @@ function generateActionsForVessel(vessel) {
     .sort((a, b) => (order[a.level] ?? 9) - (order[b.level] ?? 9));
 }
 
+// v0.54 — "Firma" stabile dello stato di un'azione: rimuove il contatore giorni
+// ("· 6g", "· 5g"...) che cambia OGNI giorno. Senza questa normalizzazione una
+// stessa azione (es. "In attesa · 5g") veniva riproposta il giorno dopo come
+// "In attesa · 6g" e non combaciava più con quella archiviata → l'utente doveva
+// rispuntare ogni giorno gli stessi solleciti già fatti.
+function actionStatusSig(label) {
+  return String(label || "").replace(/\s*·\s*\d+\s*g\b/gi, "").trim();
+}
+
 // Verifica se un'azione è stata archiviata e se lo stato Infoship non è cambiato
 // dalla data di archiviazione. Se è cambiato, la rimostriamo.
 function isArchivedAndUnchanged(action) {
   const archived = state.archivedActions[action.key];
   if (!archived) return false;
-  // Se lo stato attuale è uguale a quello al momento dell'archiviazione → tenuta nascosta
-  return archived.lastSeenStatus === (action.label || "");
+  // Confronto sulle firme normalizzate (senza il contatore giorni), così un
+  // sollecito già segnato "fatto" resta nascosto finché lo stato Infoship reale
+  // non cambia, indipendentemente da quanti giorni passano.
+  return actionStatusSig(archived.lastSeenStatus) === actionStatusSig(action.label);
 }
 
 // Marca un'azione come "fatto" (la nasconde finché Infoship non cambia stato)
@@ -8498,7 +8517,7 @@ function archiveAction(actionKey, actionLabel, actionContext) {
 
   state.archivedActions[actionKey] = {
     archivedAt: new Date().toISOString(),
-    lastSeenStatus: actionLabel
+    lastSeenStatus: actionStatusSig(actionLabel)
   };
   saveArchivedActions();
   showToast("Azione archiviata");
@@ -8780,6 +8799,8 @@ function addTodo(todo) {
     note: todo.note || "",
     recur: todo.recur || null,            // ricorrenza: {type,interval|ordinal,weekday} o null
     kind: todo.kind === "fleet" ? "fleet" : "todo",  // v0.33 — todo | fleet (azione flotta)
+    // v0.54 — link email di origine: mostrato come bottone "📧 Apri" nella lista to-do
+    ...(todo.outlookWebUrl ? { outlookWebUrl: todo.outlookWebUrl, outlookLinkedName: todo.outlookLinkedName || "" } : {}),
     done: false,
     createdAt: new Date().toISOString()
   };
@@ -11194,7 +11215,7 @@ function renderEmailPage(){
         </div>
       </div>
       <div class="pr-actions">
-        <button class="pr-btn pr-draft" onclick="window.openEmailWorkspace('${escapeAttr(r.id)}')" title="Apri strumenti: riassunto, bozza, tono, traduzione, risposte rapide">✎ Apri</button>
+        <button class="pr-btn pr-draft" onclick="window.openEmailWorkspace('${escapeAttr(r.id)}')" title="Assistente scrittura: riassunto, bozza, tono, traduzione, risposte rapide">✎ Assistente</button>
         ${openBtn}
         <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
       </div>
@@ -11530,7 +11551,7 @@ window.wsCreateTodoFromSuggestion = function(i){
 window.createTodoFromDeadline = function(id){
   const r = getEmailThreads().find(x=>x.id===id);
   if(!r || !r.deadline) return;
-  addTodo({ action: "Rispondere a " + r.fromName + " — " + r.subject, vessel: r.vesselId || null, category: "Email", reference: r.subject || "", dueDate: r.deadline.iso, note: "Scadenza rilevata automaticamente nel testo dell'email." });
+  addTodo({ action: "Rispondere a " + r.fromName + " — " + r.subject, vessel: r.vesselId || null, category: "Email", reference: r.subject || "", dueDate: r.deadline.iso, note: "Scadenza rilevata automaticamente nel testo dell'email.", outlookWebUrl: r.webLink || "", outlookLinkedName: r.subject || "" });
   showToast("✓ To-do creata per " + new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT"));
   if (state.view === "email") render();
 };
@@ -11563,15 +11584,71 @@ window.dismissReplyUI = function(id){
 window.replyToTodo = function(id){
   const r = getEmailThreads().find(x=>x.id===id);
   if(!r){ return; }
-  const txt = "Rispondere a "+r.fromName+" — "+r.subject;
-  try{
-    if(typeof addTodo==="function"){ addTodo({ action: txt, vessel: r.vesselId||null, category:"Email", priority: r.days>=5?"high":"normal" }); }
-    else if(typeof createTodo==="function"){ createTodo(txt, r.vesselId||null); }
-    dismissReply(id);
-    showToast("✓ To-do creata");
-    if(state.view==="email"||state.view==="overview") render();
-    renderSwitcher();
-  }catch(e){ showToast("To-do non creata"); }
+
+  // v0.54 — Apre la modale to-do pre-compilata (così posso impostare data, note e
+  // gestirla come una to-do vera) e allega il link dell'email → nella lista to-do
+  // diventa il bottone "📧 Apri".
+  const vessel = r.vesselId || "";
+  const category = vessel ? "Nave" : "Ufficio";
+  const lastMsg = (r.messages && r.messages.length) ? r.messages[r.messages.length-1] : null;
+  const noteBody = lastMsg && lastMsg.preview ? lastMsg.preview.slice(0, 400) : "";
+
+  editingTodoId = null;
+  modalTodoKind = "todo";
+  modalCurrentTags = ["email"];
+  if (r.fromEmail) { const dom = r.fromEmail.split("@")[1]; if (dom) modalCurrentTags.push(dom); }
+  modalEmailLink = r.webLink || "";
+  modalEmailLinkedName = r.subject || "";
+
+  const modal = document.getElementById("modal-todo");
+  document.getElementById("modal-todo-title").textContent = "Nuova to-do da email";
+
+  const vesselSelect = document.getElementById("todo-vessel");
+  vesselSelect.innerHTML = '<option value="">— Seleziona —</option>';
+  for (const v of VESSELS) {
+    const opt = document.createElement("option");
+    opt.value = v.vesselId; opt.textContent = v.displayName;
+    vesselSelect.appendChild(opt);
+  }
+  vesselSelect.value = vessel;
+
+  document.getElementById("todo-category").value = category;
+  document.getElementById("todo-priority").value = r.days>=5 ? "alta" : "media";
+  document.getElementById("todo-action").value = "Inviare email";
+  document.getElementById("todo-reference").value = ("Rispondere a "+r.fromName+" — "+r.subject).slice(0,200);
+  document.getElementById("todo-note").value = noteBody;
+
+  // Se nel testo è stata rilevata una scadenza, la propongo già come data
+  if (r.deadline && r.deadline.iso) {
+    document.getElementById("todo-when").value = "custom";
+    document.getElementById("todo-date").value = r.deadline.iso;
+    document.getElementById("todo-date-row").style.display = "";
+  } else {
+    document.getElementById("todo-when").value = "today";
+    document.getElementById("todo-date").value = "";
+    document.getElementById("todo-date-row").style.display = "none";
+  }
+
+  // Barra oggetto in alto: mostra di quale email si tratta
+  const remEl = document.getElementById("todo-item-reminder");
+  const remText = document.getElementById("todo-item-reminder-text");
+  const remLabel = remEl && remEl.querySelector(".reminder-label");
+  if (remEl && remText) {
+    if (remLabel) remLabel.textContent = "Email:";
+    remText.textContent = r.subject || r.fromName || "email";
+    remEl.style.display = "block";
+  }
+
+  document.getElementById("todo-vessel-row").style.display = category === "Nave" ? "" : "none";
+  // reset ricorrenza
+  document.getElementById("todo-repeat").value = "none";
+  if (typeof updateRepeatRowVisibility === "function") updateRepeatRowVisibility();
+  window.setTodoKind("todo");
+  if (typeof renderTagsInModal === "function") renderTagsInModal(); else if (typeof renderCurrentTags === "function") renderCurrentTags();
+  const tagInput = document.getElementById("todo-tag-input"); if (tagInput) tagInput.value = "";
+
+  modal.classList.add("open");
+  setTimeout(() => { const el = vessel ? document.getElementById("todo-action") : vesselSelect; if (el) el.focus(); }, 60);
 };
 
 // === v0.18 — Raccoglie tutti gli eventi della settimana per giorno (consegne, certificati, to-do, Outlook).
@@ -11594,9 +11671,9 @@ function collectWeekEvents(fromISO, toISO, opts) {
       push(eff.date, { type: "delivery", vesselId: cfg.vesselId, label: truncate(it.description || "Consegna", 40) + tag, sub: eff.port || it.supplier || "", sort: 2 });
     }
   }
-  // 1b) Ordini manuali con data (navi a gestione manuale, es. VEGA UNO)
+  // 1b) Ordini manuali con data (navi a gestione manuale VEGA UNO, o navi con registro manuale attivo es. NORRBOTTEN)
   for (const cfg of VESSELS) {
-    if (!cfg.manual) continue;
+    if (!cfg.manual && !cfg.allowManual) continue;
     for (const o of manualOrdersFor(cfg.vesselId)) {
       if (!o.date || o.status === "delivered") continue;
       push(o.date, { type: "delivery", vesselId: cfg.vesselId, label: truncate((o.docNum ? o.docNum + " " : "") + (o.description || "Ordine"), 40), sub: o.supplier || "", sort: 2 });
@@ -11771,7 +11848,7 @@ function manualOrdersOpen(vid){ return manualOrdersFor(vid).filter(o=>o.status!=
 window.addManualOrder = function(vid){
   const all=loadAllManualOrders();
   const arr=Array.isArray(all[vid])?all[vid]:[];
-  arr.push({ id:"mo_"+Date.now()+"_"+Math.random().toString(36).slice(2,6), docNum:"", description:"", supplier:"", status:"rfq", date:"", amount:"" });
+  arr.push({ id:"mo_"+Date.now()+"_"+Math.random().toString(36).slice(2,6), docNum:"", description:"", supplier:"", status:"rfq", date:"", amount:"", currency:"EUR" });
   all[vid]=arr; saveAllManualOrders(all);
   renderManualOrdersInto(vid);
 };
@@ -11803,7 +11880,13 @@ function renderManualOrders(vid){
       <td><input class="mo-in mo-supp" value="${escapeAttr(o.supplier||"")}" placeholder="Fornitore" oninput="window.updateManualOrder('${vid}','${o.id}','supplier',this.value)"></td>
       <td><select class="mo-in mo-status mo-status-${o.status}" onchange="window.updateManualOrder('${vid}','${o.id}','status',this.value)">${stOpt(o.status)}</select></td>
       <td><input type="date" class="mo-in mo-date" value="${escapeAttr(o.date||"")}" oninput="window.updateManualOrder('${vid}','${o.id}','date',this.value)"></td>
-      <td><input class="mo-in mo-amt" value="${escapeAttr(o.amount||"")}" placeholder="€" inputmode="decimal" oninput="window.updateManualOrder('${vid}','${o.id}','amount',this.value)"></td>
+      <td><div style="display:flex;gap:4px;align-items:center;">
+        <input class="mo-in mo-amt" value="${escapeAttr(o.amount||"")}" placeholder="Importo" inputmode="decimal" style="flex:1;min-width:0;" oninput="window.updateManualOrder('${vid}','${o.id}','amount',this.value)">
+        <select class="mo-in mo-cur" style="flex:none;width:74px;" onchange="window.updateManualOrder('${vid}','${o.id}','currency',this.value)">
+          <option value="EUR" ${(o.currency||'EUR')==='EUR'?'selected':''}>€ EUR</option>
+          <option value="USD" ${o.currency==='USD'?'selected':''}>$ USD</option>
+        </select>
+      </div></td>
       <td><button class="mo-del" title="Elimina" onclick="window.deleteManualOrder('${vid}','${o.id}')">🗑</button></td>
     </tr>`).join("");
   return `
@@ -12036,6 +12119,7 @@ function renderVesselDetail() {
 
     <div class="vd-panel" data-tab="procurement" style="display:${_vtab==='procurement'?'':'none'};">
       ${cfg.manual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : `
+      ${cfg.allowManual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : ``}
       ${ageBandsHTML}
       <div class="section-title"><h2>Pipeline procurement</h2></div>
       <div class="pipeline-grid">
@@ -14988,7 +15072,7 @@ window.createTodoFromEmail = function(forcedVesselId) {
   document.getElementById("todo-date-row").style.display = "none";
 
   // Rendi tag visibili
-  renderTagsInModal();
+  if (typeof renderCurrentTags === "function") renderCurrentTags();
 
   modal.classList.add("open");
   setTimeout(() => {
@@ -15971,6 +16055,171 @@ window.openDeliveryHistory = function(vesselId) {
 };
 window.closeDeliveryHistory = function() {
   const bd = document.getElementById("delivery-history-backdrop");
+  if (bd) bd.classList.remove("open");
+};
+
+// v0.55 — Storico consegne DI FLOTTA basato su "Pianifica consegna": ogni ordine per cui
+// ho impostato porto + data (piano manuale o voyage), oppure con DN ricevuto a bordo, o
+// ordine manuale segnato consegnato. Con filtri (ricerca/nave/stato) e riga cliccabile.
+let _archiveFilter = { q: "", vessel: "all", status: "delivered" };
+
+function collectArchiveOrders() {
+  const out = [];
+  const today = (typeof todayISO === "function") ? todayISO() : new Date().toISOString().slice(0,10);
+  // 1) Item con un piano di consegna (Pianifica consegna) o con DN ricevuto a bordo
+  if (state.data && Array.isArray(state.data.vessels)) {
+    for (const v of state.data.vessels) {
+      for (const it of (v.items || [])) {
+        const plan = (typeof getDeliveryPlan === "function") ? getDeliveryPlan(it.id) : null;
+        const dnRecv = it.dnStatus === "DN Received on Board";
+        if (!plan && !dnRecv) continue;                 // solo ciò che ho pianificato o è arrivato
+        const eff = getEffectiveDelivery(it, v.vesselId) || {};
+        if (!plan && eff.source === "infoship") { /* nessun piano mio, solo stima */ }
+        const date = dnRecv ? (it.dnDate || it.dnDeliveryDate || eff.date || "") : (eff.date || "");
+        const port = eff.port || "";
+        const delivered = dnRecv || (!!date && date <= today);
+        out.push({
+          date, vesselId: v.vesselId,
+          doc: it.dnNumber || it.poNumber || it.reqNumber || "",
+          docLabel: it.dnNumber ? "DN" : it.poNumber ? "PO" : "REQ",
+          description: it.description || "(senza descrizione)",
+          supplier: it.supplier || "",
+          port, amount: "",
+          status: delivered ? "delivered" : "planned",
+          itemId: it.id
+        });
+      }
+    }
+  }
+  // 2) Ordini manuali (registro) con data
+  for (const cfg of VESSELS) {
+    for (const o of manualOrdersFor(cfg.vesselId)) {
+      if (o.status !== "delivered" && !o.date) continue;
+      const delivered = o.status === "delivered";
+      out.push({
+        date: o.date || "", vesselId: cfg.vesselId,
+        doc: o.docNum || "", docLabel: "Ord.",
+        description: o.description || "(senza descrizione)",
+        supplier: o.supplier || "", port: "",
+        amount: o.amount ? (o.amount + " " + (o.currency || "EUR")) : "",
+        status: delivered ? "delivered" : "planned",
+        itemId: null
+      });
+    }
+  }
+  out.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  return out;
+}
+
+function renderArchiveList() {
+  const host = document.getElementById("da-list");
+  if (!host) return;
+  const months = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+  const monthsShort = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  const fmt = (iso) => { if(!iso) return "—"; const d = new Date(iso + (iso.length<=10?"T00:00:00":"")); return isNaN(d) ? iso : `${d.getDate()} ${monthsShort[d.getMonth()]} ${d.getFullYear()}`; };
+  const vName = (vid) => (VESSELS.find(v => v.vesselId === vid) || {}).displayName || vid;
+  const vColor = (vid) => `var(--c-${vid==='peppino'?'peppino':vid==='medtoscana'?'toscana':vid==='medliguria'?'liguria':vid==='norrbotten'?'norrbotten':'vega'})`;
+
+  const f = _archiveFilter;
+  const q = (f.q || "").toLowerCase();
+  let orders = collectArchiveOrders().filter(o => {
+    if (f.status !== "all" && o.status !== f.status) return false;
+    if (f.vessel !== "all" && o.vesselId !== f.vessel) return false;
+    if (q) {
+      const hay = [o.description, o.supplier, o.doc, o.port, vName(o.vesselId)].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // aggiorno il contatore
+  const meta = document.getElementById("da-count");
+  if (meta) meta.textContent = `${orders.length} ordini · più recente in alto`;
+
+  if (!orders.length) { host.innerHTML = `<div class="dh-empty" style="padding:32px;text-align:center;color:#8a93a0;">Nessun ordine con questi filtri.</div>`; return; }
+
+  const groups = {};
+  for (const o of orders) { const k = o.date ? o.date.slice(0,7) : "0000-00"; (groups[k] = groups[k] || []).push(o); }
+  const keys = Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+
+  host.innerHTML = keys.map(k => {
+    const list = groups[k];
+    const title = k === "0000-00" ? "Senza data" : (() => { const [y,m] = k.split("-"); return `${months[parseInt(m,10)-1]} ${y}`; })();
+    const rows = list.map(o => {
+      const stPill = o.status === "delivered"
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#e7f0e9;color:#1f5a2c;">✓ Consegnato</span>`
+        : `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#e7f0fb;color:#0a3f93;">⚓ Pianificato</span>`;
+      const clickable = o.itemId ? `onclick="window.closeDeliveryArchive(); window.openItemDetailPopover('${escapeAttr(o.itemId)}')" style="cursor:pointer;"` : "";
+      return `
+      <div class="da-row" ${clickable} style="display:grid;grid-template-columns:92px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);">
+        <span style="font-family:var(--font-mono);font-size:12px;color:#475569;">${fmt(o.date)}</span>
+        <span>
+          <span style="display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;color:#fff;background:${vColor(o.vesselId)};margin-right:6px;">${escapeHTML(vName(o.vesselId))}</span>
+          ${stPill}
+          <strong style="font-size:13px;display:block;margin-top:3px;">${escapeHTML(truncate(o.description,70))}</strong>
+          <div style="font-size:11.5px;color:#8a93a0;margin-top:2px;">
+            ${o.doc ? `<span class="dh-po">${escapeHTML(o.docLabel)} ${escapeHTML(o.doc)}</span> · ` : ""}${escapeHTML(o.supplier||"—")}${o.port ? ` · 📍 <strong style="color:#475569;">${escapeHTML(o.port)}</strong>` : ""}${o.amount ? " · "+escapeHTML(o.amount) : ""}
+          </div>
+        </span>
+        <span>${o.itemId ? `<button class="btn btn-sm" onclick="event.stopPropagation(); window.closeDeliveryArchive(); window.openItemDetailPopover('${escapeAttr(o.itemId)}')" title="Apri scheda">Apri</button>` : ""}</span>
+      </div>`;
+    }).join("");
+    return `<div style="margin-bottom:18px;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#8a93a0;padding:6px 12px;">${escapeHTML(title)} · ${list.length}</div>
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">${rows}</div>
+    </div>`;
+  }).join("");
+}
+
+window.setArchiveFilter = function(key, val) {
+  _archiveFilter[key] = val;
+  // aggiorno lo stato attivo dei bottoni di stato
+  if (key === "status") {
+    document.querySelectorAll("#da-status-seg .da-seg-btn").forEach(b => b.classList.toggle("active", b.dataset.st === val));
+  }
+  renderArchiveList();
+};
+
+window.openDeliveryArchive = function() {
+  let bd = document.getElementById("delivery-archive-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "delivery-archive-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+  const f = _archiveFilter;
+  const vesselOpts = ['<option value="all">Tutte le navi</option>']
+    .concat(VESSELS.map(v => `<option value="${v.vesselId}" ${f.vessel===v.vesselId?"selected":""}>${escapeHTML(v.displayName)}</option>`)).join("");
+  const seg = (st, lbl) => `<button class="da-seg-btn ${f.status===st?"active":""}" data-st="${st}" onclick="window.setArchiveFilter('status','${st}')">${lbl}</button>`;
+
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 760px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>📦 Storico consegne — flotta</h2>
+          <div class="item-detail-meta"><span class="muted" id="da-count"></span></div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeDeliveryArchive()" title="Chiudi">✕</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+        <input type="search" class="search-input" id="da-search" placeholder="Cerca descrizione, fornitore, porto, N° doc…" value="${escapeHTML(f.q||"")}" style="flex:1;min-width:200px;">
+        <select class="filter-select" id="da-vessel" style="flex:none;">${vesselOpts}</select>
+        <div id="da-status-seg" style="display:inline-flex;gap:4px;background:var(--bg-muted);border-radius:8px;padding:3px;">
+          ${seg("delivered","Consegnate")}${seg("planned","Pianificate")}${seg("all","Tutte")}
+        </div>
+      </div>
+      <div class="item-detail-body"><div id="da-list"></div></div>
+    </div>`;
+  requestAnimationFrame(() => bd.classList.add("open"));
+  const si = document.getElementById("da-search");
+  if (si) si.addEventListener("input", e => { _archiveFilter.q = e.target.value; renderArchiveList(); });
+  const vs = document.getElementById("da-vessel");
+  if (vs) vs.addEventListener("change", e => { _archiveFilter.vessel = e.target.value; renderArchiveList(); });
+  renderArchiveList();
+};
+window.closeDeliveryArchive = function() {
+  const bd = document.getElementById("delivery-archive-backdrop");
   if (bd) bd.classList.remove("open");
 };
 
@@ -18260,7 +18509,7 @@ function renderPaletteResults(q) {
             if (m) matchedDoc = m;
           }
           results.push({
-            type: "item", vesselId: v.vesselId,
+            type: "item", vesselId: v.vesselId, itemId: it.id,
             title: it.description || "(no description)",
             sub: `${cfg ? cfg.displayName : v.vesselName} · ${it.supplier || "—"}${matchedDoc ? " · " + matchedDoc : ""}`
           });
@@ -18275,15 +18524,21 @@ function renderPaletteResults(q) {
     return;
   }
   out.innerHTML = results.map((r, i) => `
-    <div class="palette-item ${i === 0 ? "selected" : ""}" data-type="${r.type}" data-vid="${r.vesselId || r.id}">
+    <div class="palette-item ${i === 0 ? "selected" : ""}" data-type="${r.type}" data-vid="${r.vesselId || r.id}" data-item-id="${escapeAttr(r.itemId || "")}">
       <div class="pal-title">${escapeHTML(truncate(r.title, 90))}</div>
       <div class="pal-sub">${escapeHTML(r.sub)}</div>
     </div>
   `).join("");
   out.querySelectorAll(".palette-item").forEach(el => {
     el.addEventListener("click", () => {
-      goVessel(el.dataset.vid);
       closePalette();
+      // Su un item apro direttamente la sua scheda (prima riportava solo alla
+      // pagina nave costringendo a rifare la ricerca); su una nave vado alla scheda nave.
+      if (el.dataset.type === "item" && el.dataset.itemId && typeof window.openItemDetailPopover === "function") {
+        window.openItemDetailPopover(el.dataset.itemId);
+      } else {
+        goVessel(el.dataset.vid);
+      }
     });
   });
 }
@@ -19891,6 +20146,10 @@ window.openIhmReport=function(){
     const t=e.target.closest && e.target.closest('#btn-report-ihm,[data-mm-action="report-ihm"]');
     if(t){ e.preventDefault(); window.openIhmReport(); const mm=document.getElementById('mobile-menu'); if(mm) mm.classList.remove('open'); }
   });
+  document.addEventListener('click', function(e){
+    const t=e.target.closest && e.target.closest('#btn-delivery-archive,[data-mm-action="delivery-archive"]');
+    if(t){ e.preventDefault(); window.openDeliveryArchive(); const mm=document.getElementById('mobile-menu'); if(mm) mm.classList.remove('open'); }
+  });
 })();
 
 function showToast(msg) {
@@ -20204,6 +20463,9 @@ function openEOD() {
 
 let editingTodoId = null;
 let modalCurrentTags = [];  // tag attualmente selezionati nella modale
+// v0.54 — link email di origine da allegare alla to-do in fase di salvataggio (bottone "📧 Apri")
+let modalEmailLink = null;
+let modalEmailLinkedName = "";
 let modalTodoKind = "todo"; // v0.33 — "todo" | "fleet" (azione flotta / reminder ricorrente)
 window.setTodoKind = function(kind) {
   modalTodoKind = kind === "fleet" ? "fleet" : "todo";
@@ -20213,6 +20475,7 @@ window.setTodoKind = function(kind) {
 function openTodoModal(todoId, prefillVesselId, prefillItem) {
   editingTodoId = todoId || null;
   modalCurrentTags = [];
+  modalEmailLink = null; modalEmailLinkedName = "";
   modalTodoKind = "todo";
   const modal = document.getElementById("modal-todo");
   const title = document.getElementById("modal-todo-title");
@@ -20435,6 +20698,8 @@ function saveTodoFromModal() {
   }
 
   const payload = { category, priority, vessel, action, reference, tags: [...modalCurrentTags], dueDate, note, kind: modalTodoKind };
+  // v0.54 — se la to-do nasce da un'email, allego il link (→ bottone "📧 Apri" nella lista)
+  if (modalEmailLink) { payload.outlookWebUrl = modalEmailLink; payload.outlookLinkedName = modalEmailLinkedName || ""; }
 
   // v0.25 — Ricorrenza
   const repType = document.getElementById("todo-repeat").value;
@@ -20456,6 +20721,7 @@ function saveTodoFromModal() {
   document.getElementById("modal-todo").classList.remove("open");
   editingTodoId = null;
   modalCurrentTags = [];
+  modalEmailLink = null; modalEmailLinkedName = "";
   render();
 }
 
