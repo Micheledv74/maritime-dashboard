@@ -19451,7 +19451,9 @@ function buildStatePayload() {
     vesselPos: (typeof loadVesselPos === "function" ? loadVesselPos() : {}),
     supplierProfiles: (typeof loadEntityProfiles === "function" ? loadEntityProfiles("supplier") : {}),
     agencyProfiles: (typeof loadEntityProfiles === "function" ? loadEntityProfiles("agency") : {}),
-    worldClockCities: (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : undefined)
+    worldClockCities: (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : undefined),
+    itemOverrides: (typeof loadItemOverrides === "function" ? loadItemOverrides() : {}),
+    collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
   };
 }
 
@@ -19889,8 +19891,203 @@ const GH_SYNC = {
   lastError: null,
   status: "idle",       // idle | syncing | ok | error
   suppressPush: false,
-  inited: false
+  inited: false,
+  baseRev: null,        // v0.54 — revisione del documento condiviso con cui sono allineato (LWW whole-document)
+  dirty: false,         // v0.54 — ho modifiche locali NON ancora pubblicate
+  flushBound: false
 };
+
+// v0.54 — clock del documento condiviso: chi salva per ultimo vince (Last-Write-Wins
+// a livello di INTERO documento). Sostituisce il vecchio merge additivo, che non
+// propagava mai le cancellazioni/completamenti (da cui il problema "su un altro
+// dispositivo ritrovo cose già lavorate").
+function ghGetBaseRev() {
+  if (GH_SYNC.baseRev == null) GH_SYNC.baseRev = parseInt(localStorage.getItem("mpd.ghBaseRev") || "0", 10) || 0;
+  return GH_SYNC.baseRev;
+}
+function ghSetBaseRev(n) {
+  GH_SYNC.baseRev = Number(n) || 0;
+  localStorage.setItem("mpd.ghBaseRev", String(GH_SYNC.baseRev));
+}
+function ghSetDirty(v) {
+  GH_SYNC.dirty = !!v;
+  if (v) localStorage.setItem("mpd.ghDirty", "1");
+  else localStorage.removeItem("mpd.ghDirty");
+}
+
+// ============================================================================
+// === v0.55 — SYNC PER-COLLEZIONE (Last-Write-Wins per singola collezione) ====
+// ============================================================================
+// Il vecchio LWW sull'INTERO documento faceva sì che una piccola modifica su un
+// dispositivo rimandasse tutto il suo documento, annullando modifiche fatte
+// altrove e non ancora scaricate; e un device con flag "dirty" bloccato
+// riscriveva sopra lo stato aggiornato. Qui OGNI collezione (todos, notes,
+// deliveries, …) porta un proprio timestamp (collMeta): in merge vince, per ogni
+// singola collezione, il lato col timestamp più recente. Il timestamp è ricavato
+// diffando il contenuto attuale contro una "baseline" salvata all'ultimo sync,
+// senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
+// assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
+// device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides"];
+
+function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
+function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
+function collIsEmpty(s){ return s===undefined||s===""||s==="[]"||s==="{}"||s==='{"c":{},"m":{}}'; }
+function ghLoadCollMeta(){ return ghLoadObj("mpd.collMeta"); }
+function ghSaveCollMeta(m){ ghSaveObj("mpd.collMeta", m); }
+
+// Serializzazione stabile del contenuto attuale di ogni collezione.
+function collSnapshot(){
+  const f=(v)=>JSON.stringify(v);
+  return {
+    todos: f(state.todos||[]),
+    notes: f(state.notes||{}),
+    snoozed: f(state.snoozed||{}),
+    archivedActions: f(state.archivedActions||{}),
+    completionsHistory: f(state.completionsHistory||[]),
+    supplierTimezones: f(state.supplierTimezones||{}),
+    supplierLanguages: f(state.supplierLanguages||{}),
+    pinnedActions: f(state.pinnedActions||[]),
+    certificates: f({c:state.certificates||{},m:state.certificatesMeta||{}}),
+    voyages: f(state.voyages||{}),
+    outlookCompletionQueue: f(state.outlookCompletionQueue||[]),
+    manualOrders: f(typeof loadAllManualOrders==="function"?loadAllManualOrders():{}),
+    deliveries: f(typeof loadDeliveries==="function"?loadDeliveries():{}),
+    vesselPos: f(typeof loadVesselPos==="function"?loadVesselPos():{}),
+    supplierProfiles: f(typeof loadEntityProfiles==="function"?loadEntityProfiles("supplier"):{}),
+    agencyProfiles: f(typeof loadEntityProfiles==="function"?loadEntityProfiles("agency"):{}),
+    worldClockCities: f(typeof loadWorldClockCities==="function"?loadWorldClockCities():[]),
+    itemOverrides: f(typeof loadItemOverrides==="function"?loadItemOverrides():{})
+  };
+}
+
+// Aggiorna collMeta stampando "ora" sulle collezioni cambiate rispetto alla
+// baseline. Alla PRIMA osservazione (nessuna baseline) NON rivendico freschezza:
+// così i dati locali preesistenti perdono contro la fonte del cloud (è esattamente
+// il vecchio stato che vogliamo far sostituire). Ritorna { meta, changed }.
+function computeLocalMeta(){
+  const snap=collSnapshot();
+  const base=ghLoadObj("mpd.collBaseline");
+  const meta=ghLoadCollMeta();
+  const now=new Date().toISOString();
+  const hadBaseline=Object.keys(base).length>0;
+  let changed=false;
+  for(const k of COLLS){
+    if (snap[k]===base[k]) continue;
+    changed=true;
+    if (base[k]!==undefined){ meta[k]=now; }   // cambiata dopo una baseline nota (svuotamento incluso = cancellazione reale)
+  }
+  ghSaveCollMeta(meta);
+  return { meta, changed:(changed && hadBaseline) };
+}
+function ghHasLocalChanges(){ return computeLocalMeta().changed; }
+function ghSyncBaselineFromLocal(){ const snap=collSnapshot(); const nb={}; for(const k of COLLS) nb[k]=snap[k]; ghSaveObj("mpd.collBaseline", nb); }
+
+// Merge del documento remoto nel locale, LWW per collezione. force=true adotta
+// tutto il cloud (pulsante "Sostituisci con la versione cloud").
+function mpdMergeRemote(remote, force){
+  if(!remote||typeof remote!=="object") return false;
+  const rMeta = remote.collMeta || {};
+  const { meta:lMeta } = computeLocalMeta();  // prima riconosco le mie modifiche locali
+  let changed=false;
+  GH_SYNC.suppressPush=true;
+  try{
+    const adopt=(k,apply)=>{
+      const rt=rMeta[k]||"", lt=lMeta[k]||"";
+      if (force ? true : (rt && rt>lt)){
+        if (apply()!==false){ lMeta[k]= force ? (rMeta[k]||lt) : rt; changed=true; }
+      }
+    };
+    adopt("todos", ()=>{ if(!Array.isArray(remote.todos)) return false; state.todos=remote.todos; localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos)); });
+    adopt("notes", ()=>{ if(!remote.notes||typeof remote.notes!=="object") return false; state.notes=remote.notes; saveNotes(); });
+    adopt("snoozed", ()=>{ if(!remote.snoozed||typeof remote.snoozed!=="object") return false; state.snoozed=remote.snoozed; saveSnoozed(); });
+    adopt("archivedActions", ()=>{ if(!remote.archivedActions||typeof remote.archivedActions!=="object") return false; state.archivedActions=remote.archivedActions; saveArchivedActions(); });
+    adopt("completionsHistory", ()=>{ if(!Array.isArray(remote.completionsHistory)) return false; state.completionsHistory=remote.completionsHistory; saveCompletionsHistory(); });
+    adopt("supplierTimezones", ()=>{ if(!remote.supplierTimezones||typeof remote.supplierTimezones!=="object") return false; state.supplierTimezones=remote.supplierTimezones; saveSupplierTimezones(); });
+    adopt("supplierLanguages", ()=>{ if(!remote.supplierLanguages||typeof remote.supplierLanguages!=="object") return false; state.supplierLanguages=remote.supplierLanguages; saveSupplierLanguages(); });
+    adopt("pinnedActions", ()=>{ if(!Array.isArray(remote.pinnedActions)) return false; state.pinnedActions=remote.pinnedActions; savePinnedActions(); });
+    adopt("certificates", ()=>{ if(!remote.certificates||typeof remote.certificates!=="object") return false; state.certificates=remote.certificates; if(remote.certificatesMeta&&typeof remote.certificatesMeta==="object") state.certificatesMeta=remote.certificatesMeta; saveCertificates(); });
+    adopt("voyages", ()=>{ if(!remote.voyages||typeof remote.voyages!=="object") return false; state.voyages=remote.voyages; saveVoyages(); });
+    adopt("outlookCompletionQueue", ()=>{ if(!Array.isArray(remote.outlookCompletionQueue)) return false; state.outlookCompletionQueue=remote.outlookCompletionQueue; saveOutlookCompletionQueue(); });
+    adopt("manualOrders", ()=>{ if(!remote.manualOrders||typeof remote.manualOrders!=="object"||typeof saveAllManualOrders!=="function") return false; saveAllManualOrders(remote.manualOrders); });
+    adopt("deliveries", ()=>{ if(!remote.deliveries||typeof remote.deliveries!=="object"||typeof saveDeliveriesDB!=="function") return false; saveDeliveriesDB(remote.deliveries); });
+    adopt("vesselPos", ()=>{ if(!remote.vesselPos||typeof remote.vesselPos!=="object"||typeof saveVesselPos!=="function") return false; saveVesselPos(remote.vesselPos); });
+    adopt("supplierProfiles", ()=>{ if(!remote.supplierProfiles||typeof remote.supplierProfiles!=="object"||typeof saveEntityProfiles!=="function") return false; saveEntityProfiles("supplier", remote.supplierProfiles); });
+    adopt("agencyProfiles", ()=>{ if(!remote.agencyProfiles||typeof remote.agencyProfiles!=="object"||typeof saveEntityProfiles!=="function") return false; saveEntityProfiles("agency", remote.agencyProfiles); });
+    adopt("worldClockCities", ()=>{ if(!Array.isArray(remote.worldClockCities)||typeof saveWorldClockCities!=="function") return false; saveWorldClockCities(remote.worldClockCities); });
+    adopt("itemOverrides", ()=>{ if(!remote.itemOverrides||typeof remote.itemOverrides!=="object"||typeof saveItemOverrides!=="function") return false; saveItemOverrides(remote.itemOverrides); });
+  } finally {
+    GH_SYNC.suppressPush=false;
+    ghSyncBaselineFromLocal();   // baseline = contenuto post-merge, per diff corretti
+    ghSaveCollMeta(lMeta);
+  }
+  return changed;
+}
+
+// Rendi QUESTO dispositivo la fonte: stampo "ora" su tutte le collezioni con dati
+// e forzo un push (senza assorbire il remoto). Gli altri device lo adotteranno.
+async function ghSyncMakeSource(){
+  const now=new Date().toISOString();
+  const snap=collSnapshot(); const base={}; const meta=ghLoadCollMeta();
+  for(const k of COLLS){ base[k]=snap[k]; if(!collIsEmpty(snap[k])) meta[k]=now; }
+  ghSaveObj("mpd.collBaseline", base); ghSaveCollMeta(meta);
+  ghSetDirty(true);
+  await ghSyncPush({ skipMerge:true });
+}
+
+// Sostituisci tutto il locale con la versione del cloud.
+async function ghSyncReplaceFromCloud(){
+  if(!ghSyncConfigured()) return;
+  ghSyncSetStatus("syncing");
+  try{
+    const { payload } = await ghSyncFetchRemote();
+    if(!payload){ showToast("Nessun dato sul cloud"); ghSyncSetStatus("idle"); return; }
+    mpdMergeRemote(payload, true);
+    const remoteRev=Number(payload.rev)||0; if(remoteRev>ghGetBaseRev()) ghSetBaseRev(remoteRev);
+    ghSetDirty(false);
+    GH_SYNC.lastPullAt=new Date().toISOString();
+    ghSyncSetStatus("ok");
+    render();
+  }catch(e){ ghSyncSetStatus("error", e.message); }
+}
+
+// Applica il documento remoto WHOLESALE: ogni chiave sostituisce la locale (le
+// cancellazioni si propagano perché l'intero array/dizionario viene rimpiazzato).
+// Guardato da suppressPush così i save*() non fanno ripartire un push a eco.
+function applyRemoteState(remote) {
+  if (!remote || typeof remote !== "object") return;
+  GH_SYNC.suppressPush = true;
+  try {
+    // to-do: scrivo direttamente in localStorage per bypassare la guardia
+    // anti-svuotamento di saveTodos (qui il remoto è autorevole).
+    if (Array.isArray(remote.todos)) {
+      state.todos = remote.todos;
+      localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos));
+    }
+    if (remote.notes && typeof remote.notes === "object") { state.notes = remote.notes; saveNotes(); }
+    if (remote.snoozed && typeof remote.snoozed === "object") { state.snoozed = remote.snoozed; saveSnoozed(); }
+    if (remote.archivedActions && typeof remote.archivedActions === "object") { state.archivedActions = remote.archivedActions; saveArchivedActions(); }
+    if (Array.isArray(remote.completionsHistory)) { state.completionsHistory = remote.completionsHistory; saveCompletionsHistory(); }
+    if (remote.supplierTimezones && typeof remote.supplierTimezones === "object") { state.supplierTimezones = remote.supplierTimezones; saveSupplierTimezones(); }
+    if (remote.supplierLanguages && typeof remote.supplierLanguages === "object") { state.supplierLanguages = remote.supplierLanguages; saveSupplierLanguages(); }
+    if (Array.isArray(remote.pinnedActions)) { state.pinnedActions = remote.pinnedActions; savePinnedActions(); }
+    if (remote.certificates && typeof remote.certificates === "object") {
+      state.certificates = remote.certificates;
+      if (remote.certificatesMeta && typeof remote.certificatesMeta === "object") state.certificatesMeta = remote.certificatesMeta;
+      saveCertificates();
+    }
+    if (remote.voyages && typeof remote.voyages === "object") { state.voyages = remote.voyages; saveVoyages(); }
+    if (Array.isArray(remote.outlookCompletionQueue)) { state.outlookCompletionQueue = remote.outlookCompletionQueue; saveOutlookCompletionQueue(); }
+    if (remote.manualOrders && typeof remote.manualOrders === "object" && typeof saveAllManualOrders === "function") saveAllManualOrders(remote.manualOrders);
+    if (remote.deliveries && typeof remote.deliveries === "object" && typeof saveDeliveriesDB === "function") saveDeliveriesDB(remote.deliveries);
+    if (remote.vesselPos && typeof remote.vesselPos === "object" && typeof saveVesselPos === "function") saveVesselPos(remote.vesselPos);
+    if (remote.supplierProfiles && typeof remote.supplierProfiles === "object" && typeof saveEntityProfiles === "function") saveEntityProfiles("supplier", remote.supplierProfiles);
+    if (remote.agencyProfiles && typeof remote.agencyProfiles === "object" && typeof saveEntityProfiles === "function") saveEntityProfiles("agency", remote.agencyProfiles);
+    if (Array.isArray(remote.worldClockCities) && remote.worldClockCities.length && typeof saveWorldClockCities === "function") saveWorldClockCities(remote.worldClockCities);
+  } finally {
+    GH_SYNC.suppressPush = false;
+  }
+}
 
 function ghSyncConfigured() {
   const s = state.settings || {};
@@ -19942,10 +20139,12 @@ async function ghSyncPull(opts) {
   try {
     const { payload } = await ghSyncFetchRemote();
     if (payload && typeof payload === "object" && Object.keys(payload).length) {
-      GH_SYNC.suppressPush = true;
-      try { mergeRemoteIntoLocal(payload); }
-      finally { GH_SYNC.suppressPush = false; }
-      if (!opts || opts.render !== false) render();
+      const remoteRev = Number(payload.rev) || 0;
+      // Merge LWW per collezione: adotto solo le collezioni più recenti del cloud,
+      // le mie modifiche più recenti restano. Sempre sicuro (niente gate su dirty).
+      const changed = mpdMergeRemote(payload, false);
+      if (remoteRev > ghGetBaseRev()) ghSetBaseRev(remoteRev);
+      if (changed && (!opts || opts.render !== false)) render();
     }
     GH_SYNC.lastPullAt = new Date().toISOString();
     ghSyncSetStatus("ok");
@@ -19955,35 +20154,48 @@ async function ghSyncPull(opts) {
   }
 }
 
-async function ghSyncPush() {
+async function ghSyncPush(opts) {
+  const skipMerge = !!(opts && opts.skipMerge);
   if (!ghSyncConfigured()) return;
-  // Safeguard anti-svuotamento: se locale ha 0 to-do ma il cloud ne ha, NON sovrascrivo.
   ghSyncSetStatus("syncing");
   try {
-    let remote;
+    let remote = null;
     try { remote = await ghSyncFetchRemote(); } catch (e) { remote = null; }
-    if ((!state.todos || state.todos.length === 0) && remote && remote.payload
-        && Array.isArray(remote.payload.todos) && remote.payload.todos.length > 0) {
-      console.warn("[Sync GitHub] push saltato: locale 0 to-do, cloud ne ha", remote.payload.todos.length);
-      ghSyncSetStatus("idle");
-      return;
+    const rp = remote && remote.payload;
+    // pull→merge→push: assorbo prima le collezioni remote più recenti, così non
+    // sovrascrivo mai il lavoro fatto altrove; poi ripubblico l'unione.
+    if (!skipMerge) {
+      if (rp) mpdMergeRemote(rp, false);
+      else computeLocalMeta();
     }
+    const remoteRev = rp ? (Number(rp.rev) || 0) : 0;
+    let newRev = Math.max(ghGetBaseRev(), remoteRev) + 1;
+    const build = () => { const p = buildStatePayload(); p.rev = newRev; p.savedAt = new Date().toISOString(); return p; };
+    let payload = build();
     const body = {
-      message: "state sync " + new Date().toISOString() + " (" + getDeviceId() + ")",
-      content: b64EncodeUtf8(JSON.stringify(buildStatePayload(), null, 2)),
+      message: "state sync r" + newRev + " " + new Date().toISOString() + " (" + getDeviceId() + ")",
+      content: b64EncodeUtf8(JSON.stringify(payload, null, 2)),
       branch: (state.settings.ghSyncBranch || "main").trim()
     };
     if (GH_SYNC.sha) body.sha = GH_SYNC.sha;
     let res = await fetch(ghSyncApiUrl(), { method: "PUT", headers: ghSyncHeaders(), body: JSON.stringify(body) });
-    // sha stale (qualcuno ha scritto nel frattempo): rileggo e riprovo una volta
+    // sha stale (qualcuno ha scritto nel frattempo): riassorbo il remoto, rialzo la rev, riprovo
     if (res.status === 409) {
       const fresh = await ghSyncFetchRemote();
+      if (!skipMerge && fresh.payload) mpdMergeRemote(fresh.payload, false);
+      const freshRev = fresh.payload ? (Number(fresh.payload.rev) || 0) : 0;
+      newRev = Math.max(newRev, freshRev + 1);
+      payload = build();
       body.sha = fresh.sha || undefined;
+      body.content = b64EncodeUtf8(JSON.stringify(payload, null, 2));
       res = await fetch(ghSyncApiUrl(), { method: "PUT", headers: ghSyncHeaders(), body: JSON.stringify(body) });
     }
     if (!res.ok) throw new Error("GitHub HTTP " + res.status + (res.status === 401 ? " (token non valido)" : ""));
     const json = await res.json();
     if (json.content && json.content.sha) GH_SYNC.sha = json.content.sha;
+    ghSetBaseRev(newRev);
+    ghSetDirty(false);
+    ghSyncBaselineFromLocal();  // baseline allineata a ciò che ho appena pubblicato
     GH_SYNC.lastPushAt = new Date().toISOString();
     ghSyncSetStatus("ok");
     ghSyncDailyBackup();  // snapshot datato una volta al giorno
@@ -20025,8 +20237,28 @@ async function ghSyncDailyBackup() {
 
 function ghSyncSchedulePush() {
   if (!ghSyncConfigured() || GH_SYNC.suppressPush) return;
+  ghSetDirty(true);
   if (GH_SYNC.pushTimer) clearTimeout(GH_SYNC.pushTimer);
   GH_SYNC.pushTimer = setTimeout(() => { GH_SYNC.pushTimer = null; ghSyncPush(); }, GH_SYNC.pushDebounceMs);
+}
+
+// Invio immediato (senza aspettare il debounce) delle modifiche in sospeso, e
+// pull immediato quando la pagina torna in primo piano. Così passando da un
+// dispositivo all'altro trovo subito lo stato aggiornato, non dopo 45s.
+function bindGhSyncFlush() {
+  if (GH_SYNC.flushBound) return;
+  GH_SYNC.flushBound = true;
+  const flush = () => {
+    if (!ghSyncConfigured() || !GH_SYNC.dirty) return;
+    if (GH_SYNC.pushTimer) { clearTimeout(GH_SYNC.pushTimer); GH_SYNC.pushTimer = null; }
+    ghSyncPush();
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flush();
+    else if (document.visibilityState === "visible") ghSyncPull({ render: true });
+  });
+  window.addEventListener("pagehide", flush);
+  window.addEventListener("focus", () => ghSyncPull({ render: true }));
 }
 
 function ghSyncStartPolling() {
@@ -20039,10 +20271,37 @@ async function ghSyncInit(force) {
   if (!ghSyncConfigured()) return;
   if (GH_SYNC.inited && !force) return;
   GH_SYNC.inited = true;
-  await ghSyncPull({ render: true });   // scarico prima lo stato dal cloud
-  ghSyncSchedulePush();                 // poi ripubblico (seed se il file non esiste)
+  // Ripristino la revisione base persistita e l'eventuale flag "modifiche non inviate"
+  ghGetBaseRev();
+  const wasDirty = localStorage.getItem("mpd.ghDirty") === "1";
+  GH_SYNC.dirty = wasDirty;
+
+  let remoteExists = false;
+  ghSyncSetStatus("syncing");
+  try {
+    const { payload } = await ghSyncFetchRemote();
+    if (payload && typeof payload === "object" && Object.keys(payload).length) {
+      remoteExists = true;
+      const remoteRev = Number(payload.rev) || 0;
+      const changed = mpdMergeRemote(payload, false);   // LWW per collezione, sempre sicuro
+      if (remoteRev > ghGetBaseRev()) ghSetBaseRev(remoteRev);
+      if (changed) render();
+      GH_SYNC.lastPullAt = new Date().toISOString();
+    }
+    ghSyncSetStatus("ok");
+  } catch (e) {
+    console.error("[Sync GitHub] init:", e);
+    ghSyncSetStatus("error", e.message);
+  }
+
+  // Primo avvio assoluto (nessun file remoto) oppure avevo modifiche non inviate: pubblico.
+  if (!remoteExists || wasDirty) {
+    ghSetDirty(true);
+    ghSyncSchedulePush();
+  }
   ghSyncStartPolling();
-  ghSyncDailyBackup();                  // snapshot datato del giorno (una volta al giorno)
+  ghSyncDailyBackup();  // snapshot datato del giorno (una volta al giorno)
+  bindGhSyncFlush();
 }
 
 function renderGhSyncRow() {
@@ -20059,11 +20318,13 @@ function renderGhSyncRow() {
       \u2713 Sync GitHub attivo \u2014 ${labels[GH_SYNC.status] || ""}
       ${GH_SYNC.lastError ? `<br><span style="font-size:var(--fs-xs);color:#c8362f;">${GH_SYNC.lastError}</span>` : ""}
       <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">Ultimo sync: ${last ? new Date(last).toLocaleString("it-IT") : "mai"}</span>
-      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">State locale: ${state.todos.length} to-do</span>
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">State locale: ${state.todos.length} to-do \u2014 rev ${ghGetBaseRev()}${GH_SYNC.dirty ? " <span style='color:#b8860b;'>(modifiche da inviare\u2026)</span>" : ""}</span>
+      ${Object.keys(ghLoadCollMeta()).length === 0 ? `<br><span style="font-size:var(--fs-xs);color:#b8860b;">\u26a0 Primo avvio: sul dispositivo con i dati corretti premi \u00ab\ud83d\udce4 Rendi questo la fonte\u00bb per allineare tutti gli altri.</span>` : ""}
     </div>
     <div style="display:flex;flex-direction:column;gap:6px;">
       <button class="btn btn-sm" id="ghsync-now-btn">Sincronizza ora</button>
-      <button class="btn btn-sm" id="ghsync-pull-btn" title="Scarica lo stato dal repo e uniscilo al locale">\ud83d\udce5 Recupera ora</button>
+      <button class="btn btn-sm" id="ghsync-source-btn" title="Usa lo stato di QUESTO dispositivo come fonte di verità e allinea tutti gli altri">\ud83d\udce4 Rendi questo la fonte</button>
+      <button class="btn btn-sm" id="ghsync-replace-btn" title="Sostituisci completamente lo stato locale con quello del cloud">\ud83d\udce5 Sostituisci con cloud</button>
     </div>`;
   document.getElementById("ghsync-now-btn")?.addEventListener("click", async () => {
     await ghSyncPull({ render: false });
@@ -20071,9 +20332,17 @@ function renderGhSyncRow() {
     render();
     showToast("Sync GitHub completato");
   });
-  document.getElementById("ghsync-pull-btn")?.addEventListener("click", async () => {
-    await ghSyncPull();
-    showToast("Recuperato da GitHub");
+  document.getElementById("ghsync-source-btn")?.addEventListener("click", async () => {
+    if (!confirm("Rendere QUESTO dispositivo la fonte di verità?\n\nLo stato attuale di questo dispositivo verrà pubblicato sul cloud e gli ALTRI dispositivi lo adotteranno al prossimo aggiornamento, sovrascrivendo quanto hanno in locale.\n\nUsalo sul dispositivo con la situazione corretta (di solito il PC dell'ufficio). È anche il passo da fare la PRIMA volta, dopo aver caricato questa versione.")) return;
+    await ghSyncMakeSource();
+    renderGhSyncRow();
+    showToast("\u2713 Questo dispositivo è ora la fonte");
+  });
+  document.getElementById("ghsync-replace-btn")?.addEventListener("click", async () => {
+    if (!confirm("Sostituire lo stato locale con quello del cloud?\n\nTutto ciò che è su questo dispositivo verrà rimpiazzato dalla versione presente sul cloud.")) return;
+    await ghSyncReplaceFromCloud();
+    renderGhSyncRow();
+    showToast("Stato locale sostituito con il cloud");
   });
 }
 
