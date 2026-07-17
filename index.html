@@ -16082,6 +16082,8 @@ function collectArchiveOrders() {
           date, vesselId: v.vesselId,
           doc: it.dnNumber || it.poNumber || it.reqNumber || "",
           docLabel: it.dnNumber ? "DN" : it.poNumber ? "PO" : "REQ",
+          docExtra: (it.dnNumber && it.poNumber) ? ("PO " + it.poNumber) : "",
+          searchKeys: [it.reqNumber, it.poNumber, it.dnNumber, ...(Array.isArray(it.rfqNumbers)?it.rfqNumbers:[]), it.dnInfoshipId].filter(Boolean).join(" "),
           description: it.description || "(senza descrizione)",
           supplier: it.supplier || "",
           port, amount: "",
@@ -16099,6 +16101,7 @@ function collectArchiveOrders() {
       out.push({
         date: o.date || "", vesselId: cfg.vesselId,
         doc: o.docNum || "", docLabel: "Ord.",
+        searchKeys: o.docNum || "",
         description: o.description || "(senza descrizione)",
         supplier: o.supplier || "", port: "",
         amount: o.amount ? (o.amount + " " + (o.currency || "EUR")) : "",
@@ -16126,7 +16129,7 @@ function renderArchiveList() {
     if (f.status !== "all" && o.status !== f.status) return false;
     if (f.vessel !== "all" && o.vesselId !== f.vessel) return false;
     if (q) {
-      const hay = [o.description, o.supplier, o.doc, o.port, vName(o.vesselId)].join(" ").toLowerCase();
+      const hay = [o.description, o.supplier, o.searchKeys || o.doc, o.port, vName(o.vesselId)].join(" ").toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -16158,7 +16161,7 @@ function renderArchiveList() {
           ${stPill}
           <strong style="font-size:13px;display:block;margin-top:3px;">${escapeHTML(truncate(o.description,70))}</strong>
           <div style="font-size:11.5px;color:#8a93a0;margin-top:2px;">
-            ${o.doc ? `<span class="dh-po">${escapeHTML(o.docLabel)} ${escapeHTML(o.doc)}</span> · ` : ""}${escapeHTML(o.supplier||"—")}${o.port ? ` · 📍 <strong style="color:#475569;">${escapeHTML(o.port)}</strong>` : ""}${o.amount ? " · "+escapeHTML(o.amount) : ""}
+            ${o.doc ? `<span class="dh-po">${escapeHTML(o.docLabel)} ${escapeHTML(o.doc)}</span>${o.docExtra ? ` <span class="dh-po">${escapeHTML(o.docExtra)}</span>` : ""} · ` : ""}${escapeHTML(o.supplier||"—")}${o.port ? ` · 📍 <strong style="color:#475569;">${escapeHTML(o.port)}</strong>` : ""}${o.amount ? " · "+escapeHTML(o.amount) : ""}
           </div>
         </span>
         <span>${o.itemId ? `<button class="btn btn-sm" onclick="event.stopPropagation(); window.closeDeliveryArchive(); window.openItemDetailPopover('${escapeAttr(o.itemId)}')" title="Apri scheda">Apri</button>` : ""}</span>
