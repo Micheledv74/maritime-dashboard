@@ -5741,6 +5741,12 @@ a:hover { text-decoration: underline; }
     <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>
     </symbol>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21v-6h6v6"/>
+    </symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
+    </symbol>
     <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
     </symbol>
@@ -7104,6 +7110,64 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .ma-cbtn.wa{ background:#25d3661a; color:#1a9c4b; }
   /* --- FAB --- */
   .ma-fab{ position:fixed; right:18px; bottom:calc(84px + env(safe-area-inset-bottom,0px)); width:54px; height:54px; border-radius:50%; background:#0a3f93; color:#fff; font-size:28px; line-height:1; border:none; box-shadow:0 6px 16px rgba(10,63,147,.35); z-index:210; }
+  /* Altro tab sostituisce il menu ☰ in header */
+  #btn-mobile-menu{ display:none !important; }
+
+  /* === 1b — CRUSCOTTO "OGGI" ============================================= */
+  .ma-greet{ font-size:13px; font-weight:600; color:#8a93a0; margin:2px 2px 1px; }
+  .ma-greet-h{ font-size:22px; font-weight:800; color:#12233a; letter-spacing:-.02em; margin:0 2px 14px; }
+  .ma-tiles{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+  .ma-tile{ display:block; text-align:left; background:#fff; border:1px solid #eceef1; border-left:4px solid #ccc; border-radius:14px; padding:13px 14px; box-shadow:0 1px 2px rgba(16,32,64,.03); }
+  .ma-tile-num{ font-family:'JetBrains Mono',monospace; font-size:27px; font-weight:700; line-height:1; }
+  .ma-tile-lbl{ font-size:13px; font-weight:700; color:#12233a; margin-top:6px; }
+  .ma-tile-sub{ font-size:11.5px; color:#8a93a0; margin-top:2px; }
+  .ma-qa{ display:flex; gap:9px; margin-bottom:18px; }
+  .ma-qa-btn{ flex:1; text-align:center; border-radius:12px; padding:13px 6px; font-size:12.5px; font-weight:700; border:1px solid #dfe2e7; background:#fff; color:#3a4250; min-height:48px; }
+  .ma-qa-btn.primary{ background:#0a3f93; border-color:#0a3f93; color:#fff; }
+  .ma-striphead{ display:flex; justify-content:space-between; align-items:center; margin:2px 2px 8px; }
+  .ma-striphead .ma-sec{ margin:0; }
+  .ma-see{ font-size:12px; font-weight:700; color:#0e54c1; background:none; border:none; }
+  /* === 1b — PIPELINE cliccabile ========================================== */
+  .ma-pl{ display:flex; gap:7px; margin-bottom:16px; }
+  .ma-pl-cell{ flex:1; text-align:center; padding:10px 2px; border-radius:11px; border:none; }
+  .ma-pl-num{ font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:800; }
+  .ma-pl-lbl{ font-size:10px; font-weight:700; color:#7a828e; margin-top:2px; letter-spacing:.03em; }
+  /* === 1b — RFQ da sollecitare =========================================== */
+  .ma-rfq{ display:flex; align-items:center; gap:10px; padding:11px 13px; }
+  .ma-rfq-body{ flex:1; min-width:0; background:none; border:none; text-align:left; display:flex; flex-direction:column; padding:0; }
+  .ma-rfq-ref{ font-size:13.5px; font-weight:700; color:#12233a; }
+  .ma-rfq-sub{ font-size:12px; color:#8a93a0; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ma-sol-btn{ flex:none; font-size:12.5px; font-weight:700; padding:9px 13px; border-radius:9px; background:#b8860b; color:#fff; border:none; min-height:40px; }
+  /* === 1b — chip filtro ================================================== */
+  .ma-chips{ display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .ma-chips::-webkit-scrollbar{ display:none; }
+  .ma-chip{ flex:none; font-size:12.5px; font-weight:600; padding:8px 13px; border-radius:20px; border:1px solid #dfe2e7; background:#fff; color:#4a5568; white-space:nowrap; min-height:36px; }
+  .ma-chip.on{ background:#0a3f93; border-color:#0a3f93; color:#fff; }
+  /* === 1b — BOTTOM SHEET ================================================= */
+  .ma-sheet-bd{ position:fixed; inset:0; z-index:300; background:rgba(16,28,48,.42); display:flex; flex-direction:column; justify-content:flex-end; }
+  .ma-sheet{ background:#f4f5f7; border-radius:22px 22px 0 0; max-height:88%; overflow-y:auto; padding:10px 16px calc(30px + env(safe-area-inset-bottom,0px)); -webkit-overflow-scrolling:touch; }
+  .ma-sheet-grip{ width:38px; height:4px; border-radius:3px; background:#d3d7dd; margin:0 auto 14px; }
+  .ma-sheet-h{ font-size:12px; font-weight:800; color:#98a1ad; letter-spacing:.05em; padding:2px 2px 8px; }
+  .ma-sheet-row{ display:flex; align-items:center; gap:14px; padding:14px 6px; background:#fff; border:1px solid #eceef1; border-radius:12px; margin-bottom:8px; width:100%; text-align:left; }
+  .ma-sheet-row .ic{ font-size:19px; width:26px; text-align:center; flex:none; }
+  .ma-sheet-row .tx{ flex:1; }
+  .ma-sheet-row .tx b{ display:block; font-size:15px; font-weight:600; color:#12233a; }
+  .ma-sheet-row .tx small{ font-size:11.5px; color:#9aa3af; }
+  .ma-sheet-row .go{ color:#c8ccd2; font-size:18px; }
+  .ma-sheet-doc{ background:#fff; border:1px solid #eceef1; border-left:4px solid #ccc; border-radius:12px; padding:12px 14px; margin-bottom:9px; }
+  .ma-sheet-doc-top{ display:flex; justify-content:space-between; align-items:center; }
+  .ma-sheet-doc-ref{ font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:800; }
+  .ma-sheet-doc-meta{ font-size:11px; color:#8a93a0; }
+  .ma-sheet-doc-desc{ font-size:13.5px; color:#2f3b4d; margin-top:4px; }
+  .ma-sol-ta{ width:100%; min-height:150px; border:1px solid #dfe2e7; border-radius:12px; padding:12px 13px; font-size:13px; line-height:1.5; color:#2f3b4d; font-family:'Inter',sans-serif; resize:vertical; background:#fff; box-sizing:border-box; }
+  .ma-sheet-act{ display:flex; gap:8px; margin-top:14px; }
+  .ma-sheet-btn{ flex:1; text-align:center; border-radius:11px; padding:13px 6px; font-size:13.5px; font-weight:700; border:none; min-height:48px; }
+  .ma-sheet-btn.pri{ background:#0a3f93; color:#fff; flex:2; }
+  .ma-sheet-btn.sec{ background:#eef0f3; color:#5b6470; }
+  .ma-sheet-btn.ok{ background:#eaf5ee; color:#117a3a; }
+  .ma-sheet-note{ font-size:11px; color:#9aa3af; text-align:center; margin-top:10px; }
+  /* === 1b — TOAST ======================================================= */
+  .ma-toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(100px + env(safe-area-inset-bottom,0px)); z-index:320; background:rgba(18,35,58,.94); color:#fff; font-size:12.5px; font-weight:600; padding:11px 17px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,.25); max-width:86%; text-align:center; }
 }
 </style>
 
@@ -7190,30 +7254,33 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 
 <!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
 <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
-  <button class="mtab" data-mtab="overview" aria-label="Overview">
-    <svg class="icon"><use href="#i-ship"/></svg>
-    <span class="mtab-l">Flotta</span>
-  </button>
-  <button class="mtab" data-mtab="todos" aria-label="To-do">
-    <svg class="icon"><use href="#i-checksquare"/></svg>
-    <span class="mtab-l">To-do</span>
-    <span class="mtab-dot" id="mtab-todos-dot" style="display:none;"></span>
+  <button class="mtab" data-mtab="home" aria-label="Oggi">
+    <svg class="icon"><use href="#i-home"/></svg>
+    <span class="mtab-l">Oggi</span>
   </button>
   <button class="mtab" data-mtab="email" aria-label="Email">
     <svg class="icon"><use href="#i-mail"/></svg>
     <span class="mtab-l">Email</span>
     <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
   </button>
-  <button class="mtab" data-mtab="certificates" aria-label="Certificati">
-    <svg class="icon"><use href="#i-shield-check"/></svg>
-    <span class="mtab-l">Cert.</span>
-    <span class="mtab-dot" id="mtab-cert-dot" style="display:none;"></span>
+  <button class="mtab" data-mtab="todo" aria-label="To-do">
+    <svg class="icon"><use href="#i-checksquare"/></svg>
+    <span class="mtab-l">To-do</span>
+    <span class="mtab-dot" id="mtab-todos-dot" style="display:none;"></span>
   </button>
   <button class="mtab" data-mtab="rubrica" aria-label="Rubrica">
     <svg class="icon"><use href="#i-building"/></svg>
     <span class="mtab-l">Rubrica</span>
   </button>
+  <button class="mtab" data-mtab="altro" aria-label="Altro">
+    <svg class="icon"><use href="#i-menu"/></svg>
+    <span class="mtab-l">Altro</span>
+    <span class="mtab-dot" id="mtab-cert-dot" style="display:none;"></span>
+  </button>
 </nav>
+
+<div id="ma-sheet-host"></div>
+<div id="ma-toast-host"></div>
 
 <!-- Modal: Settings -->
 <div class="modal" id="modal-settings">
@@ -9132,8 +9199,8 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const scr2tab = { home:"overview", todo:"todos", email:"email", cert:"certificates", rubrica:"rubrica" };
-  const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "overview") : "overview";
+  const scr2tab = { home:"home", flotta:"altro", todo:"todo", email:"email", cert:"altro", rubrica:"rubrica" };
+  const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "home") : "home";
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
   });
@@ -9156,7 +9223,7 @@ function updateMobileTabBar() {
 // Legge i dati REALI (navi, to-do, certificati, email, rubrica) e li presenta
 // come card / drill-down / one-tap / FAB, in stile mockup approvato.
 // ============================================================================
-let mstate = { screen: "home", vessel: null, rubKind: "supplier" };
+let mstate = { screen: "home", vessel: null, rubKind: "supplier", certFilter: "all" };
 function maIsMobile(){ return window.matchMedia("(max-width: 768px)").matches; }
 
 function maStatusColor(cfg){
@@ -9168,25 +9235,88 @@ function maStatusColor(cfg){
   }catch(_){ return "#9aa3af"; }
 }
 
-function maFlotta(){
-  let rows = "";
+function maFleetRowHTML(cfg){
+  const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
+  const color = maStatusColor(cfg);
+  const sub = (v && v.tracking && v.tracking.nextPort)
+    ? (v.tracking.nextPort + (v.tracking.eta ? " · ETA " + formatDate(v.tracking.eta) : ""))
+    : (cfg.manual ? "Gestione manuale" : "—");
+  let stale = 0, expired = 0;
+  try{ if(typeof getStaleRFQs==="function") stale = getStaleRFQs(cfg.vesselId, 8).length; }catch(_){}
+  try{ if(typeof getCertStatsForVessel==="function"){ const cs=getCertStatsForVessel(cfg.vesselId)||{}; expired=(cs.expired||0); } }catch(_){}
+  const alerts = stale + expired;
+  return `<button class="ma-card ma-vrow" onclick="maOpenVessel('${escapeAttr(cfg.vesselId)}')">
+    <span class="ma-dot" style="background:${color}"></span>
+    <span class="ma-vbody"><span class="ma-vname">${escapeHTML(cfg.displayName||cfg.vesselId)}</span><span class="ma-vsub">${escapeHTML(sub)}</span></span>
+    ${alerts>0?`<span class="ma-badge">${alerts}</span>`:""}<span class="ma-chev">›</span>
+  </button>`;
+}
+
+// === 1b — HOME "OGGI": cruscotto priorità ===================================
+function maFleetStaleRFQs(){
+  const out = [];
   (VESSELS||[]).forEach(cfg=>{
-    const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
-    const color = maStatusColor(cfg);
-    const sub = (v && v.tracking && v.tracking.nextPort)
-      ? (v.tracking.nextPort + (v.tracking.eta ? " · ETA " + formatDate(v.tracking.eta) : ""))
-      : (cfg.manual ? "Gestione manuale" : "—");
-    let stale = 0, expired = 0;
-    try{ if(typeof getStaleRFQs==="function") stale = getStaleRFQs(cfg.vesselId, 8).length; }catch(_){}
-    try{ if(typeof getCertStatsForVessel==="function"){ const cs=getCertStatsForVessel(cfg.vesselId)||{}; expired=(cs.expired||0); } }catch(_){}
-    const alerts = stale + expired;
-    rows += `<button class="ma-card ma-vrow" onclick="maOpenVessel('${escapeAttr(cfg.vesselId)}')">
-      <span class="ma-dot" style="background:${color}"></span>
-      <span class="ma-vbody"><span class="ma-vname">${escapeHTML(cfg.displayName||cfg.vesselId)}</span><span class="ma-vsub">${escapeHTML(sub)}</span></span>
-      ${alerts>0?`<span class="ma-badge">${alerts}</span>`:""}<span class="ma-chev">›</span>
-    </button>`;
+    let items = [];
+    try{ if(typeof getStaleRFQs==="function") items = getStaleRFQs(cfg.vesselId, 8) || []; }catch(_){}
+    items.forEach(it=>out.push({ vid:cfg.vesselId, vname:cfg.displayName||cfg.vesselId, it }));
   });
-  return `<div class="ma-title">Flotta</div>${rows||'<div class="ma-empty">Nessuna nave.</div>'}`;
+  out.sort((a,b)=>(b.it.rfqDays||0)-(a.it.rfqDays||0));
+  return out;
+}
+function maHome(){
+  let certCrit=0, certWk=0;
+  try{ const cs=getCertStatsGlobal()||{}; certCrit=(cs.expired||0)+(cs.urgent||0)+(cs.week||0); }catch(_){}
+  const rfqList = maFleetStaleRFQs();
+  const rfqTot = rfqList.length;
+  let emailWait=0; try{ if(typeof getPendingReplies==="function") emailWait=getPendingReplies().length; }catch(_){}
+  let todoOpen=0; try{ todoOpen=todosOpen().length; }catch(_){}
+  const now = new Date();
+  const gg=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"][now.getDay()];
+  const mm=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"][now.getMonth()];
+  const hr=now.getHours();
+  const hello = hr<12?"buongiorno":hr<18?"buon pomeriggio":"buonasera";
+  const tile=(n,lbl,sub,col,onclick)=>`<button class="ma-tile" style="border-left-color:${col}" onclick="${onclick}">
+    <div class="ma-tile-num" style="color:${col}">${n}</div>
+    <div class="ma-tile-lbl">${escapeHTML(lbl)}</div>
+    <div class="ma-tile-sub">${escapeHTML(sub)}</div></button>`;
+  const strip = (VESSELS||[]).map(maFleetRowHTML).join("");
+  return `
+    <div class="ma-greet">${escapeHTML(gg[0].toUpperCase()+gg.slice(1))} ${now.getDate()} ${escapeHTML(mm)} · ${escapeHTML(hello)}</div>
+    <div class="ma-greet-h">Cosa serve ora</div>
+    <div class="ma-tiles">
+      ${tile(certCrit,"Certificati critici","scaduti o < 14g","#c8362f","maGoCert('crit')")}
+      ${tile(rfqTot,"RFQ da sollecitare","ferme da 8+ giorni","#b8860b","maOpenRfqAll()")}
+      ${tile(emailWait,"Email in attesa","richiedono risposta","#0e54c1","mgo('email')")}
+      ${tile(todoOpen,"To-do aperte","oggi e scadute","#117a3a","mgo('todo')")}
+    </div>
+    <div class="ma-sec">Azioni rapide</div>
+    <div class="ma-qa">
+      <button class="ma-qa-btn primary" onclick="openTodoModal()">＋ To-do</button>
+      <button class="ma-qa-btn" onclick="maGoCert('all')">📅 Certificati</button>
+      <button class="ma-qa-btn" onclick="mgo('flotta')">🚢 Flotta</button>
+    </div>
+    <div class="ma-striphead"><div class="ma-sec">Flotta</div><button class="ma-see" onclick="mgo('flotta')">Vedi tutte ›</button></div>
+    ${strip}
+  `;
+}
+
+// === 1b — bottom sheet + toast infrastruttura ===============================
+function maCloseSheet(){ const h=document.getElementById("ma-sheet-host"); if(h) h.innerHTML=""; }
+function maRenderSheet(inner){
+  const h=document.getElementById("ma-sheet-host"); if(!h) return;
+  h.innerHTML = `<div class="ma-sheet-bd" onclick="if(event.target===this)maCloseSheet()"><div class="ma-sheet"><div class="ma-sheet-grip"></div>${inner}</div></div>`;
+}
+let _maToastT=null;
+function maToast(msg){
+  const h=document.getElementById("ma-toast-host"); if(!h) return;
+  h.innerHTML = `<div class="ma-toast">${escapeHTML(msg)}</div>`;
+  clearTimeout(_maToastT); _maToastT=setTimeout(()=>{ if(h) h.innerHTML=""; }, 1800);
+}
+
+function maFlotta(){
+  const rows = (VESSELS||[]).map(maFleetRowHTML).join("");
+  return `<button class="ma-back" onclick="mgo('home')">‹ Oggi</button>
+    <div class="ma-title">Flotta</div>${rows||'<div class="ma-empty">Nessuna nave.</div>'}`;
 }
 
 function maCertRow(c, showVessel){
@@ -9244,8 +9374,25 @@ function maVesselDetail(vid){
   const to = cur.to || nextPort;
   const route = (cur.from||to) ? `${escapeHTML(cur.from||"—")}  →  ${escapeHTML(to||"—")}` : "Rotta non impostata";
   const eta = cur.eta || (v&&v.tracking&&v.tracking.eta);
-  let stale = 0;
-  try{ if(typeof getStaleRFQs==="function") stale = getStaleRFQs(vid, 8).length; }catch(_){}
+  // Pipeline reale (cliccabile)
+  let pl=null; try{ if(v && typeof computePipeline==="function") pl=computePipeline(v); }catch(_){}
+  const plColors={REQ:"#5b6470",RFQ:"#0e54c1",PO:"#b8860b",DN:"#117a3a"};
+  const plHTML = pl ? `<div class="ma-sec">Pipeline procurement</div><div class="ma-pl">${
+    ["REQ","RFQ","PO","DN"].map(s=>`<button class="ma-pl-cell" style="background:${plColors[s]}14" onclick="maOpenStage('${escapeAttr(vid)}','${s}')">
+      <div class="ma-pl-num" style="color:${plColors[s]}">${pl[s].total}</div><div class="ma-pl-lbl">${s}</div></button>`).join("")
+  }</div>` : (cfg.manual?`<div class="ma-sec">Pipeline procurement</div><div class="ma-empty">Nave a gestione manuale — nessuna pipeline.</div>`:"");
+  // RFQ da sollecitare (reale, con azione)
+  let stale=[]; try{ if(typeof getStaleRFQs==="function") stale=getStaleRFQs(vid,8)||[]; }catch(_){}
+  const rfqHTML = stale.length ? `<div class="ma-sec">RFQ da sollecitare (${stale.length})</div>` + stale.map(it=>{
+    const ref=(Array.isArray(it.rfqNumbers)&&it.rfqNumbers[0])||it.reqNumber||"RFQ";
+    const sup=it.supplier&&it.supplier!=="—"?it.supplier:(it.description||"—");
+    return `<div class="ma-card ma-rfq">
+      <button class="ma-rfq-body" onclick="maSollecita('${escapeAttr(vid)}','${escapeAttr(ref)}')">
+        <span class="ma-rfq-ref">${escapeHTML(ref)} ›</span>
+        <span class="ma-rfq-sub">${escapeHTML(sup)} · ${it.rfqDays||0}g</span></button>
+      <button class="ma-sol-btn" onclick="maSollecita('${escapeAttr(vid)}','${escapeAttr(ref)}')">Sollecita</button>
+    </div>`;
+  }).join("") : "";
   const certs = (((state.certificates&&state.certificates[vid])||[]))
     .filter(c=>!c.isPermanent && c.expiry)
     .map(c=>({ ...c, d: daysToExpiry(c.expiry) }))
@@ -9261,10 +9408,8 @@ function maVesselDetail(vid){
       <div class="ma-hero-route">${route}</div>
       ${eta?`<div class="ma-hero-meta">ETA ${escapeHTML(formatDate(eta))}${cur.etb?` · ETB ${escapeHTML(formatDate(cur.etb))}`:""}</div>`:""}
     </div>
-    <div class="ma-hero2 ${stale>0?'warn':''}">
-      <div class="ma-hero2-num">${stale}</div>
-      <div class="ma-hero2-lbl">${stale>0?"RFQ da sollecitare":"RFQ sotto controllo"}</div>
-    </div>
+    ${plHTML}
+    ${rfqHTML}
     <div class="ma-sec">Certificati in scadenza</div>${certHTML}
     <div class="ma-sec">To-do aperte</div>${todoHTML}
   `;
@@ -9300,13 +9445,22 @@ function maCert(){
   (VESSELS||[]).forEach(cfg=>{
     ((state.certificates&&state.certificates[cfg.vesselId])||[]).forEach(c=>{
       if(c.isPermanent || !c.expiry) return;
-      all.push({ ...c, d: daysToExpiry(c.expiry), vesselName: cfg.displayName });
+      all.push({ ...c, d: daysToExpiry(c.expiry), vesselId: cfg.vesselId, vesselName: cfg.displayName });
     });
   });
   all.sort((a,b)=>(a.d??1e9)-(b.d??1e9));
-  const near = all.filter(c=>c.d!=null && c.d<=90);
-  const rows = near.length ? near.map(c=>maCertRow(c,true)).join("") : `<div class="ma-empty">Nessun certificato in scadenza nei prossimi 90 giorni.</div>`;
-  return `<div class="ma-title">Certificati</div>${rows}`;
+  const f = mstate.certFilter || "all";
+  let list;
+  if(f==="crit") list = all.filter(c=>c.d!=null && c.d<=14);
+  else if(f==="all") list = all.filter(c=>c.d!=null && c.d<=90);
+  else list = all.filter(c=>c.vesselId===f);
+  const chip=(id,lbl)=>`<button class="ma-chip ${f===id?'on':''}" onclick="maSetCertFilter('${escapeAttr(id)}')">${escapeHTML(lbl)}</button>`;
+  const chips = `<div class="ma-chips">${chip("all","Tutti")}${chip("crit","⚠ Critici")}${
+    (VESSELS||[]).map(v=>chip(v.vesselId, (v.displayName||v.vesselId).replace("M/V ",""))).join("")}</div>`;
+  const rows = list.length ? list.map(c=>maCertRow(c,true)).join("")
+    : `<div class="ma-empty">Nessun certificato in questa vista.</div>`;
+  return `<button class="ma-back" onclick="mgo('home')">‹ Oggi</button>
+    <div class="ma-title">Certificati</div>${chips}${rows}`;
 }
 
 function maRubrica(){
@@ -9350,30 +9504,144 @@ function renderMobileApp(){
   if(!state.data){ app.innerHTML = `<div class="ma-empty" style="margin-top:40px">Caricamento…</div>`; return; }
   let html;
   if(mstate.screen==="home" && mstate.vessel) html = maVesselDetail(mstate.vessel);
-  else if(mstate.screen==="home") html = maFlotta();
+  else if(mstate.screen==="flotta" && mstate.vessel) html = maVesselDetail(mstate.vessel);
+  else if(mstate.screen==="home") html = maHome();
+  else if(mstate.screen==="flotta") html = maFlotta();
   else if(mstate.screen==="todo") html = maTodo();
   else if(mstate.screen==="email") html = maEmail();
   else if(mstate.screen==="cert") html = maCert();
   else if(mstate.screen==="rubrica") html = maRubrica();
-  else html = maFlotta();
-  const showFab = (mstate.screen==="todo" || (mstate.screen==="home" && !mstate.vessel));
+  else html = maHome();
+  const showFab = (mstate.screen==="todo");
   app.innerHTML = html + (showFab?`<button class="ma-fab" onclick="openTodoModal()" aria-label="Nuova to-do">+</button>`:"");
 }
 
 function mgo(screen){
   mstate.screen = screen; mstate.vessel = null;
+  maCloseSheet();
   renderMobileApp(); updateMobileTabBar();
   try{ window.scrollTo({top:0}); }catch(_){}
 }
-window.maOpenVessel = function(vid){ mstate.screen="home"; mstate.vessel=vid; renderMobileApp(); try{window.scrollTo({top:0});}catch(_){} };
-window.maBack = function(){ mstate.vessel=null; renderMobileApp(); try{window.scrollTo({top:0});}catch(_){} };
+window.mgo = mgo;
+window.maOpenVessel = function(vid){ if(mstate.screen!=="flotta") mstate.screen="home"; mstate.vessel=vid; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
+window.maBack = function(){ mstate.vessel=null; renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
 window.maRubKind = function(k){ mstate.rubKind=k; renderMobileApp(); };
+window.maGoCert = function(f){ mstate.certFilter = f||"all"; mgo("cert"); };
+window.maSetCertFilter = function(f){ mstate.certFilter = f; renderMobileApp(); };
 window.maToggleTodo = function(id){
   const t = (state.todos||[]).find(x=>String(x.id)===String(id));
   if(!t) return;
   t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null;
   try{ saveTodos(); }catch(_){}
   try{ render(); }catch(_){ renderMobileApp(); }
+};
+
+// === 1b — sheet: Altro (funzioni desktop non in tab bar) ====================
+window.maOpenAltro = function(){
+  const row=(ic,title,sub,onclick)=>`<button class="ma-sheet-row" onclick="${onclick}"><span class="ic">${ic}</span><span class="tx"><b>${escapeHTML(title)}</b>${sub?`<small>${escapeHTML(sub)}</small>`:""}</span><span class="go">›</span></button>`;
+  const inner = `<div class="ma-sheet-h">ALTRO</div>
+    ${row("🔄","Aggiorna dati","",'maCloseSheet();(document.getElementById(\'btn-refresh\')||{click:()=>{}}).click();maToast(\'Aggiornamento avviato\')')}
+    ${row("🌙","Fine giornata","",'maCloseSheet();(document.getElementById(\'btn-eod\')||{click:()=>{}}).click()')}
+    <div class="ma-sheet-h" style="margin-top:8px">NAVIGA</div>
+    ${row("🚢","Flotta","",'mgo(\'flotta\')')}
+    ${row("📅","Certificati","",'maGoCert(\'all\')')}
+    ${row("🔗","Pipeline REQ→RFQ→PO→DN","apri una nave",'mgo(\'flotta\')')}
+    <div class="ma-sheet-h" style="margin-top:8px">STRUMENTI</div>
+    ${row("🔍","Cerca","",'maCloseSheet();(document.getElementById(\'btn-palette\')||{click:()=>{}}).click()')}
+    ${row("📦","Storico consegne","export Excel da PC",'maCloseSheet();(document.getElementById(\'btn-delivery-archive\')||{click:()=>{}}).click()')}
+    ${row("⬇","Report IHM (Excel)","",'maCloseSheet();(document.getElementById(\'btn-report-ihm\')||{click:()=>{}}).click()')}
+    ${row("⚙️","Impostazioni","",'maCloseSheet();(document.getElementById(\'btn-settings\')||{click:()=>{}}).click()')}`;
+  maRenderSheet(inner);
+};
+
+// === 1b — sheet: RFQ da sollecitare (tutta la flotta) =======================
+window.maOpenRfqAll = function(){
+  const list = maFleetStaleRFQs();
+  const body = list.length ? list.map(r=>{
+    const ref=(Array.isArray(r.it.rfqNumbers)&&r.it.rfqNumbers[0])||r.it.reqNumber||"RFQ";
+    const sup=r.it.supplier&&r.it.supplier!=="—"?r.it.supplier:(r.it.description||"—");
+    return `<div class="ma-card ma-rfq">
+      <button class="ma-rfq-body" onclick="maSollecita('${escapeAttr(r.vid)}','${escapeAttr(ref)}')">
+        <span class="ma-rfq-ref">${escapeHTML(ref)} ›</span>
+        <span class="ma-rfq-sub">${escapeHTML(r.vname)} · ${escapeHTML(sup)} · ${r.it.rfqDays||0}g</span></button>
+      <button class="ma-sol-btn" onclick="maSollecita('${escapeAttr(r.vid)}','${escapeAttr(ref)}')">Sollecita</button>
+    </div>`;
+  }).join("") : `<div class="ma-empty">Nessuna RFQ ferma da oltre 8 giorni. 🎉</div>`;
+  maRenderSheet(`<div class="ma-sheet-h">RFQ DA SOLLECITARE (${list.length})</div>${body}
+    <div class="ma-sheet-act"><button class="ma-sheet-btn sec" onclick="maCloseSheet()">Chiudi</button></div>`);
+};
+
+// === 1b — sheet: dettaglio fase pipeline (sola lettura) =====================
+window.maOpenStage = function(vid, stage){
+  const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===vid);
+  let pl=null; try{ if(v) pl=computePipeline(v); }catch(_){}
+  const cols={REQ:"#5b6470",RFQ:"#0e54c1",PO:"#b8860b",DN:"#117a3a"};
+  const col=cols[stage]||"#5b6470";
+  const items = (pl && pl[stage] && pl[stage].items) || [];
+  const cfg=(VESSELS||[]).find(x=>x.vesselId===vid)||{};
+  const rows = items.length ? items.map(it=>{
+    const ref = stage==="DN"?(it.dnNumber||"") : stage==="PO"?(it.poNumber||"") : stage==="RFQ"?((Array.isArray(it.rfqNumbers)&&it.rfqNumbers[0])||it.reqNumber||"") : (it.reqNumber||"");
+    const st = it.dnStatus||it.poStatus||it.rfqStatus||it.reqStatus||"";
+    return `<div class="ma-sheet-doc" style="border-left-color:${col}">
+      <div class="ma-sheet-doc-top"><span class="ma-sheet-doc-ref" style="color:${col}">${escapeHTML(ref||"—")}</span><span class="ma-sheet-doc-meta">${escapeHTML(st)}</span></div>
+      <div class="ma-sheet-doc-desc">${escapeHTML(it.description||"—")}${it.supplier&&it.supplier!=="—"?` · ${escapeHTML(it.supplier)}`:""}</div>
+    </div>`;
+  }).join("") : `<div class="ma-empty">Nessun documento in questa fase.</div>`;
+  maRenderSheet(`<div class="ma-sheet-h">${stage} · ${escapeHTML(cfg.displayName||vid)} · ${items.length} document${items.length===1?'o':'i'}</div>${rows}
+    <div class="ma-sheet-note">Il dettaglio completo e le modifiche si fanno da PC.</div>
+    <div class="ma-sheet-act"><button class="ma-sheet-btn sec" onclick="maCloseSheet()">Chiudi</button></div>`);
+};
+
+// === 1b — sheet: bozza sollecito RFQ (azione reale) =========================
+window.maSollecita = function(vid, ref){
+  const cfg=(VESSELS||[]).find(x=>x.vesselId===vid)||{};
+  const vname=cfg.displayName||vid;
+  // trova supplier + email
+  let sup="", days=0, email="";
+  try{
+    const st=(getStaleRFQs(vid,0)||[]).find(it=>((Array.isArray(it.rfqNumbers)&&it.rfqNumbers[0])||it.reqNumber)===ref) || {};
+    sup = st.supplier||""; days = st.rfqDays||0;
+  }catch(_){}
+  try{ if(sup){ const p=getEntityProfile("supplier",sup)||{}; email=p.email||""; } }catch(_){}
+  const draft = `Gentili,\n\nin riferimento alla nostra richiesta ${ref} (${vname}), non avendo ancora ricevuto riscontro${days?` dopo ${days} giorni`:""}, Vi chiediamo cortesemente un aggiornamento sui tempi di offerta.\n\nRestiamo in attesa. Cordiali saluti,\nMichele Del Vecchio — Purchasing`;
+  const subj = `Sollecito offerta ${ref} — ${vname}`;
+  window._maDraft = draft; window._maDraftMail = email; window._maDraftSubj = subj;
+  const mailBtn = `<button class="ma-sheet-btn pri" onclick="maSollecitaMail()">✉️ Apri email</button>`;
+  maRenderSheet(`
+    <div class="ma-sheet-h">SOLLECITO ${escapeHTML(ref)}${sup?` · ${escapeHTML(sup)}`:""}</div>
+    <textarea class="ma-sol-ta" id="ma-sol-ta">${escapeHTML(draft)}</textarea>
+    <div class="ma-sheet-act">
+      ${mailBtn}
+      <button class="ma-sheet-btn sec" onclick="maSollecitaCopy()">📋 Copia</button>
+    </div>
+    <div class="ma-sheet-act">
+      <button class="ma-sheet-btn ok" onclick="maSollecitaTodo('${escapeAttr(vid)}','${escapeAttr(ref)}')">✓ Crea promemoria</button>
+      <button class="ma-sheet-btn sec" onclick="maCloseSheet()">Chiudi</button>
+    </div>
+    <div class="ma-sheet-note">Solo suggerimento: l'invio lo premi tu.</div>`);
+};
+window.maSollecitaMail = function(){
+  const ta=document.getElementById("ma-sol-ta"); const body=ta?ta.value:(window._maDraft||"");
+  const to=window._maDraftMail||""; const subj=window._maDraftSubj||"Sollecito RFQ";
+  const url=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  try{ window.location.href=url; }catch(_){}
+};
+window.maSollecitaCopy = function(){
+  const ta=document.getElementById("ma-sol-ta"); const body=ta?ta.value:(window._maDraft||"");
+  try{ navigator.clipboard.writeText(body); maToast("Testo copiato"); }catch(_){ maToast("Copia non riuscita"); }
+};
+window.maSollecitaTodo = function(vid, ref){
+  try{
+    const cfg=(VESSELS||[]).find(x=>x.vesselId===vid)||{};
+    const t={ id:"ma_"+Date.now()+"_"+Math.random().toString(36).slice(2,6),
+      action:`Sollecitare ${ref}`, reference:ref, vessel:vid, category:"RFQ",
+      priority:"media", dueDate:todayISO(), note:`Sollecito offerta ${ref} — ${cfg.displayName||vid}`,
+      done:false, createdAt:new Date().toISOString() };
+    state.todos = state.todos||[]; state.todos.unshift(t);
+    saveTodos();
+    maCloseSheet(); maToast("Promemoria creato");
+    try{ render(); }catch(_){ renderMobileApp(); }
+  }catch(e){ maToast("Errore creazione promemoria"); }
 };
 
 function renderLoading() {
@@ -16211,7 +16479,10 @@ function collectArchiveOrders() {
         if (!plan && !dnRecv) continue;                 // solo ciò che ho pianificato o è arrivato
         const eff = getEffectiveDelivery(it, v.vesselId) || {};
         if (!plan && eff.source === "infoship") { /* nessun piano mio, solo stima */ }
-        const date = dnRecv ? (it.dnDate || it.dnDeliveryDate || eff.date || "") : (eff.date || "");
+        // v0.56 — la data della scheda (Pianifica consegna: manuale o voyage) è quella
+        // che conta: la uso sempre se presente, così un DN registrato con altra data
+        // (nave alla fonda per giorni, ecc.) non crea discrepanze. Il DN è solo fallback.
+        const date = eff.date || (dnRecv ? (it.dnDate || it.dnDeliveryDate || "") : "");
         const port = eff.port || "";
         const delivered = dnRecv || (!!date && date <= today);
         out.push({
@@ -20791,7 +21062,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.addEventListener("click", () => {
       const t = tab.dataset.mtab;
-      const tab2scr = { overview:"home", todos:"todo", email:"email", certificates:"cert", rubrica:"rubrica" };
+      if (t === "altro") { maOpenAltro(); return; }
+      const tab2scr = { home:"home", email:"email", todo:"todo", rubrica:"rubrica" };
       mgo(tab2scr[t] || "home");
     });
   });
