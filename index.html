@@ -8219,6 +8219,7 @@ async function loadData() {
       return;
     }
   }
+  migrateRescueStaleDeliveries();  // v0.56 — recupero consegne orfane (una-tantum)
   render();
   checkWhatsNew();
   maybeMorningSnapshot();
@@ -16153,7 +16154,50 @@ window.closeDeliveryHistory = function() {
 // v0.55 — Storico consegne DI FLOTTA basato su "Pianifica consegna": ogni ordine per cui
 // ho impostato porto + data (piano manuale o voyage), oppure con DN ricevuto a bordo, o
 // ordine manuale segnato consegnato. Con filtri (ricerca/nave/stato) e riga cliccabile.
-let _archiveFilter = { q: "", vessel: "all", status: "delivered" };
+let _archiveFilter = { q: "", vessel: "all", status: "delivered", year: String(new Date().getFullYear()) };
+
+// v0.56 — Export Excel delle consegne per NAVE e ANNO. Nome file stabile
+// (Consegne_<NAVE>_<ANNO>.xlsx): riesportando si rigenera lo stesso file aggiornato,
+// porto dopo porto, per tutto l'anno. Con nave = "tutte" → un foglio per nave.
+async function exportDeliveriesExcel(){
+  const year = _archiveFilter.year || String(new Date().getFullYear());
+  const vid = _archiveFilter.vessel;
+  showToast("Preparazione Excel…");
+  if (typeof XLSX === "undefined"){ try { await loadSheetJS(); } catch(_){} }
+  if (typeof XLSX === "undefined"){ showToast("Impossibile caricare la libreria Excel (serve connessione)"); return; }
+  const vName = (v)=> ((VESSELS.find(x=>x.vesselId===v)||{}).displayName || v).replace(/^M\/V\s*/i,'').trim();
+  const all = collectArchiveOrders().filter(o => (o.date||"").slice(0,4) === String(year));
+  const rowFor = (o)=>({
+    "Data consegna": o.date || "",
+    "Porto": o.port || "",
+    "Stato": o.status === "delivered" ? "Consegnato" : "Pianificato",
+    "Documento": (o.docLabel ? o.docLabel + " " : "") + (o.doc || "") + (o.docExtra ? " (" + o.docExtra + ")" : ""),
+    "Descrizione": o.description || "",
+    "Fornitore": o.supplier || "",
+    "Importo": o.amount || ""
+  });
+  const cols = [{wch:13},{wch:22},{wch:13},{wch:24},{wch:52},{wch:26},{wch:14}];
+  const emptyRow = { "Data consegna":"", "Porto":"(nessuna consegna in questo anno)", "Stato":"", "Documento":"", "Descrizione":"", "Fornitore":"", "Importo":"" };
+  const wb = XLSX.utils.book_new();
+  const addSheet = (name, list)=>{
+    const rows = list.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(rowFor);
+    const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [emptyRow]);
+    ws["!cols"] = cols;
+    XLSX.utils.book_append_sheet(wb, ws, String(name).replace(/[\\\/?*\[\]:]/g,' ').slice(0,31) || "Foglio");
+  };
+  let fname;
+  if (vid === "all"){
+    for (const v of VESSELS) addSheet(vName(v.vesselId), all.filter(o=>o.vesselId===v.vesselId));
+    fname = `Consegne_Flotta_${year}.xlsx`;
+  } else {
+    const nm = vName(vid);
+    addSheet(nm, all.filter(o=>o.vesselId===vid));
+    fname = `Consegne_${nm.replace(/\s+/g,'-')}_${year}.xlsx`;
+  }
+  XLSX.writeFile(wb, fname);
+  showToast("Excel scaricato: " + fname);
+}
+window.exportDeliveriesExcel = exportDeliveriesExcel;
 
 function collectArchiveOrders() {
   const out = [];
@@ -16286,6 +16330,11 @@ window.openDeliveryArchive = function() {
   const f = _archiveFilter;
   const vesselOpts = ['<option value="all">Tutte le navi</option>']
     .concat(VESSELS.map(v => `<option value="${v.vesselId}" ${f.vessel===v.vesselId?"selected":""}>${escapeHTML(v.displayName)}</option>`)).join("");
+  const curY = new Date().getFullYear();
+  const yearsSet = new Set([String(curY), String(curY-1)]);
+  collectArchiveOrders().forEach(o => { if (o.date) yearsSet.add(o.date.slice(0,4)); });
+  const yearOpts = Array.from(yearsSet).sort((a,b)=>b.localeCompare(a))
+    .map(y => `<option value="${y}" ${String(f.year)===y?"selected":""}>${y}</option>`).join("");
   const seg = (st, lbl) => `<button class="da-seg-btn ${f.status===st?"active":""}" data-st="${st}" onclick="window.setArchiveFilter('status','${st}')">${lbl}</button>`;
 
   bd.innerHTML = `
@@ -16304,6 +16353,12 @@ window.openDeliveryArchive = function() {
           ${seg("delivered","Consegnate")}${seg("planned","Pianificate")}${seg("all","Tutte")}
         </div>
       </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:#f7f9fc;">
+        <span style="font-size:12px;color:#64748b;font-weight:600;">📊 Report Excel per nave/anno</span>
+        <select class="filter-select" id="da-year" style="flex:none;">${yearOpts}</select>
+        <button class="btn btn-sm btn-primary" onclick="window.exportDeliveriesExcel()" title="Scarica il file Excel delle consegne per la nave e l'anno selezionati. Stesso nome file: riesportando lo aggiorni porto dopo porto.">⬇ Esporta Excel</button>
+        <span style="font-size:11px;color:#8a93a0;">Nome file fisso per nave+anno — riesporta per aggiornarlo</span>
+      </div>
       <div class="item-detail-body"><div id="da-list"></div></div>
     </div>`;
   requestAnimationFrame(() => bd.classList.add("open"));
@@ -16311,6 +16366,8 @@ window.openDeliveryArchive = function() {
   if (si) si.addEventListener("input", e => { _archiveFilter.q = e.target.value; renderArchiveList(); });
   const vs = document.getElementById("da-vessel");
   if (vs) vs.addEventListener("change", e => { _archiveFilter.vessel = e.target.value; renderArchiveList(); });
+  const ys = document.getElementById("da-year");
+  if (ys) ys.addEventListener("change", e => { _archiveFilter.year = e.target.value; });
   renderArchiveList();
 };
 window.closeDeliveryArchive = function() {
@@ -16406,6 +16463,12 @@ window.advanceVoyage = function(vesselId){
   voy.history.unshift(Object.assign({}, cur, { closedAt: new Date().toISOString(), deliveredItems }));
   voy.history = voy.history.slice(0, 20);
 
+  // v0.56 — CONGELO le consegne del viaggio che si conclude: diventano manuali sul
+  // porto+data risolti ADESSO, così non seguono mai più il viaggio quando avanza.
+  // (Fix definitivo: prima i piani agganciati "per posizione" scalavano sul porto nuovo,
+  //  cancellando la pianificazione e accalcando tutto sull'ultimo porto nello storico.)
+  freezeCurrentLegDeliveries(vesselId);
+
   // chi era collegato al viaggio successivo ora è collegato al viaggio in corso (stesso id, solo promosso)
   reassignDeliveryLegsOnAdvance(vesselId, nxt.id, cur.id);
 
@@ -16421,6 +16484,59 @@ window.advanceVoyage = function(vesselId){
 
 // Aggiorna il campo "leg" (posizione, solo per la UI del select) degli item il cui
 // voyageLegId corrisponde al viaggio appena promosso a "current".
+// v0.56 — Recupero UNA-TANTUM: consegne pianificate rimaste "orfane" da avanzamenti
+// passati (leg non più esistente → si vedevano vuote/perse). Le ricongelo dallo snapshot
+// come manuali, così non risultano cancellate. Non tocca i piani che risolvono ancora
+// correttamente su un leg. Guardato da un flag: gira una volta sola.
+function migrateRescueStaleDeliveries(){
+  if (localStorage.getItem("mpd.rescuedDeliveries_v056")) return;
+  try {
+    if (!state.data || !Array.isArray(state.data.vessels)) return;  // dati non ancora pronti: riprovo al prossimo load
+    const all = loadDeliveries();
+    let changed = false, rescued = 0;
+    for (const v of state.data.vessels){
+      for (const it of (v.items || [])){
+        const plan = all[it.id];
+        if (!plan || plan.mode !== "voyage") continue;
+        const eff = getEffectiveDelivery(it, v.vesselId);
+        if (eff && eff.source === "voyage" && eff.stale){
+          const snap = plan.snapshot || {};
+          const port = eff.port || snap.to || "";
+          const date = eff.date || (snap.etb || snap.eta || "").slice(0,10);
+          if (port || date){
+            all[it.id] = { mode: "manual", date, port, frozenFromVoyage: true, rescued: true };
+            changed = true; rescued++;
+          }
+        }
+      }
+    }
+    if (changed) saveDeliveriesDB(all);
+    localStorage.setItem("mpd.rescuedDeliveries_v056", "1");
+    if (rescued && typeof showToast === "function") showToast(rescued + " consegne pianificate recuperate e fissate al loro porto");
+  } catch(e){ console.warn("[Rescue consegne] ", e); }
+}
+
+// v0.56 — Blocca sul porto le consegne del viaggio in corso PRIMA che avanzi:
+// le converto in "manuale" con porto+data risolti adesso. Così restano ancorate
+// a QUEL porto per sempre e non seguono il viaggio quando cambia scalo.
+function freezeCurrentLegDeliveries(vesselId){
+  const v = state.data && state.data.vessels.find(x=>x.vesselId===vesselId);
+  if (!v || !v.items) return;
+  const freezes = [];
+  for (const it of v.items){
+    const plan = getDeliveryPlan(it.id);
+    if (!plan || plan.mode !== "voyage") continue;
+    const eff = getEffectiveDelivery(it, vesselId);   // può scrivere lo snapshot come effetto collaterale
+    if (eff && eff.source === "voyage" && /in corso/i.test(eff.legLabel || "")){
+      freezes.push([it.id, { mode: "manual", date: eff.date || "", port: eff.port || (plan.snapshot && plan.snapshot.to) || "", frozenFromVoyage: true }]);
+    }
+  }
+  if (!freezes.length) return;
+  const all = loadDeliveries();   // ricarico DOPO gli effetti collaterali di getEffectiveDelivery
+  for (const [id, p] of freezes) all[id] = p;
+  saveDeliveriesDB(all);
+}
+
 function reassignDeliveryLegsOnAdvance(vesselId, promotedLegId, concludedLegId){
   const v = state.data && state.data.vessels.find(x=>x.vesselId===vesselId);
   if (!v || !v.items) return;
