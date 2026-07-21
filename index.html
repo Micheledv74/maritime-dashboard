@@ -7182,6 +7182,9 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .ma-ewhat span{ color:#b8860b; font-weight:700; }
   .ma-etags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
   .ma-etag{ font-size:10.5px; font-weight:700; border-radius:6px; padding:2px 7px; white-space:nowrap; }
+  .ma-erow-act{ display:flex; justify-content:flex-end; margin-top:9px; padding-top:9px; border-top:1px solid #eef0f3; }
+  .ma-edone{ font-size:12.5px; font-weight:700; color:#117a3a; background:#e8f5ec; border:1px solid #bfe4cb; border-radius:8px; padding:7px 14px; -webkit-tap-highlight-color:transparent; }
+  .ma-edone:active{ background:#d6ecdd; }
   /* === 1b — Email Workspace a tutto schermo su mobile ==================== */
   #email-ws-modal.draft-modal-overlay{ z-index:340 !important; padding:0 !important; align-items:stretch !important; }
   #email-ws-modal .ews-modal{ width:100% !important; max-width:100% !important; height:100% !important; max-height:100% !important; border-radius:0 !important; display:flex; flex-direction:column; }
@@ -9458,7 +9461,7 @@ function maEmail(){
     const thread = (r.messages&&r.messages.length>1) ? `<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">💬 ${r.messages.length}</span>` : "";
     const dl = r.deadline ? `<span class="ma-etag" style="color:#b8860b;background:#fdf4e2">📅 ${escapeHTML(new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"}))}</span>` : "";
     const what = (typeof emailActionText==="function") ? emailActionText(r) : "";
-    return `<button class="ma-card ma-erow" onclick="maOpenEmail('${escapeAttr(r.id)}')">
+    return `<div class="ma-card ma-erow" role="button" tabindex="0" onclick="maOpenEmail('${escapeAttr(r.id)}')">
       <div class="ma-erow-top">
         <span class="ma-efrom">${escapeHTML(r.fromName||r.fromEmail||"—")}</span>
         <span class="ma-ecat" style="color:${cat.color};background:${cat.bg}">${escapeHTML(cat.label)}</span>
@@ -9469,7 +9472,10 @@ function maEmail(){
         ${r.waiting?`<span class="ma-etag" style="color:#c8362f;background:#fbe6e6">⏳ ${r.days>0?r.days+"g":"in attesa"}</span>`:""}
         ${vn?`<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">${escapeHTML(vn)}</span>`:""}${doc}${thread}${dl}
       </div>
-    </button>`;
+      <div class="ma-erow-act">
+        <button class="ma-edone" onclick="event.stopPropagation();maDismissEmail('${escapeAttr(r.id)}')">✓ Fatto</button>
+      </div>
+    </div>`;
   }).join("") : `<div class="ma-empty">Nessuna email in questa vista.</div>`;
   return `<button class="ma-back" onclick="mgo('home')">‹ Oggi</button>
     <div class="ma-title">Assistente Email</div>${chipRow}${rows}`;
@@ -9478,6 +9484,13 @@ window.maSetEmailFilter = function(f){ mstate.emailFilter = f; renderMobileApp()
 // Tap su una email → workspace assistente completo (riusa il motore desktop: riassunto,
 // bozza, tono, traduzione, scadenze, risposte rapide). Su mobile la modale è a tutto schermo.
 window.maOpenEmail = function(id){ if(typeof window.openEmailWorkspace==="function") window.openEmailWorkspace(id); };
+// Segna un'email come fatta/gestita → la archivia dalla lista (stesso meccanismo del "Fatto" desktop)
+window.maDismissEmail = function(id){
+  if(typeof dismissReply==="function") dismissReply(id);
+  if(typeof ghSetDirty==="function") ghSetDirty();
+  if(typeof maToast==="function") maToast("Email segnata come fatta");
+  renderMobileApp();
+};
 
 function maTodo(){
   const open = (state.todos||[]).filter(t=>!t.done);
