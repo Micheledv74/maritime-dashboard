@@ -9722,7 +9722,7 @@ window.maSollecita = function(vid, ref){
 window.maSollecitaMail = function(){
   const ta=document.getElementById("ma-sol-ta"); const body=ta?ta.value:(window._maDraft||"");
   const to=window._maDraftMail||""; const subj=window._maDraftSubj||"Sollecito RFQ";
-  const url=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  const url=buildComposeHref(subj, body, to);
   try{ window.location.href=url; }catch(_){}
 };
 window.maSollecitaCopy = function(){
@@ -14749,9 +14749,12 @@ const EMAIL_TEMPLATES = {
 function buildComposeHref(subject, body, to) {
   const mode = (state.settings && state.settings.emailMode) || "outlook";
   to = to || "";
-  // Su smartphone: sempre mailto → apre l'app Outlook installata (client di sistema),
-  // mai il compositore web. Su desktop resta la modalità scelta (Outlook web di default).
-  if (mode === "mailto" || (typeof maIsMobile === "function" && maIsMobile())) {
+  // Su smartphone: deep-link dell'app Outlook (ms-outlook://) → apre DIRETTAMENTE
+  // l'app Outlook con l'account di lavoro, non l'app di posta predefinita del telefono.
+  if (typeof maIsMobile === "function" && maIsMobile()) {
+    return `ms-outlook://compose?to=${encodeURIComponent(to)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+  if (mode === "mailto") {
     return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
   // Outlook web (Office 365). Deeplink di composizione con campi precompilati.
