@@ -7147,6 +7147,15 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .ma-sheet-bd{ position:fixed; inset:0; z-index:300; background:rgba(16,28,48,.42); display:flex; flex-direction:column; justify-content:flex-end; }
   .ma-sheet{ background:#f4f5f7; border-radius:22px 22px 0 0; max-height:88%; overflow-y:auto; padding:10px 16px calc(30px + env(safe-area-inset-bottom,0px)); -webkit-overflow-scrolling:touch; }
   .ma-sheet-grip{ width:38px; height:4px; border-radius:3px; background:#d3d7dd; margin:0 auto 14px; }
+  .ma-sheet-x{ position:absolute; top:12px; right:14px; width:32px; height:32px; border-radius:50%; border:none; background:#eef0f3; color:#5b6470; font-size:15px; line-height:1; z-index:2; }
+  .ma-sheet{ position:relative; }
+  /* campi form nel workspace to-do */
+  .ma-fld-lbl{ font-size:11.5px; font-weight:800; color:#98a1ad; letter-spacing:.05em; margin:16px 2px 7px; }
+  .ma-fld-lbl:first-of-type{ margin-top:2px; }
+  .ma-ta{ width:100%; border:1px solid #dfe2e7; border-radius:12px; padding:11px 13px; font-size:14px; line-height:1.4; color:#12233a; font-family:'Inter',sans-serif; resize:vertical; background:#fff; box-sizing:border-box; }
+  .ma-duechips{ display:flex; gap:7px; flex-wrap:wrap; }
+  .ma-duechip{ font-size:12.5px; font-weight:600; padding:8px 12px; border-radius:9px; border:1px solid #dfe2e7; background:#fff; color:#4a5568; }
+  .ma-duechip.on{ background:#0a3f93; border-color:#0a3f93; color:#fff; }
   .ma-sheet-h{ font-size:12px; font-weight:800; color:#98a1ad; letter-spacing:.05em; padding:2px 2px 8px; }
   .ma-sheet-row{ display:flex; align-items:center; gap:14px; padding:14px 6px; background:#fff; border:1px solid #eceef1; border-radius:12px; margin-bottom:8px; width:100%; text-align:left; }
   .ma-sheet-row .ic{ font-size:19px; width:26px; text-align:center; flex:none; }
@@ -7168,6 +7177,17 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .ma-sheet-note{ font-size:11px; color:#9aa3af; text-align:center; margin-top:10px; }
   /* === 1b — TOAST ======================================================= */
   .ma-toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(100px + env(safe-area-inset-bottom,0px)); z-index:320; background:rgba(18,35,58,.94); color:#fff; font-size:12.5px; font-weight:600; padding:11px 17px; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,.25); max-width:86%; text-align:center; }
+  /* === 1b — EMAIL triage row ============================================= */
+  .ma-ewhat{ font-size:12.5px; color:#5b6470; line-height:1.4; margin-top:5px; display:flex; gap:5px; }
+  .ma-ewhat span{ color:#b8860b; font-weight:700; }
+  .ma-etags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+  .ma-etag{ font-size:10.5px; font-weight:700; border-radius:6px; padding:2px 7px; white-space:nowrap; }
+  /* === 1b — Email Workspace a tutto schermo su mobile ==================== */
+  #email-ws-modal.draft-modal-overlay{ z-index:340 !important; padding:0 !important; align-items:stretch !important; }
+  #email-ws-modal .ews-modal{ width:100% !important; max-width:100% !important; height:100% !important; max-height:100% !important; border-radius:0 !important; display:flex; flex-direction:column; }
+  #email-ws-modal .draft-modal-head{ padding-top:calc(10px + env(safe-area-inset-top,0px)) !important; }
+  #email-ws-modal .draft-modal-body{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #email-ws-modal .draft-modal-foot{ padding-bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important; flex-wrap:wrap; }
 }
 </style>
 
@@ -9304,7 +9324,9 @@ function maHome(){
 function maCloseSheet(){ const h=document.getElementById("ma-sheet-host"); if(h) h.innerHTML=""; }
 function maRenderSheet(inner){
   const h=document.getElementById("ma-sheet-host"); if(!h) return;
-  h.innerHTML = `<div class="ma-sheet-bd" onclick="if(event.target===this)maCloseSheet()"><div class="ma-sheet"><div class="ma-sheet-grip"></div>${inner}</div></div>`;
+  h.innerHTML = `<div class="ma-sheet-bd" onclick="if(event.target===this)maCloseSheet()"><div class="ma-sheet">
+    <button class="ma-sheet-x" onclick="maCloseSheet()" aria-label="Chiudi">✕</button>
+    <div class="ma-sheet-grip"></div>${inner}</div></div>`;
 }
 let _maToastT=null;
 function maToast(msg){
@@ -9356,7 +9378,7 @@ function maTodoRow(t){
   if (t.outlookTaskId) chips.push(`<span class="ma-tchip ma-tchip-outlook">📧 Outlook</span>`);
   return `<div class="ma-card ma-trow" style="border-left:4px solid ${prioColor};${t.done?'opacity:.5;':''}">
     <button class="ma-check ${t.done?'on':''}" onclick="maToggleTodo('${escapeAttr(t.id)}')">${t.done?'✓':''}</button>
-    <button class="ma-tbody" onclick="openTodoModal('${escapeAttr(t.id)}')">
+    <button class="ma-tbody" onclick="maOpenTodo('${escapeAttr(t.id)}')">
       <span class="ma-ttext" style="${t.done?'text-decoration:line-through;':''}">${escapeHTML(title)}</span>
       <span class="ma-tchips">${chips.join("")}</span>
       ${due?`<span class="ma-tdue" style="color:${dueColor};">${escapeHTML(due)}</span>`:""}
@@ -9416,22 +9438,46 @@ function maVesselDetail(vid){
 }
 
 function maEmail(){
-  let list = [];
-  try{ if(typeof getPendingReplies==="function") list = getPendingReplies() || []; }catch(_){}
-  const rows = list.length ? list.map(e=>{
-    const kind = e.kind || "";
-    const kc = kind==="nave" ? "#0e54c1" : kind==="agenzia" ? "#5b6470" : "#8a93a0";
-    const cat = e.role || (kind==="nave"?"Nave":kind==="agenzia"?"Agenzia":"Email");
-    const tap = e.webLink ? `onclick="window.open('${escapeAttr(e.webLink)}','_blank')"` : "";
-    const d = e.days||0;
-    return `<div class="ma-card ma-erow" ${tap}>
-      <div class="ma-erow-top"><span class="ma-efrom">${escapeHTML(e.fromName||e.fromEmail||"—")}</span><span class="ma-ecat" style="color:${kc};background:${kc}1a">${escapeHTML(cat)}</span></div>
-      <div class="ma-esubj">${escapeHTML(e.subject||"(senza oggetto)")}</div>
-      <div class="ma-ewait">⏳ ${d>0?d+"g in attesa":"in attesa di risposta"}</div>
-    </div>`;
-  }).join("") : `<div class="ma-empty">Nessuna email in attesa di risposta.</div>`;
-  return `<div class="ma-title">Email in attesa</div>${rows}`;
+  const all = (typeof getEmailThreads==="function") ? getEmailThreads() : [];
+  const NOISE = new Set(["noise","agency_ops"]);
+  const active = all.filter(r=>!NOISE.has(r.category));
+  const waitingCount = active.filter(r=>r.waiting).length;
+  const f = mstate.emailFilter || (waitingCount ? "__waiting__" : "all");
+  const counts = {}; active.forEach(r=>{ counts[r.category]=(counts[r.category]||0)+1; });
+  const chip=(id,lbl,n,on)=>`<button class="ma-chip ${on?'on':''}" onclick="maSetEmailFilter('${escapeAttr(id)}')">${escapeHTML(lbl)}${n!=null?` ${n}`:""}</button>`;
+  let chips = "";
+  if(waitingCount) chips += chip("__waiting__","⏳ Attesa",waitingCount,f==="__waiting__");
+  chips += chip("all","Tutte",active.length,f==="all");
+  Object.keys(counts).forEach(k=>{ const m=(EMAIL_CATS[k]||EMAIL_CATS.generic); chips+=chip(k,m.label,counts[k],f===k); });
+  const chipRow = `<div class="ma-chips">${chips}</div>`;
+  const shown = f==="all" ? active : f==="__waiting__" ? active.filter(r=>r.waiting) : active.filter(r=>r.category===f);
+  const rows = shown.length ? shown.map(r=>{
+    const cat = EMAIL_CATS[r.category] || EMAIL_CATS.generic;
+    const vn = r.vesselId ? (((VESSELS||[]).find(x=>x.vesselId===r.vesselId)||{}).displayName||"") : "";
+    const doc = r.link ? `<span class="ma-etag" style="color:#0e54c1;background:#eaf0fb">${escapeHTML(r.link.docLabel)} ${escapeHTML(r.link.docNumber)}</span>` : "";
+    const thread = (r.messages&&r.messages.length>1) ? `<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">💬 ${r.messages.length}</span>` : "";
+    const dl = r.deadline ? `<span class="ma-etag" style="color:#b8860b;background:#fdf4e2">📅 ${escapeHTML(new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"}))}</span>` : "";
+    const what = (typeof emailActionText==="function") ? emailActionText(r) : "";
+    return `<button class="ma-card ma-erow" onclick="maOpenEmail('${escapeAttr(r.id)}')">
+      <div class="ma-erow-top">
+        <span class="ma-efrom">${escapeHTML(r.fromName||r.fromEmail||"—")}</span>
+        <span class="ma-ecat" style="color:${cat.color};background:${cat.bg}">${escapeHTML(cat.label)}</span>
+      </div>
+      <div class="ma-esubj">${escapeHTML(r.subject||"(senza oggetto)")}</div>
+      ${what?`<div class="ma-ewhat"><span>→</span> ${escapeHTML(what)}</div>`:""}
+      <div class="ma-etags">
+        ${r.waiting?`<span class="ma-etag" style="color:#c8362f;background:#fbe6e6">⏳ ${r.days>0?r.days+"g":"in attesa"}</span>`:""}
+        ${vn?`<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">${escapeHTML(vn)}</span>`:""}${doc}${thread}${dl}
+      </div>
+    </button>`;
+  }).join("") : `<div class="ma-empty">Nessuna email in questa vista.</div>`;
+  return `<button class="ma-back" onclick="mgo('home')">‹ Oggi</button>
+    <div class="ma-title">Assistente Email</div>${chipRow}${rows}`;
 }
+window.maSetEmailFilter = function(f){ mstate.emailFilter = f; renderMobileApp(); };
+// Tap su una email → workspace assistente completo (riusa il motore desktop: riassunto,
+// bozza, tono, traduzione, scadenze, risposte rapide). Su mobile la modale è a tutto schermo.
+window.maOpenEmail = function(id){ if(typeof window.openEmailWorkspace==="function") window.openEmailWorkspace(id); };
 
 function maTodo(){
   const open = (state.todos||[]).filter(t=>!t.done);
@@ -9533,6 +9579,59 @@ window.maToggleTodo = function(id){
   if(!t) return;
   t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null;
   try{ saveTodos(); }catch(_){}
+  try{ render(); }catch(_){ renderMobileApp(); }
+};
+
+// === 1b — workspace to-do (bottom sheet mobile) =============================
+window.maOpenTodo = function(id){
+  const t = (state.todos||[]).find(x=>String(x.id)===String(id));
+  if(!t) return;
+  const cur = t.dueDate || "";
+  const iso = (n)=>{ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+  const week = iso(7);
+  const dueBtn=(lbl,val)=>`<button class="ma-duechip ${cur===val?'on':''}" onclick="maTodoSetDue('${escapeAttr(id)}','${val}')">${lbl}</button>`;
+  const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : "";
+  const title = (t.action && t.action.toLowerCase()!=="altro") ? t.action : (t.reference||t.note||"To-do");
+  maRenderSheet(`
+    <div class="ma-sheet-h">${escapeHTML((t.category||"To-do"))}${vn?` · ${escapeHTML(vn)}`:""}${t.outlookTaskId?" · 📧 Outlook":""}</div>
+    <div class="ma-fld-lbl">Attività</div>
+    <textarea class="ma-ta" id="ma-todo-text" rows="2">${escapeHTML(title)}</textarea>
+    <div class="ma-fld-lbl">Scadenza</div>
+    <div class="ma-duechips">${dueBtn("Oggi",iso(0))}${dueBtn("Domani",iso(1))}${dueBtn("Settimana",week)}${dueBtn("Nessuna","")}</div>
+    <div class="ma-fld-lbl">Note</div>
+    <textarea class="ma-ta" id="ma-todo-note" rows="3" placeholder="Aggiungi una nota o un aggiornamento…">${escapeHTML(t.note||"")}</textarea>
+    <div class="ma-sheet-act">
+      <button class="ma-sheet-btn ${t.done?'sec':'pri'}" onclick="maTodoComplete('${escapeAttr(id)}')">${t.done?'↩ Riapri':'✓ Completa'}</button>
+      <button class="ma-sheet-btn sec" onclick="maTodoSave('${escapeAttr(id)}')">Salva</button>
+    </div>`);
+};
+window.maTodoSetDue = function(id,val){
+  const t=(state.todos||[]).find(x=>String(x.id)===String(id)); if(!t) return;
+  t.dueDate = val||null;
+  document.querySelectorAll("#ma-sheet-host .ma-duechip").forEach(b=>{
+    b.classList.toggle("on", b.getAttribute("onclick").includes(`'${val}'`));
+  });
+};
+window.maTodoSave = function(id){
+  const t=(state.todos||[]).find(x=>String(x.id)===String(id)); if(!t) return;
+  const txt=(document.getElementById("ma-todo-text")||{}).value;
+  const note=(document.getElementById("ma-todo-note")||{}).value;
+  if(txt!=null && txt.trim()) t.action = txt.trim();
+  if(note!=null) t.note = note;
+  try{ saveTodos(); }catch(_){}
+  maCloseSheet(); maToast("To-do salvata");
+  try{ render(); }catch(_){ renderMobileApp(); }
+};
+window.maTodoComplete = function(id){
+  const t=(state.todos||[]).find(x=>String(x.id)===String(id)); if(!t) return;
+  const txt=(document.getElementById("ma-todo-text")||{}).value;
+  const note=(document.getElementById("ma-todo-note")||{}).value;
+  if(txt!=null && txt.trim()) t.action=txt.trim();
+  if(note!=null) t.note=note;
+  const wasDone=t.done;
+  t.done=!t.done; t.doneAt=t.done?new Date().toISOString():null;
+  try{ saveTodos(); }catch(_){}
+  maCloseSheet(); maToast(wasDone?"To-do riaperta":"To-do completata");
   try{ render(); }catch(_){ renderMobileApp(); }
 };
 
@@ -11522,7 +11621,16 @@ function renderEmailPage(){
     </header>
     <div class="pr-chiprow">${catChips}</div>
     ${body}
-    <div id="email-ws-modal" class="draft-modal-overlay" style="display:none;" onclick="if(event.target===this) window.closeEmailWorkspace()">
+    ${emailWorkspaceModalHTML()}
+  `;
+}
+window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage(); };
+
+// Markup della modale Email Workspace, condiviso da desktop (dentro view-root) e mobile
+// (appeso al body on-demand, così l'assistente funziona anche quando la vista desktop email
+// non è mai stata renderizzata).
+function emailWorkspaceModalHTML(){
+  return `<div id="email-ws-modal" class="draft-modal-overlay" style="display:none;" onclick="if(event.target===this) window.closeEmailWorkspace()">
       <div class="draft-modal ews-modal">
         <div class="draft-modal-head">
           <strong id="ews-title">Email</strong>
@@ -11586,10 +11694,15 @@ function renderEmailPage(){
           </div>
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
-window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage(); };
+// Garantisce che la modale esista nel DOM anche su mobile (dove renderEmailPage non gira)
+function ensureEmailWorkspaceModal(){
+  if(document.getElementById("email-ws-modal")) return;
+  const wrap = document.createElement("div");
+  wrap.innerHTML = emailWorkspaceModalHTML();
+  document.body.appendChild(wrap.firstElementChild);
+}
 
 // ============================================================================
 // Email Workspace — riassunto, traduzione, bozza (da keyword/tono/correzione), risposte rapide.
@@ -11720,6 +11833,7 @@ function wsContextBits(r){
 }
 
 window.openEmailWorkspace = function(id){
+  ensureEmailWorkspaceModal();
   const r = getEmailThreads().find(x=>x.id===id);
   if(!r) return;
   const guessLang = /[àèéìòù]|\bbuongiorno\b|\bgrazie\b|\bcordiali\b/i.test((r.subject||"")+" "+(r.preview||"")) ? "it" : (!/\.it$/.test(r.fromEmail||"") ? "en" : "it");
@@ -14635,7 +14749,9 @@ const EMAIL_TEMPLATES = {
 function buildComposeHref(subject, body, to) {
   const mode = (state.settings && state.settings.emailMode) || "outlook";
   to = to || "";
-  if (mode === "mailto") {
+  // Su smartphone: sempre mailto → apre l'app Outlook installata (client di sistema),
+  // mai il compositore web. Su desktop resta la modalità scelta (Outlook web di default).
+  if (mode === "mailto" || (typeof maIsMobile === "function" && maIsMobile())) {
     return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
   // Outlook web (Office 365). Deeplink di composizione con campi precompilati.
