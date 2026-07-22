@@ -7408,6 +7408,24 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     </div>
 
     <div class="modal-section">
+      <h3>Tracking spedizioni (n8n + 17TRACK)</h3>
+      <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
+        Popola in automatico la timeline delle spedizioni (AWB aereo + corrieri) nella scheda di ogni item.
+        Importa <code>n8n/Shipment Tracking Sync.json</code> in n8n, incolla la tua API key 17TRACK e un token a scelta,
+        attiva il workflow, poi compila qui indirizzo e token (uguali su ogni dispositivo). L'aggiornamento gira
+        sul PC ufficio sempre acceso e si propaga agli altri via GitHub.
+      </p>
+      <div class="setting-row">
+        <label>Indirizzo webhook tracking (n8n)</label>
+        <input type="text" placeholder="https://.../webhook/shipment-track" data-setting="shipWebhookUrl" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Token webhook tracking</label>
+        <input type="text" placeholder="stesso token impostato nel workflow" data-setting="shipWebhookToken" style="width:220px;">
+      </div>
+    </div>
+
+    <div class="modal-section">
       <h3>Strumenti</h3>
       <div class="setting-row">
         <label>Apri Pulse del fornitore</label>
@@ -8067,6 +8085,8 @@ const DEFAULT_SETTINGS = {
   batchTTL: 30,          // Batch suggestion mostrate fino a 30 giorni
   aiWebhookUrl: "",      // v0.50 — proxy n8n per le funzioni AI email quando pubblicato (fuori dall'anteprima Claude)
   aiWebhookToken: "",
+  shipWebhookUrl: "",    // v0.63 — webhook n8n per il tracking spedizioni (17TRACK) — vedi Impostazioni → Tracking spedizioni
+  shipWebhookToken: "",
   stateSyncUrl: "",     // v0.51 — sync stato multi-dispositivo via webhook n8n (funziona anche dove Google Drive non si collega, es. iPhone)
   stateSyncToken: "",
   ghSyncRepo: "",       // v0.52 — sync via GitHub (repo PRIVATO come database). Es. "Micheledv74/mpd-sync"
@@ -13777,6 +13797,8 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
           </div>
         </div>
 
+        ${shipmentSection(it, vessel)}
+
         ${logisticsSection}
 
         ${exclusionSection}
@@ -16222,6 +16244,204 @@ Best regards,`;
 // uno scalo dal voyage (porto + ETA, che si aggiorna da solo) oppure manualmente.
 function loadDeliveries(){ try{ const d=JSON.parse(localStorage.getItem("mpd.deliveries")||"{}"); return (d && typeof d==="object")?d:{}; }catch{ return {}; } }
 function saveDeliveriesDB(obj){ try{ localStorage.setItem("mpd.deliveries", JSON.stringify(obj)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
+
+// ============================================================================
+// === TRACKING SPEDIZIONI (v0.63) ============================================
+// Timeline spedizioni per item (Fornitore→Hub→Porto), AWB aereo + corrieri.
+// Dati keyed per item id in mpd.shipments (sincronizzato via GitHub). La timeline
+// viene popolata da n8n+17TRACK (webhook), mai dai corrieri in diretta dal sito.
+// "solo suggerisce": l'utente incolla il numero, il resto è lettura automatica.
+// ============================================================================
+const SHIP_CARRIERS = ["DHL Express","FedEx","UPS","TNT","DB Schenker (aereo)","Kuehne+Nagel (aereo)","Lufthansa Cargo","Emirates SkyCargo","Cargolux","Altro"];
+const SHIP_COURIERS = new Set(["DHL Express","FedEx","UPS","TNT"]);
+const SHIP_STATUS = {
+  info_received:{ label:"Registrato", color:"#5b6470", bg:"#eef0f3", accent:"#c2c9d2" },
+  in_transit:{ label:"In transito", color:"#b8860b", bg:"#fdf4e2", accent:"#b8860b" },
+  out_for_delivery:{ label:"In consegna", color:"#0e54c1", bg:"#eaf0fb", accent:"#0e54c1" },
+  delivered:{ label:"Consegnato", color:"#117a3a", bg:"#e8f5ec", accent:"#117a3a" },
+  exception:{ label:"Problema", color:"#c8362f", bg:"#fbe6e6", accent:"#c8362f" },
+  pending:{ label:"In attesa…", color:"#b8860b", bg:"#fdf4e2", accent:"#b8860b" },
+  not_found:{ label:"Non trovato", color:"#8a93a0", bg:"#f0f1f4", accent:"#c2c9d2" }
+};
+const SHIP_ROUTE = {
+  "supplier-hub":{ label:"Fornitore → Hub" },
+  "hub-port":{ label:"Hub → Porto" },
+  "supplier-port":{ label:"Fornitore → Porto" }
+};
+let _shipOpen = {};   // segId -> timeline aperta
+
+function loadShipments(){ try{ const d=JSON.parse(localStorage.getItem("mpd.shipments")||"{}"); return (d&&typeof d==="object")?d:{}; }catch{ return {}; } }
+function saveShipmentsDB(obj){ try{ localStorage.setItem("mpd.shipments", JSON.stringify(obj)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
+function getItemShipments(itemId){ const a=loadShipments()[itemId]; return Array.isArray(a)?a:[]; }
+function setItemShipments(itemId, arr){ const all=loadShipments(); if(arr&&arr.length) all[itemId]=arr; else delete all[itemId]; saveShipmentsDB(all); }
+function genShipId(){ return "sh"+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function shipIcon(c){ return SHIP_COURIERS.has(c)?"📦":"✈️"; }
+function shipFmtDay(iso){ if(!iso) return "—"; const d=new Date(iso.length>10?iso.replace(" ","T"):iso+"T00:00:00"); return isNaN(d)?"—":d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"}); }
+function shipFmtWhen(s){ if(!s) return ""; const d=new Date(String(s).replace(" ","T")); if(isNaN(d)) return String(s); return d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"})+" "+d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}); }
+function shipDays(a,b){ if(!a||!b) return null; const ms=new Date(b.slice(0,10)+"T00:00:00")-new Date(a.slice(0,10)+"T00:00:00"); return isNaN(ms)?null:Math.max(0,Math.round(ms/86400000)); }
+function shipPortLabel(vessel){ const t=vessel&&vessel.tracking; return (t&&(t.nextPort||t.destination))||"Porto"; }
+function shipEndpoints(seg, it, vessel){
+  const port=shipPortLabel(vessel);
+  const sup=(it.supplier&&it.supplier!=="—")?it.supplier:"Fornitore";
+  const hub=(seg.hub&&seg.hub.trim())?seg.hub.trim():"Hub";
+  if(seg.route==="supplier-hub") return [sup,hub];
+  if(seg.route==="hub-port") return [hub,port];
+  return [sup,port];
+}
+
+function shipmentSection(it, vessel){
+  if(!it) return "";
+  const segs = getItemShipments(it.id);
+  if(!it.poNumber && segs.length===0) return "";   // pannello sulla scheda con PO (o già tracciata)
+  const configured = !!(state.settings && (state.settings.shipWebhookUrl||"").trim());
+
+  // Catena Fornitore → Hub → Porto
+  let chainHTML = "";
+  if(segs.length){
+    const hasHub = segs.some(s=>s.route==="supplier-hub"||s.route==="hub-port");
+    const hubDone = segs.some(s=>s.route==="supplier-hub" && s.status==="delivered");
+    const portDone = segs.some(s=>(s.route==="hub-port"||s.route==="supplier-port") && s.status==="delivered");
+    const node=(label,done,active)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;">
+        <div style="width:13px;height:13px;border-radius:50%;box-sizing:border-box;background:${done?'#117a3a':active?'#b8860b':'#fff'};border:3px solid ${done?'#117a3a':active?'#b8860b':'#c2c9d2'};"></div>
+        <div style="font-size:10.5px;font-weight:800;color:#12233a;margin-top:7px;letter-spacing:.02em;">${label}</div>
+      </div>`;
+    const nodes=[ node("FORNITORE",true,false) ];
+    if(hasHub) nodes.push(node("HUB",hubDone,!hubDone));
+    nodes.push(node("PORTO",portDone, hasHub? (hubDone&&!portDone) : !portDone));
+    chainHTML = `<div style="display:flex;align-items:stretch;background:#fff;border:1px solid #eceef1;border-radius:12px;padding:14px 12px;margin-bottom:10px;">${nodes.join("")}</div>`;
+  }
+
+  // ETA complessiva al porto
+  let etaHTML = "";
+  if(segs.length){
+    const toPort = segs.filter(s=>s.route==="hub-port"||s.route==="supplier-port");
+    const last = toPort[toPort.length-1];
+    const portDone = toPort.some(s=>s.status==="delivered");
+    let icon,color,bg,border,title,sub;
+    if(portDone){ icon="✅"; color="#117a3a"; bg="#e8f5ec"; border="#bfe4cb"; title="Merce arrivata al porto"; sub="Pronta per l'imbarco"; }
+    else if(last){ icon="⏱"; color="#b8860b"; bg="#fff8ec"; border="#f0d79a"; title="Arrivo stimato al porto: "+shipFmtDay(last.eta); sub="Spedizione in transito"; }
+    else { icon="📦"; color="#5b6470"; bg="#fff"; border="#eceef1"; title="In movimento verso l'hub"; sub="Nessuna tratta verso il porto ancora"; }
+    etaHTML = `<div style="display:flex;align-items:center;gap:11px;background:${bg};border:1px solid ${border};border-radius:11px;padding:11px 13px;margin-bottom:12px;">
+      <span style="font-size:19px;">${icon}</span>
+      <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:${color};">${escapeHTML(title)}</div>
+      <div style="font-size:11.5px;color:#5b6470;margin-top:1px;">${escapeHTML(sub)}</div></div></div>`;
+  }
+
+  // Card per ogni segmento
+  const segCards = segs.map(seg=>{
+    const st = SHIP_STATUS[seg.status] || SHIP_STATUS.info_received;
+    const R = SHIP_ROUTE[seg.route] || SHIP_ROUTE["supplier-hub"];
+    const [from,to] = shipEndpoints(seg, it, vessel);
+    const open = !!_shipOpen[seg.id];
+    const events = seg.events||[];
+    let meta;
+    if(seg.status==="pending") meta = "In attesa del primo aggiornamento…";
+    else if(seg.status==="delivered") meta = "Consegnato il "+shipFmtDay(seg.eta)+(shipDays(seg.pickup,seg.eta)!=null?" · "+shipDays(seg.pickup,seg.eta)+"g di transito":"");
+    else if(seg.eta) meta = "ETA "+shipFmtDay(seg.eta);
+    else meta = "Tracking attivo";
+    const dashed = seg.status==="pending" ? "border-style:dashed;" : "";
+    const timeline = open && events.length ? `<div style="margin-top:11px;padding-top:11px;border-top:1px solid #eef0f3;">${
+      events.map((e,i)=>{
+        const dot = e.code==="delivered"?"#117a3a":e.code==="exception"?"#c8362f":i===0?st.accent:"#c2c9d2";
+        return `<div style="display:flex;gap:10px;padding-bottom:11px;">
+          <div style="flex:none;display:flex;flex-direction:column;align-items:center;">
+            <div style="width:10px;height:10px;border-radius:50%;background:${dot};margin-top:3px;"></div>
+            <div style="flex:1;width:2px;background:#eef0f3;margin-top:2px;"></div></div>
+          <div style="flex:1;min-width:0;"><div style="font-size:12.5px;font-weight:600;color:${i===0?'#12233a':'#5b6470'};line-height:1.35;">${escapeHTML(e.text||"")}</div>
+          <div style="font-size:11px;color:#98a1ad;margin-top:2px;">${escapeHTML(shipFmtWhen(e.ts))}${e.place?" · "+escapeHTML(e.place):""}</div></div></div>`;
+      }).join("")}</div>` : "";
+    const toggleBtn = events.length ? `<button class="btn-mini-link" style="font-size:12px;" onclick="window.shipToggle('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')">${open?"Nascondi timeline ▲":"Timeline ▼"}</button>` : `<span style="font-size:11.5px;color:#98a1ad;">Nessun evento ancora</span>`;
+    return `<div style="background:#fff;border:1px solid #eceef1;border-left:4px solid ${st.accent};border-radius:12px;padding:12px 14px;margin-bottom:9px;${dashed}">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="min-width:0;">
+          <div style="font-size:10px;font-weight:800;color:#98a1ad;letter-spacing:.05em;text-transform:uppercase;">${escapeHTML(R.label)}</div>
+          <div style="font-size:13.5px;font-weight:700;color:#12233a;margin-top:2px;">${escapeHTML(from)} → ${escapeHTML(to)}</div>
+        </div>
+        <span style="flex:none;font-size:10.5px;font-weight:800;color:${st.color};background:${st.bg};border-radius:6px;padding:4px 9px;white-space:nowrap;">${escapeHTML(st.label)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap;">
+        <span style="font-size:14px;">${shipIcon(seg.carrier)}</span>
+        <span style="font-size:12px;font-weight:700;color:#2f3b4d;">${escapeHTML(seg.carrier||"")}</span>
+        <span style="font-family:var(--font-mono);font-size:11.5px;color:#5b6470;background:#f2f4f7;border-radius:6px;padding:3px 8px;">${escapeHTML(seg.number||"")}</span>
+        <button title="Rimuovi" onclick="window.shipRemove('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')" style="margin-left:auto;background:none;border:none;color:#c2c9d2;font-size:15px;cursor:pointer;line-height:1;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;">
+        <span style="font-size:12px;color:#5b6470;">${escapeHTML(meta)}</span>
+        ${toggleBtn}
+      </div>
+      ${timeline}
+    </div>`;
+  }).join("");
+
+  // Form aggiungi
+  const carrierOpts = SHIP_CARRIERS.map(c=>`<option value="${escapeAttr(c)}">${escapeHTML(c)}</option>`).join("");
+  const iid = escapeAttr(it.id);
+  const form = `<div style="background:#fbfcfd;border:1px dashed #c4ccd6;border-radius:12px;padding:13px;">
+    <div style="font-size:12.5px;font-weight:800;color:#0a3f93;margin-bottom:10px;">＋ Aggiungi spedizione</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <select id="ship-route-${iid}" style="flex:1 1 150px;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:13px;font-family:var(--font-sans);background:#fff;">
+        <option value="supplier-hub">Fornitore → Hub</option>
+        <option value="hub-port">Hub → Porto</option>
+        <option value="supplier-port">Fornitore → Porto</option>
+      </select>
+      <select id="ship-carrier-${iid}" style="flex:1 1 150px;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:13px;font-family:var(--font-sans);background:#fff;">${carrierOpts}</select>
+    </div>
+    <input id="ship-hub-${iid}" placeholder="Hub (opzionale, es. Frankfurt)" style="width:100%;box-sizing:border-box;border:1px solid #dfe2e7;border-radius:9px;padding:9px 11px;font-size:13px;font-family:var(--font-sans);margin-top:8px;" />
+    <input id="ship-number-${iid}" placeholder="AWB o tracking number  (es. 020-8144 5372)" style="width:100%;box-sizing:border-box;border:1px solid #dfe2e7;border-radius:9px;padding:9px 11px;font-size:13px;font-family:var(--font-mono);margin-top:8px;" />
+    <button class="btn btn-sm btn-primary" style="width:100%;margin-top:10px;" onclick="window.shipAdd('${iid}')">Traccia automaticamente</button>
+    ${configured?"":`<div style="font-size:11px;color:#b8860b;margin-top:8px;line-height:1.4;">⚠ Tracking automatico non configurato — imposta il webhook in Impostazioni → Tracking spedizioni. Puoi già registrare le spedizioni: si aggiorneranno appena configuri.</div>`}
+  </div>`;
+
+  return `<div class="detail-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h4 style="margin:0;">Spedizione <span style="font-weight:500;color:#98a1ad;">(tracking)</span></h4>
+      ${segs.some(s=>s.number && s.status!=="delivered")?`<button class="btn btn-sm" onclick="window.shipRefresh('${iid}')">🔄 Aggiorna</button>`:""}
+    </div>
+    ${chainHTML}${etaHTML}${segCards}${form}
+  </div>`;
+}
+
+window.shipAdd = function(itemId){
+  const g=(p)=>document.getElementById(p+"-"+itemId);
+  const route=((g("ship-route")||{}).value)||"supplier-hub";
+  const carrier=((g("ship-carrier")||{}).value)||"DHL Express";
+  const hub=(((g("ship-hub")||{}).value)||"").trim();
+  const number=(((g("ship-number")||{}).value)||"").trim();
+  if(!number){ if(typeof showToast==="function") showToast("Inserisci un AWB o tracking number"); return; }
+  const segs=getItemShipments(itemId);
+  segs.push({ id:genShipId(), route, carrier, hub, number, status:"pending", pickup:new Date().toISOString().slice(0,10), eta:"", events:[], updatedAt:new Date().toISOString() });
+  setItemShipments(itemId, segs);
+  window.openItemDetailPopover(itemId);
+  window.shipRefresh(itemId);
+};
+window.shipRemove = function(itemId, segId){
+  if(!confirm("Rimuovere questa spedizione dal tracking?")) return;
+  setItemShipments(itemId, getItemShipments(itemId).filter(s=>s.id!==segId));
+  delete _shipOpen[segId];
+  window.openItemDetailPopover(itemId);
+};
+window.shipToggle = function(itemId, segId){ _shipOpen[segId]=!_shipOpen[segId]; window.openItemDetailPopover(itemId); };
+window.shipRefresh = async function(itemId){
+  const active=getItemShipments(itemId).filter(s=>s.number && s.status!=="delivered");
+  if(!active.length){ if(typeof showToast==="function") showToast("Nessuna spedizione da aggiornare"); return; }
+  const url=(state.settings&&state.settings.shipWebhookUrl||"").trim();
+  const token=(state.settings&&state.settings.shipWebhookToken||"").trim();
+  if(!url){ if(typeof showToast==="function") showToast("Tracking non configurato — Impostazioni → Tracking spedizioni"); return; }
+  if(typeof showToast==="function") showToast("Aggiorno il tracking…");
+  try{
+    const res=await fetch(url,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ token, shipments:active.map(s=>({id:s.id,number:s.number,carrier:s.carrier})) }) });
+    const data=await res.json().catch(()=>({}));
+    const results=(data&&data.results)||(Array.isArray(data)?data:[]);
+    const byId={}; results.forEach(r=>{ if(r&&r.id) byId[r.id]=r; });
+    const cur=getItemShipments(itemId).map(s=>{
+      const r=byId[s.id]; if(!r) return s;
+      return { ...s, status:r.status||s.status, eta:r.eta||s.eta, events:Array.isArray(r.events)?r.events:s.events, updatedAt:new Date().toISOString() };
+    });
+    setItemShipments(itemId, cur);
+    window.openItemDetailPopover(itemId);
+    if(typeof showToast==="function") showToast("Tracking aggiornato");
+  }catch(e){ if(typeof showToast==="function") showToast("Errore tracking: "+(e.message||e)); }
+};
 function getDeliveryPlan(itemId){ return loadDeliveries()[itemId] || null; }
 function genVoyageId(){ return 'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function setDeliveryPlan(itemId, plan){
@@ -19978,6 +20198,9 @@ function mergeRemoteIntoLocal(remote) {
   if (remote.deliveries && typeof remote.deliveries === "object" && typeof saveDeliveriesDB === "function") {
     saveDeliveriesDB({ ...loadDeliveries(), ...remote.deliveries });
   }
+  if (remote.shipments && typeof remote.shipments === "object" && typeof saveShipmentsDB === "function") {
+    saveShipmentsDB({ ...loadShipments(), ...remote.shipments });
+  }
   if (remote.vesselPos && typeof remote.vesselPos === "object" && typeof saveVesselPos === "function") {
     saveVesselPos({ ...loadVesselPos(), ...remote.vesselPos });
   }
@@ -20023,6 +20246,7 @@ function buildStatePayload() {
     worldClockCities: (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : undefined),
     itemOverrides: (typeof loadItemOverrides === "function" ? loadItemOverrides() : {}),
     repliesDismissed: (typeof loadDismissedReplies === "function" ? loadDismissedReplies() : []),
+    shipments: (typeof loadShipments === "function" ? loadShipments() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
   };
@@ -20499,7 +20723,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -20529,7 +20753,8 @@ function collSnapshot(){
     agencyProfiles: f(typeof loadEntityProfiles==="function"?loadEntityProfiles("agency"):{}),
     worldClockCities: f(typeof loadWorldClockCities==="function"?loadWorldClockCities():[]),
     itemOverrides: f(typeof loadItemOverrides==="function"?loadItemOverrides():{}),
-    repliesDismissed: f(typeof loadDismissedReplies==="function"?loadDismissedReplies():[])
+    repliesDismissed: f(typeof loadDismissedReplies==="function"?loadDismissedReplies():[]),
+    shipments: f(typeof loadShipments==="function"?loadShipments():{})
   };
 }
 
@@ -20588,6 +20813,7 @@ function mpdMergeRemote(remote, force){
     adopt("agencyProfiles", ()=>{ if(!remote.agencyProfiles||typeof remote.agencyProfiles!=="object"||typeof saveEntityProfiles!=="function") return false; saveEntityProfiles("agency", remote.agencyProfiles); });
     adopt("worldClockCities", ()=>{ if(!Array.isArray(remote.worldClockCities)||typeof saveWorldClockCities!=="function") return false; saveWorldClockCities(remote.worldClockCities); });
     adopt("itemOverrides", ()=>{ if(!remote.itemOverrides||typeof remote.itemOverrides!=="object"||typeof saveItemOverrides!=="function") return false; saveItemOverrides(remote.itemOverrides); });
+    adopt("shipments", ()=>{ if(!remote.shipments||typeof remote.shipments!=="object"||typeof saveShipmentsDB!=="function") return false; saveShipmentsDB(remote.shipments); });
     // email "fatte": UNIONE additiva (un "fatto" non deve mai essere annullato da un altro device),
     // quindi la applico sempre se il remoto porta qualcosa di nuovo, non solo per timestamp.
     if (Array.isArray(remote.repliesDismissed)) {
@@ -20694,6 +20920,7 @@ function applyRemoteState(remote) {
     if (Array.isArray(remote.outlookCompletionQueue)) { state.outlookCompletionQueue = remote.outlookCompletionQueue; saveOutlookCompletionQueue(); }
     if (remote.manualOrders && typeof remote.manualOrders === "object" && typeof saveAllManualOrders === "function") saveAllManualOrders(remote.manualOrders);
     if (remote.deliveries && typeof remote.deliveries === "object" && typeof saveDeliveriesDB === "function") saveDeliveriesDB(remote.deliveries);
+    if (remote.shipments && typeof remote.shipments === "object" && typeof saveShipmentsDB === "function") saveShipmentsDB(remote.shipments);
     if (remote.vesselPos && typeof remote.vesselPos === "object" && typeof saveVesselPos === "function") saveVesselPos(remote.vesselPos);
     if (remote.supplierProfiles && typeof remote.supplierProfiles === "object" && typeof saveEntityProfiles === "function") saveEntityProfiles("supplier", remote.supplierProfiles);
     if (remote.agencyProfiles && typeof remote.agencyProfiles === "object" && typeof saveEntityProfiles === "function") saveEntityProfiles("agency", remote.agencyProfiles);
