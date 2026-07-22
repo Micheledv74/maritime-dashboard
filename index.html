@@ -9486,8 +9486,7 @@ window.maSetEmailFilter = function(f){ mstate.emailFilter = f; renderMobileApp()
 window.maOpenEmail = function(id){ if(typeof window.openEmailWorkspace==="function") window.openEmailWorkspace(id); };
 // Segna un'email come fatta/gestita → la archivia dalla lista (stesso meccanismo del "Fatto" desktop)
 window.maDismissEmail = function(id){
-  if(typeof dismissReply==="function") dismissReply(id);
-  if(typeof ghSetDirty==="function") ghSetDirty();
+  if(typeof dismissReply==="function") dismissReply(id);  // scrive + fa partire il sync
   if(typeof maToast==="function") maToast("Email segnata come fatta");
   renderMobileApp();
 };
@@ -11335,6 +11334,7 @@ function loadDismissedReplies(){ try{ return JSON.parse(localStorage.getItem("mp
 function dismissReply(id){
   const arr = loadDismissedReplies(); if(!arr.includes(id)){ arr.push(id); }
   try{ localStorage.setItem("mpd.repliesDismissed", JSON.stringify(arr.slice(-500))); }catch{}
+  if(typeof driveSchedulePush==="function") driveSchedulePush();  // v0.60 — lo stato "email fatta" ora si sincronizza tra i dispositivi
 }
 // === v0.48 — AI Email Assistant: categorizzazione su tutta la posta recente + workspace strumenti scrittura ===
 const EMAIL_CATS = {
@@ -19972,6 +19972,7 @@ function buildStatePayload() {
     agencyProfiles: (typeof loadEntityProfiles === "function" ? loadEntityProfiles("agency") : {}),
     worldClockCities: (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : undefined),
     itemOverrides: (typeof loadItemOverrides === "function" ? loadItemOverrides() : {}),
+    repliesDismissed: (typeof loadDismissedReplies === "function" ? loadDismissedReplies() : []),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
   };
 }
@@ -20447,7 +20448,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -20476,7 +20477,8 @@ function collSnapshot(){
     supplierProfiles: f(typeof loadEntityProfiles==="function"?loadEntityProfiles("supplier"):{}),
     agencyProfiles: f(typeof loadEntityProfiles==="function"?loadEntityProfiles("agency"):{}),
     worldClockCities: f(typeof loadWorldClockCities==="function"?loadWorldClockCities():[]),
-    itemOverrides: f(typeof loadItemOverrides==="function"?loadItemOverrides():{})
+    itemOverrides: f(typeof loadItemOverrides==="function"?loadItemOverrides():{}),
+    repliesDismissed: f(typeof loadDismissedReplies==="function"?loadDismissedReplies():[])
   };
 }
 
@@ -20535,6 +20537,17 @@ function mpdMergeRemote(remote, force){
     adopt("agencyProfiles", ()=>{ if(!remote.agencyProfiles||typeof remote.agencyProfiles!=="object"||typeof saveEntityProfiles!=="function") return false; saveEntityProfiles("agency", remote.agencyProfiles); });
     adopt("worldClockCities", ()=>{ if(!Array.isArray(remote.worldClockCities)||typeof saveWorldClockCities!=="function") return false; saveWorldClockCities(remote.worldClockCities); });
     adopt("itemOverrides", ()=>{ if(!remote.itemOverrides||typeof remote.itemOverrides!=="object"||typeof saveItemOverrides!=="function") return false; saveItemOverrides(remote.itemOverrides); });
+    // email "fatte": UNIONE additiva (un "fatto" non deve mai essere annullato da un altro device),
+    // quindi la applico sempre se il remoto porta qualcosa di nuovo, non solo per timestamp.
+    if (Array.isArray(remote.repliesDismissed)) {
+      const local = (typeof loadDismissedReplies==="function") ? loadDismissedReplies() : [];
+      const merged = Array.from(new Set([...local, ...remote.repliesDismissed]));
+      if (merged.length !== local.length) {
+        try{ localStorage.setItem("mpd.repliesDismissed", JSON.stringify(merged.slice(-500))); }catch{}
+        lMeta["repliesDismissed"] = force ? (rMeta["repliesDismissed"]||lMeta["repliesDismissed"]) : (rMeta["repliesDismissed"]||new Date().toISOString());
+        changed = true;
+      }
+    }
   } finally {
     GH_SYNC.suppressPush=false;
     ghSyncBaselineFromLocal();   // baseline = contenuto post-merge, per diff corretti
