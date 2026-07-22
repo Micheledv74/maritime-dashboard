@@ -16306,9 +16306,15 @@ function shipmentMiniHTML(it){
   if(portDone){ pct=100; color="#117a3a"; label="Arrivata al porto"; }
   if(anyExc && !portDone){ color="#c8362f"; label="Problema spedizione"; }
   const icon = portDone ? "✅" : anyExc ? "⚠️" : anyAir ? "✈️" : "🚚";
-  return `<div style="margin-top:6px;display:flex;align-items:center;gap:6px;" title="Spedizione: ${escapeAttr(label)}">
+  const rShort={"supplier-hub":"Forn.→Hub","hub-port":"Hub→Porto","supplier-port":"Forn.→Porto"};
+  const rep = segs.find(s=>s.route!=="supplier-hub"&&["in_transit","out_for_delivery","delivered"].includes(s.status))
+           || segs.find(s=>["in_transit","out_for_delivery"].includes(s.status))
+           || segs[segs.length-1];
+  const routeLbl = rShort[rep&&rep.route] || "";
+  return `<div style="margin-top:6px;display:flex;align-items:center;gap:6px;" title="Spedizione ${escapeAttr(routeLbl)}: ${escapeAttr(label)}">
     <span style="font-size:11px;line-height:1;">${icon}</span>
-    <div style="flex:1;height:5px;border-radius:3px;background:#eceef1;overflow:hidden;min-width:54px;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
+    ${routeLbl?`<span style="font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#5b6470;background:#eef0f3;border-radius:4px;padding:1px 5px;white-space:nowrap;">${escapeHTML(routeLbl)}</span>`:""}
+    <div style="flex:1;height:5px;border-radius:3px;background:#eceef1;overflow:hidden;min-width:44px;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
     <span style="font-size:10px;font-weight:700;color:${color};white-space:nowrap;">${escapeHTML(label)}</span>
   </div>`;
 }
