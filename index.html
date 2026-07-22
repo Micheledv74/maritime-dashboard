@@ -19973,6 +19973,7 @@ function buildStatePayload() {
     worldClockCities: (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : undefined),
     itemOverrides: (typeof loadItemOverrides === "function" ? loadItemOverrides() : {}),
     repliesDismissed: (typeof loadDismissedReplies === "function" ? loadDismissedReplies() : []),
+    sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
   };
 }
@@ -20553,8 +20554,39 @@ function mpdMergeRemote(remote, force){
     ghSyncBaselineFromLocal();   // baseline = contenuto post-merge, per diff corretti
     ghSaveCollMeta(lMeta);
   }
+  // Designazione "fonte" (metadato, non una collezione): LWW puro per timestamp.
+  if (remote.sourceDevice !== undefined) {
+    const r = remote.sourceDevice, l = ghGetSourceDevice();
+    const rts = (r && r.ts) || "", lts = (l && l.ts) || "";
+    if (force || (rts && rts > lts)) { ghSetSourceDevice(r); }
+  }
   return changed;
 }
+
+// v0.61 — Designazione "fonte di verità" PERSISTENTE (interruttore, non pulsante).
+// Vive nel cloud (payload.sourceDevice = {id,name,ts}) così ogni dispositivo sa
+// QUAL È la fonte e avvisa prima di rubarle il ruolo. id vuoto = nessuna fonte
+// designata (sync a unione automatica). Ogni device ha un id stabile + nome editabile.
+function ghDeviceId(){
+  let id=localStorage.getItem("mpd.deviceId");
+  if(!id){ id="d"+Date.now().toString(36)+Math.random().toString(36).slice(2,7); localStorage.setItem("mpd.deviceId",id); }
+  return id;
+}
+function ghGuessDeviceName(){
+  const ua=navigator.userAgent||"";
+  if(/iphone/i.test(ua)) return "iPhone";
+  if(/ipad/i.test(ua)) return "iPad";
+  if(/android/i.test(ua)) return "Android";
+  if(/macintosh|mac os/i.test(ua)) return "Mac";
+  if(/windows/i.test(ua)) return "PC Windows";
+  return "Dispositivo";
+}
+function ghDeviceName(){ const n=localStorage.getItem("mpd.deviceName"); return (n&&n.trim())?n.trim():ghGuessDeviceName(); }
+function ghSetDeviceName(n){ localStorage.setItem("mpd.deviceName", (n||"").trim()); }
+function ghGetSourceDevice(){ try{ const o=JSON.parse(localStorage.getItem("mpd.sourceDevice")||"null"); return (o&&typeof o==="object")?o:null; }catch{ return null; } }
+function ghSetSourceDevice(o){ try{ if(o) localStorage.setItem("mpd.sourceDevice", JSON.stringify(o)); else localStorage.removeItem("mpd.sourceDevice"); }catch{} }
+function ghIsThisSource(){ const s=ghGetSourceDevice(); return !!(s && s.id && s.id===ghDeviceId()); }
+function ghCurrentSourceName(){ const s=ghGetSourceDevice(); return (s && s.id) ? (s.name||"un altro dispositivo") : null; }
 
 // Rendi QUESTO dispositivo la fonte: stampo "ora" su tutte le collezioni con dati
 // e forzo un push (senza assorbire il remoto). Gli altri device lo adotteranno.
@@ -20851,11 +20883,18 @@ function renderGhSyncRow() {
       ${GH_SYNC.lastError ? `<br><span style="font-size:var(--fs-xs);color:#c8362f;">${GH_SYNC.lastError}</span>` : ""}
       <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">Ultimo sync: ${last ? new Date(last).toLocaleString("it-IT") : "mai"}</span>
       <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">State locale: ${state.todos.length} to-do \u2014 rev ${ghGetBaseRev()}${GH_SYNC.dirty ? " <span style='color:#b8860b;'>(modifiche da inviare\u2026)</span>" : ""}</span>
-      ${Object.keys(ghLoadCollMeta()).length === 0 ? `<br><span style="font-size:var(--fs-xs);color:#b8860b;">\u26a0 Primo avvio: sul dispositivo con i dati corretti premi \u00ab\ud83d\udce4 Rendi questo la fonte\u00bb per allineare tutti gli altri.</span>` : ""}
+      <br><span style="font-size:var(--fs-xs);color:var(--text-muted);">Fonte attuale: ${ghIsThisSource() ? "<b style='color:#117a3a;'>questo dispositivo</b>" : (ghCurrentSourceName() ? `\u00ab${escapeAttr(ghCurrentSourceName())}\u00bb` : "nessuna (sync automatico)")}</span>
+      ${Object.keys(ghLoadCollMeta()).length === 0 ? `<br><span style="font-size:var(--fs-xs);color:#b8860b;">\u26a0 Primo avvio: sul dispositivo con i dati corretti attiva l'interruttore \u00abfonte\u00bb qui a fianco per allineare tutti gli altri.</span>` : ""}
     </div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
       <button class="btn btn-sm" id="ghsync-now-btn">Sincronizza ora</button>
-      <button class="btn btn-sm" id="ghsync-source-btn" title="Usa lo stato di QUESTO dispositivo come fonte di verità e allinea tutti gli altri">\ud83d\udce4 Rendi questo la fonte</button>
+      <label style="display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);cursor:pointer;padding:6px 10px;border:1px solid ${ghIsThisSource()?"#117a3a":"var(--border,#d6dae1)"};border-radius:8px;background:${ghIsThisSource()?"#e8f5ec":"transparent"};" title="Se attivo, lo stato di QUESTO dispositivo è la fonte di verità e allinea gli altri">
+        <input type="checkbox" id="ghsync-source-toggle" ${ghIsThisSource()?"checked":""} style="width:16px;height:16px;">
+        <span>Fonte di verit\u00e0</span>
+      </label>
+      <label style="font-size:var(--fs-xs);color:var(--text-muted);display:flex;gap:6px;align-items:center;">Nome:
+        <input type="text" id="ghsync-devname" value="${escapeAttr(ghDeviceName())}" style="width:120px;font-size:var(--fs-xs);">
+      </label>
       <button class="btn btn-sm" id="ghsync-replace-btn" title="Sostituisci completamente lo stato locale con quello del cloud">\ud83d\udce5 Sostituisci con cloud</button>
     </div>`;
   document.getElementById("ghsync-now-btn")?.addEventListener("click", async () => {
@@ -20864,11 +20903,33 @@ function renderGhSyncRow() {
     render();
     showToast("Sync GitHub completato");
   });
-  document.getElementById("ghsync-source-btn")?.addEventListener("click", async () => {
-    if (!confirm("Rendere QUESTO dispositivo la fonte di verità?\n\nLo stato attuale di questo dispositivo verrà pubblicato sul cloud e gli ALTRI dispositivi lo adotteranno al prossimo aggiornamento, sovrascrivendo quanto hanno in locale.\n\nUsalo sul dispositivo con la situazione corretta (di solito il PC dell'ufficio). È anche il passo da fare la PRIMA volta, dopo aver caricato questa versione.")) return;
-    await ghSyncMakeSource();
+  document.getElementById("ghsync-devname")?.addEventListener("change", async (e) => {
+    ghSetDeviceName(e.target.value);
+    if (ghIsThisSource()) {  // aggiorno anche il nome pubblicato sul cloud
+      ghSetSourceDevice({ id: ghDeviceId(), name: ghDeviceName(), ts: new Date().toISOString() });
+      ghSetDirty(true); await ghSyncPush();
+    }
     renderGhSyncRow();
-    showToast("\u2713 Questo dispositivo è ora la fonte");
+  });
+  document.getElementById("ghsync-source-toggle")?.addEventListener("change", async (e) => {
+    if (e.target.checked) {
+      const otherName = ghCurrentSourceName();
+      const isOther = otherName && !ghIsThisSource();
+      const msg = isOther
+        ? `La fonte attuale \u00e8 \u00ab${otherName}\u00bb.\n\nTrasferirla a QUESTO dispositivo (\u00ab${ghDeviceName()}\u00bb)?\n\n\u00ab${otherName}\u00bb verr\u00e0 disattivato come fonte, e lo stato di QUESTO dispositivo verr\u00e0 pubblicato sul cloud sovrascrivendo gli altri.`
+        : `Impostare QUESTO dispositivo (\u00ab${ghDeviceName()}\u00bb) come fonte di verit\u00e0?\n\nLo stato attuale di questo dispositivo verr\u00e0 pubblicato sul cloud e gli altri lo adotteranno.`;
+      if (!confirm(msg)) { e.target.checked = false; return; }
+      ghSetSourceDevice({ id: ghDeviceId(), name: ghDeviceName(), ts: new Date().toISOString() });
+      await ghSyncMakeSource();
+      renderGhSyncRow();
+      showToast("\u2713 Questo dispositivo \u00e8 ora la fonte");
+    } else {
+      if (!confirm("Disattivare la designazione di fonte su questo dispositivo?\n\nIl sync torner\u00e0 all'unione automatica tra tutti i dispositivi (nessuna sovrascrittura forzata).")) { e.target.checked = true; return; }
+      ghSetSourceDevice({ id: "", name: "", ts: new Date().toISOString() });
+      ghSetDirty(true); await ghSyncPush();
+      renderGhSyncRow();
+      showToast("Designazione di fonte rimossa");
+    }
   });
   document.getElementById("ghsync-replace-btn")?.addEventListener("click", async () => {
     if (!confirm("Sostituire lo stato locale con quello del cloud?\n\nTutto ciò che è su questo dispositivo verrà rimpiazzato dalla versione presente sul cloud.")) return;
