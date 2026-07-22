@@ -13035,7 +13035,7 @@ function renderItemsTable(v) {
         ${logBadgesHTML}
       </td>
       <td data-label="N° doc">${docNumbersHTML(it)}</td>
-      <td data-label="Progress">${progressBarHTML(it)}</td>
+      <td data-label="Progress">${progressBarHTML(it)}${shipmentMiniHTML(it)}</td>
       <td data-label="Età" class="days-cell">${ageOrCompletionHTML(it)}</td>
       <td data-label="Consegna" class="num">${_delivCell}</td>
       <td data-label="Nota">
@@ -16287,6 +16287,30 @@ function shipEndpoints(seg, it, vessel){
   if(seg.route==="supplier-hub") return [sup,hub];
   if(seg.route==="hub-port") return [hub,port];
   return [sup,port];
+}
+
+function shipmentMiniHTML(it){
+  if(!it) return "";
+  const segs=getItemShipments(it.id);
+  if(!segs.length) return "";
+  const hubDone=segs.some(s=>s.route==="supplier-hub"&&s.status==="delivered");
+  const portDone=segs.some(s=>(s.route==="hub-port"||s.route==="supplier-port")&&s.status==="delivered");
+  const anyExc=segs.some(s=>s.status==="exception");
+  const moveToPort=segs.some(s=>(s.route==="hub-port"||s.route==="supplier-port")&&(s.status==="in_transit"||s.status==="out_for_delivery"));
+  const anyMove=segs.some(s=>s.status==="in_transit"||s.status==="out_for_delivery");
+  const anyAir=segs.some(s=>!SHIP_COURIERS.has(s.carrier));
+  let pct=15, color="#5b6470", label="Registrata";
+  if(anyMove){ pct=45; color="#b8860b"; label="In transito"; }
+  if(hubDone){ pct=60; color="#b8860b"; label="Arrivata all'hub"; }
+  if(moveToPort){ pct=80; color="#b8860b"; label="Verso il porto"; }
+  if(portDone){ pct=100; color="#117a3a"; label="Arrivata al porto"; }
+  if(anyExc && !portDone){ color="#c8362f"; label="Problema spedizione"; }
+  const icon = portDone ? "✅" : anyExc ? "⚠️" : anyAir ? "✈️" : "🚚";
+  return `<div style="margin-top:6px;display:flex;align-items:center;gap:6px;" title="Spedizione: ${escapeAttr(label)}">
+    <span style="font-size:11px;line-height:1;">${icon}</span>
+    <div style="flex:1;height:5px;border-radius:3px;background:#eceef1;overflow:hidden;min-width:54px;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
+    <span style="font-size:10px;font-weight:700;color:${color};white-space:nowrap;">${escapeHTML(label)}</span>
+  </div>`;
 }
 
 function shipmentSection(it, vessel){
