@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-07-27T15:20:46.768Z",
+  "lastSync": "2026-07-27T15:25:49.064Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -10,7 +10,7 @@
       "rfqOverdue7": 0,
       "rfqOverdue15": 0,
       "readyForPO": 3,
-      "orders": 9,
+      "orders": 10,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 2,
@@ -28,6 +28,34 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med toscana::logbook",
+          "description": "LOGBOOK",
+          "supplier": "CAIM",
+          "department": "DECK Department",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-MDT-HQPO-00082",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "reqDate": "",
+          "poDate": "2026-07-27",
+          "dnDate": "",
+          "poDeliveryDate": "2026-08-11",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-08-11"
+        },
         {
           "id": "med toscana::deck cargo lights",
           "description": "Deck Cargo Lights",
@@ -8256,38 +8284,6 @@
           "origin": "",
           "transportMode": "",
           "deliveryDate": "2026-02-24"
-        },
-        {
-          "id": "med toscana::logbook",
-          "description": "LOGBOOK",
-          "supplier": "CAIM",
-          "department": "DECK Department",
-          "reqNumber": "2026-MDT-SHPR-00026",
-          "rfqNumbers": [
-            "2026-MDT-HQRQ-00063"
-          ],
-          "poNumber": "2026-MDT-HQPO-00082",
-          "dnNumber": " 2026-MDT-HQDN-00077",
-          "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
-          "rfqDays": 109,
-          "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "PO Published",
-          "dnStatus": "DN Received on Board",
-          "reqStatus": "REQ Ordered",
-          "rfqStatusSummary": [
-            "RFQ Offer Acknowledged"
-          ],
-          "reqDate": "2026-03-22",
-          "poDate": "2026-07-27",
-          "dnDate": "2026-04-09",
-          "poDeliveryDate": "2026-08-11",
-          "dnDeliveryDate": "2026-04-24",
-          "origin": "",
-          "transportMode": "",
-          "deliveryDate": "2026-08-11"
         },
         {
           "id": "med toscana::itu publication",
