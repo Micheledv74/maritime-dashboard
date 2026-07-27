@@ -8331,6 +8331,7 @@ async function loadData() {
     }
   }
   migrateRescueStaleDeliveries();  // v0.56 — recupero consegne orfane (una-tantum)
+  migrateFreezeVoyageDeliveries(); // v0.57 — congela i piani "voyage" al porto attuale (una-tantum)
   render();
   checkWhatsNew();
   maybeMorningSnapshot();
@@ -16579,7 +16580,7 @@ function deliveryPlannerHTML(it, vesselId){
   }).join("");
   const voyageBlock = legs.length
     ? `<select id="deliv-leg-${escapeAttr(it.id)}" class="deliv-select">${legOptions}</select>
-       <div class="deliv-hint">La data segue lo scalo (banchina/ETB se disponibile, altrimenti ETA): se aggiorni il Voyage, la consegna si allinea da sola.</div>`
+       <div class="deliv-hint">Precompila porto e data dallo scalo scelto. Alla conferma la consegna resta <strong>fissa su quel porto</strong>: se il Voyage cambia, non si sposta — le variazioni le fai tu a mano.</div>`
     : `<div class="deliv-hint">Nessuno scalo nel Voyage di questa nave. <button class="btn-mini-link" onclick="window.closeItemDetailPopover(); window.openVoyageEditor('${escapeAttr(vesselId||"")}')">Compila il Voyage →</button></div>`;
 
   return `
@@ -16622,12 +16623,15 @@ window.saveDeliveryFromForm = function(itemId){
     const vid = vesselIdOfItem(itemId);
     const voy = vid ? getVoyage(vid) : {};
     const legObj = leg === "next" ? (voy.next||{}) : (voy.current||{});
-    // v0.47 — ancoro il collegamento all'id stabile del leg (non alla posizione corrente/successivo)
-    setDeliveryPlan(itemId, {
-      mode: "voyage", leg,
-      voyageLegId: legObj.id || null,
-      snapshot: legObj.id ? { from: legObj.from||"", to: legObj.to||"", eta: legObj.eta||"", etb: legObj.etb||"" } : null
-    });
+    // v0.57 — RISOLVO SUBITO porto+data e li congelo come piano manuale.
+    // La scelta "Da scalo" ora serve solo a pre-compilare: una volta salvata la
+    // consegna resta ancorata a QUEL porto per sempre e non segue più il viaggio
+    // quando avanza. Eventuali variazioni le fa l'utente a mano (mode manuale).
+    const port = (legObj.to || "").trim();
+    const ref = legObj.etb || legObj.eta || "";
+    const date = ref ? ref.slice(0,10) : "";
+    if (!port && !date){ showToast("Lo scalo selezionato non ha porto né data"); return; }
+    setDeliveryPlan(itemId, { mode: "manual", port, date, frozenFromVoyage: true });
   } else if (mode === "manual"){
     const port = (document.getElementById(`deliv-port-${itemId}`) || {}).value || "";
     const date = (document.getElementById(`deliv-date-${itemId}`) || {}).value || "";
@@ -17184,6 +17188,32 @@ window.advanceVoyage = function(vesselId){
   window.closeVoyageEditor();
   render();
 };
+
+// v0.57 — Congela una-tantum tutti i piani ancora in modalità "voyage" (dinamica):
+// li risolvo al porto+data correnti e li salvo come "manuale frozen", così non
+// seguono più il viaggio. Da qui in poi ogni nuovo salvataggio è già frozen.
+function migrateFreezeVoyageDeliveries(){
+  if (localStorage.getItem("mpd.frozenVoyageDeliveries_v057")) return;
+  try {
+    if (!state.data || !Array.isArray(state.data.vessels)) return;  // dati non pronti: riprovo al prossimo load
+    const all = loadDeliveries();
+    let changed = false, frozen = 0;
+    for (const v of state.data.vessels){
+      for (const it of (v.items || [])){
+        const plan = all[it.id];
+        if (!plan || plan.mode !== "voyage") continue;
+        const eff = getEffectiveDelivery(it, v.vesselId);
+        const port = (eff && eff.port) || (plan.snapshot && plan.snapshot.to) || "";
+        const date = (eff && eff.date) || "";
+        all[it.id] = { mode: "manual", port, date, frozenFromVoyage: true };
+        changed = true; frozen++;
+      }
+    }
+    if (changed) saveDeliveriesDB(all);
+    localStorage.setItem("mpd.frozenVoyageDeliveries_v057", "1");
+    if (frozen && typeof showToast === "function") showToast(frozen + " consegne fissate al loro porto — non seguono più il viaggio");
+  } catch(e){ console.warn("[Freeze consegne v0.57] ", e); }
+}
 
 // Aggiorna il campo "leg" (posizione, solo per la UI del select) degli item il cui
 // voyageLegId corrisponde al viaggio appena promosso a "current".
