@@ -700,9 +700,9 @@
         "lon": "031-24.1W",
         "positionText": null,
         "from": null,
-        "to": null,
-        "nextPort": "Port Louis",
-        "etaText": "16.08.2026 PM AGW WP, PORT LOUIS",
+        "to": "Port Louis",
+        "nextPort": "Cape of Good Hope",
+        "etaText": "16.08.2026 PM AGW WP, PORT LOUIS / 08.08.2026 AM CAPE OF GOOD HOPE / KANDLA 26.08.2026 PM",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-16T12:00",
@@ -712,12 +712,12 @@
         "course": "125",
         "milesToGo": "5697",
         "bunkers": {
-          "lsfo": 1148.549,
-          "lsmgo": 61.481,
+          "lsfo": "1148.549",
+          "lsmgo": "61.481",
           "fw": null
         },
         "status": "in navigazione",
-        "remarks": "ETA Port Louis 16.08.2026 PM (AGW WP), ETA Cape of Good Hope 08.08.2026 AM, ETA Kandla 26.08.2026 PM",
+        "remarks": "Distanza rimanente a Port Louis: 5697 NM, a Cape of Good Hope: 2725 NM",
         "vesselId": "medtoscana"
       }
     ],
@@ -1486,8 +1486,8 @@
         "positionText": null,
         "from": "VITORIA",
         "to": "SINGAPORE",
-        "nextPort": "SINGAPORE",
-        "etaText": "11 AUG 2026 0200LT WP AGW",
+        "nextPort": "WP AGW",
+        "etaText": "11 AUG 2026 0200LT",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-11T02:00",
@@ -1501,8 +1501,8 @@
           "lsmgo": 80.43,
           "fw": 321
         },
-        "status": "in navigazione con mare mosso e spruzzi di mare a bordo",
-        "remarks": "Mare mosso con spruzzi di mare a bordo e swell al traverso. Corrente stimata circa 1.5 KTS.",
+        "status": "in navigazione con mare mosso e corrente favorevole",
+        "remarks": "Mare mosso con spruzzi d'acqua a bordo e swell al traverso. Corrente favorevole circa 1.5 KTS.",
         "vesselId": "medliguria"
       }
     ],
@@ -2340,8 +2340,8 @@
           "lsmgo": 161.44,
           "fw": 74
         },
-        "status": "in navigazione con vento SE 20 nodi, mare agitato, rollio moderato-grave",
-        "remarks": "Correzione ROB LSFO: 1363.66 MT (precedentemente 1363.44 MT)",
+        "status": "Sailing SE with fresh breeze, rough sea, moderate to heavy rolling due to long swell",
+        "remarks": "Correction for 25.07.2026: ROB LSFO should read 1363.66 MT",
         "vesselId": "peppino"
       }
     ],
@@ -2564,5 +2564,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-27T06:01:00.661Z"
+  "syncedAt": "2026-07-27T07:01:00.836Z"
 }
