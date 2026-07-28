@@ -747,29 +747,31 @@
         "vesselId": "medtoscana"
       },
       {
-        "isNoonReport": true,
-        "vesselId": "medtoscana",
         "date": "2026-07-28",
         "type": "sea",
         "lat": "06-28.9S",
         "lon": "024-37.3W",
-        "nextPort": "PORT LOUIS",
-        "etaText": "17.08.2026 AM AGW WP, PORT LOUIS",
-        "etaISO": "2026-08-17T00:00",
+        "positionText": null,
+        "from": null,
+        "to": "Port Louis",
+        "nextPort": "Kandla",
+        "etaText": "17.08.2026 AM AGW WP, PORT LOUIS / 08.08.2026 AM CAPE OF GOOD HOPE / KANDLA 27.08.2026 AM",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
         "speed": "10.74",
         "course": "125",
         "milesToGo": "5198",
         "bunkers": {
-          "lsfo": 1105.349,
-          "lsmgo": 61.381
+          "lsfo": "1105.349",
+          "lsmgo": "61.381",
+          "fw": null
         },
-        "consumption": {
-          "lsfo": 21.09,
-          "lsmgo": 0
-        },
-        "cylinderOil": {},
         "status": "in navigazione",
-        "remarks": "1 Hour advance to conform ZD GMT-1"
+        "remarks": "1 Hour advance to conform ZD GMT-1",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -1584,37 +1586,31 @@
         "vesselId": "medliguria"
       },
       {
-        "isNoonReport": true,
-        "vesselId": "medliguria",
         "date": "2026-07-28",
         "type": "sea",
         "lat": "25-16.0S",
         "lon": "047-37.9E",
+        "positionText": null,
         "from": "VITORIA",
         "to": "SINGAPORE",
         "nextPort": "WP AGW",
-        "voyageNo": "11",
         "etaText": "11 AUG 2026 1000LT",
+        "etbText": null,
+        "etdText": null,
         "etaISO": "2026-08-11T10:00",
-        "speed": "10.80",
+        "etbISO": null,
+        "etdISO": null,
+        "speed": "8.52",
+        "course": null,
         "milesToGo": 3973,
         "bunkers": {
           "lsfo": 444.31,
           "lsmgo": 80.43,
           "fw": 341
         },
-        "consumption": {
-          "lsfo": 19.99,
-          "lsmgo": 0,
-          "fw": 9
-        },
-        "cylinderOil": {
-          "daily": 287,
-          "rob": 17616,
-          "unit": "Ltrs"
-        },
-        "status": "in navigazione",
-        "remarks": "SHIPS CLOCK ADV 1 HR TO CONFORM UTC +4. ROUGH SEAS WITH SEA SPRAY ON DECK. STRONG ADV CURRENT ABT 3.0 KTS."
+        "status": "navigazione in mare aperto con condizioni meteo avverse (mare mosso, corrente forte 3.0 kts)",
+        "remarks": "SHIPS CLOCK ADV 1 HR TO CONFORM UTC +4. ROUGH SEAS WITH SEA SPRAY ON DECK. STRONG ADV CURRENT ABT 3.0 KTS.",
+        "vesselId": "medliguria"
       }
     ],
     "peppino": [
@@ -2490,7 +2486,7 @@
         "positionText": null,
         "from": "Singapore",
         "to": "Port Luis, Mauritius",
-        "nextPort": "MU PLU P/STN",
+        "nextPort": "Port Louis, Mauritius",
         "etaText": "02.08.2026 1600LT",
         "etbText": null,
         "etdText": null,
@@ -2505,26 +2501,9 @@
           "lsmgo": 161.44,
           "fw": 88
         },
-        "status": "Sailing SE 'ly wind Strong breeze, rough sea, Rolling moderate to heavy due to SE 'ly long swell with the height of 3.0m Sea sprays on port side main deck all the times",
-        "remarks": "Vento SE forte, mare mosso, rollio moderato-grave a causa di lungo swell SE con altezza 3.0m, spruzzi d'acqua sul lato di sinistra del ponte principale",
-        "vesselId": "peppino",
-        "isNoonReport": true,
-        "voyageNo": "18-L",
-        "consumption": {
-          "hfo": 0,
-          "lsfo": 26.24,
-          "lsmgo": 0,
-          "mdo": 0,
-          "mgo": 0,
-          "fw": 4
-        },
-        "cylinderOil": {
-          "daily": 154,
-          "dailyME": 0,
-          "dailyDG": 50,
-          "rob": 73179,
-          "unit": "Ltrs"
-        }
+        "status": "in navigazione con vento SE forte, mare mosso, rollio moderato-grave",
+        "remarks": "Vessel Sailing SE 'ly wind Strong breeze, rough sea, Rolling moderate to heavy due to SE 'ly long swell with the height of 3.0m Sea sprays on port side main deck all the times",
+        "vesselId": "peppino"
       }
     ],
     "norrbotten": [
@@ -2790,5 +2769,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-28T14:03:41.751Z"
+  "syncedAt": "2026-07-28T15:01:00.132Z"
 }
