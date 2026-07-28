@@ -6416,6 +6416,11 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .noon-stat-val{ font-family:var(--font-mono); font-size:14px; font-weight:700; color:#0f2748; line-height:1.15; white-space:nowrap; }
 .noon-stat.zero .noon-stat-val{ color:#aeb9c8; }
 .noon-stat-u{ font-size:9.5px; font-weight:600; color:#9aabc2; margin-left:3px; }
+.noon-voy{ font-family:var(--font-mono); font-size:10px; font-weight:700; color:#5b6470; background:#e7eef7; border-radius:5px; padding:2px 7px; margin-left:8px; }
+.noon-auto{ display:inline-flex; align-items:center; font-family:var(--font-mono); font-size:10px; font-weight:700; border-radius:7px; padding:5px 9px; align-self:center; }
+.noon-auto.ok{ background:#e7f3ec; color:#117a3a; border:1px solid #c3e3cf; }
+.noon-auto.warn{ background:#fdf2dd; color:#9a6a0a; border:1px solid #f0d9ad; }
+.noon-auto.crit{ background:#fbe3e4; color:#c0272f; border:1px solid #f0c2c6; }
 @media(max-width:720px){ .noon-sec{ align-items:flex-start; } .noon-sec-head{ width:100%; } }
 
 /* v0.20 — Badge insight procurement nella card flotta */
@@ -16018,6 +16023,19 @@ function noonReportBlockHTML(vesselId){
     return `<div class="noon-sec"><span class="noon-sec-head"><span class="noon-sec-dot" style="background:${color}"></span>${title}</span><div class="noon-chips">${inner}</div></div>`;
   }
   const cu = cyl.unit || "";  // unità olio cilindri (es. L, Ltrs)
+  // Autonomia stimata = ROB / consumo giornaliero (utile per il riordino)
+  function daysLeft(robV, dailyV){
+    const r = parseFloat(String(robV).replace(",",".")), d = parseFloat(String(dailyV).replace(",","."));
+    if(isNaN(r) || isNaN(d) || d<=0) return null;
+    return Math.round(r/d);
+  }
+  function autoChip(days){
+    if(days==null) return "";
+    const cls = days<15?"crit":days<30?"warn":"ok";
+    return `<span class="noon-auto ${cls}" title="Autonomia stimata (ROB ÷ consumo giornaliero) — per il riordino">≈ ${days} gg</span>`;
+  }
+  const cylDays = daysLeft(cyl.rob, cyl.daily);
+  const fwDays  = daysLeft(rob.fw, cons.fw);
   const metricsHTML = [
     nsec("Consumo 24 h", "#c77d0a", [
       nstat("HFO", cons.hfo, "MT"), nstat("LSFO", cons.lsfo, "MT"),
@@ -16025,11 +16043,13 @@ function noonReportBlockHTML(vesselId){
       nstat("LSMGO", cons.lsmgo, "MT"), nstat("FW", cons.fw, "MT")
     ]),
     nsec("A bordo (ROB)", "#0e54c1", [
-      nstat("LSFO", rob.lsfo, "MT"), nstat("LSMGO", rob.lsmgo, "MT"), nstat("FW", rob.fw, "MT")
+      nstat("LSFO", rob.lsfo, "MT"), nstat("LSMGO", rob.lsmgo, "MT"), nstat("FW", rob.fw, "MT"),
+      fwDays!=null ? autoChip(fwDays) : ""
     ]),
     nsec("Olio cilindri", "#117a3a", [
       nstat("Cons. giorno", cyl.daily, cu), nstat("M.E.", cyl.dailyME, cu),
-      nstat("D.G.", cyl.dailyDG, cu), nstat("ROB", cyl.rob, cu)
+      nstat("D.G.", cyl.dailyDG, cu), nstat("ROB", cyl.rob, cu),
+      cylDays!=null ? autoChip(cylDays) : ""
     ])
   ].filter(Boolean).join("");
   // mappa: OSM embed sempre attiva sull'ultima posizione nota
@@ -16051,7 +16071,7 @@ function noonReportBlockHTML(vesselId){
   const infoHTML = `
     <div class="noon-info">
       <div class="noon-head">
-        <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> ${n ? `Noon report ${noonDateLabel(n.date)}` : "Posizione"}</span>
+        <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> ${n ? `Noon report ${noonDateLabel(n.date)}` : "Posizione"}${(n&&n.voyageNo)?`<span class="noon-voy">Voy ${escapeHTML(String(n.voyageNo))}</span>`:""}</span>
         <span class="noon-status"><span class="noon-led ${ledCls}"></span>${escapeHTML(statusTxt)}</span>
       </div>
       <div class="noon-pos">
