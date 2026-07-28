@@ -6401,6 +6401,22 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .noon-setpos-mini:hover{ background:#f6f9fc; }
 .noon-setpos-btn{ background:#eef4ff; border:1px solid #cfe0fb; border-radius:7px; padding:5px 11px; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; }
 .noon-setpos-btn:hover{ background:#dbe8ff; }
+/* v0.58 — Panoramica: LED di stato + sezioni metriche (consumo / ROB / olio cilindri) */
+.noon-led{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; box-shadow:0 0 0 3px rgba(0,0,0,.05); }
+.noon-led.sea{ background:#1f8a4c; box-shadow:0 0 0 3px rgba(31,138,76,.14); }
+.noon-led.port{ background:#0e54c1; box-shadow:0 0 0 3px rgba(14,84,193,.14); }
+.noon-led.anchor{ background:#b8860b; box-shadow:0 0 0 3px rgba(184,134,11,.16); }
+.noon-metrics{ display:flex; flex-direction:column; gap:9px; margin-top:12px; padding-top:12px; border-top:1px solid #e3ecf7; }
+.noon-sec{ display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+.noon-sec-head{ display:inline-flex; align-items:center; gap:7px; width:104px; flex:none; font-family:var(--font-mono); font-size:9.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#7a8bb0; }
+.noon-sec-dot{ width:8px; height:8px; border-radius:2px; flex:none; }
+.noon-chips{ display:flex; flex-wrap:wrap; gap:7px; flex:1; min-width:0; }
+.noon-stat{ display:inline-flex; flex-direction:column; gap:1px; background:#fff; border:1px solid #dbe6f5; border-radius:8px; padding:5px 11px; min-width:62px; }
+.noon-stat-lbl{ font-size:9.5px; font-weight:700; letter-spacing:.02em; color:#8aa0bd; white-space:nowrap; }
+.noon-stat-val{ font-family:var(--font-mono); font-size:14px; font-weight:700; color:#0f2748; line-height:1.15; white-space:nowrap; }
+.noon-stat.zero .noon-stat-val{ color:#aeb9c8; }
+.noon-stat-u{ font-size:9.5px; font-weight:600; color:#9aabc2; margin-left:3px; }
+@media(max-width:720px){ .noon-sec{ align-items:flex-start; } .noon-sec-head{ width:100%; } }
 
 /* v0.20 — Badge insight procurement nella card flotta */
 .vessel-proc-badges{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 12px; }
@@ -15746,9 +15762,14 @@ function getLatestNoon(vesselId){
 function noonHasContent(n){
   if(!n) return false;
   const b = n.bunkers || {};
+  const c = n.consumption || {};
+  const cy = n.cylinderOil || {};
   return !!(n.type || n.lat || n.lon || n.positionText || n.from || n.to || n.nextPort ||
             n.etaText || n.etbText || n.etdText || n.speed || n.course || n.milesToGo ||
-            b.lsfo || b.lsmgo || b.fw || (n.status && String(n.status).length>3));
+            b.lsfo || b.lsmgo || b.fw ||
+            c.hfo || c.lsfo || c.lsmgo || c.mdo || c.mgo || c.fw ||
+            cy.daily || cy.rob || cy.dailyME || cy.dailyDG ||
+            (n.status && String(n.status).length>3));
 }
 // v0.45 — Gazetteer porti/ancoraggi ricorrenti: consente pin mappa e "ora a bordo" anche quando
 // il noon report ha solo il NOME del luogo (senza coordinate numeriche).
@@ -15978,9 +15999,39 @@ function noonReportBlockHTML(vesselId){
     if(n.etdText) prop.push(`ETD ${escapeHTML(n.etdText)}`);
   }
   const propLine = prop.length ? prop.join(" · ") : "";
-  const bunk = (n && n.bunkers) ? [n.bunkers.lsfo?`LSFO ${escapeHTML(n.bunkers.lsfo)}`:"", n.bunkers.lsmgo?`LSMGO ${escapeHTML(n.bunkers.lsmgo)}`:"", n.bunkers.fw?`FW ${escapeHTML(n.bunkers.fw)}`:""].filter(Boolean).join(" · ") : "";
   // A) Bunker trend: mini-sparkline LSFO/LSMGO dagli ultimi report
   const bunkTrend = bunkerTrendHTML(vesselId);
+  // v0.58 — Sezioni metriche: consumo 24h / ROB a bordo / olio cilindri
+  const cons = (n && n.consumption) || {};   // consumo giornaliero (24h)
+  const rob  = (n && n.bunkers) || {};        // remaining on board
+  const cyl  = (n && n.cylinderOil) || {};    // olio cilindri
+  const ledCls = n ? (n.type==="port"?"port":n.type==="anchor"?"anchor":"sea") : "sea";
+  function nstat(label, val, unit){
+    if(val==null || String(val).trim()==="") return "";
+    const num = parseFloat(String(val).replace(",","."));
+    const isZero = !isNaN(num) && num===0;
+    return `<span class="noon-stat${isZero?' zero':''}"><span class="noon-stat-lbl">${label}</span><span class="noon-stat-val">${escapeHTML(String(val).trim())}${unit?`<span class="noon-stat-u">${unit}</span>`:""}</span></span>`;
+  }
+  function nsec(title, color, chips){
+    const inner = chips.filter(Boolean).join("");
+    if(!inner) return "";
+    return `<div class="noon-sec"><span class="noon-sec-head"><span class="noon-sec-dot" style="background:${color}"></span>${title}</span><div class="noon-chips">${inner}</div></div>`;
+  }
+  const cu = cyl.unit || "";  // unità olio cilindri (es. L, Ltrs)
+  const metricsHTML = [
+    nsec("Consumo 24 h", "#c77d0a", [
+      nstat("HFO", cons.hfo, "MT"), nstat("LSFO", cons.lsfo, "MT"),
+      nstat("MDO", cons.mdo, "MT"), nstat("MGO", cons.mgo, "MT"),
+      nstat("LSMGO", cons.lsmgo, "MT"), nstat("FW", cons.fw, "MT")
+    ]),
+    nsec("A bordo (ROB)", "#0e54c1", [
+      nstat("LSFO", rob.lsfo, "MT"), nstat("LSMGO", rob.lsmgo, "MT"), nstat("FW", rob.fw, "MT")
+    ]),
+    nsec("Olio cilindri", "#117a3a", [
+      nstat("Cons. giorno", cyl.daily, cu), nstat("M.E.", cyl.dailyME, cu),
+      nstat("D.G.", cyl.dailyDG, cu), nstat("ROB", cyl.rob, cu)
+    ])
+  ].filter(Boolean).join("");
   // mappa: OSM embed sempre attiva sull'ultima posizione nota
   let mapHTML = "";
   if(coords){
@@ -16001,7 +16052,7 @@ function noonReportBlockHTML(vesselId){
     <div class="noon-info">
       <div class="noon-head">
         <span class="noon-tag"><svg class="icon icon-sm"><use href="#i-mail"/></svg> ${n ? `Noon report ${noonDateLabel(n.date)}` : "Posizione"}</span>
-        <span class="noon-status">${escapeHTML(statusTxt)}</span>
+        <span class="noon-status"><span class="noon-led ${ledCls}"></span>${escapeHTML(statusTxt)}</span>
       </div>
       <div class="noon-pos">
         <span class="noon-pos-label">Posizione</span>
@@ -16012,7 +16063,7 @@ function noonReportBlockHTML(vesselId){
         ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine${approxPos?" del porto (approssimata)":""} (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
         ${!coords?`<button class="noon-setpos-btn" onclick="window.setVesselManualPos('${escapeAttr(vesselId)}')">📍 Imposta città</button>`:""}
       </div>
-      ${bunk?`<div class="noon-bunk">${bunk}</div>`:""}
+      ${metricsHTML?`<div class="noon-metrics">${metricsHTML}</div>`:""}
       ${bunkTrend}
       ${propLine ? `<div class="noon-prop">
         <span class="noon-prop-txt">${propLine}</span>
