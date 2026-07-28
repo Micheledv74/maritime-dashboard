@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-07-28T13:10:48.660Z",
+  "lastSync": "2026-07-28T13:15:48.810Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -7,8 +7,8 @@
       "vesselName": "MED TOSCANA",
       "totalReq": 223,
       "rfqOpen": 16,
-      "rfqOverdue7": 0,
-      "rfqOverdue15": 0,
+      "rfqOverdue7": 1,
+      "rfqOverdue15": 1,
       "readyForPO": 2,
       "orders": 12,
       "poReadyForDN": 0,
@@ -574,15 +574,16 @@
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00064",
           "rfqNumbers": [
-            "2026-MDT-HQRQ-00127"
+            "2026-MDT-HQRQ-00127",
+            "2026-MDT-HQRQ-00126"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
+          "rfqIssued": 2,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": 7,
+          "rfqDays": 22,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
@@ -11587,9 +11588,9 @@
           "poNumber": "2026-PEP-HQPO-00116",
           "dnNumber": "2026-PEP-HQDN-00123",
           "dnInfoshipId": "HQS000000007295",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 3,
+          "rfqClosed": 2,
+          "rfqPct": 67,
           "rfqDays": 53,
           "rfqStatus": "RFQ Cancelled",
           "poStatus": "PO Finalized",
@@ -12506,18 +12507,17 @@
           "description": "PAINT",
           "supplier": "PPG PROTECTIVE & MARINE COATINS",
           "department": "DECK Department",
-          "reqNumber": "2026-PEP-SHPR-00043",
+          "reqNumber": "2026-PEP-SHPR-00090",
           "rfqNumbers": [
-            "2026-PEP-HQRQ-00171",
-            "2026-PEP-HQRQ-00097"
+            "2026-PEP-HQRQ-00171"
           ],
-          "poNumber": "2026-PEP-HQPO-00060",
+          "poNumber": "2026-PEP-HQPO-00111",
           "dnNumber": "2026-PEP-HQDN-00120",
           "dnInfoshipId": "HQS000000007292",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
-          "rfqDays": 120,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
+          "rfqDays": 47,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
           "dnStatus": "DN Received on Board",
@@ -12525,14 +12525,14 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "reqDate": "2026-03-28",
-          "poDate": "2026-03-31",
+          "reqDate": "2026-06-11",
+          "poDate": "2026-06-11",
           "dnDate": "2026-07-16",
-          "poDeliveryDate": "2026-04-14",
+          "poDeliveryDate": "2026-06-26",
           "dnDeliveryDate": "2026-07-31",
           "origin": "",
           "transportMode": "Johnasia Singapore",
-          "deliveryDate": "2026-04-14"
+          "deliveryDate": "2026-06-26"
         },
         {
           "id": "peppino::epirb hru",
@@ -12729,24 +12729,29 @@
         {
           "id": "peppino::spa req aux engine doosanman diesel 5l23/30hx720rpm",
           "description": "SPA Req. Aux. Engine Doosan-MAN Diesel 5L23/30Hx720RPM",
-          "supplier": "HAKEPA SRL",
+          "supplier": "Zephyr Trading srl",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00084",
           "rfqNumbers": [
-            "2026-PEP-HQRQ-00156"
+            "2026-PEP-HQRQ-00157",
+            "2026-PEP-HQRQ-00156",
+            "2026-PEP-HQRQ-00155",
+            "2026-PEP-HQRQ-00154",
+            "2026-PEP-HQRQ-00153"
           ],
           "poNumber": "2026-PEP-HQPO-00112",
           "dnNumber": "2026-PEP-HQDN-00121",
           "dnInfoshipId": "HQS000000007293",
-          "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 5,
+          "rfqClosed": 4,
+          "rfqPct": 80,
           "rfqDays": 53,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
           "dnStatus": "DN Received on Board",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
+            "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
           "reqDate": "2026-06-02",
