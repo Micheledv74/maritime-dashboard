@@ -1566,8 +1566,8 @@
         "positionText": null,
         "from": "VITORIA",
         "to": "SINGAPORE",
-        "nextPort": "WP AGW",
-        "etaText": "11 AUG 2026 1000LT",
+        "nextPort": "AGW",
+        "etaText": "11 AUG 2026 1000LT WP AGW",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-11T10:00",
@@ -1581,8 +1581,23 @@
           "lsmgo": 80.43,
           "fw": 341
         },
-        "status": "in navigazione, mare mosso con spruzzi, corrente avversa ~3.0 KTS",
-        "remarks": "Orologio nave avanzato di 1 ora per conformità UTC+4. Mare agitato con spruzzi sul ponte. Forte corrente avversa ~3.0 KTS.",
+        "consumption": {
+          "hfo": null,
+          "lsfo": 19.99,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": null,
+          "fw": 9
+        },
+        "cylinderOil": {
+          "daily": 287,
+          "dailyME": null,
+          "dailyDG": null,
+          "rob": 17616,
+          "unit": "Ltrs"
+        },
+        "status": "navigazione in mare, condizioni meteo avverse con mare mosso e corrente favorevole",
+        "remarks": "SHIPS CLOCK ADV 1 HR TO CONFORM UTC +4. ROUGH SEAS WITH SEA SPRAY ON DECK. STRONG ADV CURRENT ABT 3.0 KTS.",
         "vesselId": "medliguria"
       }
     ],
@@ -2698,5 +2713,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-28T12:00:58.787Z"
+  "syncedAt": "2026-07-28T12:20:33.139Z"
 }
