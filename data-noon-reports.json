@@ -781,7 +781,7 @@
         "positionText": null,
         "from": null,
         "to": "Port Louis",
-        "nextPort": "Bedi",
+        "nextPort": "Port Louis / Cape of Good Hope / Bedi",
         "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS / 08.08.2026 PM CAPE OF GOOD HOPE / BEDI 27.08.2026 AM",
         "etbText": null,
         "etdText": null,
@@ -792,11 +792,12 @@
         "course": "125",
         "milesToGo": "4939",
         "bunkers": {
-          "lsfo": "1083.249",
-          "lsmgo": "61.381"
+          "lsfo": 1083.249,
+          "lsmgo": 61.381,
+          "fw": null
         },
         "status": "in navigazione",
-        "remarks": "Distanza rimanente a Port Louis: 4939 NM, a Bedi: 2712 NM. ETA Port Louis: 18.08.2026 EAM AGW WP, Cape of Good Hope: 08.08.2026 PM, Bedi: 27.08.2026 AM",
+        "remarks": "Distanza rimanente: 4939 NM a Port Louis, 2712 NM a Bedi. ETA Port Louis 18.08.2026 EAM AGW WP, Cape of Good Hope 08.08.2026 PM, Bedi 27.08.2026 AM",
         "vesselId": "medtoscana"
       }
     ],
@@ -1647,7 +1648,7 @@
         "from": "VITORIA",
         "to": "SINGAPORE",
         "nextPort": "AGW",
-        "etaText": "11 AUG 2026 1400LT WP AGW",
+        "etaText": "11 AUG 2026 1400LT",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-11T14:00",
@@ -1661,7 +1662,7 @@
           "lsmgo": 80.43,
           "fw": 348
         },
-        "status": "in navigazione",
+        "status": "in navigazione, rotta verso Singapore",
         "remarks": "ADV CURRENT ABT 1.5 KTS.",
         "vesselId": "medliguria"
       }
@@ -2849,5 +2850,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-29T19:00:58.776Z"
+  "syncedAt": "2026-07-29T20:00:58.477Z"
 }
