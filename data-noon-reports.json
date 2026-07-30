@@ -807,12 +807,12 @@
         "lon": "017-30.2W",
         "positionText": null,
         "from": null,
-        "to": "Port Louis",
-        "nextPort": "Bedi",
-        "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS / 08.08.2026 PM CAPE OF GOOD HOPE / BEDI 27.08.2026 AM",
+        "to": null,
+        "nextPort": "PORT LOUIS",
+        "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS",
         "etbText": null,
         "etdText": null,
-        "etaISO": null,
+        "etaISO": "2026-08-18T00:00",
         "etbISO": null,
         "etdISO": null,
         "speed": "10.79",
@@ -820,11 +820,10 @@
         "milesToGo": "4680",
         "bunkers": {
           "lsfo": "1060.929",
-          "lsmgo": "61.281",
-          "fw": null
+          "lsmgo": "61.281"
         },
         "status": "in navigazione",
-        "remarks": "Distanza rimanente a Port Louis: 4680 NM, a Bedi: 2712 NM. ETA Port Louis: 18.08.2026 EAM AGW WP, Cape of Good Hope: 08.08.2026 PM, Bedi: 27.08.2026 AM",
+        "remarks": "ETA PORT LOUIS 18.08.2026 EAM AGW WP, ETA CAPE OF GOOD HOPE 08.08.2026 PM, ETA BEDI 27.08.2026 AM",
         "vesselId": "medtoscana"
       }
     ],
@@ -1697,26 +1696,26 @@
         "date": "2026-07-30",
         "type": "sea",
         "lat": "20-25.9S",
-        "lon": "055-30.7E",
-        "positionText": null,
-        "from": "VITORIA",
+        "lon": "55-30.7E",
+        "positionText": "At Sea",
+        "from": null,
         "to": "SINGAPORE",
-        "nextPort": "AGW",
-        "etaText": "11 AUG 2026 1800LT",
+        "nextPort": "SINGAPORE",
+        "etaText": "11/8/2026 18:00 GMT+8:00",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-11T18:00",
         "etbISO": null,
         "etdISO": null,
         "speed": "10.92",
-        "course": null,
+        "course": "50",
         "milesToGo": 3505,
         "bunkers": {
-          "lsfo": 404.35,
-          "lsmgo": 80.43,
+          "lsfo": null,
+          "lsmgo": 404.35,
           "fw": 357
         },
-        "status": "in navigazione",
+        "status": "Laden, Route amended as per Zero North recommended route. Adv current 1.2 kts.",
         "remarks": "ROUTE AMENDED AS PER ZERO NORTH RECOMMENDED ROUTE. ADV CURRENT ABT 1.2 KTS.",
         "vesselId": "medliguria"
       }
@@ -2647,7 +2646,7 @@
         "lon": "066-17.1E",
         "positionText": null,
         "from": "Singapore",
-        "to": "Port Louis, Mauritius",
+        "to": "Port Luis, Mauritius",
         "nextPort": "Port Louis, Mauritius",
         "etaText": "02.08.2026 0200LT",
         "etbText": null,
@@ -2664,7 +2663,7 @@
           "fw": 97
         },
         "status": "Sailing ESE, strong breeze, rough sea, rolling moderate to heavy",
-        "remarks": "Ship’s time one hour retard to conformed ZD +04. Sea sprays on port side main deck all the times.",
+        "remarks": "Ship's time one hour retard to conformed ZD +04. Sea sprays on port side main deck all the times.",
         "vesselId": "peppino"
       }
     ],
@@ -2931,5 +2930,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-30T16:00:59.728Z"
+  "syncedAt": "2026-07-30T17:00:59.788Z"
 }
