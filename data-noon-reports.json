@@ -1727,7 +1727,7 @@
         "positionText": null,
         "from": "VITORIA",
         "to": "SINGAPORE",
-        "nextPort": "AGW",
+        "nextPort": "WP AGW",
         "etaText": "11 AUG 2026 2200LT",
         "etbText": null,
         "etdText": null,
@@ -1742,8 +1742,8 @@
           "lsmgo": 80.43,
           "fw": 365
         },
-        "status": "in navigazione",
-        "remarks": "SHIPS CLOCK ADV 1 HR TO CONFORM UTC +5. ROUGH SEAS WITH SEA SPRAY ON DECK. ADV CURRENT ABT 2.0 KTS.",
+        "status": "in navigazione, mare mosso con spruzzi a bordo",
+        "remarks": "Orologio nave avanzato di 1 ora per conformità UTC+5. Correnti favorevoli circa 2.0 KTS.",
         "vesselId": "medliguria"
       }
     ],
@@ -2692,6 +2692,33 @@
         "status": "in navigazione con vento ESE forte, mare agitato, rollio moderato-grave, swell SE 3.5m",
         "remarks": "Ship's time one hour retard to conformed ZD +04. Sea sprays on port side main deck all the times.",
         "vesselId": "peppino"
+      },
+      {
+        "date": "2026-07-31",
+        "type": "sea",
+        "lat": "17-16.9S",
+        "lon": "062-23.3E",
+        "positionText": null,
+        "from": "Singapore",
+        "to": "Port Louis, Mauritius",
+        "nextPort": "Port Louis, Mauritius",
+        "etaText": "01.08.2026 2200LT",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": "2026-08-01T22:00",
+        "etbISO": null,
+        "etdISO": null,
+        "speed": "10.71",
+        "course": null,
+        "milesToGo": "338.0",
+        "bunkers": {
+          "lsfo": "1224.77",
+          "lsmgo": "161.44",
+          "fw": "101.0"
+        },
+        "status": "in navigazione con vento ESE forza 5/20 nodi, mare moderato con swell SE di 3.0m",
+        "remarks": "Vessel Sailing ESE ‘ly wind Fresh breeze, Moderate. sea, Rolling moderately due to SE ‘ly long swell with the height of 3.0m Sea sprays on port side main deck at times.",
+        "vesselId": "peppino"
       }
     ],
     "norrbotten": [
@@ -2957,5 +2984,5 @@
       }
     ]
   },
-  "syncedAt": "2026-07-31T08:00:59.470Z"
+  "syncedAt": "2026-07-31T09:01:02.605Z"
 }
