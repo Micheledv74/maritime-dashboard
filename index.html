@@ -6401,27 +6401,33 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .noon-setpos-mini:hover{ background:#f6f9fc; }
 .noon-setpos-btn{ background:#eef4ff; border:1px solid #cfe0fb; border-radius:7px; padding:5px 11px; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; }
 .noon-setpos-btn:hover{ background:#dbe8ff; }
-/* v0.58 — Panoramica: LED di stato + sezioni metriche (consumo / ROB / olio cilindri) */
-.noon-led{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; box-shadow:0 0 0 3px rgba(0,0,0,.05); }
-.noon-led.sea{ background:#1f8a4c; box-shadow:0 0 0 3px rgba(31,138,76,.14); }
-.noon-led.port{ background:#0e54c1; box-shadow:0 0 0 3px rgba(14,84,193,.14); }
-.noon-led.anchor{ background:#b8860b; box-shadow:0 0 0 3px rgba(184,134,11,.16); }
-.noon-metrics{ display:flex; flex-direction:column; gap:9px; margin-top:12px; padding-top:12px; border-top:1px solid #e3ecf7; }
-.noon-sec{ display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
-.noon-sec-head{ display:inline-flex; align-items:center; gap:7px; width:104px; flex:none; font-family:var(--font-mono); font-size:9.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#7a8bb0; }
-.noon-sec-dot{ width:8px; height:8px; border-radius:2px; flex:none; }
-.noon-chips{ display:flex; flex-wrap:wrap; gap:7px; flex:1; min-width:0; }
-.noon-stat{ display:inline-flex; flex-direction:column; gap:1px; background:#fff; border:1px solid #dbe6f5; border-radius:8px; padding:5px 11px; min-width:62px; }
-.noon-stat-lbl{ font-size:9.5px; font-weight:700; letter-spacing:.02em; color:#8aa0bd; white-space:nowrap; }
-.noon-stat-val{ font-family:var(--font-mono); font-size:14px; font-weight:700; color:#0f2748; line-height:1.15; white-space:nowrap; }
-.noon-stat.zero .noon-stat-val{ color:#aeb9c8; }
-.noon-stat-u{ font-size:9.5px; font-weight:600; color:#9aabc2; margin-left:3px; }
-.noon-voy{ font-family:var(--font-mono); font-size:10px; font-weight:700; color:#5b6470; background:#e7eef7; border-radius:5px; padding:2px 7px; margin-left:8px; }
-.noon-auto{ display:inline-flex; align-items:center; font-family:var(--font-mono); font-size:10px; font-weight:700; border-radius:7px; padding:5px 9px; align-self:center; }
-.noon-auto.ok{ background:#e7f3ec; color:#117a3a; border:1px solid #c3e3cf; }
-.noon-auto.warn{ background:#fdf2dd; color:#9a6a0a; border:1px solid #f0d9ad; }
-.noon-auto.crit{ background:#fbe3e4; color:#c0272f; border:1px solid #f0c2c6; }
-@media(max-width:720px){ .noon-sec{ align-items:flex-start; } .noon-sec-head{ width:100%; } }
+/* v0.59 — Panoramica: LED spia + cluster strumenti (console operativa) */
+.noon-led{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+.noon-led.sea{ background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.18),0 0 7px rgba(34,197,94,.7); }
+.noon-led.port{ background:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.18),0 0 7px rgba(59,130,246,.7); }
+.noon-led.anchor{ background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.18),0 0 7px rgba(245,158,11,.7); }
+.noon-voy{ font-family:var(--font-mono); font-size:10px; font-weight:700; color:#4a6291; background:#dbe8ff; border-radius:5px; padding:2px 7px; margin-left:8px; }
+/* cluster strumenti scuro */
+.ic{ margin-top:13px; border-radius:12px; padding:13px 14px 14px; background:radial-gradient(130% 150% at 12% -10%,#123a72 0%,#0a2350 45%,#06132e 100%); border:1px solid #0a2650; box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 40px rgba(0,0,0,.35); }
+.ic-gauges{ display:flex; gap:10px; }
+.gauge{ flex:1 1 0; max-width:200px; background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.09); border-radius:10px; padding:9px 6px 10px; text-align:center; }
+.gauge-lbl{ font-size:9px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#8fb0e6; display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:2px; }
+.gauge-lbl svg{ width:11px; height:11px; }
+.gauge-svg{ display:block; margin:0 auto; }
+.gauge-num{ font-family:var(--font-mono); font-weight:700; line-height:1; font-size:17px; }
+.gauge-num .u{ font-size:9px; opacity:.8; margin-left:2px; }
+.gauge-sub{ font-family:var(--font-mono); font-size:9px; color:#5f7bab; margin-top:3px; }
+.ic-read{ margin-top:11px; display:flex; flex-direction:column; gap:7px; }
+.read{ display:flex; align-items:center; gap:9px; }
+.read-h{ display:inline-flex; align-items:center; gap:6px; width:92px; flex:none; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#7f9bcb; }
+.read-h .rdot{ width:7px; height:7px; border-radius:2px; flex:none; }
+.read-vals{ display:flex; flex-wrap:wrap; gap:6px; flex:1; min-width:0; }
+.lcd{ display:inline-flex; align-items:baseline; gap:5px; background:rgba(3,10,26,.55); border:1px solid rgba(255,255,255,.07); border-radius:6px; padding:3px 8px; }
+.lcd-k{ font-size:8.5px; font-weight:800; letter-spacing:.04em; color:#6f8cbb; text-transform:uppercase; }
+.lcd-v{ font-family:var(--font-mono); font-size:12.5px; font-weight:700; color:#dfeaff; text-shadow:0 0 6px rgba(120,170,255,.35); white-space:nowrap; }
+.lcd-v .u{ font-size:8.5px; color:#7f9bcb; margin-left:2px; text-shadow:none; }
+.lcd.zero .lcd-v{ color:#5a6f97; text-shadow:none; }
+@media(max-width:720px){ .ic-gauges{ flex-wrap:wrap; } .gauge{ flex:1 1 40%; max-width:none; } .read-h{ width:100%; } }
 
 /* v0.20 — Badge insight procurement nella card flotta */
 .vessel-proc-badges{ display:flex; flex-wrap:wrap; gap:6px; padding:0 14px 12px; }
@@ -16011,47 +16017,50 @@ function noonReportBlockHTML(vesselId){
   const rob  = (n && n.bunkers) || {};        // remaining on board
   const cyl  = (n && n.cylinderOil) || {};    // olio cilindri
   const ledCls = n ? (n.type==="port"?"port":n.type==="anchor"?"anchor":"sea") : "sea";
-  function nstat(label, val, unit){
-    if(val==null || String(val).trim()==="") return "";
-    const num = parseFloat(String(val).replace(",","."));
-    const isZero = !isNaN(num) && num===0;
-    return `<span class="noon-stat${isZero?' zero':''}"><span class="noon-stat-lbl">${label}</span><span class="noon-stat-val">${escapeHTML(String(val).trim())}${unit?`<span class="noon-stat-u">${unit}</span>`:""}</span></span>`;
-  }
-  function nsec(title, color, chips){
-    const inner = chips.filter(Boolean).join("");
-    if(!inner) return "";
-    return `<div class="noon-sec"><span class="noon-sec-head"><span class="noon-sec-dot" style="background:${color}"></span>${title}</span><div class="noon-chips">${inner}</div></div>`;
-  }
   const cu = cyl.unit || "";  // unità olio cilindri (es. L, Ltrs)
-  // Autonomia stimata = ROB / consumo giornaliero (utile per il riordino)
-  function daysLeft(robV, dailyV){
-    const r = parseFloat(String(robV).replace(",",".")), d = parseFloat(String(dailyV).replace(",","."));
-    if(isNaN(r) || isNaN(d) || d<=0) return null;
-    return Math.round(r/d);
-  }
-  function autoChip(days){
+  // v0.59 — cluster strumenti (console): gauge di autonomia + readout LCD
+  const _ICO = {
+    drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7S5.5 9.6 5.5 14.3a6.5 6.5 0 0 0 13 0C18.5 9.6 12 2.7 12 2.7z"/></svg>',
+    oil:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10M9 21V10m6 11V10M6 10h12l-1-4H7l-1 4zM10 6V4h4v2"/></svg>',
+    fuel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v15M3 20h12M14 9h2.5a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/></svg>'
+  };
+  const _GCOL = { ok:{ring:"#22c55e",glow:"rgba(34,197,94,.55)",txt:"#7ff0a6"}, warn:{ring:"#f59e0b",glow:"rgba(245,158,11,.5)",txt:"#ffd27a"}, crit:{ring:"#ef4444",glow:"rgba(239,68,68,.55)",txt:"#ff9ea3"} };
+  const _n = v => (v==null?NaN:parseFloat(String(v).replace(",",".")));
+  function daysLeft(robV, dailyV){ const r=_n(robV), d=_n(dailyV); if(isNaN(r)||isNaN(d)||d<=0) return null; return Math.round(r/d); }
+  function gauge(label, icon, days, sub){
     if(days==null) return "";
-    const cls = days<15?"crit":days<30?"warn":"ok";
-    return `<span class="noon-auto ${cls}" title="Autonomia stimata (ROB ÷ consumo giornaliero) — per il riordino">≈ ${days} gg</span>`;
+    const c = _GCOL[days<15?"crit":days<30?"warn":"ok"];
+    const R=26, CX=32, CY=30, cir=Math.PI*R, dash=cir*Math.max(.04,Math.min(days/60,1)), gap=cir-dash;
+    const arc=`M ${CX-R} ${CY} A ${R} ${R} 0 0 1 ${CX+R} ${CY}`;
+    return `<div class="gauge"><div class="gauge-lbl">${icon}${label}</div>`
+      + `<svg class="gauge-svg" width="64" height="38" viewBox="0 0 64 38">`
+      + `<path d="${arc}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6" stroke-linecap="round"/>`
+      + `<path d="${arc}" fill="none" stroke="${c.ring}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${dash} ${gap}" style="filter:drop-shadow(0 0 4px ${c.glow})"/></svg>`
+      + `<div class="gauge-num" style="color:${c.txt};text-shadow:0 0 8px ${c.glow}" title="Autonomia stimata = ROB ÷ consumo giornaliero">≈${days}<span class="u">gg</span></div>`
+      + (sub?`<div class="gauge-sub">${escapeHTML(sub)}</div>`:"") + `</div>`;
   }
-  const cylDays = daysLeft(cyl.rob, cyl.daily);
-  const fwDays  = daysLeft(rob.fw, cons.fw);
-  const metricsHTML = [
-    nsec("Consumo 24 h", "#c77d0a", [
-      nstat("HFO", cons.hfo, "MT"), nstat("LSFO", cons.lsfo, "MT"),
-      nstat("MDO", cons.mdo, "MT"), nstat("MGO", cons.mgo, "MT"),
-      nstat("LSMGO", cons.lsmgo, "MT"), nstat("FW", cons.fw, "MT")
-    ]),
-    nsec("A bordo (ROB)", "#0e54c1", [
-      nstat("LSFO", rob.lsfo, "MT"), nstat("LSMGO", rob.lsmgo, "MT"), nstat("FW", rob.fw, "MT"),
-      fwDays!=null ? autoChip(fwDays) : ""
-    ]),
-    nsec("Olio cilindri", "#117a3a", [
-      nstat("Cons. giorno", cyl.daily, cu), nstat("M.E.", cyl.dailyME, cu),
-      nstat("D.G.", cyl.dailyDG, cu), nstat("ROB", cyl.rob, cu),
-      cylDays!=null ? autoChip(cylDays) : ""
-    ])
+  function lcd(k, v, u){
+    if(v==null || String(v).trim()==="") return "";
+    const z = _n(v)===0;
+    return `<span class="lcd${z?" zero":""}"><span class="lcd-k">${k}</span><span class="lcd-v">${escapeHTML(String(v).trim())}${u?`<span class="u">${u}</span>`:""}</span></span>`;
+  }
+  function readRow(title, color, vals){
+    const inner = vals.filter(Boolean).join(""); if(!inner) return "";
+    return `<div class="read"><span class="read-h"><span class="rdot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${title}</span><div class="read-vals">${inner}</div></div>`;
+  }
+  const _gauges = [
+    gauge("Acqua", _ICO.drop, daysLeft(rob.fw, cons.fw), rob.fw!=null?rob.fw+" MT":""),
+    gauge("Olio cil.", _ICO.oil, daysLeft(cyl.rob, cyl.daily), cyl.rob!=null?(String(cyl.rob).trim()+" "+(cu||"L")):""),
+    gauge("LSFO", _ICO.fuel, daysLeft(rob.lsfo, cons.lsfo), rob.lsfo!=null?rob.lsfo+" MT":"")
   ].filter(Boolean).join("");
+  const _reads = [
+    readRow("Consumo 24 h", "#f59e0b", [lcd("HFO",cons.hfo,"MT"),lcd("LSFO",cons.lsfo,"MT"),lcd("MDO",cons.mdo,"MT"),lcd("MGO",cons.mgo,"MT"),lcd("LSMGO",cons.lsmgo,"MT"),lcd("FW",cons.fw,"MT")]),
+    readRow("A bordo", "#3b82f6", [lcd("LSFO",rob.lsfo,"MT"),lcd("LSMGO",rob.lsmgo,"MT"),lcd("FW",rob.fw,"MT")]),
+    readRow("Olio cil.", "#22c55e", [lcd("Cons.",cyl.daily,cu),lcd("M.E.",cyl.dailyME,cu),lcd("D.G.",cyl.dailyDG,cu),lcd("ROB",cyl.rob,cu)])
+  ].filter(Boolean).join("");
+  const metricsHTML = (_gauges||_reads)
+    ? `<div class="ic">${_gauges?`<div class="ic-gauges">${_gauges}</div>`:""}${_reads?`<div class="ic-read">${_reads}</div>`:""}</div>`
+    : "";
   // mappa: OSM embed sempre attiva sull'ultima posizione nota
   let mapHTML = "";
   if(coords){
@@ -16083,7 +16092,7 @@ function noonReportBlockHTML(vesselId){
         ${shipTime?`<span class="noon-shiptime" title="Ora locale stimata dalla longitudine${approxPos?" del porto (approssimata)":""} (${shipTime.off})">🕐 a bordo ~${shipTime.text}</span>`:""}
         ${!coords?`<button class="noon-setpos-btn" onclick="window.setVesselManualPos('${escapeAttr(vesselId)}')">📍 Imposta città</button>`:""}
       </div>
-      ${metricsHTML?`<div class="noon-metrics">${metricsHTML}</div>`:""}
+      ${metricsHTML}
       ${bunkTrend}
       ${propLine ? `<div class="noon-prop">
         <span class="noon-prop-txt">${propLine}</span>
