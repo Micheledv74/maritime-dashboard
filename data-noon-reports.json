@@ -952,21 +952,21 @@
       {
         "date": "2026-08-06",
         "type": "sea",
-        "lat": "29-03S",
-        "lon": "008-46E",
-        "positionText": null,
+        "lat": "29-03.2S",
+        "lon": "008-45.9E",
+        "positionText": "29-03.2S / 008-45.9E",
         "from": null,
         "to": "PORT LOUIS",
         "nextPort": "BEDI",
-        "etaText": "17.08.2026 Lpm",
+        "etaText": "17.08.2026 LPM AGW WP, PORT LOUIS / 08.08.2026 PM CAPE OF GOOD HOPE / BEDI 27.08.2026 AM",
         "etbText": null,
         "etdText": "27.08.2026 am",
-        "etaISO": "2026-08-17T00:00",
+        "etaISO": "2026-08-17",
         "etbISO": null,
         "etdISO": "2026-08-27T00:00",
-        "speed": "12.5",
-        "course": "255",
-        "milesToGo": null,
+        "speed": "10.63",
+        "course": "125",
+        "milesToGo": "2870",
         "bunkers": {
           "lsfo": "904.709",
           "lsmgo": "60.981",
@@ -974,7 +974,15 @@
         },
         "status": "in navigazione, condizioni meteo: SSE 23 kts, 2.7m swell SW 3.2m",
         "remarks": "11.5 kts in carico - circa 23 mt IFO + 0.2 mt LSMGO (ausiliari)",
-        "vesselId": "medtoscana"
+        "vesselId": "medtoscana",
+        "isNoonReport": true,
+        "consumption": {
+          "lsfo": "22.73",
+          "lsmgo": "0.00"
+        },
+        "wind": "SSE/6",
+        "sea": "SSE/2.7 MTR",
+        "swell": "SW/ABT 3.2 MTR"
       }
     ],
     "medliguria": [
@@ -3081,8 +3089,8 @@
         "lon": "040-39.7E",
         "positionText": null,
         "from": "Port Luis, Mauritius",
-        "to": "Takoradi, Ghana",
-        "nextPort": "Takoradi Port Station",
+        "to": "Takoradi, Ghana, W.A",
+        "nextPort": "Takoradi",
         "etaText": "22.08.2026 1200LT",
         "etbText": null,
         "etdText": null,
@@ -3099,7 +3107,24 @@
         },
         "status": "in navigazione",
         "remarks": null,
-        "vesselId": "peppino"
+        "vesselId": "peppino",
+        "isNoonReport": true,
+        "voyageNo": "18-L",
+        "consumption": {
+          "hfo": 0,
+          "lsfo": 24.71,
+          "lsmgo": 0,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 6
+        },
+        "cylinderOil": {
+          "daily": 88,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 72181,
+          "unit": "Ltrs"
+        }
       }
     ],
     "norrbotten": [
@@ -3365,5 +3390,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-06T13:00:58.919Z"
+  "syncedAt": "2026-08-06T13:54:24.331Z"
 }
