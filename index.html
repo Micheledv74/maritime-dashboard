@@ -16144,6 +16144,23 @@ function noonReportBlockHTML(vesselId){
     </div>`;
   return `<div class="noon-block ${coords?'has-map':''}">${infoHTML}${mapHTML}</div>`;
 }
+// Converte un ETA testuale del noon ("22.08.2026 1200LT", "12 AUG 2026 1800LT") in ISO — usato come
+// fallback per i report già salvati che non hanno etaISO.
+function noonEtaTextToISO(s){
+  if(!s) return null;
+  const mons={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  let d,mo,y;
+  const m1=String(s).match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+  const m2=String(s).match(/(\d{1,2})\s+([A-Za-z]{3})[A-Za-z]*\s+(\d{4})/);
+  if(m1){ d=+m1[1]; mo=+m1[2]; y=+m1[3]; }
+  else if(m2){ d=+m2[1]; mo=mons[m2[2].toLowerCase()]; y=+m2[3]; }
+  else return null;
+  if(!mo||mo>12||d>31) return null;
+  let iso=y+'-'+('0'+mo).slice(-2)+'-'+('0'+d).slice(-2);
+  const tm=String(s).match(/\b(\d{2})(\d{2})\s*(?:LT|LMT|GMT|UTC)/i);
+  if(tm) iso+='T'+tm[1]+':'+tm[2];
+  return iso;
+}
 window.applyNoonToVoyage = function(vesselId){
   const n = getLatestNoon(vesselId);
   if(!n){ showToast("Nessun noon report"); return; }
@@ -16153,9 +16170,12 @@ window.applyNoonToVoyage = function(vesselId){
   // applico solo i campi presenti (non sovrascrivo con vuoti)
   if(n.from) cur.from = n.from;
   if(n.to || n.nextPort) cur.to = n.to || n.nextPort;
-  if(n.etaISO) cur.eta = n.etaISO;
-  if(n.etbISO) cur.etb = n.etbISO;
-  if(n.etdISO) cur.etd = n.etdISO;
+  const etaISO = n.etaISO || noonEtaTextToISO(n.etaText);
+  const etbISO = n.etbISO || noonEtaTextToISO(n.etbText);
+  const etdISO = n.etdISO || noonEtaTextToISO(n.etdText);
+  if(etaISO) cur.eta = etaISO;
+  if(etbISO) cur.etb = etbISO;
+  if(etdISO) cur.etd = etdISO;
   voy.current = cur;
   if(!voy.status) voy.status = (n.type==="port"||n.type==="anchor") ? "in-porto" : "in-navigazione";
   voy.updatedAt = new Date().toISOString();
