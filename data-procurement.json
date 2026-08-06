@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-08-06T07:15:46.559Z",
+  "lastSync": "2026-08-06T07:20:46.450Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -8425,12 +8425,12 @@
     {
       "vesselId": "medliguria",
       "vesselName": "MED LIGURIA",
-      "totalReq": 66,
+      "totalReq": 67,
       "rfqOpen": 7,
       "rfqOverdue7": 2,
       "rfqOverdue15": 1,
       "readyForPO": 1,
-      "orders": 27,
+      "orders": 28,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 15,
@@ -8448,6 +8448,38 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med liguria::medicine",
+          "description": "MEDICINE (1)",
+          "supplier": "FARMACIA GHIGLIAZZA",
+          "department": "DECK Department",
+          "reqNumber": "2026-MLG-SHPR-00060",
+          "rfqNumbers": [
+            "2026-MLG-HQRQ-00132"
+          ],
+          "poNumber": "2026-MLG-HQPO-00069",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
+          "rfqDays": 10,
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "REQ Ordered",
+          "rfqStatusSummary": [
+            "RFQ Offer Acknowledged"
+          ],
+          "reqDate": "2026-07-22",
+          "poDate": "2026-07-31",
+          "dnDate": "",
+          "poDeliveryDate": "2026-08-11",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-08-11"
+        },
         {
           "id": "med liguria::group starter panel auxiliary relay omron g2a4l32a ac24v",
           "description": "Group Starter Panel, Auxiliary Relay Omron G2A-4L32A, AC24V",
