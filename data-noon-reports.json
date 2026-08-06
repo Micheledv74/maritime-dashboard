@@ -1955,11 +1955,11 @@
         "type": "sea",
         "lat": "02-01.4S",
         "lon": "076-19.8E",
-        "positionText": null,
+        "positionText": "02-01.4S / 076-19.8E",
         "from": "VITORIA",
         "to": "SINGAPORE",
         "nextPort": "SINGAPORE",
-        "etaText": "12 AUG 2026 1800LT WP AGW",
+        "etaText": "ETA next port: 12 AUG 2026 1800LT WP AGW",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-12T18:00",
@@ -1967,15 +1967,30 @@
         "etdISO": null,
         "speed": "9.88",
         "course": null,
-        "milesToGo": 1853,
+        "milesToGo": "1853",
         "bunkers": {
-          "lsfo": 260.77,
-          "lsmgo": 80.43,
-          "fw": 415
+          "lsfo": "260.77",
+          "lsmgo": "80.43",
+          "fw": "415"
         },
         "status": "in navigazione, rotta modificata per ancoraggio a Singapore per bunkeraggio",
         "remarks": "Rotta modificata per ancoraggio Eastern Bunkering 'C' a Singapore. Mare agitato con spruzzi d'acqua in coperta. Nave con rollio accentuato. Corrente avversa circa 2.0 KTS.",
-        "vesselId": "medliguria"
+        "vesselId": "medliguria",
+        "isNoonReport": true,
+        "voyageNo": "11",
+        "consumption": {
+          "lsfo": "20.47",
+          "lsmgo": "0",
+          "fw": "12"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "14942",
+          "unit": "L"
+        },
+        "wind": "SE/27 KTS",
+        "sea": "SE/4.0",
+        "current": "W/2.0 KTS"
       }
     ],
     "peppino": [
@@ -3296,5 +3311,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-06T08:00:58.345Z"
+  "syncedAt": "2026-08-06T08:34:17.408Z"
 }
