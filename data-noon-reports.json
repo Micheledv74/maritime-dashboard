@@ -1951,35 +1951,30 @@
         "vesselId": "medliguria"
       },
       {
-        "isNoonReport": true,
-        "type": "sea",
-        "voyageNo": "11",
-        "from": "VITORIA",
-        "to": "SINGAPORE",
         "date": "2026-08-06",
+        "type": "sea",
         "lat": "02-01.4S",
         "lon": "076-19.8E",
-        "positionText": "02-01.4S / 076-19.8E",
+        "positionText": null,
+        "from": "VITORIA",
+        "to": "SINGAPORE",
+        "nextPort": "SINGAPORE",
+        "etaText": "12 AUG 2026 1800LT WP AGW",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": "2026-08-12T18:00",
+        "etbISO": null,
+        "etdISO": null,
         "speed": "9.88",
-        "milesToGo": "1853",
-        "consumption": {
-          "lsfo": "20.47",
-          "lsmgo": "0",
-          "fw": "12"
-        },
+        "course": null,
+        "milesToGo": 1853,
         "bunkers": {
-          "lsfo": "260.77",
-          "lsmgo": "80.43",
-          "fw": "415"
+          "lsfo": 260.77,
+          "lsmgo": 80.43,
+          "fw": 415
         },
-        "cylinderOil": {
-          "daily": "300",
-          "rob": "14942",
-          "unit": "L"
-        },
-        "etaText": "ETA next port: 12 AUG 2026 1800LT WP AGW",
-        "wind": "SE/27 KTS",
-        "current": "W/2.0 KTS",
+        "status": "in navigazione, rotta modificata per ancoraggio a Singapore per bunkeraggio",
+        "remarks": "Rotta modificata per ancoraggio Eastern Bunkering 'C' a Singapore. Mare agitato con spruzzi d'acqua in coperta. Nave con rollio accentuato. Corrente avversa circa 2.0 KTS.",
         "vesselId": "medliguria"
       }
     ],
@@ -3301,5 +3296,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-06T07:44:21.898Z"
+  "syncedAt": "2026-08-06T08:00:58.345Z"
 }
