@@ -985,29 +985,30 @@
         "swell": "SW/ABT 3.2 MTR"
       },
       {
-        "isNoonReport": true,
-        "type": "sea",
         "date": "2026-08-07",
+        "type": "sea",
         "lat": "31-26.3S",
         "lon": "012-39.4E",
-        "positionText": "31-26.3S / 012-39.4E",
+        "positionText": null,
+        "from": null,
+        "to": "Port Louis",
+        "nextPort": "Cape of Good Hope",
+        "etaText": "17.08.2026 LPM AGW WP, PORT LOUIS / 08.08.2026 PM CAPE OF GOOD HOPE",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": "2026-08-17T00:00",
+        "etbISO": null,
+        "etdISO": null,
         "speed": "10.33",
         "course": "125",
         "milesToGo": "2622",
-        "etaText": "17.08.2026 LPM AGW WP, PORT LOUIS / 08.08.2026 PM CAPE OF GOOD HOPE / BEDI 27.08.2026 AM",
-        "etaISO": "2026-08-17",
-        "to": "PORT LOUIS",
         "bunkers": {
           "lsfo": "881.729",
-          "lsmgo": "60.881"
+          "lsmgo": "60.881",
+          "fw": null
         },
-        "consumption": {
-          "lsfo": "22.98",
-          "lsmgo": "0.10"
-        },
-        "wind": "SSE/6",
-        "sea": "SSE/2.6 MTR",
-        "swell": "SW/ABT 3.5-4.0 MTR",
+        "status": "in navigazione",
+        "remarks": "ETA Port Louis 17.08.2026 LPM AGW WP / ETA Cape of Good Hope 08.08.2026 PM",
         "vesselId": "medtoscana"
       }
     ],
@@ -3163,16 +3164,14 @@
         "vesselId": "peppino"
       },
       {
-        "isNoonReport": true,
         "date": "2026-08-07",
         "type": "sea",
         "lat": "30-21.5S",
         "lon": "037-29.4E",
         "positionText": null,
         "from": "Port Luis, Mauritius",
-        "to": "Takoradi, Ghana, W.A",
+        "to": "Takoradi, Ghana",
         "nextPort": "Takoradi",
-        "voyageNo": "18-L",
         "etaText": "22.08.2026 1200LT",
         "etbText": null,
         "etdText": null,
@@ -3186,21 +3185,6 @@
           "lsfo": 1414.75,
           "lsmgo": 161.44,
           "fw": 61
-        },
-        "consumption": {
-          "hfo": 16.2,
-          "lsfo": 0,
-          "lsmgo": 0,
-          "mdo": null,
-          "mgo": null,
-          "fw": 5
-        },
-        "cylinderOil": {
-          "daily": 62,
-          "dailyME": 0,
-          "dailyDG": 0,
-          "rob": 72119,
-          "unit": "Ltrs"
         },
         "status": "in navigazione",
         "remarks": "Ship’s time one hour retard to conformed ZD +02",
@@ -3470,5 +3454,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-07T11:55:59.194Z"
+  "syncedAt": "2026-08-07T12:00:57.511Z"
 }
