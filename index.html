@@ -9534,7 +9534,7 @@ function maNoonBlock(vid){
     return `<div class="ma-g"><div class="ma-g-lbl">${icon}${lbl}</div><svg width="96" height="55" viewBox="0 0 74 42"><path d="${arc}" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="7" stroke-linecap="round"/><path d="${arc}" fill="none" stroke="${ring}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${dash} ${gap}" style="filter:drop-shadow(0 0 4px ${glow})"/></svg><div class="ma-g-num" style="color:${txt};text-shadow:0 0 8px ${glow}">≈${days}<span>gg</span></div>${sub?`<div class="ma-g-sub">${escapeHTML(sub)}</div>`:""}</div>`;
   }
   function lcd(k,v,u){ if(v==null||String(v).trim()==="") return ""; const z=_n(v)===0; return `<span class="ma-lcd${z?" zero":""}"><span class="ma-lcd-k">${k}</span><span class="ma-lcd-v">${escapeHTML(String(v).trim())}${u?`<span>${u}</span>`:""}</span></span>`; }
-  function readRow(title,dot,vals,rst){ const inner=vals.filter(Boolean).join(""); if(!inner) return ""; return `<div class="ma-rd"${rst?` style="opacity:.74"`:""}><span class="ma-rd-h"><span class="ma-rd-dot" style="background:${dot};box-shadow:0 0 6px ${dot}"></span>${title}${noonStaleBadge(rst,true)}</span><div class="ma-rd-vals">${inner}</div></div>`; }
+  function readRow(title,dot,vals,rst){ const inner=vals.filter(Boolean).join(""); if(!inner) return ""; return `<div class="ma-rd"${rst?` style="opacity:.74"`:""}><span class="ma-rd-h"><span class="ma-rd-dot" style="background:${dot};box-shadow:0 0 6px ${dot}"></span>${title}</span><div class="ma-rd-vals">${inner}${noonStaleBadge(rst,true)}</div></div>`; }
   function tile(icon,lbl,v,u){ if(v==null||String(v).trim()==="") return ""; return `<div class="ma-nt"><span class="ma-nt-h">${icon}${lbl}</span><span class="ma-nt-v">${escapeHTML(String(v).trim())}${u?`<span>${u}</span>`:""}</span></div>`; }
   function wx(icon,k,v){ if(v==null||String(v).trim()==="") return ""; const s=escapeHTML(String(v).trim()); return `<div class="ma-wx"><span class="ma-wx-ic">${icon}</span><span class="ma-wx-t"><span class="ma-wx-k">${k}</span><span class="ma-wx-v" title="${s}">${s}</span></span></div>`; }
 
@@ -15958,7 +15958,7 @@ function noonStaleBadge(st, mobile){
   const txt = (d==null) ? "dato precedente" : (d<=0 ? "" : d===1 ? "di ieri" : d+" gg fa");
   if(!txt) return "";
   const fs = mobile ? "10px" : "10.5px";
-  return `<span class="noon-stale-badge" title="Ultimo dato utile: il noon più recente non riportava questo valore" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:9px;font-size:${fs};font-weight:700;letter-spacing:.02em;line-height:1.5;background:rgba(245,158,11,.16);color:#f0b95a;border:1px solid rgba(245,158,11,.35);vertical-align:middle">↺ ${txt}</span>`;
+  return `<span class="noon-stale-badge" title="Ultimo dato utile: il noon più recente non riportava questo valore" style="display:inline-flex;align-items:center;gap:3px;flex:none;white-space:nowrap;margin-left:6px;padding:1px 6px;border-radius:9px;font-size:${fs};font-weight:700;letter-spacing:.02em;line-height:1.5;background:rgba(245,158,11,.16);color:#f0b95a;border:1px solid rgba(245,158,11,.35);vertical-align:middle">↺ ${txt}</span>`;
 }
 // v0.45 — Gazetteer porti/ancoraggi ricorrenti: consente pin mappa e "ora a bordo" anche quando
 // il noon report ha solo il NOME del luogo (senza coordinate numeriche).
@@ -16237,7 +16237,7 @@ function noonReportBlockHTML(vesselId){
   }
   function readRow(title, color, vals, rst){
     const inner = vals.filter(Boolean).join(""); if(!inner) return "";
-    return `<div class="read"${rst?` style="opacity:.74"`:""}><span class="read-h"><span class="rdot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${title}${noonStaleBadge(rst)}</span><div class="read-vals">${inner}</div></div>`;
+    return `<div class="read"${rst?` style="opacity:.74"`:""}><span class="read-h"><span class="rdot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${title}</span><div class="read-vals">${inner}${noonStaleBadge(rst)}</div></div>`;
   }
   function wx(icon, k, v){
     if(v==null || String(v).trim()==="") return "";
