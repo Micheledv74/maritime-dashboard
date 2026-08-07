@@ -7154,6 +7154,52 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   /* Altro tab sostituisce il menu ☰ in header */
   #btn-mobile-menu{ display:none !important; }
 
+  /* === Noon report — plancia scura (mobile, dir. 1a) ==================== */
+  .ma-noon{ border-radius:16px; padding:15px 15px 16px; margin-bottom:14px; background:radial-gradient(140% 150% at 12% -10%,#123a72 0%,#0a2350 45%,#06132e 100%); border:1px solid #0a2650; box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 40px rgba(0,0,0,.35); }
+  .ma-noon-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:9px; }
+  .ma-noon-tag{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#8fb0e6; }
+  .ma-noon-voy{ font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#9fc0f6; background:rgba(255,255,255,.1); border-radius:5px; padding:2px 7px; margin-left:6px; }
+  .ma-noon-status{ display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:700; color:#cfe0fb; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:4px 11px 4px 9px; white-space:nowrap; max-width:58%; overflow:hidden; }
+  .ma-noon-led{ width:9px; height:9px; border-radius:50%; flex:none; }
+  .ma-noon-pos{ display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px; }
+  .ma-noon-pos-l{ font-size:9.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:#8aa0bd; }
+  .ma-noon-pos-v{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:15px; color:#eaf1ff; }
+  .ma-noon-time{ font-size:11.5px; font-weight:600; color:#9fc0f6; }
+  .ma-noon-sec{ font-size:9.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#6f8cbb; margin:14px 0 8px; }
+  .ma-noon-nav{ display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:9px; margin-top:11px; }
+  .ma-nt{ background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)); border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:3px; }
+  .ma-nt-h{ display:inline-flex; align-items:center; gap:6px; font-size:9px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:#8fb0e6; }
+  .ma-nt-h svg{ width:12px; height:12px; }
+  .ma-nt-v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:21px; color:#e8f1ff; line-height:1; }
+  .ma-nt-v span{ font-size:10.5px; font-weight:600; color:#7f9bcb; margin-left:3px; }
+  .ma-noon-g{ display:grid; grid-template-columns:repeat(auto-fit,minmax(96px,1fr)); gap:8px; }
+  .ma-g{ background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.09); border-radius:11px; padding:11px 4px 12px; text-align:center; }
+  .ma-g-lbl{ display:flex; align-items:center; justify-content:center; gap:4px; font-size:8.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#8fb0e6; margin-bottom:2px; }
+  .ma-g-lbl svg{ width:11px; height:11px; }
+  .ma-g svg{ display:block; margin:0 auto; }
+  .ma-g-num{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:18px; line-height:1; margin-top:2px; }
+  .ma-g-num span{ font-size:9.5px; margin-left:2px; }
+  .ma-g-sub{ font-family:'JetBrains Mono',monospace; font-size:9px; color:#5f7bab; margin-top:3px; }
+  .ma-noon-read{ display:flex; flex-direction:column; gap:8px; }
+  .ma-rd{ display:flex; align-items:flex-start; gap:9px; flex-wrap:wrap; }
+  .ma-rd-h{ display:inline-flex; align-items:center; gap:6px; width:86px; flex:none; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#7f9bcb; padding-top:4px; }
+  .ma-rd-dot{ width:7px; height:7px; border-radius:2px; flex:none; }
+  .ma-rd-vals{ display:flex; flex-wrap:wrap; gap:6px; flex:1; min-width:0; }
+  .ma-lcd{ display:inline-flex; align-items:baseline; gap:5px; background:rgba(3,10,26,.55); border:1px solid rgba(255,255,255,.07); border-radius:7px; padding:4px 9px; }
+  .ma-lcd-k{ font-size:8.5px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; color:#6f8cbb; }
+  .ma-lcd-v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12.5px; color:#dfeaff; white-space:nowrap; }
+  .ma-lcd-v span{ font-size:8.5px; color:#7f9bcb; margin-left:2px; }
+  .ma-lcd.zero .ma-lcd-v{ color:#5a6f97; }
+  .ma-noon-wx{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .ma-wx{ display:flex; align-items:center; gap:9px; background:rgba(3,10,26,.5); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:9px 11px; min-width:0; }
+  .ma-wx-ic{ width:28px; height:28px; flex:none; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(120,170,255,.12); color:#9cc2ff; }
+  .ma-wx-ic svg{ width:15px; height:15px; }
+  .ma-wx-t{ min-width:0; }
+  .ma-wx-k{ font-size:8.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#7f9bcb; }
+  .ma-wx-v{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; color:#dfeaff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ma-noon-dest{ margin-top:13px; padding-top:12px; border-top:1px solid rgba(255,255,255,.1); font-size:12.5px; color:#afc4e8; }
+  .ma-noon-apply{ width:100%; margin-top:12px; padding:13px; border-radius:12px; border:none; background:#0e54c1; color:#fff; font-size:14px; font-weight:700; box-shadow:0 4px 12px rgba(14,84,193,.3); }
+
   /* === 1b — CRUSCOTTO "OGGI" ============================================= */
   .ma-greet{ font-size:13px; font-weight:600; color:#8a93a0; margin:2px 2px 1px; }
   .ma-greet-h{ font-size:22px; font-weight:800; color:#12233a; letter-spacing:-.02em; margin:0 2px 14px; }
@@ -9459,6 +9505,78 @@ function maTodoRow(t){
   </div>`;
 }
 
+// === Noon report "plancia scura" sul mobile (dir. 1a) — legge i dati reali ===
+function maNoonBlock(vid){
+  const n = (typeof getLatestNoon==="function") ? getLatestNoon(vid) : null;
+  if(!n || (typeof noonHasContent==="function" && !noonHasContent(n))) return "";
+  const cons=n.consumption||{}, rob=n.bunkers||{}, cyl=n.cylinderOil||{}, cu=cyl.unit||"";
+  const ICO={
+    drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7S5.5 9.6 5.5 14.3a6.5 6.5 0 0 0 13 0C18.5 9.6 12 2.7 12 2.7z"/></svg>',
+    oil:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10M9 21V10m6 11V10M6 10h12l-1-4H7l-1 4zM10 6V4h4v2"/></svg>',
+    fuel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v15M3 20h12M14 9h2.5a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/></svg>',
+    speed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l4-4M20 16a8 8 0 1 0-16 0"/></svg>',
+    course:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l4 9-4-2-4 2 4-9zM12 12v10"/></svg>',
+    dist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>',
+    wind:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11a2.5 2.5 0 1 0-2.5-2.5M3 16h15a2.5 2.5 0 1 1-2.5 2.5M3 12h8"/></svg>',
+    wave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2M2 20c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></svg>',
+    swell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c3 0 4-6 8-6s5 6 8 6M2 10c3 0 4-4 8-4"/></svg>',
+    current:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c2-3 5-3 7 0s5 3 7 0M6 17l-2-2 2-2M18 7l2 2-2 2"/></svg>'
+  };
+  const _n = v => (v==null?NaN:parseFloat(String(v).replace(",",".")));
+  const dl = (r,d)=>{ const R=_n(r), D=_n(d); if(isNaN(R)||isNaN(D)||D<=0) return null; return Math.round(R/D); };
+  const acol = d => d<15?["#ef4444","rgba(239,68,68,.55)","#ff9ea3"] : d<30?["#f59e0b","rgba(245,158,11,.5)","#ffd27a"] : ["#22c55e","rgba(34,197,94,.55)","#7ff0a6"];
+  function gauge(lbl,icon,days,sub){
+    if(days==null) return "";
+    const [ring,glow,txt]=acol(days), R=30,CX=37,CY=34,cir=Math.PI*R,dash=cir*Math.max(.04,Math.min(days/60,1)),gap=cir-dash;
+    const arc=`M ${CX-R} ${CY} A ${R} ${R} 0 0 1 ${CX+R} ${CY}`;
+    return `<div class="ma-g"><div class="ma-g-lbl">${icon}${lbl}</div><svg width="96" height="55" viewBox="0 0 74 42"><path d="${arc}" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="7" stroke-linecap="round"/><path d="${arc}" fill="none" stroke="${ring}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${dash} ${gap}" style="filter:drop-shadow(0 0 4px ${glow})"/></svg><div class="ma-g-num" style="color:${txt};text-shadow:0 0 8px ${glow}">≈${days}<span>gg</span></div>${sub?`<div class="ma-g-sub">${escapeHTML(sub)}</div>`:""}</div>`;
+  }
+  function lcd(k,v,u){ if(v==null||String(v).trim()==="") return ""; const z=_n(v)===0; return `<span class="ma-lcd${z?" zero":""}"><span class="ma-lcd-k">${k}</span><span class="ma-lcd-v">${escapeHTML(String(v).trim())}${u?`<span>${u}</span>`:""}</span></span>`; }
+  function readRow(title,dot,vals){ const inner=vals.filter(Boolean).join(""); if(!inner) return ""; return `<div class="ma-rd"><span class="ma-rd-h"><span class="ma-rd-dot" style="background:${dot};box-shadow:0 0 6px ${dot}"></span>${title}</span><div class="ma-rd-vals">${inner}</div></div>`; }
+  function tile(icon,lbl,v,u){ if(v==null||String(v).trim()==="") return ""; return `<div class="ma-nt"><span class="ma-nt-h">${icon}${lbl}</span><span class="ma-nt-v">${escapeHTML(String(v).trim())}${u?`<span>${u}</span>`:""}</span></div>`; }
+  function wx(icon,k,v){ if(v==null||String(v).trim()==="") return ""; const s=escapeHTML(String(v).trim()); return `<div class="ma-wx"><span class="ma-wx-ic">${icon}</span><span class="ma-wx-t"><span class="ma-wx-k">${k}</span><span class="ma-wx-v" title="${s}">${s}</span></span></div>`; }
+
+  const pos = n.positionText || [n.lat,n.lon].filter(Boolean).join(" / ");
+  const led = n.type==="port"?"#3b82f6":n.type==="anchor"?"#f59e0b":"#22c55e";
+  const _shortStatus = n.type==="port"?"in porto":n.type==="anchor"?"in rada":"in navigazione";
+  let statusTxt = n.status || _shortStatus;
+  if(statusTxt.length>22) statusTxt = _shortStatus;  // evita che un remark lungo sfori la pill
+  // ora a bordo stimata dalla longitudine (se estraibile)
+  let timeHTML="";
+  try{
+    const m=String(pos).match(/(\d{1,3})[-\s](\d{1,2}(?:\.\d+)?)\s*([EW])/i);
+    if(m && typeof shipLocalTimeFromLon==="function"){ let lon=(+m[1])+(+m[2])/60; if(/w/i.test(m[3])) lon=-lon; const st=shipLocalTimeFromLon(lon); if(st) timeHTML=`<span class="ma-noon-time">🕐 a bordo ~${escapeHTML(st.text||st)}</span>`; }
+  }catch(_){}
+
+  const navTiles=[ tile(ICO.speed,"Velocità",n.speed,"kts"), tile(ICO.course,"Rotta",n.course,"°"), tile(ICO.dist,"Al porto",n.milesToGo,"NM") ].filter(Boolean).join("");
+  const gauges=[
+    gauge("Acqua",ICO.drop,dl(rob.fw,cons.fw),rob.fw!=null?rob.fw+" MT":""),
+    gauge("Olio cil.",ICO.oil,dl(cyl.rob,cyl.daily),cyl.rob!=null?(String(cyl.rob).trim()+" "+(cu||"L")):""),
+    gauge("LSFO",ICO.fuel,dl(rob.lsfo,cons.lsfo),rob.lsfo!=null?rob.lsfo+" MT":"")
+  ].filter(Boolean).join("");
+  const reads=[
+    readRow("Consumo 24h","#f59e0b",[lcd("HFO",cons.hfo,"MT"),lcd("LSFO",cons.lsfo,"MT"),lcd("MDO",cons.mdo,"MT"),lcd("MGO",cons.mgo,"MT"),lcd("LSMGO",cons.lsmgo,"MT"),lcd("FW",cons.fw,"MT")]),
+    readRow("A bordo","#3b82f6",[lcd("LSFO",rob.lsfo,"MT"),lcd("LSMGO",rob.lsmgo,"MT"),lcd("FW",rob.fw,"MT")]),
+    readRow("Olio cil.","#22c55e",[lcd("Cons.",cyl.daily,cu),lcd("M.E.",cyl.dailyME,cu),lcd("D.G.",cyl.dailyDG,cu),lcd("ROB",cyl.rob,cu)])
+  ].filter(Boolean).join("");
+  const wxTiles=[ wx(ICO.wind,"Vento",n.wind), wx(ICO.wave,"Mare",n.sea), wx(ICO.swell,"Onda lunga",n.swell), wx(ICO.current,"Corrente",n.current) ].filter(Boolean).join("");
+  const dest = (n.to||n.nextPort||n.etaText) ? `<div class="ma-noon-dest">${(n.to||n.nextPort)?`→ <b style="color:#dfeaff">${escapeHTML(n.to||n.nextPort)}</b>`:""}${n.etaText?` · ETA ${escapeHTML(n.etaText)}`:""}</div>` : "";
+
+  return `<div class="ma-noon">
+    <div class="ma-noon-head">
+      <span class="ma-noon-tag">✉ Noon ${escapeHTML(noonDateLabel(n.date))}${n.voyageNo?`<span class="ma-noon-voy">Voy ${escapeHTML(String(n.voyageNo))}</span>`:""}</span>
+      <span class="ma-noon-status"><span class="ma-noon-led" style="background:${led};box-shadow:0 0 0 3px ${led}2e,0 0 7px ${led}b3"></span>${escapeHTML(statusTxt)}</span>
+    </div>
+    <div class="ma-noon-pos"><span class="ma-noon-pos-l">Posizione</span><span class="ma-noon-pos-v">${pos?escapeHTML(pos):"—"}</span>${timeHTML}</div>
+    ${navTiles?`<div class="ma-noon-nav">${navTiles}</div>`:""}
+    ${gauges?`<div class="ma-noon-sec">Autonomia stimata</div><div class="ma-noon-g">${gauges}</div>`:""}
+    ${reads?`<div class="ma-noon-sec">Consumi e scorte</div><div class="ma-noon-read">${reads}</div>`:""}
+    ${wxTiles?`<div class="ma-noon-sec">Meteo &amp; mare</div><div class="ma-noon-wx">${wxTiles}</div>`:""}
+    ${dest}
+    <button class="ma-noon-apply" onclick="window.applyNoonToVoyage('${escapeAttr(vid)}')">Applica al Voyage</button>
+  </div>`;
+}
+
 function maVesselDetail(vid){
   const cfg = (VESSELS||[]).find(v=>v.vesselId===vid) || {};
   const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===vid);
@@ -9503,6 +9621,7 @@ function maVesselDetail(vid){
       <div class="ma-hero-route">${route}</div>
       ${eta?`<div class="ma-hero-meta">ETA ${escapeHTML(formatDate(eta))}${cur.etb?` · ETB ${escapeHTML(formatDate(cur.etb))}`:""}</div>`:""}
     </div>
+    ${maNoonBlock(vid)}
     ${plHTML}
     ${rfqHTML}
     <div class="ma-sec">Certificati in scadenza</div>${certHTML}
