@@ -9507,8 +9507,10 @@ function maTodoRow(t){
 
 // === Noon report "plancia scura" sul mobile (dir. 1a) — legge i dati reali ===
 function maNoonBlock(vid){
-  const n = (typeof getLatestNoon==="function") ? getLatestNoon(vid) : null;
+  const n = (typeof getNoonMerged==="function") ? getNoonMerged(vid) : ((typeof getLatestNoon==="function")?getLatestNoon(vid):null);
   if(!n || (typeof noonHasContent==="function" && !noonHasContent(n))) return "";
+  const st = n.__stale || {};
+  const stGauge = st.consumption || st.bunkers || st.cylinderOil || null;
   const cons=n.consumption||{}, rob=n.bunkers||{}, cyl=n.cylinderOil||{}, cu=cyl.unit||"";
   const ICO={
     drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7S5.5 9.6 5.5 14.3a6.5 6.5 0 0 0 13 0C18.5 9.6 12 2.7 12 2.7z"/></svg>',
@@ -9532,7 +9534,7 @@ function maNoonBlock(vid){
     return `<div class="ma-g"><div class="ma-g-lbl">${icon}${lbl}</div><svg width="96" height="55" viewBox="0 0 74 42"><path d="${arc}" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="7" stroke-linecap="round"/><path d="${arc}" fill="none" stroke="${ring}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${dash} ${gap}" style="filter:drop-shadow(0 0 4px ${glow})"/></svg><div class="ma-g-num" style="color:${txt};text-shadow:0 0 8px ${glow}">≈${days}<span>gg</span></div>${sub?`<div class="ma-g-sub">${escapeHTML(sub)}</div>`:""}</div>`;
   }
   function lcd(k,v,u){ if(v==null||String(v).trim()==="") return ""; const z=_n(v)===0; return `<span class="ma-lcd${z?" zero":""}"><span class="ma-lcd-k">${k}</span><span class="ma-lcd-v">${escapeHTML(String(v).trim())}${u?`<span>${u}</span>`:""}</span></span>`; }
-  function readRow(title,dot,vals){ const inner=vals.filter(Boolean).join(""); if(!inner) return ""; return `<div class="ma-rd"><span class="ma-rd-h"><span class="ma-rd-dot" style="background:${dot};box-shadow:0 0 6px ${dot}"></span>${title}</span><div class="ma-rd-vals">${inner}</div></div>`; }
+  function readRow(title,dot,vals,rst){ const inner=vals.filter(Boolean).join(""); if(!inner) return ""; return `<div class="ma-rd"${rst?` style="opacity:.74"`:""}><span class="ma-rd-h"><span class="ma-rd-dot" style="background:${dot};box-shadow:0 0 6px ${dot}"></span>${title}${noonStaleBadge(rst,true)}</span><div class="ma-rd-vals">${inner}</div></div>`; }
   function tile(icon,lbl,v,u){ if(v==null||String(v).trim()==="") return ""; return `<div class="ma-nt"><span class="ma-nt-h">${icon}${lbl}</span><span class="ma-nt-v">${escapeHTML(String(v).trim())}${u?`<span>${u}</span>`:""}</span></div>`; }
   function wx(icon,k,v){ if(v==null||String(v).trim()==="") return ""; const s=escapeHTML(String(v).trim()); return `<div class="ma-wx"><span class="ma-wx-ic">${icon}</span><span class="ma-wx-t"><span class="ma-wx-k">${k}</span><span class="ma-wx-v" title="${s}">${s}</span></span></div>`; }
 
@@ -9555,9 +9557,9 @@ function maNoonBlock(vid){
     gauge("LSFO",ICO.fuel,dl(rob.lsfo,cons.lsfo),rob.lsfo!=null?rob.lsfo+" MT":"")
   ].filter(Boolean).join("");
   const reads=[
-    readRow("Consumo 24h","#f59e0b",[lcd("HFO",cons.hfo,"MT"),lcd("LSFO",cons.lsfo,"MT"),lcd("MDO",cons.mdo,"MT"),lcd("MGO",cons.mgo,"MT"),lcd("LSMGO",cons.lsmgo,"MT"),lcd("FW",cons.fw,"MT")]),
-    readRow("A bordo","#3b82f6",[lcd("LSFO",rob.lsfo,"MT"),lcd("LSMGO",rob.lsmgo,"MT"),lcd("FW",rob.fw,"MT")]),
-    readRow("Olio cil.","#22c55e",[lcd("Cons.",cyl.daily,cu),lcd("M.E.",cyl.dailyME,cu),lcd("D.G.",cyl.dailyDG,cu),lcd("ROB",cyl.rob,cu)])
+    readRow("Consumo 24h","#f59e0b",[lcd("HFO",cons.hfo,"MT"),lcd("LSFO",cons.lsfo,"MT"),lcd("MDO",cons.mdo,"MT"),lcd("MGO",cons.mgo,"MT"),lcd("LSMGO",cons.lsmgo,"MT"),lcd("FW",cons.fw,"MT")],st.consumption),
+    readRow("A bordo","#3b82f6",[lcd("LSFO",rob.lsfo,"MT"),lcd("LSMGO",rob.lsmgo,"MT"),lcd("FW",rob.fw,"MT")],st.bunkers),
+    readRow("Olio cil.","#22c55e",[lcd("Cons.",cyl.daily,cu),lcd("M.E.",cyl.dailyME,cu),lcd("D.G.",cyl.dailyDG,cu),lcd("ROB",cyl.rob,cu)],st.cylinderOil)
   ].filter(Boolean).join("");
   const wxTiles=[ wx(ICO.wind,"Vento",n.wind), wx(ICO.wave,"Mare",n.sea), wx(ICO.swell,"Onda lunga",n.swell), wx(ICO.current,"Corrente",n.current) ].filter(Boolean).join("");
   const dest = (n.to||n.nextPort||n.etaText) ? `<div class="ma-noon-dest">${(n.to||n.nextPort)?`→ <b style="color:#dfeaff">${escapeHTML(n.to||n.nextPort)}</b>`:""}${n.etaText?` · ETA ${escapeHTML(n.etaText)}`:""}</div>` : "";
@@ -9568,10 +9570,10 @@ function maNoonBlock(vid){
       <span class="ma-noon-status"><span class="ma-noon-led" style="background:${led};box-shadow:0 0 0 3px ${led}2e,0 0 7px ${led}b3"></span>${escapeHTML(statusTxt)}</span>
     </div>
     <div class="ma-noon-pos"><span class="ma-noon-pos-l">Posizione</span><span class="ma-noon-pos-v">${pos?escapeHTML(pos):"—"}</span>${timeHTML}</div>
-    ${navTiles?`<div class="ma-noon-nav">${navTiles}</div>`:""}
-    ${gauges?`<div class="ma-noon-sec">Autonomia stimata</div><div class="ma-noon-g">${gauges}</div>`:""}
+    ${navTiles?`<div class="ma-noon-nav">${navTiles}</div>${st.nav?`<div style="margin:-4px 0 2px">${noonStaleBadge(st.nav,true)}</div>`:""}`:""}
+    ${gauges?`<div class="ma-noon-sec">Autonomia stimata${noonStaleBadge(stGauge,true)}</div><div class="ma-noon-g"${stGauge?` style="opacity:.74"`:""}>${gauges}</div>`:""}
     ${reads?`<div class="ma-noon-sec">Consumi e scorte</div><div class="ma-noon-read">${reads}</div>`:""}
-    ${wxTiles?`<div class="ma-noon-sec">Meteo &amp; mare</div><div class="ma-noon-wx">${wxTiles}</div>`:""}
+    ${wxTiles?`<div class="ma-noon-sec">Meteo &amp; mare${noonStaleBadge(st.weather,true)}</div><div class="ma-noon-wx"${st.weather?` style="opacity:.74"`:""}>${wxTiles}</div>`:""}
     ${dest}
     <button class="ma-noon-apply" onclick="window.applyNoonToVoyage('${escapeAttr(vid)}')">Applica al Voyage</button>
   </div>`;
@@ -15915,6 +15917,49 @@ function noonHasContent(n){
             n.wind || n.sea || n.swell || n.current ||
             (n.status && String(n.status).length>3));
 }
+// v0.63 — Merge del noon più recente con FALLBACK per-gruppo dai report precedenti:
+// se n8n non trova un campo, non lo cancella dalla dashboard — riusa l'ultimo dato utile
+// marcandolo come "dato precedente" (con l'età in giorni). base = ultimo report con contenuto.
+function _noonHasVal(v){ return v!=null && String(v).trim()!==""; }
+function getNoonMerged(vesselId){
+  const arr = getNoonReports(vesselId).filter(noonHasContent);
+  if(!arr.length) return null;
+  const base = arr[arr.length-1];
+  const m = JSON.parse(JSON.stringify(base));
+  const stale = {};
+  const groups = { consumption:["hfo","lsfo","lsmgo","mdo","mgo","fw"], bunkers:["lsfo","lsmgo","fw"], cylinderOil:["daily","dailyME","dailyDG","rob"] };
+  const gHas = (o,keys)=> !!o && keys.some(k=>_noonHasVal(o[k]));
+  for(const g in groups){
+    if(gHas(base[g], groups[g])) continue;
+    for(let i=arr.length-2;i>=0;i--){
+      if(gHas(arr[i][g], groups[g])){ m[g]=Object.assign({}, arr[i][g]); stale[g]={date:arr[i].date, days:noonDaysAgo(arr[i].date)}; break; }
+    }
+  }
+  const wxKeys=["wind","sea","swell","current"];
+  if(!wxKeys.some(k=>_noonHasVal(base[k]))){
+    for(let i=arr.length-2;i>=0;i--){
+      if(wxKeys.some(k=>_noonHasVal(arr[i][k]))){ wxKeys.forEach(k=>{ if(_noonHasVal(arr[i][k])) m[k]=arr[i][k]; }); stale.weather={date:arr[i].date, days:noonDaysAgo(arr[i].date)}; break; }
+    }
+  }
+  const navKeys=["speed","course","milesToGo"];
+  if(!navKeys.some(k=>_noonHasVal(base[k]))){
+    for(let i=arr.length-2;i>=0;i--){
+      if(navKeys.some(k=>_noonHasVal(arr[i][k]))){ navKeys.forEach(k=>{ if(_noonHasVal(arr[i][k])) m[k]=arr[i][k]; }); stale.nav={date:arr[i].date, days:noonDaysAgo(arr[i].date)}; break; }
+    }
+  }
+  m.__stale = stale;
+  m.__baseDate = base.date;
+  return m;
+}
+// Badge "dato precedente" per un gruppo riusato (st = {date, days}).
+function noonStaleBadge(st, mobile){
+  if(!st) return "";
+  const d = st.days;
+  const txt = (d==null) ? "dato precedente" : (d<=0 ? "" : d===1 ? "di ieri" : d+" gg fa");
+  if(!txt) return "";
+  const fs = mobile ? "10px" : "10.5px";
+  return `<span class="noon-stale-badge" title="Ultimo dato utile: il noon più recente non riportava questo valore" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:9px;font-size:${fs};font-weight:700;letter-spacing:.02em;line-height:1.5;background:rgba(245,158,11,.16);color:#f0b95a;border:1px solid rgba(245,158,11,.35);vertical-align:middle">↺ ${txt}</span>`;
+}
 // v0.45 — Gazetteer porti/ancoraggi ricorrenti: consente pin mappa e "ora a bordo" anche quando
 // il noon report ha solo il NOME del luogo (senza coordinate numeriche).
 const PORT_GAZETTEER = [
@@ -16114,7 +16159,7 @@ function bunkerTrendHTML(vesselId){
 
 // Blocco "Ultimo noon report" + proposta da Applicare al Voyage + mappa posizione (sempre attiva)
 function noonReportBlockHTML(vesselId){
-  const n = getLatestNoon(vesselId);
+  const n = getNoonMerged(vesselId) || getLatestNoon(vesselId);
   const last = getLastKnownPosition(vesselId);
   // Nessun noon E nessuna posizione (manuale o geocodificata) → mostro solo l'invito a impostare la città a mano
   if(!n && !last){
@@ -16149,6 +16194,8 @@ function noonReportBlockHTML(vesselId){
   const cons = (n && n.consumption) || {};   // consumo giornaliero (24h)
   const rob  = (n && n.bunkers) || {};        // remaining on board
   const cyl  = (n && n.cylinderOil) || {};    // olio cilindri
+  const st = (n && n.__stale) || {};          // v0.63 — gruppi riusati da report precedenti
+  const stGauge = st.consumption || st.bunkers || st.cylinderOil || null;
   const ledCls = n ? (n.type==="port"?"port":n.type==="anchor"?"anchor":"sea") : "sea";
   const cu = cyl.unit || "";  // unità olio cilindri (es. L, Ltrs)
   // v0.60 — cluster strumenti (console): navigazione + gauge autonomia + readout + meteo
@@ -16188,9 +16235,9 @@ function noonReportBlockHTML(vesselId){
     const z = _n(v)===0;
     return `<span class="lcd${z?" zero":""}"><span class="lcd-k">${k}</span><span class="lcd-v">${escapeHTML(String(v).trim())}${u?`<span class="u">${u}</span>`:""}</span></span>`;
   }
-  function readRow(title, color, vals){
+  function readRow(title, color, vals, rst){
     const inner = vals.filter(Boolean).join(""); if(!inner) return "";
-    return `<div class="read"><span class="read-h"><span class="rdot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${title}</span><div class="read-vals">${inner}</div></div>`;
+    return `<div class="read"${rst?` style="opacity:.74"`:""}><span class="read-h"><span class="rdot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${title}${noonStaleBadge(rst)}</span><div class="read-vals">${inner}</div></div>`;
   }
   function wx(icon, k, v){
     if(v==null || String(v).trim()==="") return "";
@@ -16208,9 +16255,9 @@ function noonReportBlockHTML(vesselId){
     gauge("LSFO", _ICO.fuel, daysLeft(rob.lsfo, cons.lsfo), rob.lsfo!=null?rob.lsfo+" MT":"")
   ].filter(Boolean).join("");
   const _reads = [
-    readRow("Consumo 24 h", "#f59e0b", [lcd("HFO",cons.hfo,"MT"),lcd("LSFO",cons.lsfo,"MT"),lcd("MDO",cons.mdo,"MT"),lcd("MGO",cons.mgo,"MT"),lcd("LSMGO",cons.lsmgo,"MT"),lcd("FW",cons.fw,"MT")]),
-    readRow("A bordo", "#3b82f6", [lcd("LSFO",rob.lsfo,"MT"),lcd("LSMGO",rob.lsmgo,"MT"),lcd("FW",rob.fw,"MT")]),
-    readRow("Olio cil.", "#22c55e", [lcd("Cons.",cyl.daily,cu),lcd("M.E.",cyl.dailyME,cu),lcd("D.G.",cyl.dailyDG,cu),lcd("ROB",cyl.rob,cu)])
+    readRow("Consumo 24 h", "#f59e0b", [lcd("HFO",cons.hfo,"MT"),lcd("LSFO",cons.lsfo,"MT"),lcd("MDO",cons.mdo,"MT"),lcd("MGO",cons.mgo,"MT"),lcd("LSMGO",cons.lsmgo,"MT"),lcd("FW",cons.fw,"MT")], st.consumption),
+    readRow("A bordo", "#3b82f6", [lcd("LSFO",rob.lsfo,"MT"),lcd("LSMGO",rob.lsmgo,"MT"),lcd("FW",rob.fw,"MT")], st.bunkers),
+    readRow("Olio cil.", "#22c55e", [lcd("Cons.",cyl.daily,cu),lcd("M.E.",cyl.dailyME,cu),lcd("D.G.",cyl.dailyDG,cu),lcd("ROB",cyl.rob,cu)], st.cylinderOil)
   ].filter(Boolean).join("");
   const _wx = n ? [
     wx(_ICO.wind, "Vento", n.wind),
@@ -16220,10 +16267,10 @@ function noonReportBlockHTML(vesselId){
   ].filter(Boolean).join("") : "";
   const metricsHTML = (_navTiles||_gauges||_reads||_wx)
     ? `<div class="ic">`
-      + (_navTiles?`<div class="ic-nav">${_navTiles}</div>`:"")
-      + (_gauges?`<div><div class="ic-sec-h">Autonomia stimata</div><div class="ic-gauges">${_gauges}</div></div>`:"")
+      + (_navTiles?`<div class="ic-nav">${_navTiles}</div>${st.nav?`<div style="margin-top:3px">${noonStaleBadge(st.nav)}</div>`:""}`:"")
+      + (_gauges?`<div${stGauge?` style="opacity:.74"`:""}><div class="ic-sec-h">Autonomia stimata${noonStaleBadge(stGauge)}</div><div class="ic-gauges">${_gauges}</div></div>`:"")
       + (_reads?`<div class="ic-read">${_reads}</div>`:"")
-      + (_wx?`<div><div class="ic-sec-h">Meteo &amp; mare</div><div class="ic-wx">${_wx}</div></div>`:"")
+      + (_wx?`<div${st.weather?` style="opacity:.74"`:""}><div class="ic-sec-h">Meteo &amp; mare${noonStaleBadge(st.weather)}</div><div class="ic-wx">${_wx}</div></div>`:"")
       + `</div>`
     : "";
   // mappa: OSM embed sempre attiva sull'ultima posizione nota
