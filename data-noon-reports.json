@@ -1016,27 +1016,35 @@
         "type": "sea",
         "lat": "33-49.1S",
         "lon": "016-38.0E",
-        "positionText": null,
+        "positionText": "33-49.1S / 016-38.0E",
         "from": null,
-        "to": null,
+        "to": "PORT LOUIS",
         "nextPort": "Port Louis",
-        "etaText": "17.08.2026 LPM AGW WP, PORT LOUIS",
+        "etaText": "17.08.2026 LPM AGW WP, PORT LOUIS / 08.08.2026 2200LT CAPE OF GOOD HOPE / BEDI 27.08.2026 AM",
         "etbText": null,
         "etdText": "08.08.2026 2200LT CAPE OF GOOD HOPE",
-        "etaISO": "2026-08-17T00:00",
+        "etaISO": "2026-08-17T22:00",
         "etbISO": null,
         "etdISO": "2026-08-08T22:00",
         "speed": "10.29",
         "course": "125",
         "milesToGo": "2375",
         "bunkers": {
-          "lsfo": 859.019,
-          "lsmgo": 60.881,
+          "lsfo": "859.019",
+          "lsmgo": "60.881",
           "fw": null
         },
         "status": "in navigazione",
         "remarks": "ETA Port Louis 17.08.2026, ETD Cape of Good Hope 08.08.2026 2200LT",
-        "vesselId": "medtoscana"
+        "vesselId": "medtoscana",
+        "isNoonReport": true,
+        "consumption": {
+          "lsfo": "22.71",
+          "lsmgo": "0.00"
+        },
+        "wind": "SW/5",
+        "sea": "SW/2.8 MTR",
+        "swell": "SW/ABT 3.8 MTR"
       }
     ],
     "medliguria": [
@@ -3267,7 +3275,7 @@
         "lon": "032-38.9E",
         "positionText": null,
         "from": "Port Luis, Mauritius",
-        "to": "Takoradi, Ghana",
+        "to": "Takoradi, Ghana, W.A",
         "nextPort": "Takoradi",
         "etaText": "22.08.2026 1200LT",
         "etbText": null,
@@ -3277,15 +3285,32 @@
         "etdISO": null,
         "speed": "10.79",
         "course": null,
-        "milesToGo": "3390.0",
+        "milesToGo": 3390,
         "bunkers": {
-          "lsfo": "1389.95",
-          "lsmgo": "161.44",
-          "fw": "60.0"
+          "lsfo": 1389.95,
+          "lsmgo": 161.44,
+          "fw": 60
         },
-        "status": "in navigazione con vento forte da N, mare mosso e rollio moderato",
+        "status": "sailing N 'ly wind Strong breeze, rough sea, rolling moderately due to NNE 'ly swell with the height of 3.5m, Sea sprays on Forecastle deck up to Stbd. side deck No. 3",
         "remarks": "Vento N 6/25kts, mare N 5/2.5m, corrente ESE 0.7kts, spruzzi d'acqua sul ponte di prua fino al lato dritto del ponte n.3",
-        "vesselId": "peppino"
+        "vesselId": "peppino",
+        "isNoonReport": true,
+        "voyageNo": "18-L",
+        "consumption": {
+          "hfo": 0,
+          "lsfo": 25.23,
+          "lsmgo": 0,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 6
+        },
+        "cylinderOil": {
+          "daily": 95,
+          "dailyME": 0,
+          "dailyDG": 50,
+          "rob": 71974,
+          "unit": "Ltrs"
+        }
       }
     ],
     "norrbotten": [
@@ -3551,5 +3576,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-08T17:00:59.850Z"
+  "syncedAt": "2026-08-08T17:01:19.877Z"
 }
