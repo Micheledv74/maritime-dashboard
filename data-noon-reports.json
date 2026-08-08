@@ -2086,11 +2086,11 @@
         "type": "sea",
         "lat": "01-19.2N",
         "lon": "084-22.5E",
-        "positionText": null,
+        "positionText": "01-19.2N / 084-22.5E",
         "from": "VITORIA",
         "to": "SINGAPORE",
         "nextPort": "WP AGW",
-        "etaText": "13 AUG 2026 0001LT",
+        "etaText": "ETA next port: 13 AUG 2026 0001LT WP AGW",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-13T00:01",
@@ -2098,15 +2098,31 @@
         "etdISO": null,
         "speed": "11.43",
         "course": null,
-        "milesToGo": 1329,
+        "milesToGo": "1329",
         "bunkers": {
-          "lsfo": 221.8,
-          "lsmgo": 80.43,
-          "fw": 425
+          "lsfo": "221.80",
+          "lsmgo": "80.43",
+          "fw": "425"
         },
         "status": "in navigazione, rollio accentuato per swell da SE",
         "remarks": "SHIPS CLOCK ADV 1 HR TO CONFORM UTC +7. VSL ROLLING HEAVILY AT TIMES DUE TO SE'LY SWELL.",
-        "vesselId": "medliguria"
+        "vesselId": "medliguria",
+        "isNoonReport": true,
+        "voyageNo": "11",
+        "consumption": {
+          "lsfo": "18.92",
+          "lsmgo": "0",
+          "fw": "8"
+        },
+        "cylinderOil": {
+          "daily": "287",
+          "rob": "14355",
+          "unit": "L"
+        },
+        "wind": "SSW/19 KTS",
+        "sea": "SSW/2.5",
+        "current": "SSW/0.7 KTS",
+        "swell": "SHIPS CLOCK ADV 1 HR TO CONFORM UTC +7. VSL ROLLING HEAVILY AT TIMES DUE TO SE’LY SWELL."
       }
     ],
     "peppino": [
@@ -3481,5 +3497,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-08T09:01:00.694Z"
+  "syncedAt": "2026-08-08T09:14:01.693Z"
 }
