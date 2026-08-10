@@ -7300,14 +7300,8 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
       <button class="icon-btn refresh has-label desktop-only" id="btn-refresh" title="Aggiorna dati (R)" aria-label="Aggiorna">
         <svg class="icon icon-sm"><use href="#i-refresh"/></svg><span class="label-md">Aggiorna</span>
       </button>
-      <button class="icon-btn eod has-label desktop-only" id="btn-eod" title="Fine giornata" aria-label="Fine giornata">
-        <svg class="icon icon-sm"><use href="#i-moon"/></svg><span class="label-md">Fine giornata</span>
-      </button>
       <button class="icon-btn desktop-only" id="btn-palette" title="Cerca (⌘K)" aria-label="Cerca">
         <svg class="icon icon-md"><use href="#i-search"/></svg>
-      </button>
-      <button class="icon-btn desktop-only" id="btn-todos" title="Le mie to-do" aria-label="To-do">
-        <svg class="icon icon-md"><use href="#i-checksquare"/></svg><span id="todos-badge" class="badge" style="display:none;">0</span>
       </button>
       <button class="icon-btn desktop-only" id="btn-delivery-archive" title="Storico consegne (flotta)" aria-label="Storico consegne">
         <svg class="icon icon-md"><use href="#i-truck"/></svg>
@@ -11772,103 +11766,328 @@ function vNameSafe(id){ const v = VESSELS.find(v=>v.vesselId===id); return v ? v
 // Render della PAGINA dedicata "Assistente Email" (v0.48 — triage su tutta la posta + workspace strumenti scrittura)
 window._emailFilter = window._emailFilter || "all";
 function renderEmailPage(){
+  // === v0.67 — "Posta + AI": vista a 4 colonne (cartelle · lista · lettura · Copilot) su dati REALI ===
+  const P = paixState();
   const all = getEmailThreads();
-  const vName = id => (VESSELS.find(v=>v.vesselId===id)||{}).displayName || "";
   const connectedBroad = state.recentEmails != null;
-  const connected = connectedBroad || state.pendingReplies != null;
-  const NOISE_CATS = new Set(["noise","agency_ops"]);
-  const active = all.filter(r=>!NOISE_CATS.has(r.category));
-  const folded = all.filter(r=>NOISE_CATS.has(r.category));
-  const waitingCount = active.filter(r=>r.waiting).length;
 
-  const filter = window._emailFilter;
-  const shown = filter==="all" ? active : filter==="__waiting__" ? active.filter(r=>r.waiting) : active.filter(r=>r.category===filter);
+  // arricchisco ogni thread con campi di presentazione
+  all.forEach(r=>{
+    r._subjClean = paixStripPrefix(r.subject);
+    r._initials = paixInitials(r.fromName);
+    r._ava = paixAva(r.fromEmail || r.fromName);
+    r._pending = paixPendingKind(r);
+    r._dls = paixDeadlines(r);
+  });
 
-  const counts = {};
-  active.forEach(r=>{ counts[r.category] = (counts[r.category]||0)+1; });
-  const chipDefs = [{ key:"all", label:"Tutte", count:active.length, color:"#0a3f93", bg:"#e7f0fb" }];
-  if (waitingCount) chipDefs.push({ key:"__waiting__", label:"⏳ Attesa risposta", count:waitingCount, color:"#c8362f", bg:"#fbe6e6" });
-  Object.keys(counts).forEach(k=>{ const m = EMAIL_CATS[k]||EMAIL_CATS.generic; chipDefs.push({ key:k, label:m.label, count:counts[k], color:m.color, bg:m.bg }); });
-  const catChips = chipDefs.map(c=>{
-    const on = filter===c.key;
-    return `<button class="pr-chip ${on?"on":""}" style="--chip-c:${c.color};--chip-bg:${c.bg}" onclick="window.setEmailFilter('${c.key}')">${escapeHTML(c.label)} <span class="pr-chip-n">${c.count}</span></button>`;
+  // selezione corrente valida?
+  let sel = P.selId!=null ? all.find(r=>r.id===P.selId && !PAIX_NOISE.has(r.category) && !paixIsMuted(r)) : null;
+
+  const list = paixVisible(all);
+  if(!sel && list.length && !P.query.trim()) { sel = list[0]; P.selId = sel.id; }
+  if(P.selId!=null && !sel) { sel = all.find(r=>r.id===P.selId) || null; }
+
+  // -- COL 1: viste AI + albero cartelle --
+  const todoN = all.filter(r=>!paixIsMuted(r) && r._pending==="todo").length;
+  const awaitN = all.filter(r=>!paixIsMuted(r) && r._pending==="await").length;
+  const dlN = all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category) && r._dls.length).length;
+
+  const smart = [
+    {key:"ai_todo",label:"Tocca a te",count:todoN,dot:"#c8362f",icon:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'},
+    {key:"ai_await",label:"Da sollecitare",count:awaitN,dot:"#b8860b",icon:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'},
+    {key:"ai_deadlines",label:"Scadenze",count:dlN,dot:"#0e54c1",icon:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'}
+  ];
+  const smartHTML = smart.map(v=>{
+    const on = P.folder===v.key;
+    const badge = v.count ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#fff;background:'+v.dot+';padding:1px 7px;border-radius:20px;">'+v.count+'</span>' : "";
+    return '<button onclick="window.paixSetFolder(\''+v.key+'\')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;font-family:inherit;font-size:12.5px;font-weight:'+(on?700:600)+';color:'+(on?"#3a2f6b":"#4a4270")+';background:'+(on?"#efeafb":"transparent")+';border:none;border-radius:8px;padding:8px 9px;cursor:pointer;margin-bottom:1px;">'
+      +'<span style="width:16px;display:flex;justify-content:center;color:'+(on?"#6a4bff":"#9a90c0")+';">'+v.icon+'</span>'
+      +'<span style="flex:1;">'+v.label+'</span>'+badge+'</button>';
   }).join("");
 
-  function rowHTML(r){
-    const vtag = r.vesselId ? `<span class="pr-vtag" data-vid="${escapeAttr(r.vesselId)}">${escapeHTML(vName(r.vesselId))}</span>` : "";
-    const roleTag = r.role ? `<span class="pr-role pr-${r.kind}">${escapeHTML(r.role)}</span>` : "";
-    const cat = EMAIL_CATS[r.category] || EMAIL_CATS.generic;
-    const catBadge = `<span class="pr-cat" style="background:${cat.bg};color:${cat.color}">${escapeHTML(cat.label)}</span>`;
-    const linkChip = r.link ? `<button class="pr-doclink" onclick="window.handleInternalLink('${encodeURIComponent(JSON.stringify({view:"vessel",vesselId:r.link.vesselId,tab:"procurement",itemId:r.link.itemId}))}')" title="${escapeAttr(r.link.description)}">${escapeHTML(r.link.docLabel)} ${escapeHTML(r.link.docNumber)}</button>` : "";
-    const threadTag = (r.messages && r.messages.length>1) ? `<span class="pr-thread-tag" title="${r.messages.length} messaggi in questo scambio">💬 ${r.messages.length}</span>` : "";
-    const deadlineFmt = r.deadline ? new Date(r.deadline.iso + "T00:00:00").toLocaleDateString("it-IT", { day:"2-digit", month:"short" }) : "";
-    const deadlineBadge = r.deadline ? `<button class="pr-deadline-tag" onclick="window.createTodoFromDeadline('${escapeAttr(r.id)}');event.stopPropagation();" title="Scadenza rilevata nel testo — clicca per creare una to-do">📅 ${escapeHTML(deadlineFmt)}</button>` : "";
-    const dCls = r.days>=5 ? "late" : r.days>=3 ? "warn" : "";
-    const waitBox = r.waiting
-      ? `<div class="pr-wait ${dCls}" title="In attesa da ${r.days} giorni">${r.days}<span class="pr-wait-u">g</span></div>`
-      : `<div class="pr-wait pr-wait-none" title="Nessuna risposta in sospeso">·</div>`;
-    const openBtn = r.webLink ? `<a class="pr-btn pr-open" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" title="Apri in Outlook">Apri ↗</a>`
-      : `<button class="pr-btn pr-open" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')" title="Rispondi">Rispondi</button>`;
-    return `<div class="pr-row" data-pr-id="${escapeAttr(r.id)}">
-      ${waitBox}
-      <div class="pr-main">
-        <div class="pr-headrow">
-          <div class="pr-tagrow">${catBadge}${linkChip}${threadTag}${deadlineBadge}</div>
-          ${r.waiting ? `<span class="pr-waitlabel">Tocca a te</span>` : ""}
-        </div>
-        <div class="pr-from">${escapeHTML(r.fromName)} ${roleTag} ${vtag}</div>
-        <div class="pr-subj">${escapeHTML(r.subject)}</div>
-        <div class="pr-whatbox">
-          <span class="pr-what-arrow">→</span>
-          <div class="pr-what-text">
-            <div class="pr-what-label">Cosa richiede</div>
-            <div class="pr-what-action">${escapeHTML(emailActionText(r))}</div>
-          </div>
-          ${r.waiting ? `<button class="pr-btn pr-dismiss" onclick="window.dismissReplyUI('${escapeAttr(r.id)}')" title="Ho già risposto / ignora">Fatto</button>` : ""}
-        </div>
-      </div>
-      <div class="pr-actions">
-        <button class="pr-btn pr-preview" onclick="window.openEmailPreview('${escapeAttr(r.id)}')" title="Anteprima ampia: di cosa si tratta e cosa decidere">👁 Anteprima</button>
-        <button class="pr-btn pr-draft" onclick="window.openEmailWorkspace('${escapeAttr(r.id)}')" title="Assistente scrittura: riassunto, bozza, tono, traduzione, risposte rapide">✎ Assistente</button>
-        ${openBtn}
-        <button class="pr-btn" onclick="window.replyToTodo('${escapeAttr(r.id)}')" title="Crea una to-do">+ To-do</button>
-      </div>
-    </div>`;
+  // categorie e navi presenti nei dati (solo quelle non-rumore)
+  const activeAll = all.filter(r=>!PAIX_NOISE.has(r.category) && !paixIsMuted(r));
+  const catCounts = {}; activeAll.forEach(r=>{ catCounts[r.category]=(catCounts[r.category]||0)+1; });
+  const vesselCounts = {}; activeAll.forEach(r=>{ if(r.vesselId) vesselCounts[r.vesselId]=(vesselCounts[r.vesselId]||0)+1; });
+  const noiseN = all.filter(r=>!paixIsMuted(r) && PAIX_NOISE.has(r.category)).length + all.filter(r=>paixIsMuted(r)).length;
+
+  const treeRows = [];
+  const folderBtn = (key,label,count,depth,strong)=>{
+    const on = P.folder===key;
+    const cnt = count ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#0e54c1;">'+count+'</span>' : "";
+    return '<button onclick="window.paixSetFolder(\''+key+'\')" style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:\'Inter\',system-ui,sans-serif;font-size:'+(strong?13:12.5)+'px;font-weight:'+(on?700:(strong?700:500))+';color:'+(on?"#0a3f93":(strong?"#14181f":"#3a4250"))+';background:'+(on?"#e6eefb":"transparent")+';border:none;border-radius:7px;padding:6px 8px 6px '+(8+depth*14)+'px;cursor:pointer;margin-bottom:1px;min-width:0;">'
+      +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+label+'</span>'+cnt+'</button>';
+  };
+  treeRows.push(folderBtn("all","Tutta la posta",activeAll.length,0,true));
+  Object.keys(catCounts).sort((a,b)=>catCounts[b]-catCounts[a]).forEach(k=>{
+    const m = EMAIL_CATS[k]||EMAIL_CATS.generic;
+    treeRows.push(folderBtn("cat:"+k, escapeHTML(m.label), catCounts[k], 1));
+  });
+  if(Object.keys(vesselCounts).length){
+    treeRows.push('<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa3b0;padding:10px 8px 5px;">Navi</div>');
+    (VESSELS||[]).forEach(v=>{ if(vesselCounts[v.vesselId]) treeRows.push(folderBtn("ves:"+v.vesselId, escapeHTML(v.displayName), vesselCounts[v.vesselId], 1)); });
+  }
+  treeRows.push('<div style="height:1px;background:#e5e9ee;margin:10px 6px;"></div>');
+  treeRows.push(folderBtn("noise","Rumore / filtrate",noiseN,1));
+
+  // -- COL 2: lista messaggi --
+  const titles = {ai_todo:"Tocca a te",ai_await:"Da sollecitare",ai_deadlines:"Scadenze",all:"Tutta la posta",noise:"Rumore / filtrate"};
+  let listTitle = titles[P.folder] || P.folder;
+  if(P.folder.startsWith("cat:")){ const m=EMAIL_CATS[P.folder.slice(4)]||EMAIL_CATS.generic; listTitle=m.label; }
+  if(P.folder.startsWith("ves:")){ listTitle=vNameSafe(P.folder.slice(4)); }
+  if(P.query.trim()) listTitle = 'Ricerca: "'+escapeHTML(P.query.trim())+'"';
+  const hints = {
+    ai_todo:"Thread dove l'ultima mossa è dell'altra parte: aspettano un tuo riscontro.",
+    ai_await:"Thread dove hai già risposto o inviato tu: la palla è al fornitore — valuta se sollecitare.",
+    ai_deadlines:"Email con una scadenza rilevata. Trasformale in to-do con un click."
+  };
+  const listHTML = list.length ? list.map(r=>{
+    const isSel = sel && sel.id===r.id;
+    const meta = EMAIL_CATS[r.category]||EMAIL_CATS.generic;
+    let waitLabel="", waitColor="#c8362f", waitBg="#fdeeed";
+    if(r._pending==="todo"){ waitLabel="tocca a te · "+r.days+"g"; }
+    else if(r._pending==="await"){ waitLabel="sollecita · "+r.days+"g"; waitColor="#b8860b"; waitBg="#fbf3e0"; }
+    const vtag = r.vesselId ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#0a3f93;background:#eaf1fd;padding:2px 7px;border-radius:5px;">'+escapeHTML(vNameSafe(r.vesselId))+'</span>' : "";
+    const doc = r.link ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#475569;background:#eef1f5;padding:2px 7px;border-radius:5px;">'+escapeHTML(r.link.docLabel)+' '+escapeHTML(r.link.docNumber)+'</span>' : "";
+    const att = r.hasAttachments ? '<span style="display:inline-flex;align-items:center;gap:3px;font-size:9.5px;color:#8a93a0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></span>' : "";
+    const wl = waitLabel ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+waitColor+';background:'+waitBg+';padding:2px 7px;border-radius:5px;">'+waitLabel+'</span>' : "";
+    const dl = r._dls.length ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#b8860b;background:#fbf3e0;padding:2px 7px;border-radius:5px;">📅 '+escapeHTML(r._dls[0].dateLabel)+'</span>' : "";
+    return '<div onclick="window.paixSelect(\''+escapeAttr(r.id)+'\')" style="display:flex;gap:11px;padding:11px 15px;border-bottom:1px solid #f1f3f6;cursor:pointer;background:'+(isSel?"#eef4ff":"#fff")+';border-left:3px solid '+(isSel?"#0e54c1":"transparent")+';">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:'+r._ava+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+escapeHTML(r._initials)+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="display:flex;align-items:baseline;gap:8px;"><span style="font-weight:'+(isSel?700:600)+';font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(r.fromName)+'</span><span style="font-size:10.5px;color:#9aa3b0;flex-shrink:0;font-family:\'JetBrains Mono\',monospace;">'+paixTimeLabel(r)+'</span></div>'
+        +'<div style="font-weight:'+(isSel?600:500)+';font-size:12.5px;color:#2b3240;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:1px 0 2px;">'+escapeHTML(r._subjClean)+'</div>'
+        +'<div style="font-size:11.5px;color:#8a93a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML((r.preview||"").replace(/\s+/g," ").slice(0,90))+'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:2px 7px;border-radius:5px;">'+escapeHTML(meta.label)+'</span>'+vtag+doc+att+wl+dl+'</div>'
+      +'</div></div>';
+  }).join("") : '<div style="padding:60px 24px;text-align:center;color:#9aa3b0;font-size:13px;">'+(P.folder==="noise"?"Nessun messaggio filtrato.":"Nessuna email in questa vista.")+'</div>';
+
+  // -- COL 3 + 4 --
+  let readHTML, copilotHTML="";
+  if(sel){
+    readHTML = paixReadingHTML(sel);
+    copilotHTML = paixCopilotHTML(sel);
+  } else {
+    readHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#c1c9d2;gap:12px;"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg><div style="font-size:13px;">Seleziona un\'email</div></div>';
   }
 
-  let body;
-  if(!all.length){
-    body = `<div class="empty-state" style="padding:48px 24px;text-align:center;">
-      <div style="font-size:34px;margin-bottom:10px;">✅</div>
-      <p style="margin:0 0 6px;font-weight:600;color:#3a4250;">${connected ? "Nessuna email da mostrare" : "Rilevamento email non ancora collegato"}</p>
-      <p style="margin:0;font-size:13px;color:#9aa3af;">${connected ? "Tutto letto e archiviato." : "Quando il workflow n8n scrive data-recent-emails.json (o data-pending-replies.json), la posta compare qui."}</p>
-    </div>`;
-  } else {
-    const foldedHTML = folded.length ? `
-      <details class="pr-folded">
-        <summary>${folded.length} email non richiedono una tua risposta (rumore, cc operativi) — mostra</summary>
-        <div class="pr-list" style="margin-top:8px;">${folded.map(rowHTML).join("")}</div>
-      </details>` : "";
-    body = shown.length
-      ? `<div class="pr-list">${shown.map(rowHTML).join("")}</div>${foldedHTML}`
-      : `<div class="empty-state" style="padding:32px 16px;text-align:center;color:#9aa3af;">Nessuna email in questa categoria.</div>${foldedHTML}`;
-  }
-  document.getElementById("view-root").innerHTML = `
-    <header class="todo-page-header">
-      <div>
-        <h1>Assistente Email</h1>
-        <div class="todo-page-stats">
-          <span class="stat ${waitingCount>0?"warn":""}"><strong>${waitingCount}</strong> in attesa di risposta</span>
-          <span class="stat">${active.length} in totale · ${folded.length} filtrate come rumore/non tue</span>
-          ${!connectedBroad ? `<span class="stat" style="color:#b8860b;">Triage limitato alle attese — collega il workflow "Recent Emails Sync" per tutta la posta</span>` : ""}
-        </div>
-      </div>
-    </header>
-    <div class="pr-chiprow">${catChips}</div>
-    ${body}
-    ${emailWorkspaceModalHTML()}
-  `;
+  const notConnected = !connectedBroad ? '<div style="font-size:11.5px;color:#b8860b;background:#fbf3e0;border-bottom:1px solid #f0e6c8;padding:8px 16px;line-height:1.4;">Triage limitato alle email in attesa — collega il workflow "Recent Emails Sync" in n8n per vedere tutta la posta.</div>' : "";
+
+  document.getElementById("view-root").innerHTML =
+  '<div style="margin:-24px calc(50% - 50vw) -80px;width:100vw;height:calc(100vh - var(--header-h) - var(--switcher-h));display:flex;flex-direction:column;font-family:\'Inter\',system-ui,sans-serif;color:#14181f;background:#eef1f5;overflow:hidden;">'
+    // topbar
+    +'<div style="display:flex;align-items:center;gap:16px;padding:10px 18px;background:linear-gradient(90deg,#0a3f93,#0e54c1);color:#fff;flex-shrink:0;">'
+      +'<div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></div><div style="font-weight:700;font-size:15px;letter-spacing:-.2px;">Posta <span style="font-weight:500;opacity:.85;">+ AI</span></div></div>'
+      +'<div style="flex:1;max-width:560px;position:relative;"><svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a93a0" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="paix-search" value="'+escapeAttr(P.query)+'" oninput="window.paixSearch(this.value)" placeholder="Cerca in oggetto, mittente e testo…" style="width:100%;font-family:inherit;font-size:13.5px;border:none;border-radius:8px;padding:9px 12px 9px 34px;background:rgba(255,255,255,.94);color:#14181f;outline:none;"></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;font-family:\'JetBrains Mono\',monospace;font-size:10.5px;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#7ee0a3;"></span>AI attiva</div>'
+      +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">MD</div>'
+    +'</div>'
+    // body
+    +'<div style="flex:1;display:flex;min-height:0;">'
+      // col1
+      +'<div style="width:236px;flex-shrink:0;background:#f7f9fb;border-right:1px solid #dde3ea;display:flex;flex-direction:column;overflow-y:auto;padding:14px 10px;">'
+        +'<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7a6fb0;padding:4px 8px 6px;">Assistente AI</div>'+smartHTML
+        +'<div style="height:1px;background:#e5e9ee;margin:12px 6px;"></div>'+treeRows.join("")
+      +'</div>'
+      // col2
+      +'<div style="width:392px;flex-shrink:0;background:#fff;border-right:1px solid #dde3ea;display:flex;flex-direction:column;min-height:0;">'
+        +'<div style="padding:12px 16px 10px;border-bottom:1px solid #eef1f5;"><div style="font-weight:700;font-size:15px;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(listTitle)+'</div><div style="font-size:11.5px;color:#8a93a0;">'+list.length+' messaggi</div></div>'
+        +notConnected
+        +(hints[P.folder]?'<div style="font-size:11.5px;color:#6b6488;background:#f6f4fd;border-bottom:1px solid #ece8f7;padding:9px 16px;line-height:1.45;">'+hints[P.folder]+'</div>':"")
+        +'<div style="flex:1;overflow-y:auto;">'+listHTML+'</div>'
+      +'</div>'
+      // col3
+      +'<div style="flex:1;min-width:0;background:#fbfcfd;display:flex;flex-direction:column;min-height:0;">'+readHTML+'</div>'
+      // col4
+      +copilotHTML
+    +'</div>'
+  +'</div>';
+
+  if(P._focusSearch){ const si=document.getElementById("paix-search"); if(si){ si.focus(); const v=si.value; si.value=""; si.value=v; } P._focusSearch=false; }
 }
+
+// ---------- Posta+AI: costanti e helper ----------
+const PAIX_NOISE = new Set(["noise","agency_ops"]);
+const PAIX_QUICK = [
+  {label:"Ben notato", it:"quanto sopra è ben notato, grazie.", en:"noted with thanks."},
+  {label:"Procedi pure", it:"per noi va bene, potete procedere.", en:"this is fine on our side, please go ahead."},
+  {label:"Ritorneremo a breve", it:"grazie del messaggio, vi ritorniamo a breve con un riscontro.", en:"thank you, we will get back to you shortly."},
+  {label:"Ricevuto, grazie", it:"ricevuto, grazie. Verifichiamo e vi aggiorniamo.", en:"received, thank you. We will check and update you."},
+  {label:"Gentile promemoria", it:"le scriviamo come gentile promemoria in merito alla richiesta in oggetto: restiamo in attesa di un vostro riscontro.", en:"a gentle reminder regarding the subject request: we remain awaiting your reply."}
+];
+const PAIX_AVA = ["#0e54c1","#117a3a","#b8860b","#7a3fb0","#c8362f","#0a7a8a","#475569"];
+function paixState(){ if(!window._paix) window._paix={folder:"ai_todo",query:"",selId:null,lang:null,tone:"formale",byId:{}}; if(!window._paix.byId) window._paix.byId={}; return window._paix; }
+function paixStripPrefix(s){ return String(s||"").replace(/^((re|r|i|fw|fwd)\s*:\s*)+/i,"").trim(); }
+function paixInitials(n){ const p=String(n||"?").replace(/[^A-Za-z\u00C0-\u017F ]/g,"").trim().split(/\s+/); return ((p[0]||"?")[0]+((p[1]?p[1][0]:(p[0]||"?")[1])||"")).toUpperCase(); }
+function paixDomain(a){ const m=/@([\w.-]+)/.exec(a||""); return m?m[1].toLowerCase():String(a||""); }
+function paixAva(seed){ let h=0; const s=String(seed||""); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return PAIX_AVA[h%PAIX_AVA.length]; }
+function paixLoadMuted(){ try{ const a=JSON.parse(localStorage.getItem("mpd.emailMuted")||"[]"); return new Set(Array.isArray(a)?a:[]); }catch(e){ return new Set(); } }
+function paixSaveMuted(set){ try{ localStorage.setItem("mpd.emailMuted", JSON.stringify([...set])); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch(e){} }
+function paixIsMuted(r){ return paixLoadMuted().has(paixDomain(r.fromEmail)); }
+function paixTimeLabel(r){ const d=r.days; if(d==null) return ""; if(d<=0){ const t=(r.receivedDate||"").slice(11,16); return t||"oggi"; } if(d===1) return "ieri"; return d+" gg"; }
+function paixPendingKind(r){
+  if(!r || PAIX_NOISE.has(r.category)) return null;
+  const msgs = r.messages||[];
+  const last = msgs.length ? msgs[msgs.length-1] : null;
+  const lastFromUs = last && /@sssdam\.com$/i.test(String(last.from||last.fromEmail||"")) && last.direction!=="in";
+  if(last && (last.direction==="out" || lastFromUs)) return "await";
+  if(r.waiting) return "todo";
+  return null;
+}
+function paixDeadlines(r){
+  const out=[];
+  if(r.deadline && r.deadline.iso){
+    const fmt=new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"});
+    out.push({text:"Scadenza rilevata — "+paixStripPrefix(r.subject), dateLabel:fmt, iso:r.deadline.iso});
+  }
+  return out;
+}
+function paixCurrent(){ const P=paixState(); return getEmailThreads().find(r=>r.id===P.selId)||null; }
+function paixVisible(all){
+  const P=paixState(); const f=P.folder;
+  let list;
+  if(f==="ai_todo") list=all.filter(r=>!paixIsMuted(r) && paixPendingKind(r)==="todo");
+  else if(f==="ai_await") list=all.filter(r=>!paixIsMuted(r) && paixPendingKind(r)==="await");
+  else if(f==="ai_deadlines") list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category) && paixDeadlines(r).length);
+  else if(f==="noise") list=all.filter(r=>paixIsMuted(r) || PAIX_NOISE.has(r.category));
+  else if(f==="all") list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category));
+  else if(f.startsWith("cat:")){ const k=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && r.category===k); }
+  else if(f.startsWith("ves:")){ const v=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category) && r.vesselId===v); }
+  else list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category));
+  if(P.query.trim()){
+    const q=P.query.toLowerCase();
+    list=list.filter(r=>((r.subject||"")+" "+(r.preview||"")+" "+(r.fromName||"")+" "+(r.fromEmail||"")).toLowerCase().includes(q));
+  }
+  return list.sort((a,b)=> (String(b.receivedDate||"")).localeCompare(String(a.receivedDate||"")));
+}
+function paixDefaultLang(r){
+  const t=((r.subject||"")+" "+(r.preview||"")).toLowerCase();
+  if(/[àèéìòù]|buongiorno|grazie|cordiali|gentile/.test(t)) return "it";
+  return /@[\w.-]*\.it$/i.test(r.fromEmail||"") ? "it" : "en";
+}
+function paixCache(r){ const P=paixState(); if(!P.byId[r.id]) P.byId[r.id]={lang:paixDefaultLang(r),tone:"formale",draft:null,summary:null,translation:null,showTrans:false,aiQuick:null,aiDl:null}; return P.byId[r.id]; }
+
+// bozza client (istantanea) — adattata alle categorie reali
+function paixGenDraft(r,lang,tone){
+  const first=String(r.fromName||"").split(/[\s\/,<]/)[0]||(lang==="it"?"Salve":"Hello");
+  const doc=r.link?" ("+r.link.docLabel+" "+r.link.docNumber+")":"";
+  const it=lang==="it";
+  const greet=it?(tone==="informale"?"Ciao "+first+",":"Buongiorno "+first+","):(tone==="informale"?"Hi "+first+",":"Dear "+first+",");
+  let core;
+  switch(r.category){
+    case "rfq_chase": core=it?"grazie per l'offerta"+doc+". La confrontiamo con lo storico prezzi e vi confermiamo l'ordine a breve.":"thank you for your quotation"+doc+". We are reviewing it against our records and will confirm the order shortly."; break;
+    case "invoice_reminder": core=it?"abbiamo ricevuto la fattura"+doc+". Verifichiamo la corrispondenza con il PO e procediamo con il pagamento.":"we have received the invoice"+doc+". We are matching it against the PO and will proceed with payment."; break;
+    case "po": core=it?"confermiamo l'ordine"+doc+". Restiamo a disposizione per i dettagli di consegna.":"we confirm the order"+doc+". We remain available for the delivery details."; break;
+    case "logistics": core=it?"confermiamo l'ETA come da vostra indicazione. Procedete pure con la consegna"+doc+".":"we confirm the ETA as advised. Please proceed with the delivery"+doc+"."; break;
+    case "system": core=it?"confermiamo la disponibilità a bordo per l'intervento. Restiamo in attesa dei dettagli di collegamento.":"we confirm availability on board for the intervention. Awaiting the connection details."; break;
+    case "certificate": core=it?"grazie per la segnalazione sul certificato/documento. Verifichiamo la scadenza e pianifichiamo il seguito.":"thank you for the note on the certificate/document. We will check the expiry and plan the follow-up."; break;
+    default: core=it?"grazie per il vostro messaggio, vi rispondiamo a breve.":"thank you for your message, we will revert shortly.";
+  }
+  if(tone==="persuasivo") core=it?core+" Vista l'urgenza, un riscontro rapido ci sarebbe molto utile.":core+" Given the urgency, a prompt reply would be much appreciated.";
+  const sign=it?"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA":"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA";
+  return greet+"\n\n"+core.charAt(0).toUpperCase()+core.slice(1)+"\n\n"+sign;
+}
+function paixDraftFor(r){ const c=paixCache(r); if(c.draft!=null) return c.draft; return paixGenDraft(r,c.lang,c.tone); }
+function paixSummaryClient(r){
+  const out=[]; out.push(escapeHTML(r.fromName)+' scrive per "'+escapeHTML(paixStripPrefix(r.subject))+'".');
+  if(r.vesselId) out.push("Riguarda "+escapeHTML(vNameSafe(r.vesselId))+(r.link?", collegato a "+escapeHTML(r.link.docLabel+" "+r.link.docNumber):"")+".");
+  if((r.messages||[]).length>1) out.push("Scambio di "+r.messages.length+" messaggi; valuta se l'ultimo chiede un tuo riscontro.");
+  out.push(escapeHTML(emailActionText(r)));
+  return out.slice(0,4);
+}
+function paixActionFor(r){
+  const t=emailActionText(r);
+  const titleMap={ rfq_chase:"Valuta l'offerta e chiudi l'RFQ", invoice_reminder:"Verifica e chiudi il pagamento", po:"Conferma l'ordine", logistics:"Conferma ETA / consegna", system:"Coordina l'intervento IT", certificate:"Verifica scadenza documento", generic: r.waiting?"Rispondi al mittente":"Nessuna azione urgente" };
+  return [titleMap[r.category]||titleMap.generic, t];
+}
+
+// ---------- Colonne 3 e 4 (HTML) ----------
+function paixReadingHTML(sel){
+  const meta=EMAIL_CATS[sel.category]||EMAIL_CATS.generic;
+  const tags='<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:3px 9px;border-radius:6px;">'+escapeHTML(meta.label)+'</span>'
+    +(sel.vesselId?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#0a3f93;background:#eaf1fd;padding:3px 9px;border-radius:6px;">'+escapeHTML(vNameSafe(sel.vesselId))+'</span>':"")
+    +(sel.link?'<button onclick="window.handleInternalLink(\''+encodeURIComponent(JSON.stringify({view:"vessel",vesselId:sel.link.vesselId,tab:"procurement",itemId:sel.link.itemId}))+'\')" style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#475569;background:#eef1f5;border:none;padding:3px 9px;border-radius:6px;cursor:pointer;">↳ '+escapeHTML(sel.link.docLabel+" "+sel.link.docNumber)+'</button>':"")
+    +((sel.messages||[]).length>1?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#6b7280;background:#f1f3f6;padding:3px 9px;border-radius:6px;">'+sel.messages.length+' messaggi</span>':"");
+  const msgs=(sel.messages&&sel.messages.length?sel.messages:[{from:sel.fromEmail,fromName:sel.fromName,date:sel.receivedDate,preview:sel.preview}]);
+  const msgHTML=msgs.map(m=>{
+    const av=paixAva(m.from||m.fromEmail||m.fromName); const ini=paixInitials(m.fromName||m.from);
+    return '<div style="background:#fff;border:1px solid #e5e9ee;border-radius:12px;padding:16px 18px;margin-bottom:12px;">'
+      +'<div style="display:flex;align-items:center;gap:11px;margin-bottom:12px;"><div style="width:38px;height:38px;border-radius:50%;background:'+av+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">'+escapeHTML(ini)+'</div><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13.5px;">'+escapeHTML(m.fromName||m.from||"—")+'</div><div style="font-size:11.5px;color:#8a93a0;">'+escapeHTML(m.from||m.fromEmail||"")+'</div></div><div style="font-size:11px;color:#9aa3b0;font-family:\'JetBrains Mono\',monospace;">'+escapeHTML(String(m.date||"").slice(0,16))+'</div></div>'
+      +'<div style="font-size:13.5px;line-height:1.6;color:#2b3240;white-space:pre-wrap;">'+escapeHTML(m.preview||m.body||"(nessuna anteprima testo disponibile in questo feed)")+'</div>'
+      +(sel.hasAttachments?'<div style="display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #eef1f5;"><div style="display:flex;align-items:center;gap:8px;background:#f7f9fb;border:1px solid #e5e9ee;border-radius:8px;padding:7px 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0e54c1" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span style="font-size:12px;font-weight:500;color:#2b3240;">Allegato</span></div></div>':"")
+      +'</div>';
+  }).join("");
+  const openBtn = sel.webLink
+    ? '<a href="'+escapeAttr(sel.webLink)+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#0e54c1;background:#eaf1fd;border:1px solid #d5e3fb;border-radius:8px;padding:7px 12px;cursor:pointer;text-decoration:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Apri in Outlook</a>'
+    : '<button onclick="window.paixOutlook()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#0e54c1;background:#eaf1fd;border:1px solid #d5e3fb;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Rispondi in Outlook</button>';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid #eef1f5;background:#fff;">'
+    +'<button onclick="window.paixNewTodo()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#b8860b;background:#fbf3e0;border:1px solid #f0e6c8;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>To-do</button>'
+    +openBtn+'<div style="flex:1;"></div>'
+    +'<button onclick="window.paixMute()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#7a8290;background:#f1f3f6;border:1px solid #e5e9ee;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9a3 3 0 0 1 6 0"/><path d="M18 8a6 6 0 0 0-9.3-5"/><path d="M5.3 5.3A6 6 0 0 0 6 8c0 3-1 5-3 6h13"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/><path d="m2 2 20 20"/></svg>Non valutare più</button>'
+  +'</div>'
+  +'<div style="flex:1;overflow-y:auto;padding:22px 30px 40px;"><h1 style="font-size:20px;font-weight:700;letter-spacing:-.3px;margin:0 0 6px;line-height:1.3;">'+escapeHTML(paixStripPrefix(sel.subject))+'</h1><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">'+tags+'</div>'+msgHTML+'</div>';
+}
+
+function paixCopilotHTML(sel){
+  const c=paixCache(sel);
+  const [aTitle,aWhy]=paixActionFor(sel);
+  const pk=paixPendingKind(sel);
+  const pending = pk==="todo" ? '<div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:600;color:#c8362f;background:#fdeeed;padding:5px 10px;border-radius:7px;">↩ Aspettano un tuo riscontro</div>'
+    : pk==="await" ? '<div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:600;color:#b8860b;background:#fbf3e0;padding:5px 10px;border-radius:7px;">⏳ In attesa del fornitore — valuta se sollecitare</div>' : "";
+  const summary = c.summary ? c.summary.map(s=>'<div style="display:flex;gap:8px;margin-bottom:7px;"><span style="color:#6a4bff;flex-shrink:0;margin-top:1px;">•</span><span style="font-size:12.5px;color:#3a3452;line-height:1.5;">'+s+'</span></div>').join("")
+    : paixSummaryClient(sel).map(s=>'<div style="display:flex;gap:8px;margin-bottom:7px;"><span style="color:#6a4bff;flex-shrink:0;margin-top:1px;">•</span><span style="font-size:12.5px;color:#3a3452;line-height:1.5;">'+s+'</span></div>').join("");
+  const dls=paixDeadlines(sel);
+  const dlBlock = dls.length ? '<div style="background:#fff;border:1px solid #f0e6c8;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#b8860b;margin-bottom:9px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Scadenze rilevate</div>'
+    +dls.map(d=>'<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid #f4eede;"><div style="flex:1;"><div style="font-size:12.5px;font-weight:600;color:#2b3240;">'+escapeHTML(d.text)+'</div><div style="font-size:11px;color:#b8860b;font-family:\'JetBrains Mono\',monospace;">'+escapeHTML(d.dateLabel)+'</div></div><button onclick="window.paixDeadlineTodo(\''+escapeAttr(d.iso)+'\')" style="font-family:inherit;font-size:11px;font-weight:600;color:#fff;background:#b8860b;border:none;border-radius:7px;padding:6px 10px;cursor:pointer;white-space:nowrap;">+ To-do</button></div>').join("")
+    +'<button onclick="window.paixDetectAI()" style="width:100%;margin-top:8px;font-family:inherit;font-size:11px;font-weight:600;color:#b8860b;background:#fbf3e0;border:1px solid #f0e6c8;border-radius:7px;padding:6px;cursor:pointer;">✨ Cerca altre scadenze (anche implicite)</button></div>'
+    : '<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;margin-bottom:8px;">Scadenze</div><button onclick="window.paixDetectAI()" style="width:100%;font-family:inherit;font-size:12px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:none;border-radius:8px;padding:9px;cursor:pointer;">✨ Cerca scadenze nel testo</button>'+(c.aiDl==="none"?'<div style="font-size:11.5px;color:#8a93a0;margin-top:8px;">Nessuna scadenza rilevata.</div>':"")+'</div>';
+  const transBlock='<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Traduzione</div><button onclick="window.paixTranslate()" style="font-family:inherit;font-size:11px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;">'+(c.showTrans?"Nascondi":"Traduci in italiano")+'</button></div>'+(c.showTrans&&c.translation?'<div style="font-size:12.5px;color:#3a3452;line-height:1.55;margin-top:8px;white-space:pre-wrap;">'+escapeHTML(c.translation)+'</div>':"")+(c.showTrans&&!c.translation?'<div style="font-size:12px;color:#8a93a0;margin-top:8px;">Traduco…</div>':"")+'</div>';
+  const langBtns='<div style="display:flex;gap:4px;"><button onclick="window.paixLang(\'it\')" style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:'+(c.lang==="it"?"#fff":"#6b6488")+';background:'+(c.lang==="it"?"#4b3fb0":"#f0eefb")+';border:none;border-radius:6px;padding:3px 7px;cursor:pointer;">IT</button><button onclick="window.paixLang(\'en\')" style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:'+(c.lang==="en"?"#fff":"#6b6488")+';background:'+(c.lang==="en"?"#4b3fb0":"#f0eefb")+';border:none;border-radius:6px;padding:3px 7px;cursor:pointer;">EN</button></div>';
+  const quick=PAIX_QUICK.map((q,i)=>'<button onclick="window.paixQuick('+i+')" style="font-family:inherit;font-size:11.5px;font-weight:500;color:#3a3452;background:#f4f2fc;border:1px solid #e4e1f2;border-radius:20px;padding:6px 12px;cursor:pointer;">'+escapeHTML(q.label)+'</button>').join("");
+  const tones=[["formale","Formale"],["informale","Informale"],["persuasivo","Persuasivo"]].map(([k,l])=>'<button onclick="window.paixTone(\''+k+'\')" style="font-family:inherit;font-size:10.5px;font-weight:600;color:'+(c.tone===k?"#fff":"#6b6488")+';background:'+(c.tone===k?"#6a4bff":"#f4f2fc")+';border:1px solid '+(c.tone===k?"#6a4bff":"#e4e1f2")+';border-radius:20px;padding:4px 10px;cursor:pointer;">'+l+'</button>').join("");
+  const draft=paixDraftFor(sel);
+  return '<div style="width:356px;flex-shrink:0;background:#fbfaff;border-left:1px solid #e4e1f2;display:flex;flex-direction:column;min-height:0;">'
+    +'<div style="display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid #e9e6f5;"><div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#6a4bff,#4b3fb0);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></div><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;color:#3a3167;">Copilot</div><div style="font-size:10.5px;color:#8a83a8;">Leggi, decidi e chiudi una volta sola</div></div></div>'
+    +'<div style="flex:1;overflow-y:auto;padding:16px 16px 24px;">'
+      +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;margin-bottom:6px;">Cosa fare</div><div style="font-size:14px;font-weight:700;color:#2b2452;line-height:1.35;margin-bottom:4px;">'+escapeHTML(aTitle)+'</div><div style="font-size:12px;color:#6b6488;line-height:1.5;">'+escapeHTML(aWhy)+'</div>'+pending+'</div>'
+      +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Riassunto</div><button onclick="window.paixSummarize()" style="font-family:inherit;font-size:11px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:none;border-radius:7px;padding:4px 9px;cursor:pointer;">✨ AI</button></div>'+summary+'</div>'
+      +dlBlock+transBlock
+      +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Risposte rapide</div>'+langBtns+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+quick+'</div></div>'
+      +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Bozza risposta</div>'+langBtns+'</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px;">'+tones+'<button onclick="window.paixDraftAI()" style="font-family:inherit;font-size:10.5px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:1px solid #e4e1f2;border-radius:20px;padding:4px 10px;cursor:pointer;">✨ AI</button></div><textarea id="paix-draft" oninput="window.paixDraftEdit(this.value)" style="width:100%;min-height:132px;font-family:inherit;font-size:12.5px;line-height:1.5;color:#2b3240;border:1px solid #e4e1f2;border-radius:9px;padding:11px;resize:vertical;outline:none;background:#fbfaff;">'+escapeHTML(draft)+'</textarea><div style="display:flex;gap:6px;margin-top:9px;"><button onclick="window.paixOutlook()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#fff;background:#0e54c1;border:none;border-radius:8px;padding:9px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Rispondi in Outlook</button><button onclick="window.paixCopy()" style="font-family:inherit;font-size:12px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:none;border-radius:8px;padding:9px 13px;cursor:pointer;">Copia</button></div></div>'
+      +'<button onclick="window.paixCloseAll()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#117a3a,#0d6330);border:none;border-radius:10px;padding:12px;cursor:pointer;box-shadow:0 2px 8px rgba(17,122,58,.28);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Chiudi tutto</button>'
+      +'<div style="font-size:10.5px;color:#8a83a8;text-align:center;line-height:1.5;margin-top:8px;padding:0 8px;">Segna gestita l\'email, la voce in pipeline e la to-do collegata in un colpo solo.</div>'
+    +'</div></div>';
+}
+
+// ---------- Interazioni ----------
+window.paixSetFolder = function(k){ const P=paixState(); P.folder=k; P.selId=null; renderEmailPage(); };
+window.paixSelect = function(id){ const P=paixState(); P.selId=id; renderEmailPage(); };
+window.paixSearch = function(v){ const P=paixState(); P.query=v; P._focusSearch=true; renderEmailPage(); };
+window.paixLang = function(l){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.lang=l; c.draft=null; renderEmailPage(); };
+window.paixTone = function(t){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.tone=t; c.draft=null; renderEmailPage(); };
+window.paixQuick = function(i){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); const q=PAIX_QUICK[i]; const first=String(r.fromName||"").split(/[\s\/,<]/)[0]||(c.lang==="it"?"Salve":"Hello"); const it=c.lang==="it"; const core=it?q.it:q.en; const greet=it?"Buongiorno "+first+",":"Dear "+first+","; const sign=it?"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA":"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA"; c.draft=greet+"\n\n"+core.charAt(0).toUpperCase()+core.slice(1)+"\n\n"+sign; renderEmailPage(); };
+window.paixDraftEdit = function(v){ const r=paixCurrent(); if(!r)return; paixCache(r).draft=v; };
+window.paixCopy = function(){ const ta=document.getElementById("paix-draft"); const t=ta?ta.value:""; if(t&&navigator.clipboard){ navigator.clipboard.writeText(t); showToast("Bozza copiata"); } };
+window.paixOutlook = function(){ const r=paixCurrent(); if(!r)return; const ta=document.getElementById("paix-draft"); const body=ta?ta.value:paixDraftFor(r); const subj=/^re:/i.test(r.subject)?r.subject:"RE: "+r.subject; if(typeof openComposeMail==="function"&&typeof buildComposeHref==="function"){ openComposeMail(buildComposeHref(subj, body, r.fromEmail)); } showToast("Bozza aperta in Outlook"); };
+window.paixNewTodo = function(){ const r=paixCurrent(); if(!r)return; if(typeof window.replyToTodo==="function") window.replyToTodo(r.id); };
+window.paixDeadlineTodo = function(iso){ const r=paixCurrent(); if(!r)return; addTodo({ action:"Rispondere a "+r.fromName+" — "+paixStripPrefix(r.subject), vessel:r.vesselId||null, category:"Email", reference:r.subject||"", dueDate:iso, note:"Scadenza rilevata nell'email.", outlookWebUrl:r.webLink||"", outlookLinkedName:r.subject||"" }); showToast("✓ To-do creata"); };
+window.paixMute = function(){ const r=paixCurrent(); if(!r)return; const set=paixLoadMuted(); set.add(paixDomain(r.fromEmail)); paixSaveMuted(set); const P=paixState(); const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null; showToast("Mittente "+paixDomain(r.fromEmail)+" silenziato → Rumore"); renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher(); };
+window.paixSummarize = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.summary=["Riassumo…"]; renderEmailPage(); const convo=(r.messages||[]).map(m=>"["+(m.date||"")+"] "+(m.fromName||m.from||"?")+": "+(m.preview||"").slice(0,300)).join("\n")||(r.subject+"\n"+(r.preview||"")); const prompt='Riassumi in italiano in massimo 4 righe puntate (ogni riga inizia con "- ") questo scambio email di un purchasing manager marittimo. Solo decisioni/azioni aperte, niente saluti, nessun markdown oltre il trattino.\n\nOggetto: '+r.subject+'\n\nScambio:\n'+convo; try{ const txt=await aiComplete(prompt); c.summary=String(txt||"").split("\n").map(s=>s.replace(/^[-•]\s*/,"").trim()).filter(Boolean).map(escapeHTML); if(!c.summary.length) c.summary=paixSummaryClient(r); }catch(e){ c.summary=paixSummaryClient(r); showToast("Riassunto AI non disponibile"); } renderEmailPage(); };
+window.paixTranslate = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); if(c.showTrans){ c.showTrans=false; renderEmailPage(); return; } c.showTrans=true; if(c.translation){ renderEmailPage(); return; } renderEmailPage(); const orig=(r.messages&&r.messages.length?r.messages.map(m=>m.preview||"").join("\n\n"):(r.preview||r.subject)); const prompt="Traduci in italiano SOLO il testo seguente, mantenendo senso e tono. Nessuna spiegazione, nessun markdown:\n\n"+orig; try{ const txt=await aiComplete(prompt); c.translation=String(txt||"").trim(); }catch(e){ c.translation="Traduzione non disponibile."; showToast("Traduzione AI non disponibile"); } renderEmailPage(); };
+window.paixDraftAI = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.draft="Genero la bozza…"; renderEmailPage(); const prompt="Sei l'assistente email di un purchasing manager marittimo. Scrivi SOLO il corpo di una bozza di risposta professionale in "+(c.lang==="it"?"italiano":"inglese")+", tono "+c.tone+", pronta da inviare, senza oggetto e senza markdown.\nEmail da: "+r.fromName+" <"+r.fromEmail+">\nOggetto: "+r.subject+"\nEstratto: "+(r.preview||"").slice(0,400)+"\nContesto: "+(typeof wsContextBits==="function"?wsContextBits(r):"")+'\nFirma con "Michele Del Vecchio".'; try{ const txt=await aiComplete(prompt); c.draft=String(txt||"").trim(); }catch(e){ c.draft=paixGenDraft(r,c.lang,c.tone); showToast("Bozza AI non disponibile"); } renderEmailPage(); };
+window.paixDetectAI = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.aiDl="loading"; renderEmailPage(); const today=(typeof todayISO==="function")?todayISO():new Date().toISOString().slice(0,10); const convo=(r.messages&&r.messages.length)?r.messages.map(m=>"["+(m.date||"")+"] "+(m.fromName||m.from||"?")+": "+(m.preview||"").slice(0,300)).join("\n"):(r.subject+"\n"+(r.preview||"")); const prompt='Oggi è '+today+'. Individua scadenze/termini d\'azione (date esplicite o relative come "tra una settimana", "entro venerdì") in questo scambio. Rispondi SOLO con un array JSON tipo [{"date":"2026-07-20","label":"Confermare l\'ordine"}]. Se nessuna, rispondi [].\n\nOggetto: '+r.subject+'\nScambio:\n'+convo; try{ const txt=await aiComplete(prompt); const s=String(txt||""); const arr=JSON.parse(s.slice(s.indexOf("["),s.lastIndexOf("]")+1)).filter(x=>x&&x.date&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)); if(!arr.length){ c.aiDl="none"; renderEmailPage(); showToast("Nessuna scadenza rilevata"); return; } arr.forEach(d=>{ addTodo({ action:d.label||("Rispondere a "+r.fromName), vessel:r.vesselId||null, category:"Email", reference:r.subject||"", dueDate:d.date, note:"Scadenza rilevata dall'AI." }); }); c.aiDl="done"; renderEmailPage(); showToast("✓ "+arr.length+" to-do create dalle scadenze rilevate"); }catch(e){ c.aiDl=null; renderEmailPage(); showToast("Rilevamento AI non disponibile"); } };
+window.paixCloseAll = function(){
+  const r=paixCurrent(); if(!r)return;
+  const pieces=["email"];
+  if(typeof dismissReply==="function") dismissReply(r.id);
+  if(r.link && typeof setItemOverride==="function"){ setItemOverride(r.link.itemId,{emailHandled:true, emailHandledAt:new Date().toISOString()}); pieces.push("pipeline "+r.link.docLabel+" "+r.link.docNumber); }
+  let nTodo=0; const subjKey=paixStripPrefix(r.subject).toLowerCase().slice(0,20);
+  (state.todos||[]).forEach(t=>{ if(t.done) return; const ref=((t.reference||"")+" "+(t.outlookLinkedName||"")).toLowerCase(); if(subjKey && ref.includes(subjKey)){ updateTodo(t.id,{done:true}); nTodo++; } });
+  if(nTodo) pieces.push(nTodo+(nTodo===1?" to-do":" to-do"));
+  const P=paixState(); const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null;
+  showToast("Chiuso insieme: "+pieces.join(" · "));
+  renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
+};
 window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage(); };
 
 // Markup della modale Email Workspace, condiviso da desktop (dentro view-root) e mobile
@@ -21769,7 +21988,6 @@ function showToast(msg) {
 document.addEventListener("DOMContentLoaded", () => {
   // Header buttons
   document.getElementById("btn-refresh").addEventListener("click", () => { loadData(); showToast("Aggiornamento…"); });
-  document.getElementById("btn-eod").addEventListener("click", openEOD);
   document.getElementById("btn-palette").addEventListener("click", openPalette);
   document.getElementById("btn-settings").addEventListener("click", () => {
     document.getElementById("modal-settings").classList.add("open");
@@ -21777,7 +21995,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderStateSyncRow();
     renderGhSyncRow();
   });
-  document.getElementById("btn-todos").addEventListener("click", () => openTodoModal(null));
 
   // Click sull'indicatore Drive → apri Impostazioni
   document.getElementById("drive-sync-indicator").addEventListener("click", () => {
