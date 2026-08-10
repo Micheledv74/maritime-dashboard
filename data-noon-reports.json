@@ -2218,11 +2218,11 @@
         "type": "sea",
         "lat": "04-57.1N",
         "lon": "092-53.5E",
-        "positionText": null,
+        "positionText": "04-57.1N / 092-53.5E",
         "from": "VITORIA",
         "to": "SINGAPORE",
         "nextPort": "SINGAPORE",
-        "etaText": "13 AUG 2026 0400LT WP AGW",
+        "etaText": "ETA next port: 13 AUG 2026 0400LT WP AGW",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-13T04:00",
@@ -2230,15 +2230,30 @@
         "etdISO": null,
         "speed": "11.29",
         "course": null,
-        "milesToGo": 774,
+        "milesToGo": "774",
         "bunkers": {
-          "lsfo": 182.98,
-          "lsmgo": 80.43,
-          "fw": 425
+          "lsfo": "182.98",
+          "lsmgo": "80.43",
+          "fw": "425"
         },
         "status": "in navigazione",
         "remarks": "NIL",
-        "vesselId": "medliguria"
+        "vesselId": "medliguria",
+        "isNoonReport": true,
+        "voyageNo": "11",
+        "consumption": {
+          "lsfo": "19.36",
+          "lsmgo": "0",
+          "fw": "8"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "13755",
+          "unit": "L"
+        },
+        "wind": "SSW/11 KTS",
+        "sea": "SSW/1.5",
+        "current": "SW/0.7 KTS"
       }
     ],
     "peppino": [
@@ -3667,5 +3682,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-10T10:01:05.461Z"
+  "syncedAt": "2026-08-10T10:21:49.193Z"
 }
