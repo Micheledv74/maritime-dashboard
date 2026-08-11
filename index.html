@@ -11566,6 +11566,7 @@ function dismissReply(id){
 const EMAIL_CATS = {
   invoice_reminder: { label: "Fattura in sollecito", color: "#8a1414", bg: "#fbe6e6" },
   rfq_chase:        { label: "Sollecito RFQ",         color: "#9a4a00", bg: "#fbf1dd" },
+  vendor_intro:     { label: "Offerta fornitore",     color: "#6a4bff", bg: "#efeafb" },
   certificate:      { label: "Certificato",           color: "#8f1219", bg: "#fbeae9" },
   po:               { label: "Ordine / PO",           color: "#0a3f93", bg: "#e7f0fb" },
   logistics:        { label: "Logistica / Consegna",  color: "#1a2c5e", bg: "#e9ecf4" },
@@ -11620,17 +11621,19 @@ function detectEmailDeadline(subject, preview) {
 // Frase euristica "cosa richiede" — sempre visibile, senza bisogno di aprire l'email
 function emailActionText(r){
   const days = r.days;
+  const who = (typeof paixCounterpartName==="function") ? paixCounterpartName(r) : r.fromName;
   const waitSuffix = (r.waiting && days>=3) ? " — in attesa da "+days+"g" : "";
   switch(r.category){
     case "invoice_reminder": return "Verificare e chiudere il pagamento" + (r.link ? " — " + r.link.docLabel + " " + r.link.docNumber : "") + (r.waiting && days>=5 ? " (sollecito ripetuto, rischio relazione)" : ".");
-    case "rfq_chase": return r.link ? `Valutare/sollecitare l'offerta per ${r.link.docLabel} ${r.link.docNumber}${waitSuffix}.` : `Rispondere o sollecitare l'offerta richiesta a ${r.fromName}${waitSuffix}.`;
+    case "rfq_chase": return r.link ? `Valutare/sollecitare l'offerta per ${r.link.docLabel} ${r.link.docNumber}${waitSuffix}.` : `Rispondere o sollecitare l'offerta richiesta a ${who}${waitSuffix}.`;
+    case "vendor_intro": return "Fornitore che si propone da sé — non richiede una risposta. Archivialo per quando una nave passerà da quella zona.";
     case "certificate": return "Verificare la scadenza/documento citato e pianificare il seguito.";
     case "po": return r.link ? `Confermare o aggiornare l'ordine ${r.link.docLabel} ${r.link.docNumber}.` : "Confermare o gestire l'ordine di acquisto.";
     case "logistics": return "Aggiornare stato consegna/spedizione e confermare ricezione.";
     case "system": return "Verificare il problema IT/Infoship segnalato.";
     case "agency_ops": return "Solo informativa/operativa — nessuna azione tua richiesta.";
     case "noise": return "Nessuna azione necessaria.";
-    default: return r.waiting ? `Leggere e rispondere a ${r.fromName}${waitSuffix}.` : `Nessuna risposta in sospeso da ${r.fromName}.`;
+    default: return r.waiting ? `Leggere e rispondere a ${who}${waitSuffix}.` : `Nessuna risposta in sospeso da ${who}.`;
   }
 }
 function classifyPendingReply(m, known){
@@ -11645,6 +11648,10 @@ function classifyPendingReply(m, known){
   if(/REMINDER|3RD REMINDER|2ND REMINDER|KINDLY PAY|AWAITING PAYMENT|URGENT.*INVOICE|SALES INVOICE/.test(u)) return "invoice_reminder";
   if(/CERTIFIC|SURVEY|CLASS\b|P&I|DRY ?DOCK/.test(u)) return "certificate";
   if(/\bPO\b|HQPO|PURCHASE ORDER|ORDER CONFIRM/.test(u)) return "po";
+  // v0.68 — Fornitore che si PROPONE spontaneamente (cold outreach shipchandler): va riconosciuto
+  // PRIMA di rfq_chase, perché contiene parole come OFFER/QUOTATION/PRICE che altrimenti lo farebbero
+  // sembrare un sollecito RFQ. Segnali tipici di autocandidatura non richiesta.
+  if(/SHIP\s?CHANDLER|SHIPCHANDLER|SHIP\s?SUPPLIER|WE (CAN|COULD|ARE ABLE TO|WOULD LIKE TO|WISH TO|HOPE TO) SUPPLY|SUPPLY YOUR (GOOD )?VESSEL|TRADING ALL|SPECIAL DISCOUNT|COMPET\w+ PRICE|FLEXIBLE CREDIT|POLITE INQUIRY|INTRODUC(E|ING) (OUR|MY|THE)|OUR COMPANY (IS|WOULD|HAS)|AS YOUR (NEW )?SUPPLIER|APPOINT US|BECOME YOUR|GENERAL SUPPL|WE ARE (A |AN |ONE OF )?[A-Z0-9 ,.'&-]{0,40}(SUPPLIER|CHANDLER|TRADER|MANUFACTURER)/.test(u)) return "vendor_intro";
   if(/HQRQ|\bRFQ\b|\bPR\d|QUOTATION|QUOTE|RICHIESTA PREVENTIVO|OFFER/.test(u)) return "rfq_chase";
   if(/PRE-?ALERT|DELIVERY|SPEDIZ|SHPR|STOCK|GIACENZ/.test(u)) return "logistics";
   if(/INFOSHIP|MALFUNZIONAMENTO|LICENSE KEY|CONNECTIVITY/.test(u)) return "system";
@@ -11812,6 +11819,7 @@ function renderEmailPage(){
   const catCounts = {}; activeAll.forEach(r=>{ catCounts[r.category]=(catCounts[r.category]||0)+1; });
   const vesselCounts = {}; activeAll.forEach(r=>{ if(r.vesselId) vesselCounts[r.vesselId]=(vesselCounts[r.vesselId]||0)+1; });
   const noiseN = all.filter(r=>!paixIsMuted(r) && PAIX_NOISE.has(r.category)).length + all.filter(r=>paixIsMuted(r)).length;
+  const archN = all.filter(r=>paixIsArchived(r)).length;
 
   const treeRows = [];
   const folderBtn = (key,label,count,depth,strong)=>{
@@ -11835,10 +11843,11 @@ function renderEmailPage(){
     (VESSELS||[]).forEach(v=>{ if(vesselCounts[v.vesselId]) treeRows.push(folderBtn("ves:"+v.vesselId, escapeHTML(v.displayName), vesselCounts[v.vesselId], 1)); });
   }
   treeRows.push('<div style="height:1px;background:#e5e9ee;margin:10px 6px;"></div>');
+  treeRows.push(folderBtn("arch","📌 Offerte archiviate",archN,1));
   treeRows.push(folderBtn("noise","Rumore / filtrate",noiseN,1));
 
   // -- COL 2: lista messaggi --
-  const titles = {ai_todo:"Tocca a te",ai_await:"Da sollecitare",ai_deadlines:"Scadenze",all:"Tutta la posta",noise:"Rumore / filtrate"};
+  const titles = {ai_todo:"Tocca a te",ai_await:"Da sollecitare",ai_deadlines:"Scadenze",all:"Tutta la posta",noise:"Rumore / filtrate",arch:"Offerte fornitori archiviate"};
   let listTitle = titles[P.folder] || P.folder;
   if(P.folder.startsWith("cat:")){ const m=EMAIL_CATS[P.folder.slice(4)]||EMAIL_CATS.generic; listTitle=m.label; }
   if(P.folder.startsWith("ves:")){ listTitle=vNameSafe(P.folder.slice(4)); }
@@ -11846,7 +11855,8 @@ function renderEmailPage(){
   const hints = {
     ai_todo:"Thread dove l'ultima mossa è dell'altra parte: aspettano un tuo riscontro.",
     ai_await:"Thread dove hai già risposto o inviato tu: la palla è al fornitore — valuta se sollecitare.",
-    ai_deadlines:"Email con una scadenza rilevata. Trasformale in to-do con un click."
+    ai_deadlines:"Email con una scadenza rilevata. Trasformale in to-do con un click.",
+    arch:"Fornitori che si sono proposti da soli, messi da parte per zona. Riaprili quando una nave passa da quell'area."
   };
   const listHTML = list.length ? list.map(r=>{
     const isSel = sel && sel.id===r.id;
@@ -11859,13 +11869,15 @@ function renderEmailPage(){
     const att = r.hasAttachments ? '<span style="display:inline-flex;align-items:center;gap:3px;font-size:9.5px;color:#8a93a0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></span>' : "";
     const wl = waitLabel ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+waitColor+';background:'+waitBg+';padding:2px 7px;border-radius:5px;">'+waitLabel+'</span>' : "";
     const dl = r._dls.length ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#b8860b;background:#fbf3e0;padding:2px 7px;border-radius:5px;">📅 '+escapeHTML(r._dls[0].dateLabel)+'</span>' : "";
+    const am = paixArchMeta(r);
+    const archTag = am ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#5b3fb0;background:#efeafb;padding:2px 7px;border-radius:5px;">📌 '+escapeHTML(am.area||am.port||"archiviata")+'</span>' : "";
     return '<div onclick="window.paixSelect(\''+escapeAttr(r.id)+'\')" style="display:flex;gap:11px;padding:11px 15px;border-bottom:1px solid #f1f3f6;cursor:pointer;background:'+(isSel?"#eef4ff":"#fff")+';border-left:3px solid '+(isSel?"#0e54c1":"transparent")+';">'
       +'<div style="width:34px;height:34px;border-radius:50%;background:'+r._ava+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+escapeHTML(r._initials)+'</div>'
       +'<div style="flex:1;min-width:0;">'
         +'<div style="display:flex;align-items:baseline;gap:8px;"><span style="font-weight:'+(isSel?700:600)+';font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(r.fromName)+'</span><span style="font-size:10.5px;color:#9aa3b0;flex-shrink:0;font-family:\'JetBrains Mono\',monospace;">'+paixTimeLabel(r)+'</span></div>'
         +'<div style="font-weight:'+(isSel?600:500)+';font-size:12.5px;color:#2b3240;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:1px 0 2px;">'+escapeHTML(r._subjClean)+'</div>'
         +'<div style="font-size:11.5px;color:#8a93a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML((r.preview||"").replace(/\s+/g," ").slice(0,90))+'</div>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:2px 7px;border-radius:5px;">'+escapeHTML(meta.label)+'</span>'+vtag+doc+att+wl+dl+'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:2px 7px;border-radius:5px;">'+escapeHTML(meta.label)+'</span>'+vtag+doc+att+wl+dl+archTag+'</div>'
       +'</div></div>';
   }).join("") : '<div style="padding:60px 24px;text-align:center;color:#9aa3b0;font-size:13px;">'+(P.folder==="noise"?"Nessun messaggio filtrato.":"Nessuna email in questa vista.")+'</div>';
 
@@ -11931,9 +11943,60 @@ function paixAva(seed){ let h=0; const s=String(seed||""); for(let i=0;i<s.lengt
 function paixLoadMuted(){ try{ const a=JSON.parse(localStorage.getItem("mpd.emailMuted")||"[]"); return new Set(Array.isArray(a)?a:[]); }catch(e){ return new Set(); } }
 function paixSaveMuted(set){ try{ localStorage.setItem("mpd.emailMuted", JSON.stringify([...set])); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch(e){} }
 function paixIsMuted(r){ return paixLoadMuted().has(paixDomain(r.fromEmail)); }
+// v0.68 — Indirizzi che sono ME (Michele): non vanno mai proposti come destinatario di risposta.
+const OWN_ADDRS = new Set(["purchasing@sssdam.com","mdelvecchio@sssdam.com"]);
+function isOwnAddr(e){ return OWN_ADDRS.has(String(e||"").toLowerCase().trim()); }
+// Destinatario corretto per una risposta: la controparte esterna del thread, mai un mio indirizzo.
+function paixReplyTo(r){
+  const cand=[];
+  const push=(e)=>{ e=String(e||"").toLowerCase().trim(); if(e && e.includes("@") && !isOwnAddr(e) && !cand.includes(e)) cand.push(e); };
+  const msgs=(r&&r.messages)||[];
+  for(let i=msgs.length-1;i>=0;i--) push(msgs[i].from||msgs[i].fromEmail);
+  for(let i=msgs.length-1;i>=0;i--){ [].concat(msgs[i].to||[]).forEach(t=>push((t&&(t.email||t.address))||t)); }
+  push(r&&r.fromEmail);
+  const ext=cand.find(e=>!/@sssdam\.com$/i.test(e));
+  return ext || cand[0] || ((r&&!isOwnAddr(r.fromEmail))?r.fromEmail:"") || "";
+}
+function paixCounterpartName(r){
+  const e=paixReplyTo(r);
+  const msgs=(r&&r.messages)||[];
+  for(let i=msgs.length-1;i>=0;i--){ if(String(msgs[i].from||msgs[i].fromEmail||"").toLowerCase().trim()===e) return msgs[i].fromName||e; }
+  if(r && !isOwnAddr(r.fromEmail)) return r.fromName||e||"—";
+  return e||"il fornitore";
+}
+// --- v0.68 Archivio "offerte fornitori spontanee" (recupero per zona/porto) ---
+function paixLoadArchived(){ try{ const o=JSON.parse(localStorage.getItem("mpd.vendorOffers")||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function paixSaveArchived(o){ try{ localStorage.setItem("mpd.vendorOffers", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch(e){} }
+function paixIsArchived(r){ return !!paixLoadArchived()[r && r.id]; }
+function paixArchMeta(r){ return paixLoadArchived()[r && r.id] || null; }
+// Aree/porti noti: euristica leggera per pre-compilare zona e porto dall'oggetto/anteprima.
+const PAIX_AREAS = [
+  {re:/WEST\s?AFRICA|TAKORADI|TEMA|LOME|LAGOS|ABIDJAN|DAKAR|COTONOU|LUANDA|PORT HARCOURT|ONNE|DOUALA/i, area:"Africa Occidentale"},
+  {re:/SOUTH\s?AFRICA|DURBAN|CAPE TOWN|RICHARDS BAY|SALDANHA|EAST AFRICA|MOMBASA|DAR ES SALAAM|MAPUTO/i, area:"Africa Australe/Orientale"},
+  {re:/SINGAPORE|MALAYSIA|PORT KLANG|TANJUNG|INDONESIA|JAKARTA|SURABAYA|VIETNAM|HO CHI MINH|THAILAND|LAEM CHABANG/i, area:"Sud-Est Asiatico"},
+  {re:/CHINA|SHANGHAI|NINGBO|QINGDAO|XIAMEN|DALIAN|TIANJIN|GUANGZHOU|SHENZHEN|DONGGUAN|ZHOUSHAN|HONG KONG/i, area:"Cina / Hong Kong"},
+  {re:/KOREA|BUSAN|ULSAN|GWANGYANG|JAPAN|YOKOHAMA|CHIBA|KOBE|NAGOYA/i, area:"Estremo Oriente (Corea/Giappone)"},
+  {re:/INDIA|MUMBAI|CHENNAI|KANDLA|MUNDRA|VIZAG|PARADIP|KOLKATA|SRI LANKA|COLOMBO|BANGLADESH|CHITTAGONG/i, area:"Subcontinente Indiano"},
+  {re:/FUJAIRAH|JEBEL ALI|DUBAI|UAE|KHOR FAKKAN|DAMMAM|JEDDAH|SAUDI|BAHRAIN|OMAN|SOHAR|QATAR|KUWAIT/i, area:"Golfo Persico / Mar Rosso"},
+  {re:/ROTTERDAM|ANTWERP|HAMBURG|BREMEN|AMSTERDAM|GHENT|NORTH SEA|UK|IMMINGHAM|FELIXSTOWE|LE HAVRE/i, area:"Nord Europa"},
+  {re:/GIBRALTAR|ALGECIRAS|VALENCIA|BARCELONA|GENOA|GENOVA|LIVORNO|NAPLES|NAPOLI|PIRAEUS|ISTANBUL|MALTA|PORT SAID|SUEZ|MEDITERRANEAN|MEDITERRANEO/i, area:"Mediterraneo"},
+  {re:/USA|HOUSTON|NEW ORLEANS|SAVANNAH|NEW YORK|LOS ANGELES|LONG BEACH|BRAZIL|SANTOS|ARGENTINA|CANADA|GULF OF MEXICO|US GULF/i, area:"Americhe"},
+  {re:/AUSTRALIA|NEWCASTLE|PORT HEDLAND|FREMANTLE|BRISBANE|GLADSTONE|NEW ZEALAND/i, area:"Oceania"}
+];
+function paixGuessArea(text){ const t=String(text||""); for(const a of PAIX_AREAS){ if(a.re.test(t)) return a.area; } return ""; }
+function paixGuessPort(text){
+  const t=String(text||"").toUpperCase();
+  const ports=["TAKORADI","TEMA","LOME","LAGOS","ABIDJAN","DAKAR","COTONOU","LUANDA","ONNE","DOUALA","DURBAN","CAPE TOWN","RICHARDS BAY","MOMBASA","SINGAPORE","PORT KLANG","JAKARTA","SURABAYA","HO CHI MINH","LAEM CHABANG","SHANGHAI","NINGBO","QINGDAO","XIAMEN","DALIAN","TIANJIN","DONGGUAN","ZHOUSHAN","HONG KONG","BUSAN","ULSAN","GWANGYANG","YOKOHAMA","MUMBAI","CHENNAI","KANDLA","MUNDRA","VIZAG","PARADIP","COLOMBO","CHITTAGONG","FUJAIRAH","JEBEL ALI","DUBAI","KHOR FAKKAN","DAMMAM","JEDDAH","SOHAR","ROTTERDAM","ANTWERP","HAMBURG","LE HAVRE","GIBRALTAR","ALGECIRAS","VALENCIA","GENOA","GENOVA","LIVORNO","NAPLES","NAPOLI","PIRAEUS","ISTANBUL","MALTA","PORT SAID","HOUSTON","NEW ORLEANS","SAVANNAH","SANTOS","NEWCASTLE","PORT HEDLAND","FREMANTLE"];
+  const hit=ports.filter(p=>t.includes(p));
+  return hit.slice(0,3).map(p=>p.charAt(0)+p.slice(1).toLowerCase()).join(", ");
+}
+function paixGuessVessels(text){
+  const t=String(text||"").toUpperCase();
+  return (VESSELS||[]).filter(v=>{ const n=String(v.displayName||"").toUpperCase().replace(/^M\/?V\s*/,""); return n && t.includes(n); }).map(v=>v.vesselId);
+}
 function paixTimeLabel(r){ const d=r.days; if(d==null) return ""; if(d<=0){ const t=(r.receivedDate||"").slice(11,16); return t||"oggi"; } if(d===1) return "ieri"; return d+" gg"; }
 function paixPendingKind(r){
-  if(!r || PAIX_NOISE.has(r.category)) return null;
+  if(!r || PAIX_NOISE.has(r.category) || r.category==="vendor_intro" || paixIsArchived(r)) return null;
   const msgs = r.messages||[];
   const last = msgs.length ? msgs[msgs.length-1] : null;
   const lastFromUs = last && /@sssdam\.com$/i.test(String(last.from||last.fromEmail||"")) && last.direction!=="in";
@@ -11953,14 +12016,15 @@ function paixCurrent(){ const P=paixState(); return getEmailThreads().find(r=>r.
 function paixVisible(all){
   const P=paixState(); const f=P.folder;
   let list;
-  if(f==="ai_todo") list=all.filter(r=>!paixIsMuted(r) && paixPendingKind(r)==="todo");
-  else if(f==="ai_await") list=all.filter(r=>!paixIsMuted(r) && paixPendingKind(r)==="await");
-  else if(f==="ai_deadlines") list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category) && paixDeadlines(r).length);
+  if(f==="ai_todo") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && paixPendingKind(r)==="todo");
+  else if(f==="ai_await") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && paixPendingKind(r)==="await");
+  else if(f==="ai_deadlines") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category) && paixDeadlines(r).length);
   else if(f==="noise") list=all.filter(r=>paixIsMuted(r) || PAIX_NOISE.has(r.category));
-  else if(f==="all") list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category));
-  else if(f.startsWith("cat:")){ const k=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && r.category===k); }
-  else if(f.startsWith("ves:")){ const v=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category) && r.vesselId===v); }
-  else list=all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category));
+  else if(f==="arch") list=all.filter(r=>paixIsArchived(r)).sort((a,b)=>String((paixArchMeta(b)||{}).area||"").localeCompare(String((paixArchMeta(a)||{}).area||"")));
+  else if(f==="all") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category));
+  else if(f.startsWith("cat:")){ const k=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && r.category===k); }
+  else if(f.startsWith("ves:")){ const v=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category) && r.vesselId===v); }
+  else list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category));
   if(P.query.trim()){
     const q=P.query.toLowerCase();
     list=list.filter(r=>((r.subject||"")+" "+(r.preview||"")+" "+(r.fromName||"")+" "+(r.fromEmail||"")).toLowerCase().includes(q));
@@ -12004,7 +12068,7 @@ function paixSummaryClient(r){
 }
 function paixActionFor(r){
   const t=emailActionText(r);
-  const titleMap={ rfq_chase:"Valuta l'offerta e chiudi l'RFQ", invoice_reminder:"Verifica e chiudi il pagamento", po:"Conferma l'ordine", logistics:"Conferma ETA / consegna", system:"Coordina l'intervento IT", certificate:"Verifica scadenza documento", generic: r.waiting?"Rispondi al mittente":"Nessuna azione urgente" };
+  const titleMap={ rfq_chase:"Valuta l'offerta e chiudi l'RFQ", vendor_intro:"Valuta e archivia l'offerta spontanea", invoice_reminder:"Verifica e chiudi il pagamento", po:"Conferma l'ordine", logistics:"Conferma ETA / consegna", system:"Coordina l'intervento IT", certificate:"Verifica scadenza documento", generic: r.waiting?"Rispondi al mittente":"Nessuna azione urgente" };
   return [titleMap[r.category]||titleMap.generic, t];
 }
 
@@ -12027,13 +12091,22 @@ function paixReadingHTML(sel){
   const openBtn = sel.webLink
     ? '<a href="'+escapeAttr(sel.webLink)+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#0e54c1;background:#eaf1fd;border:1px solid #d5e3fb;border-radius:8px;padding:7px 12px;cursor:pointer;text-decoration:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Apri in Outlook</a>'
     : '<button onclick="window.paixOutlook()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#0e54c1;background:#eaf1fd;border:1px solid #d5e3fb;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Rispondi in Outlook</button>';
+  const _am=paixArchMeta(sel);
+  const archInfo=_am?'<div style="background:#faf8ff;border:1px solid #e4dcfb;border-radius:12px;padding:13px 15px;margin-bottom:16px;"><div style="display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5b3fb0;margin-bottom:8px;">📌 Offerta archiviata</div><div style="display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;color:#3a3452;">'
+    +(_am.area?'<div><span style="color:#8a83a8;">Zona:</span> <b>'+escapeHTML(_am.area)+'</b></div>':"")
+    +(_am.port?'<div><span style="color:#8a83a8;">Porti:</span> <b>'+escapeHTML(_am.port)+'</b></div>':"")
+    +((_am.vessels&&_am.vessels.length)?'<div><span style="color:#8a83a8;">Navi:</span> <b>'+escapeHTML(_am.vessels.map(vNameSafe).join(", "))+'</b></div>':"")
+    +'</div>'+(_am.note?'<div style="font-size:12.5px;color:#3a4250;margin-top:8px;line-height:1.45;">'+escapeHTML(_am.note)+'</div>':"")
+    +'<div style="font-size:11px;color:#a99fd0;margin-top:8px;">Archiviata il '+escapeHTML(new Date(_am.savedAt).toLocaleDateString("it-IT"))+'</div></div>':"";
+  const archived = paixIsArchived(sel);
+  const archBtn = '<button onclick="window.paixArchiveOpen()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:'+(archived?"#fff":"#5b3fb0")+';background:'+(archived?"#6a4bff":"#efeafb")+';border:1px solid '+(archived?"#6a4bff":"#e0d8f7")+';border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M9 12h6"/></svg>'+(archived?"Archiviata — modifica":"Archivia offerta")+'</button>';
   return '<div style="display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid #eef1f5;background:#fff;">'
     +'<button onclick="window.paixNewTodo()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#b8860b;background:#fbf3e0;border:1px solid #f0e6c8;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>To-do</button>'
     +'<button onclick="window.paixDone()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#117a3a;background:#e9f5ed;border:1px solid #cfe8d8;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Fatto</button>'
-    +openBtn+'<div style="flex:1;"></div>'
+    +openBtn+archBtn+'<div style="flex:1;"></div>'
     +'<button onclick="window.paixMute()" style="display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#7a8290;background:#f1f3f6;border:1px solid #e5e9ee;border-radius:8px;padding:7px 12px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9a3 3 0 0 1 6 0"/><path d="M18 8a6 6 0 0 0-9.3-5"/><path d="M5.3 5.3A6 6 0 0 0 6 8c0 3-1 5-3 6h13"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/><path d="m2 2 20 20"/></svg>Non valutare più</button>'
   +'</div>'
-  +'<div style="flex:1;overflow-y:auto;padding:22px 30px 40px;"><h1 style="font-size:20px;font-weight:700;letter-spacing:-.3px;margin:0 0 6px;line-height:1.3;">'+escapeHTML(paixStripPrefix(sel.subject))+'</h1><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">'+tags+'</div>'+msgHTML+'</div>';
+  +'<div style="flex:1;overflow-y:auto;padding:22px 30px 40px;"><h1 style="font-size:20px;font-weight:700;letter-spacing:-.3px;margin:0 0 6px;line-height:1.3;">'+escapeHTML(paixStripPrefix(sel.subject))+'</h1><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">'+tags+'</div>'+archInfo+msgHTML+'</div>';
 }
 
 function paixCopilotHTML(sel){
@@ -12084,7 +12157,7 @@ window.paixOutlook = function(){ const r=paixCurrent(); if(!r)return; const ta=d
     window.open(r.webLink, "_blank", "noopener");
     showToast("Aperta la conversazione in Outlook · bozza copiata — premi Rispondi e incolla");
   } else if(typeof openComposeMail==="function"&&typeof buildComposeHref==="function"){
-    openComposeMail(buildComposeHref(subj, body, r.fromEmail));
+    openComposeMail(buildComposeHref(subj, body, paixReplyTo(r)));
     showToast("Nessun link al thread: apro una nuova risposta · bozza pronta");
   }
   renderEmailPage(); };
@@ -12109,6 +12182,65 @@ window.paixCloseAll = function(){
   renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
 };
 window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage(); };
+// v0.68 — Archiviazione offerta fornitore spontanea (pre-compilata, recuperabile per zona/porto)
+window.paixArchiveOpen = function(){
+  const r=paixCurrent(); if(!r)return;
+  const txt=(r.subject||"")+" "+(r.preview||"")+" "+((r.messages||[]).map(m=>m.preview||"").join(" "));
+  const existing=paixArchMeta(r);
+  const area=existing?existing.area:paixGuessArea(txt);
+  const port=existing?existing.port:paixGuessPort(txt);
+  const note=existing?(existing.note||""):"";
+  const vsel=existing?(existing.vessels||[]):paixGuessVessels(txt);
+  const areaOpts=["","Africa Occidentale","Africa Australe/Orientale","Sud-Est Asiatico","Cina / Hong Kong","Estremo Oriente (Corea/Giappone)","Subcontinente Indiano","Golfo Persico / Mar Rosso","Nord Europa","Mediterraneo","Americhe","Oceania"];
+  if(area && !areaOpts.includes(area)) areaOpts.push(area);
+  const old=document.getElementById("paix-arch-modal"); if(old) old.remove();
+  const vChips=(VESSELS||[]).map(v=>{ const on=vsel.includes(v.vesselId); return '<button type="button" data-vid="'+v.vesselId+'" onclick="this.dataset.on=this.dataset.on===\'1\'?\'0\':\'1\';this.style.background=this.dataset.on===\'1\'?\'#0a3f93\':\'#fff\';this.style.color=this.dataset.on===\'1\'?\'#fff\':\'#3a4250\';" data-on="'+(on?"1":"0")+'" style="font-family:inherit;font-size:12px;font-weight:600;color:'+(on?"#fff":"#3a4250")+';background:'+(on?"#0a3f93":"#fff")+';border:1px solid #cbd3dd;border-radius:20px;padding:6px 12px;cursor:pointer;">'+escapeHTML(v.displayName)+'</button>'; }).join("");
+  const el=document.createElement("div");
+  el.id="paix-arch-modal";
+  el.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.42);display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;";
+  el.onclick=function(e){ if(e.target===el) el.remove(); };
+  el.innerHTML='<div style="width:min(560px,92vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.32);">'
+    +'<div style="display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid #eef1f5;">'
+      +'<div style="width:30px;height:30px;border-radius:8px;background:#efeafb;color:#5b3fb0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M9 12h6"/></svg></div>'
+      +'<div style="flex:1;"><div style="font-weight:700;font-size:15px;">Archivia offerta fornitore</div><div style="font-size:12px;color:#8a93a0;">La ritrovi in "Offerte archiviate", ordinata per zona.</div></div>'
+      +'<button onclick="document.getElementById(\'paix-arch-modal\').remove()" style="border:none;background:transparent;font-size:20px;color:#8a93a0;cursor:pointer;line-height:1;">✕</button>'
+    +'</div>'
+    +'<div style="padding:18px 22px;display:flex;flex-direction:column;gap:15px;">'
+      +'<div style="background:#f7f9fb;border:1px solid #eef1f5;border-radius:10px;padding:11px 13px;"><div style="font-size:12px;font-weight:600;color:#2b3240;">'+escapeHTML(r.fromName||"")+'</div><div style="font-size:11.5px;color:#8a93a0;">'+escapeHTML(r.fromEmail||"")+'</div><div style="font-size:12px;color:#3a4250;margin-top:5px;line-height:1.4;">'+escapeHTML(paixStripPrefix(r.subject))+'</div></div>'
+      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Zona / area operativa</label><select id="pa-area" style="width:100%;font-family:inherit;font-size:13.5px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;background:#fff;color:#14181f;">'+areaOpts.map(o=>'<option value="'+escapeAttr(o)+'"'+(o===area?" selected":"")+'>'+(o?escapeHTML(o):"— nessuna —")+'</option>').join("")+'</select></div>'
+      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Porti citati</label><input id="pa-port" value="'+escapeAttr(port)+'" placeholder="es. Takoradi, Tema" style="width:100%;font-family:inherit;font-size:13.5px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;outline:none;"></div>'
+      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Navi interessate (facoltativo)</label><div id="pa-vessels" style="display:flex;flex-wrap:wrap;gap:7px;">'+vChips+'</div></div>'
+      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Nota (facoltativo)</label><textarea id="pa-note" placeholder="es. prezzi competitivi provviste di coperta, credito 90gg" style="width:100%;min-height:64px;font-family:inherit;font-size:13px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;outline:none;resize:vertical;">'+escapeHTML(note)+'</textarea></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:9px;padding:16px 22px;border-top:1px solid #eef1f5;">'
+      +(existing?'<button onclick="window.paixArchiveRemove()" style="font-family:inherit;font-size:13px;font-weight:600;color:#c8362f;background:#fdeeed;border:1px solid #f4cdc9;border-radius:9px;padding:10px 15px;cursor:pointer;">Rimuovi dall\'archivio</button>':"")
+      +'<div style="flex:1;"></div>'
+      +'<button onclick="document.getElementById(\'paix-arch-modal\').remove()" style="font-family:inherit;font-size:13px;font-weight:600;color:#3a4250;background:#f1f3f6;border:1px solid #e5e9ee;border-radius:9px;padding:10px 15px;cursor:pointer;">Annulla</button>'
+      +'<button onclick="window.paixArchiveSave()" style="font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:#6a4bff;border:none;border-radius:9px;padding:10px 18px;cursor:pointer;">'+(existing?"Salva modifiche":"Archivia")+'</button>'
+    +'</div></div>';
+  document.body.appendChild(el);
+};
+window.paixArchiveSave = function(){
+  const r=paixCurrent(); if(!r)return;
+  const area=(document.getElementById("pa-area")||{}).value||"";
+  const port=((document.getElementById("pa-port")||{}).value||"").trim();
+  const note=((document.getElementById("pa-note")||{}).value||"").trim();
+  const vessels=[...document.querySelectorAll('#pa-vessels [data-vid]')].filter(b=>b.dataset.on==="1").map(b=>b.dataset.vid);
+  const o=paixLoadArchived();
+  o[r.id]={ savedAt:new Date().toISOString(), company:r.fromName||"", fromEmail:r.fromEmail||"", subject:r.subject||"", webLink:r.webLink||"", area, port, vessels, note };
+  paixSaveArchived(o);
+  const m=document.getElementById("paix-arch-modal"); if(m) m.remove();
+  const P=paixState(); if(P.folder!=="arch"){ const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null; }
+  showToast("📌 Offerta archiviata"+(area?" — "+area:""));
+  renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
+};
+window.paixArchiveRemove = function(){
+  const r=paixCurrent(); if(!r)return;
+  const o=paixLoadArchived(); delete o[r.id]; paixSaveArchived(o);
+  const m=document.getElementById("paix-arch-modal"); if(m) m.remove();
+  showToast("Offerta rimossa dall'archivio");
+  renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
+};
 
 // Markup della modale Email Workspace, condiviso da desktop (dentro view-root) e mobile
 // (appeso al body on-demand, così l'assistente funziona anche quando la vista desktop email
@@ -12249,7 +12381,7 @@ window.openEmailPreview = function(id){
   if (!bd) { bd = document.createElement("div"); bd.id = "email-preview-backdrop"; bd.className = "item-detail-backdrop"; document.body.appendChild(bd); }
   const openBtn = r.webLink
     ? `<a class="btn btn-primary" href="${escapeAttr(r.webLink)}" target="_blank" rel="noopener" style="text-decoration:none;">↗ Intervieni in Outlook</a>`
-    : `<button class="btn btn-primary" onclick="window.composeReply('${escapeAttr(r.fromEmail)}','${escapeAttr(r.subject)}')">↗ Rispondi</button>`;
+    : `<button class="btn btn-primary" onclick="window.composeReply('${escapeAttr((typeof paixReplyTo==="function"?paixReplyTo(r):r.fromEmail))}','${escapeAttr(r.subject)}')">↗ Rispondi</button>`;
 
   bd.innerHTML = `
     <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width: 640px;">
@@ -12526,7 +12658,7 @@ window.wsUseInCompose = function(){
   const txt = ta ? ta.value : window._ws.draftText;
   const r = window._ws.thread; if(!r) return;
   const subj = /^re:/i.test(r.subject) ? r.subject : "RE: " + r.subject;
-  openComposeMail(buildComposeHref(subj, txt||"", r.fromEmail));
+  openComposeMail(buildComposeHref(subj, txt||"", (typeof paixReplyTo==="function"?paixReplyTo(r):r.fromEmail)));
   window.closeEmailWorkspace();
 };
 
