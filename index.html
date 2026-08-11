@@ -12078,8 +12078,16 @@ window.paixDraftEdit = function(v){ const r=paixCurrent(); if(!r)return; paixCac
 window.paixCopy = function(){ const ta=document.getElementById("paix-draft"); const t=ta?ta.value:""; if(t&&navigator.clipboard){ navigator.clipboard.writeText(t); showToast("Bozza copiata"); } };
 window.paixOutlook = function(){ const r=paixCurrent(); if(!r)return; const ta=document.getElementById("paix-draft"); const body=ta?ta.value:paixDraftFor(r); const subj=/^re:/i.test(r.subject)?r.subject:"RE: "+r.subject;
   window._paixSent = window._paixSent||{}; (window._paixSent[r.id]=window._paixSent[r.id]||[]).push({ from:"purchasing@sssdam.com", fromName:"Michele Del Vecchio", date:new Date().toISOString().slice(0,16).replace("T"," "), preview:body, direction:"out" });
-  if(typeof openComposeMail==="function"&&typeof buildComposeHref==="function"){ openComposeMail(buildComposeHref(subj, body, r.fromEmail)); }
-  showToast("Risposta agganciata al thread e aperta in Outlook"); renderEmailPage(); };
+  // Opzione A: apri la CONVERSAZIONE vera di Outlook (la risposta resta agganciata al thread) e copia la bozza da incollare
+  if(r.webLink){
+    if(navigator.clipboard){ navigator.clipboard.writeText(body).catch(()=>{}); }
+    window.open(r.webLink, "_blank", "noopener");
+    showToast("Aperta la conversazione in Outlook · bozza copiata — premi Rispondi e incolla");
+  } else if(typeof openComposeMail==="function"&&typeof buildComposeHref==="function"){
+    openComposeMail(buildComposeHref(subj, body, r.fromEmail));
+    showToast("Nessun link al thread: apro una nuova risposta · bozza pronta");
+  }
+  renderEmailPage(); };
 window.paixNewTodo = function(){ const r=paixCurrent(); if(!r)return; if(typeof window.replyToTodo==="function") window.replyToTodo(r.id); };
 window.paixDeadlineTodo = function(iso){ const r=paixCurrent(); if(!r)return; if(typeof window.replyToTodo==="function"){ window.replyToTodo(r.id); if(iso){ const df=document.getElementById("todo-when"); const dd=document.getElementById("todo-date"); if(df&&dd){ df.value="custom"; dd.value=iso; } } } };
 window.paixMute = function(){ const r=paixCurrent(); if(!r)return; const set=paixLoadMuted(); set.add(paixDomain(r.fromEmail)); paixSaveMuted(set); const P=paixState(); const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null; showToast("Mittente "+paixDomain(r.fromEmail)+" silenziato → Rumore"); renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher(); };
