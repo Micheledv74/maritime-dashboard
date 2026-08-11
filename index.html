@@ -11841,7 +11841,7 @@ function renderEmailPage(){
   const catCounts = {}; activeAll.forEach(r=>{ catCounts[r.category]=(catCounts[r.category]||0)+1; });
   const vesselCounts = {}; activeAll.forEach(r=>{ if(r.vesselId) vesselCounts[r.vesselId]=(vesselCounts[r.vesselId]||0)+1; });
   const noiseN = all.filter(r=>!paixIsMuted(r) && PAIX_NOISE.has(r.category)).length + all.filter(r=>paixIsMuted(r)).length;
-  const archN = all.filter(r=>paixIsArchived(r)).length;
+  const archN = paixArchivedDeduped(all).length;
 
   const treeRows = [];
   const folderBtn = (key,label,count,depth,strong)=>{
@@ -11900,7 +11900,7 @@ function renderEmailPage(){
     const wl = waitLabel ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+waitColor+';background:'+waitBg+';padding:2px 7px;border-radius:5px;">'+waitLabel+'</span>' : "";
     const dl = r._dls.length ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#b8860b;background:#fbf3e0;padding:2px 7px;border-radius:5px;">📅 '+escapeHTML(r._dls[0].dateLabel)+'</span>' : "";
     const am = paixArchMeta(r);
-    const archTag = am ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#5b3fb0;background:#efeafb;padding:2px 7px;border-radius:5px;">📌 '+escapeHTML(am.area||am.port||"archiviata")+'</span>' : "";
+    const archTag = am ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#5b3fb0;background:#efeafb;padding:2px 7px;border-radius:5px;">📌 '+escapeHTML(am.area||am.port||"archiviata")+(r._dupCount>1?' ×'+r._dupCount:"")+'</span>' : "";
     return '<div onclick="window.paixSelect(\''+escapeAttr(r.id)+'\')" style="display:flex;gap:11px;padding:11px 15px;border-bottom:1px solid #f1f3f6;cursor:pointer;background:'+(isSel?"#eef4ff":"#fff")+';border-left:3px solid '+(isSel?"#0e54c1":"transparent")+';">'
       +'<div style="width:34px;height:34px;border-radius:50%;background:'+r._ava+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+escapeHTML(r._initials)+'</div>'
       +'<div style="flex:1;min-width:0;">'
@@ -11999,6 +11999,20 @@ function paixLoadArchived(){ try{ const o=JSON.parse(localStorage.getItem("mpd.v
 function paixSaveArchived(o){ try{ localStorage.setItem("mpd.vendorOffers", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch(e){} }
 function paixIsArchived(r){ return !!paixLoadArchived()[r && r.id]; }
 function paixArchMeta(r){ return paixLoadArchived()[r && r.id] || null; }
+// v0.69 — Dedup archivio: lo stesso shipchandler ripropone la stessa offerta più volte. Le raggruppo
+// per dominio + oggetto normalizzato, tengo solo la più recente e conto le repliche (_dupCount).
+function paixArchivedDeduped(all){
+  const arch=(all||[]).filter(r=>paixIsArchived(r));
+  const byKey={}, groups={};
+  arch.forEach(r=>{
+    const key=(paixDomain(r.fromEmail)||String(r.fromEmail||""))+"|"+paixStripPrefix(r.subject).toLowerCase().replace(/\s+/g," ").slice(0,30);
+    r._dupKey=key; groups[key]=(groups[key]||0)+1;
+    const cur=byKey[key], ts=String((paixArchMeta(r)||{}).savedAt||"");
+    if(!cur || String((paixArchMeta(cur)||{}).savedAt||"")<=ts) byKey[key]=r;
+  });
+  return Object.values(byKey).map(r=>{ r._dupCount=groups[r._dupKey]||1; return r; })
+    .sort((a,b)=>String((paixArchMeta(b)||{}).area||"").localeCompare(String((paixArchMeta(a)||{}).area||"")));
+}
 // Aree/porti noti: euristica leggera per pre-compilare zona e porto dall'oggetto/anteprima.
 const PAIX_AREAS = [
   {re:/WEST\s?AFRICA|TAKORADI|TEMA|LOME|LAGOS|ABIDJAN|DAKAR|COTONOU|LUANDA|PORT HARCOURT|ONNE|DOUALA/i, area:"Africa Occidentale"},
@@ -12050,7 +12064,7 @@ function paixVisible(all){
   else if(f==="ai_await") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && paixPendingKind(r)==="await");
   else if(f==="ai_deadlines") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category) && paixDeadlines(r).length);
   else if(f==="noise") list=all.filter(r=>paixIsMuted(r) || PAIX_NOISE.has(r.category));
-  else if(f==="arch") list=all.filter(r=>paixIsArchived(r)).sort((a,b)=>String((paixArchMeta(b)||{}).area||"").localeCompare(String((paixArchMeta(a)||{}).area||"")));
+  else if(f==="arch") list=paixArchivedDeduped(all);
   else if(f==="all") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category));
   else if(f.startsWith("cat:")){ const k=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && r.category===k); }
   else if(f.startsWith("ves:")){ const v=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category) && r.vesselId===v); }
@@ -12165,7 +12179,9 @@ function paixCopilotHTML(sel){
       +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;margin-bottom:6px;">Cosa fare</div><div style="font-size:14px;font-weight:700;color:#2b2452;line-height:1.35;margin-bottom:4px;">'+escapeHTML(aTitle)+'</div><div style="font-size:12px;color:#6b6488;line-height:1.5;">'+escapeHTML(aWhy)+'</div>'+pending+'</div>'
       +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Riassunto</div><button onclick="window.paixSummarize()" style="font-family:inherit;font-size:11px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:none;border-radius:7px;padding:4px 9px;cursor:pointer;">✨ AI</button></div>'+summary+'</div>'
       +dlBlock+transBlock
-      +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Risposte rapide</div>'+langBtns+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+quick+'</div></div>'
+      +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Risposte rapide</div>'+langBtns+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+quick+'</div>'
+        +'<div style="display:flex;gap:6px;margin-top:10px;"><input id="paix-quick-intent" placeholder="Scrivi l\'intento… es. CONFERMA PREVENTIVO" onkeydown="if(event.key===\'Enter\'){event.preventDefault();window.paixQuickAI();}" style="flex:1;min-width:0;font-family:inherit;font-size:11.5px;color:#2b3240;background:#fbfaff;border:1px solid #e4e1f2;border-radius:8px;padding:7px 10px;outline:none;"><button onclick="window.paixQuickAI()" style="flex-shrink:0;font-family:inherit;font-size:11px;font-weight:600;color:#fff;background:#6a4bff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;">✨ Genera</button></div>'
+        +'<div style="font-size:10px;color:#a29bc4;margin-top:6px;line-height:1.4;">Scrivi il tipo di risposta (anche una parola): l\'AI la prepara nella bozza qui sotto, in '+(c.lang==="it"?"italiano":"inglese")+' e tono '+c.tone+'.</div></div>'
       +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;">Bozza risposta</div>'+langBtns+'</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px;">'+tones+'<button onclick="window.paixDraftAI()" style="font-family:inherit;font-size:10.5px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:1px solid #e4e1f2;border-radius:20px;padding:4px 10px;cursor:pointer;">✨ AI</button></div><textarea id="paix-draft" oninput="window.paixDraftEdit(this.value)" style="width:100%;min-height:132px;font-family:inherit;font-size:12.5px;line-height:1.5;color:#2b3240;border:1px solid #e4e1f2;border-radius:9px;padding:11px;resize:vertical;outline:none;background:#fbfaff;">'+escapeHTML(draft)+'</textarea><div style="display:flex;gap:6px;margin-top:9px;"><button onclick="window.paixOutlook()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#fff;background:#0e54c1;border:none;border-radius:8px;padding:9px;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Rispondi in Outlook</button><button onclick="window.paixCopy()" style="font-family:inherit;font-size:12px;font-weight:600;color:#4b3fb0;background:#f0eefb;border:none;border-radius:8px;padding:9px 13px;cursor:pointer;">Copia</button></div></div>'
       +'<button onclick="window.paixCloseAll()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(135deg,#117a3a,#0d6330);border:none;border-radius:10px;padding:12px;cursor:pointer;box-shadow:0 2px 8px rgba(17,122,58,.28);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Chiudi tutto</button>'
       +'<div style="font-size:10.5px;color:#8a83a8;text-align:center;line-height:1.5;margin-top:8px;padding:0 8px;">Segna gestita l\'email, la voce in pipeline e la to-do collegata in un colpo solo.</div>'
@@ -12180,6 +12196,19 @@ window.paixLang = function(l){ const r=paixCurrent(); if(!r)return; const c=paix
 window.paixTone = function(t){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.tone=t; c.draft=null; renderEmailPage(); };
 window.paixQuick = function(i){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); const q=PAIX_QUICK[i]; const first=String(r.fromName||"").split(/[\s\/,<]/)[0]||(c.lang==="it"?"Salve":"Hello"); const it=c.lang==="it"; const core=it?q.it:q.en; const greet=it?"Buongiorno "+first+",":"Dear "+first+","; const sign=it?"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA":"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA"; c.draft=greet+"\n\n"+core.charAt(0).toUpperCase()+core.slice(1)+"\n\n"+sign; renderEmailPage(); };
 window.paixDraftEdit = function(v){ const r=paixCurrent(); if(!r)return; paixCache(r).draft=v; };
+// v0.69 — Risposta rapida "a comando": tu scrivi l'intento (es. CONFERMA PREVENTIVO), l'AI prepara la bozza.
+window.paixQuickAI = async function(){
+  const r=paixCurrent(); if(!r)return;
+  const inp=document.getElementById("paix-quick-intent");
+  const intent=inp?inp.value.trim():"";
+  if(!intent){ showToast("Scrivi cosa vuoi dire (es. CONFERMA PREVENTIVO)"); if(inp) inp.focus(); return; }
+  const c=paixCache(r); c.draft="Genero la bozza…"; renderEmailPage();
+  const convo=(r.messages&&r.messages.length)?r.messages.map(m=>"["+(m.date||"")+"] "+(m.fromName||m.from||"?")+": "+(m.preview||"").slice(0,300)).join("\n"):(r.subject+"\n"+(r.preview||""));
+  const prompt="Sei l'assistente email di un purchasing manager marittimo (Michele Del Vecchio). Scrivi SOLO il corpo di una risposta professionale in "+(c.lang==="it"?"italiano":"inglese")+", tono "+c.tone+", pronta da inviare, senza oggetto e senza markdown. L'intento della risposta è: \""+intent+"\". Adatta il contenuto al thread qui sotto e resta conciso.\n\nMittente: "+r.fromName+" <"+r.fromEmail+">\nOggetto: "+r.subject+"\nScambio:\n"+convo+"\n\nFirma con \"Michele Del Vecchio\".";
+  try{ const txt=await aiComplete(prompt); c.draft=String(txt||"").trim()||paixGenDraft(r,c.lang,c.tone); }
+  catch(e){ c.draft=paixGenDraft(r,c.lang,c.tone); showToast("Bozza AI non disponibile"); }
+  renderEmailPage();
+};
 window.paixCopy = function(){ const ta=document.getElementById("paix-draft"); const t=ta?ta.value:""; if(t&&navigator.clipboard){ navigator.clipboard.writeText(t); showToast("Bozza copiata"); } };
 window.paixOutlook = function(){ const r=paixCurrent(); if(!r)return; const ta=document.getElementById("paix-draft"); const body=ta?ta.value:paixDraftFor(r); const subj=/^re:/i.test(r.subject)?r.subject:"RE: "+r.subject;
   window._paixSent = window._paixSent||{}; (window._paixSent[r.id]=window._paixSent[r.id]||[]).push({ from:"purchasing@sssdam.com", fromName:"Michele Del Vecchio", date:new Date().toISOString().slice(0,16).replace("T"," "), preview:body, direction:"out" });
@@ -12722,6 +12751,7 @@ window.replyToTodo = function(id){
   if (r.fromEmail) { const dom = r.fromEmail.split("@")[1]; if (dom) modalCurrentTags.push(dom); }
   modalEmailLink = r.webLink || "";
   modalEmailLinkedName = r.subject || "";
+  window._todoEmailThreadId = r.id; // v0.69 — al salvataggio segna gestita (Fatto) questa email
 
   const modal = document.getElementById("modal-todo");
   document.getElementById("modal-todo-title").textContent = "Nuova to-do da email";
@@ -22479,6 +22509,7 @@ window.setTodoKind = function(kind) {
 
 function openTodoModal(todoId, prefillVesselId, prefillItem) {
   editingTodoId = todoId || null;
+  window._todoEmailThreadId = null; // to-do normale: non tocca nessuna email
   modalCurrentTags = [];
   modalEmailLink = null; modalEmailLinkedName = "";
   modalTodoKind = "todo";
@@ -22721,8 +22752,15 @@ function saveTodoFromModal() {
     showToast("To-do aggiornato");
   } else {
     addTodo(payload);
-    showToast("To-do salvato");
+    // v0.69 — se la to-do nasce da un'email, la segno GESTITA (Fatto): esce dalle viste e i conteggi scendono.
+    if (window._todoEmailThreadId && typeof dismissReply === "function") {
+      dismissReply(window._todoEmailThreadId);
+      showToast("To-do creata · email segnata come fatta");
+    } else {
+      showToast("To-do salvato");
+    }
   }
+  window._todoEmailThreadId = null;
   document.getElementById("modal-todo").classList.remove("open");
   editingTodoId = null;
   modalCurrentTags = [];
