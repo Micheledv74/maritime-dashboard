@@ -11575,6 +11575,26 @@ const EMAIL_CATS = {
   noise:            { label: "Rumore / newsletter",   color: "#8a93a0", bg: "#f1f5f9" },
   generic:          { label: "Da valutare",            color: "#3a4250", bg: "#eef1f5" }
 };
+// v0.68 — Categorie-colore NATIVE di Outlook (assegnate da Michele nel client). Arrivano dal feed
+// n8n (campo `categories`) e vengono mostrate/filtrate qui con i colori del suo schema Outlook.
+const OUTLOOK_CAT_COLORS = {
+  "DOC_ADMIN":"#d4a800","DOC_CONFERME":"#8e44ad","DOC_FATTURE":"#b39ddb","DOC_LOGISTIC":"#1a3e7e",
+  "DOC_OPERATIVO":"#9aa0a6","DOC_PO":"#17a2b8","DOC_RFQ":"#f2c400","M/V PEPPINO":"#e8730c",
+  "MED LIGURIA":"#2e86de","MED TOSCANA":"#2e9e4f","NORRBOTTEN":"#4a4a4a","PRIO_URGENTE":"#d63031",
+  "STATO_COMPLETATO":"#27ae60","STATO_DA_RISCONTARE":"#e84393"
+};
+function outlookCatColor(name){
+  const k=String(name||"").trim().toUpperCase();
+  const found=Object.keys(OUTLOOK_CAT_COLORS).find(x=>x.toUpperCase()===k);
+  if(found) return OUTLOOK_CAT_COLORS[found];
+  let h=0; for(let i=0;i<k.length;i++) h=(h*31+k.charCodeAt(i))>>>0; return "hsl("+(h%360)+",55%,45%)";
+}
+// pill compatto (pallino colore + etichetta) per una lista di categorie Outlook
+function outlookCatPills(cats, small){
+  if(!Array.isArray(cats)||!cats.length) return "";
+  const fs=small?"9.5px":"11px", pad=small?"2px 7px":"3px 9px";
+  return cats.map(c=>{ const col=outlookCatColor(c); return '<span style="display:inline-flex;align-items:center;gap:5px;font-family:\'JetBrains Mono\',monospace;font-size:'+fs+';font-weight:600;color:'+col+';background:'+col+'1a;padding:'+pad+';border-radius:5px;"><span style="width:8px;height:8px;border-radius:2px;background:'+col+';flex-shrink:0;"></span>'+escapeHTML(c)+'</span>'; }).join("");
+}
 // v0.49 — Rilevo scadenze esplicite (data + parola chiave tipo "entro/scadenza/deadline/by")
 // nell'oggetto o anteprima di un'email, SENZA AI: euristica leggera, sempre attiva, zero costo.
 // Serve solo a segnalare — la to-do la crea l'utente con un click esplicito.
@@ -11706,6 +11726,7 @@ function getPendingReplies(){
       receivedDate: m.receivedDate || "",
       days: days==null ? 0 : days,
       webLink: m.webLink || m.webUrl || "",
+      categories: Array.isArray(m.categories) ? m.categories : [],
       vesselIdHint: known && known.vesselId,
       role: known ? known.role : null,
       kind: known ? known.kind : "altro",
@@ -11757,6 +11778,7 @@ function getEmailThreads(){
         days, waiting,
         webLink: t.webLink || "",
         hasAttachments: !!t.hasAttachments,
+        categories: Array.isArray(t.categories) ? t.categories : [],
         messages: msgs
       }));
     }
@@ -11765,7 +11787,7 @@ function getEmailThreads(){
   }
 
   // fallback: nessun feed esteso collegato ancora — mostro solo le email in attesa (comportamento storico)
-  return getPendingReplies().map(p=>enrich(Object.assign({}, p, { waiting: true, messages: [{ from:p.fromEmail, fromName:p.fromName, date:p.receivedDate, preview:p.preview, direction:"in" }] })));
+  return getPendingReplies().map(p=>enrich(Object.assign({}, p, { waiting: true, categories: Array.isArray(p.categories)?p.categories:[], messages: [{ from:p.fromEmail, fromName:p.fromName, date:p.receivedDate, preview:p.preview, direction:"in" }] })));
 }
 
 function vNameSafe(id){ const v = VESSELS.find(v=>v.vesselId===id); return v ? v.displayName : ""; }
@@ -11842,6 +11864,13 @@ function renderEmailPage(){
     treeRows.push('<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa3b0;padding:10px 8px 5px;">Navi</div>');
     (VESSELS||[]).forEach(v=>{ if(vesselCounts[v.vesselId]) treeRows.push(folderBtn("ves:"+v.vesselId, escapeHTML(v.displayName), vesselCounts[v.vesselId], 1)); });
   }
+  // v0.68 — Categorie-colore native di Outlook (dal feed n8n): visibili e filtrabili come nel client.
+  const ocatCounts={}; activeAll.forEach(r=>{ (Array.isArray(r.categories)?r.categories:[]).forEach(c=>{ const k=String(c).trim(); if(k) ocatCounts[k]=(ocatCounts[k]||0)+1; }); });
+  const ocatKeys=Object.keys(ocatCounts).sort((a,b)=>a.localeCompare(b));
+  if(ocatKeys.length){
+    treeRows.push('<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa3b0;padding:10px 8px 5px;">Categorie Outlook</div>');
+    ocatKeys.forEach(k=>treeRows.push(catBtn("ocat:"+k, escapeHTML(k), outlookCatColor(k), ocatCounts[k])));
+  }
   treeRows.push('<div style="height:1px;background:#e5e9ee;margin:10px 6px;"></div>');
   treeRows.push(folderBtn("arch","📌 Offerte archiviate",archN,1));
   treeRows.push(folderBtn("noise","Rumore / filtrate",noiseN,1));
@@ -11851,6 +11880,7 @@ function renderEmailPage(){
   let listTitle = titles[P.folder] || P.folder;
   if(P.folder.startsWith("cat:")){ const m=EMAIL_CATS[P.folder.slice(4)]||EMAIL_CATS.generic; listTitle=m.label; }
   if(P.folder.startsWith("ves:")){ listTitle=vNameSafe(P.folder.slice(4)); }
+  if(P.folder.startsWith("ocat:")){ listTitle="Outlook · "+P.folder.slice(5); }
   if(P.query.trim()) listTitle = 'Ricerca: "'+escapeHTML(P.query.trim())+'"';
   const hints = {
     ai_todo:"Thread dove l'ultima mossa è dell'altra parte: aspettano un tuo riscontro.",
@@ -11877,7 +11907,7 @@ function renderEmailPage(){
         +'<div style="display:flex;align-items:baseline;gap:8px;"><span style="font-weight:'+(isSel?700:600)+';font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(r.fromName)+'</span><span style="font-size:10.5px;color:#9aa3b0;flex-shrink:0;font-family:\'JetBrains Mono\',monospace;">'+paixTimeLabel(r)+'</span></div>'
         +'<div style="font-weight:'+(isSel?600:500)+';font-size:12.5px;color:#2b3240;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:1px 0 2px;">'+escapeHTML(r._subjClean)+'</div>'
         +'<div style="font-size:11.5px;color:#8a93a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML((r.preview||"").replace(/\s+/g," ").slice(0,90))+'</div>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:2px 7px;border-radius:5px;">'+escapeHTML(meta.label)+'</span>'+vtag+doc+att+wl+dl+archTag+'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:2px 7px;border-radius:5px;">'+escapeHTML(meta.label)+'</span>'+vtag+doc+att+wl+dl+archTag+outlookCatPills(r.categories,true)+'</div>'
       +'</div></div>';
   }).join("") : '<div style="padding:60px 24px;text-align:center;color:#9aa3b0;font-size:13px;">'+(P.folder==="noise"?"Nessun messaggio filtrato.":"Nessuna email in questa vista.")+'</div>';
 
@@ -12024,6 +12054,7 @@ function paixVisible(all){
   else if(f==="all") list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category));
   else if(f.startsWith("cat:")){ const k=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && r.category===k); }
   else if(f.startsWith("ves:")){ const v=f.slice(4); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category) && r.vesselId===v); }
+  else if(f.startsWith("ocat:")){ const k=f.slice(5).toUpperCase(); list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && Array.isArray(r.categories) && r.categories.some(c=>String(c).trim().toUpperCase()===k)); }
   else list=all.filter(r=>!paixIsMuted(r) && !paixIsArchived(r) && !PAIX_NOISE.has(r.category));
   if(P.query.trim()){
     const q=P.query.toLowerCase();
@@ -12078,7 +12109,8 @@ function paixReadingHTML(sel){
   const tags='<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:3px 9px;border-radius:6px;">'+escapeHTML(meta.label)+'</span>'
     +(sel.vesselId?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#0a3f93;background:#eaf1fd;padding:3px 9px;border-radius:6px;">'+escapeHTML(vNameSafe(sel.vesselId))+'</span>':"")
     +(sel.link?'<button onclick="window.handleInternalLink(\''+encodeURIComponent(JSON.stringify({view:"vessel",vesselId:sel.link.vesselId,tab:"procurement",itemId:sel.link.itemId}))+'\')" style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#475569;background:#eef1f5;border:none;padding:3px 9px;border-radius:6px;cursor:pointer;">↳ '+escapeHTML(sel.link.docLabel+" "+sel.link.docNumber)+'</button>':"")
-    +((sel.messages||[]).length>1?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#6b7280;background:#f1f3f6;padding:3px 9px;border-radius:6px;">'+sel.messages.length+' messaggi</span>':"");
+    +((sel.messages||[]).length>1?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:600;color:#6b7280;background:#f1f3f6;padding:3px 9px;border-radius:6px;">'+sel.messages.length+' messaggi</span>':"")
+    +outlookCatPills(sel.categories,false);
   const msgs=(sel.messages&&sel.messages.length?[...sel.messages].reverse():[{from:sel.fromEmail,fromName:sel.fromName,date:sel.receivedDate,preview:sel.preview}]);
   const msgHTML=msgs.map(m=>{
     const av=paixAva(m.from||m.fromEmail||m.fromName); const ini=paixInitials(m.fromName||m.from);
