@@ -17032,14 +17032,14 @@ function shipParse17Track(raw){
   if(!text.trim()) return null;
   const lines=text.split("\n");
   const grab=(re)=>{ for(const l of lines){ const m=l.match(re); if(m) return m[1].trim(); } return ""; };
-  const number=grab(/AWB\s*number\s*[:：]\s*(.+)/i);
-  const statusText=grab(/Status\s*[:：]\s*(.+)/i);
-  const od=grab(/Origin\/Destination\s*[:：]\s*(.+)/i);
+  const number=grab(/(?:AWB\s*number|Numero)\s*[:：]\s*(.+)/i);
+  const statusText=grab(/(?:Status|Stato(?:\s+del\s+pacco)?)\s*[:：]\s*(.+)/i);
+  const od=grab(/(?:Origin\/Destination|Paese)\s*[:：]\s*(.+)/i);
   let from="", to="";
-  if(od){ const p=od.split(/[-–—一]/); if(p.length>=2){ from=p[0].trim(); to=p.slice(1).join("-").trim(); } }
+  if(od){ const p=od.split(/\s*(?:->|→|[-–—一\/])\s*/); if(p.length>=2){ from=p[0].trim(); to=p.slice(1).join(" / ").trim(); } }
   const stStatus=(()=>{ const s=statusText.toLowerCase();
     if(/deliver|consegn/.test(s)) return "delivered";
-    if(/pick ?up|notif|out for|consegna/.test(s)) return "out_for_delivery";
+    if(/pick ?up|notif|out for/.test(s)) return "out_for_delivery";
     if(/not ?found|non trovat/.test(s)) return "not_found";
     if(/except|problem|fail|hold/.test(s)) return "exception";
     if(/transit|arriv|depart|book|manifest|receiv/.test(s)) return "in_transit";
@@ -17051,17 +17051,26 @@ function shipParse17Track(raw){
     return "transit"; };
   const events=[];
   for(const l of lines){
-    if(!/^\s*\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(l)) continue;
+    const tsm=l.match(/^\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+    if(!tsm) continue;
+    const ts=(tsm[1]+"T"+tsm[2]);
     let cols=l.split("\t").map(c=>c.trim()).filter(Boolean);
     if(cols.length<3) cols=l.split(/\s{2,}/).map(c=>c.trim()).filter(Boolean);
-    if(cols.length<3) continue;
-    const ts=cols[0].replace(" ","T");
-    const code=cols[1]||"";
-    const desc=cols[2]||"";
-    const place=cols[3]||"";
-    const flight=(cols[4]&&cols[4]!=="--")?cols[4]:"";
-    const text2=(code?code+" · ":"")+desc+(flight?" ("+flight+")":"");
-    events.push({ ts, place, text:text2, code:stageOf(code,desc) });
+    if(cols.length>=3){
+      // formato tabellare (AWB aereo): ts | code | desc | place | flight
+      const code=cols[1]||"", desc=cols[2]||"", place=cols[3]||"";
+      const flight=(cols[4]&&cols[4]!=="--")?cols[4]:"";
+      const text2=(code?code+" · ":"")+desc+(flight?" ("+flight+")":"");
+      events.push({ ts, place, text:text2, code:stageOf(code,desc) });
+    } else {
+      // formato lineare (DHL/corrieri): "AAAA-MM-GG HH:MM  LUOGO, descrizione"
+      let rest=l.slice(l.indexOf(tsm[0])+tsm[0].length).trim();
+      let place="", desc=rest;
+      const ci=rest.indexOf(",");
+      if(ci>-1){ place=rest.slice(0,ci).trim(); desc=rest.slice(ci+1).trim(); }
+      if(!desc) continue;
+      events.push({ ts, place, text:desc, code:stageOf("",desc) });
+    }
   }
   events.sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
   const eta=events.length?String(events[0].ts).slice(0,10):"";
@@ -17224,15 +17233,15 @@ function shipmentSection(it, vessel){
         <span style="font-size:14px;">${shipIcon(seg.carrier)}</span>
         <span style="font-size:12px;font-weight:700;color:#2f3b4d;">${escapeHTML(seg.carrier||"")}</span>
         <span style="font-family:var(--font-mono);font-size:11.5px;color:#5b6470;background:#f2f4f7;border-radius:6px;padding:3px 8px;">${escapeHTML(seg.number||"")}</span>
-        ${shipIsAWB(seg) ? `<a href="${escapeAttr(ship17TrackURL(seg.number))}" target="_blank" rel="noopener" title="Apri il tracking manuale su 17TRACK (AWB aereo)" style="font-size:11px;font-weight:700;color:#0e54c1;text-decoration:none;border:1px solid #cddafc;background:#eef4ff;border-radius:6px;padding:3px 8px;white-space:nowrap;">✈ Apri su 17TRACK ↗</a>` : ""}
+        ${seg.number ? `<a href="${escapeAttr(ship17TrackURL(seg.number))}" target="_blank" rel="noopener" title="Apri il tracking su 17TRACK (numero precompilato)" style="font-size:11px;font-weight:700;color:#0e54c1;text-decoration:none;border:1px solid #cddafc;background:#eef4ff;border-radius:6px;padding:3px 8px;white-space:nowrap;">${shipIsAWB(seg)?"✈ ":""}Apri su 17TRACK ↗</a>` : ""}
         <button title="Rimuovi" onclick="window.shipRemove('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')" style="margin-left:auto;background:none;border:none;color:#c2c9d2;font-size:15px;cursor:pointer;line-height:1;">✕</button>
       </div>
       ${shipIsAWB(seg) && (seg.status==="pending" || !events.length) ? `<div style="font-size:11px;color:#8a6d1a;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:8px;padding:7px 9px;margin-top:8px;line-height:1.4;">✈ Corriere aereo (AWB): il tracking automatico via API richiede il canale <b>Air Cargo</b> di 17TRACK. Aggiornalo qui sotto in 2 click: apri su 17TRACK, premi <b>COPIA DETTAGLI</b> e incolla.</div>` : ""}
-      ${shipIsAWB(seg) ? `<details style="margin-top:8px;">
+      <details style="margin-top:8px;">
         <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#0e54c1;list-style:none;">📋 Incolla dati da 17TRACK${seg.source==="17track-manual"?" — aggiorna":""}</summary>
-        <textarea id="ship-paste-${escapeAttr(seg.id)}" placeholder="Incolla qui il testo del pulsante «COPIA DETTAGLI» di 17TRACK…" style="width:100%;box-sizing:border-box;height:74px;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:11.5px;font-family:var(--font-mono);margin-top:7px;resize:vertical;"></textarea>
+        <textarea id="ship-paste-${escapeAttr(seg.id)}" placeholder="Incolla qui il testo del pulsante «COPIA DETTAGLI» di 17TRACK (aereo o corriere)…" style="width:100%;box-sizing:border-box;height:74px;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:11.5px;font-family:var(--font-mono);margin-top:7px;resize:vertical;"></textarea>
         <button class="btn btn-sm btn-primary" style="width:100%;margin-top:7px;" onclick="window.shipApply17Track('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')">Applica al tracking</button>
-      </details>` : ""}
+      </details>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;">
         <span style="font-size:12px;color:#5b6470;">${escapeHTML(meta)}</span>
         ${toggleBtn}
