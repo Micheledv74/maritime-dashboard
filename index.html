@@ -17013,6 +17013,78 @@ function saveDeliveriesDB(obj){ try{ localStorage.setItem("mpd.deliveries", JSON
 // ============================================================================
 const SHIP_CARRIERS = ["DHL Express","FedEx","UPS","TNT","DB Schenker (aereo)","Kuehne+Nagel (aereo)","Lufthansa Cargo","Emirates SkyCargo","Cargolux","Altro"];
 const SHIP_COURIERS = new Set(["DHL Express","FedEx","UPS","TNT"]);
+// AWB aereo: 3 cifre (prefisso IATA) + 7-8 cifre. Il tracking API standard 17TRACK non copre
+// gli AWB aerei (serve il canale "Air Cargo"), quindi per questi offriamo il link manuale.
+function shipIsAWB(seg){
+  if(!seg) return false;
+  const n=String(seg.number||"").replace(/\s+/g,"");
+  if(/^\d{3}[- ]?\d{7,8}$/.test(String(seg.number||"").trim())) return true;
+  return !SHIP_COURIERS.has(seg.carrier); // corriere non-courier = aereo/altro
+}
+function ship17TrackURL(number){
+  const n=String(number||"").replace(/\s+/g,"");
+  return "https://t.17track.net/it#nums="+encodeURIComponent(n);
+}
+// Parser del testo "COPIA DETTAGLI" di 17TRACK (alternativa alle API, senza limiti di quota).
+// Ritorna { number, statusText, status, from, to, eta, events:[{ts,place,text,code}] } o null.
+function shipParse17Track(raw){
+  const text=String(raw||"").replace(/\r/g,"");
+  if(!text.trim()) return null;
+  const lines=text.split("\n");
+  const grab=(re)=>{ for(const l of lines){ const m=l.match(re); if(m) return m[1].trim(); } return ""; };
+  const number=grab(/AWB\s*number\s*[:：]\s*(.+)/i);
+  const statusText=grab(/Status\s*[:：]\s*(.+)/i);
+  const od=grab(/Origin\/Destination\s*[:：]\s*(.+)/i);
+  let from="", to="";
+  if(od){ const p=od.split(/[-–—一]/); if(p.length>=2){ from=p[0].trim(); to=p.slice(1).join("-").trim(); } }
+  const stStatus=(()=>{ const s=statusText.toLowerCase();
+    if(/deliver|consegn/.test(s)) return "delivered";
+    if(/pick ?up|notif|out for|consegna/.test(s)) return "out_for_delivery";
+    if(/not ?found|non trovat/.test(s)) return "not_found";
+    if(/except|problem|fail|hold/.test(s)) return "exception";
+    if(/transit|arriv|depart|book|manifest|receiv/.test(s)) return "in_transit";
+    return "in_transit"; })();
+  const stageOf=(code,desc)=>{ const c=(code||"").toUpperCase(); const d=(desc||"").toLowerCase();
+    if(c==="DLV"||c==="POD"||/delivered/.test(d)) return "delivered";
+    if(/fail|except|hold|damage/.test(d)) return "exception";
+    if(c==="NFD"||c==="RCS"||c==="MAN"||c==="BKD") return "info";
+    return "transit"; };
+  const events=[];
+  for(const l of lines){
+    if(!/^\s*\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(l)) continue;
+    let cols=l.split("\t").map(c=>c.trim()).filter(Boolean);
+    if(cols.length<3) cols=l.split(/\s{2,}/).map(c=>c.trim()).filter(Boolean);
+    if(cols.length<3) continue;
+    const ts=cols[0].replace(" ","T");
+    const code=cols[1]||"";
+    const desc=cols[2]||"";
+    const place=cols[3]||"";
+    const flight=(cols[4]&&cols[4]!=="--")?cols[4]:"";
+    const text2=(code?code+" · ":"")+desc+(flight?" ("+flight+")":"");
+    events.push({ ts, place, text:text2, code:stageOf(code,desc) });
+  }
+  events.sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
+  const eta=events.length?String(events[0].ts).slice(0,10):"";
+  if(!number && !events.length) return null;
+  return { number, statusText, status:stStatus, from, to, eta, events };
+}
+window.shipApply17Track = function(itemId, segId){
+  const ta=document.getElementById("ship-paste-"+segId);
+  const parsed=shipParse17Track(ta&&ta.value);
+  if(!parsed || !parsed.events.length){ if(typeof showToast==="function") showToast("Non sono riuscito a leggere i dati. Usa il pulsante «COPIA DETTAGLI» su 17TRACK e incolla qui."); return; }
+  const segs=getItemShipments(itemId);
+  const seg=segs.find(s=>s.id===segId);
+  if(!seg) return;
+  seg.status=parsed.status;
+  seg.events=parsed.events;
+  if(parsed.eta) seg.eta=parsed.eta;
+  seg.source="17track-manual";
+  seg.updatedAt=new Date().toISOString();
+  setItemShipments(itemId, segs);
+  _shipOpen[segId]=true;
+  if(typeof showToast==="function") showToast("Tracking aggiornato ("+parsed.events.length+" eventi) — fonte 17TRACK");
+  window.openItemDetailPopover(itemId);
+};
 const SHIP_STATUS = {
   info_received:{ label:"Registrato", color:"#5b6470", bg:"#eef0f3", accent:"#c2c9d2" },
   in_transit:{ label:"In transito", color:"#b8860b", bg:"#fdf4e2", accent:"#b8860b" },
@@ -17152,8 +17224,15 @@ function shipmentSection(it, vessel){
         <span style="font-size:14px;">${shipIcon(seg.carrier)}</span>
         <span style="font-size:12px;font-weight:700;color:#2f3b4d;">${escapeHTML(seg.carrier||"")}</span>
         <span style="font-family:var(--font-mono);font-size:11.5px;color:#5b6470;background:#f2f4f7;border-radius:6px;padding:3px 8px;">${escapeHTML(seg.number||"")}</span>
+        ${shipIsAWB(seg) ? `<a href="${escapeAttr(ship17TrackURL(seg.number))}" target="_blank" rel="noopener" title="Apri il tracking manuale su 17TRACK (AWB aereo)" style="font-size:11px;font-weight:700;color:#0e54c1;text-decoration:none;border:1px solid #cddafc;background:#eef4ff;border-radius:6px;padding:3px 8px;white-space:nowrap;">✈ Apri su 17TRACK ↗</a>` : ""}
         <button title="Rimuovi" onclick="window.shipRemove('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')" style="margin-left:auto;background:none;border:none;color:#c2c9d2;font-size:15px;cursor:pointer;line-height:1;">✕</button>
       </div>
+      ${shipIsAWB(seg) && (seg.status==="pending" || !events.length) ? `<div style="font-size:11px;color:#8a6d1a;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:8px;padding:7px 9px;margin-top:8px;line-height:1.4;">✈ Corriere aereo (AWB): il tracking automatico via API richiede il canale <b>Air Cargo</b> di 17TRACK. Aggiornalo qui sotto in 2 click: apri su 17TRACK, premi <b>COPIA DETTAGLI</b> e incolla.</div>` : ""}
+      ${shipIsAWB(seg) ? `<details style="margin-top:8px;">
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#0e54c1;list-style:none;">📋 Incolla dati da 17TRACK${seg.source==="17track-manual"?" — aggiorna":""}</summary>
+        <textarea id="ship-paste-${escapeAttr(seg.id)}" placeholder="Incolla qui il testo del pulsante «COPIA DETTAGLI» di 17TRACK…" style="width:100%;box-sizing:border-box;height:74px;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:11.5px;font-family:var(--font-mono);margin-top:7px;resize:vertical;"></textarea>
+        <button class="btn btn-sm btn-primary" style="width:100%;margin-top:7px;" onclick="window.shipApply17Track('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')">Applica al tracking</button>
+      </details>` : ""}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:9px;">
         <span style="font-size:12px;color:#5b6470;">${escapeHTML(meta)}</span>
         ${toggleBtn}
