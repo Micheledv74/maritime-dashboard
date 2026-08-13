@@ -11997,18 +11997,42 @@ function paixCounterpartName(r){
 // --- v0.68 Archivio "offerte fornitori spontanee" (recupero per zona/porto) ---
 function paixLoadArchived(){ try{ const o=JSON.parse(localStorage.getItem("mpd.vendorOffers")||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
 function paixSaveArchived(o){ try{ localStorage.setItem("mpd.vendorOffers", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch(e){} }
-function paixIsArchived(r){ return !!paixLoadArchived()[r && r.id]; }
-function paixArchMeta(r){ return paixLoadArchived()[r && r.id] || null; }
-// v0.69 — Dedup archivio: lo stesso shipchandler ripropone la stessa offerta più volte. Le raggruppo
-// per dominio + oggetto normalizzato, tengo solo la più recente e conto le repliche (_dupCount).
+function paixArchNorm(e){ return String(e||"").toLowerCase().trim(); }
+// v0.74 — insieme degli INDIRIZZI mittente che hanno già almeno un'offerta archiviata
+function paixArchivedSenders(){
+  const o=paixLoadArchived(); const set=new Set();
+  Object.values(o).forEach(m=>{ if(m && m.fromEmail) set.add(paixArchNorm(m.fromEmail)); });
+  return set;
+}
+// v0.74 — un'email è "archiviata" se lo è per id OPPURE se dal suo stesso indirizzo ho già archiviato
+// un'offerta (offerte fornitore): così le nuove/duplicate dello stesso mittente NON vanno più riprocessate.
+function paixIsArchived(r){
+  if(!r) return false;
+  if(paixLoadArchived()[r.id]) return true;
+  const fe=paixArchNorm(r.fromEmail);
+  if(fe && r.category==="vendor_intro" && paixArchivedSenders().has(fe)) return true;
+  return false;
+}
+// meta: per id, oppure (auto-archiviate) quella salvata per lo stesso indirizzo mittente
+function paixArchMeta(r){
+  const o=paixLoadArchived();
+  if(r && o[r.id]) return o[r.id];
+  const fe=paixArchNorm(r && r.fromEmail);
+  if(fe){ const m=Object.values(o).find(x=>x && paixArchNorm(x.fromEmail)===fe); if(m) return m; }
+  return null;
+}
+// v0.74 — Archivio raggruppato PER INDIRIZZO EMAIL: tutte le offerte dallo stesso shipchandler
+// vengono inglobate in un'unica voce (rappresentante = la più recente, _dupCount = quante ne sono arrivate).
 function paixArchivedDeduped(all){
   const arch=(all||[]).filter(r=>paixIsArchived(r));
   const byKey={}, groups={};
   arch.forEach(r=>{
-    const key=(paixDomain(r.fromEmail)||String(r.fromEmail||""))+"|"+paixStripPrefix(r.subject).toLowerCase().replace(/\s+/g," ").slice(0,30);
+    const key=paixArchNorm(r.fromEmail)||String(r.id||"");
     r._dupKey=key; groups[key]=(groups[key]||0)+1;
-    const cur=byKey[key], ts=String((paixArchMeta(r)||{}).savedAt||"");
-    if(!cur || String((paixArchMeta(cur)||{}).savedAt||"")<=ts) byKey[key]=r;
+    const ts=String(r.receivedDate||r.date||(paixArchMeta(r)||{}).savedAt||"");
+    const cur=byKey[key];
+    const curTs=cur?String(cur.receivedDate||cur.date||(paixArchMeta(cur)||{}).savedAt||""):"";
+    if(!cur || curTs<=ts) byKey[key]=r;
   });
   return Object.values(byKey).map(r=>{ r._dupCount=groups[r._dupKey]||1; return r; })
     .sort((a,b)=>String((paixArchMeta(b)||{}).area||"").localeCompare(String((paixArchMeta(a)||{}).area||"")));
@@ -17151,11 +17175,27 @@ function shipmentMiniHTML(it){
            || segs.find(s=>["in_transit","out_for_delivery"].includes(s.status))
            || segs[segs.length-1];
   const routeLbl = rShort[rep&&rep.route] || "";
-  return `<div style="margin-top:6px;display:flex;align-items:center;gap:6px;" title="Spedizione ${escapeAttr(routeLbl)}: ${escapeAttr(label)}">
-    <span style="font-size:11px;line-height:1;">${icon}</span>
-    ${routeLbl?`<span style="font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#5b6470;background:#eef0f3;border-radius:4px;padding:1px 5px;white-space:nowrap;">${escapeHTML(routeLbl)}</span>`:""}
-    <div style="flex:1;height:5px;border-radius:3px;background:#eceef1;overflow:hidden;min-width:44px;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
-    <span style="font-size:10px;font-weight:700;color:${color};white-space:nowrap;">${escapeHTML(label)}</span>
+  // v0.74 — data di partenza (pickup più antico) e arrivo previsto al porto (eta della tratta verso il porto)
+  const deps = segs.map(s=>s.pickup).filter(Boolean).sort();
+  const dep = deps[0] || null;
+  const toPortSegs = segs.filter(s=>s.route==="hub-port"||s.route==="supplier-port");
+  const lastToPort = toPortSegs[toPortSegs.length-1] || rep || segs[segs.length-1];
+  const arr = (lastToPort && lastToPort.eta) || null;
+  const arrLbl = portDone ? "Arrivata" : "Arrivo prev.";
+  const datesLine = (dep||arr)
+    ? `<div style="margin-top:4px;display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:#5b6470;line-height:1.4;">
+        ${dep?`<span>Partenza <b style="color:#12233a;">${escapeHTML(shipFmtDay(dep))}</b></span>`:""}
+        ${arr?`<span>${arrLbl} <b style="color:${portDone?'#117a3a':'#12233a'};">${escapeHTML(shipFmtDay(arr))}</b></span>`:""}
+      </div>`
+    : "";
+  return `<div style="margin-top:6px;">
+    <div style="display:flex;align-items:center;gap:6px;" title="Spedizione ${escapeAttr(routeLbl)}: ${escapeAttr(label)}">
+      <span style="font-size:11px;line-height:1;">${icon}</span>
+      ${routeLbl?`<span style="font-size:9.5px;font-weight:800;letter-spacing:.02em;color:#5b6470;background:#eef0f3;border-radius:4px;padding:1px 5px;white-space:nowrap;">${escapeHTML(routeLbl)}</span>`:""}
+      <div style="flex:1;height:5px;border-radius:3px;background:#eceef1;overflow:hidden;min-width:44px;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
+      <span style="font-size:10px;font-weight:700;color:${color};white-space:nowrap;">${escapeHTML(label)}</span>
+    </div>
+    ${datesLine}
   </div>`;
 }
 
@@ -18930,6 +18970,8 @@ window.openCertEditor = function(vid, key){
   const typeOpt = (k,l)=> '<option value="'+k+'"'+((p.type||"service")===k?" selected":"")+'>'+l+'</option>';
   const needs = !!ex.needsService;
   const supEmail = (ex.supEmailOverride!=null?ex.supEmailOverride:certSupplierEmail(p.supplier||ex.supplier||""));
+  const _batchN = (typeof certSupplierBatch==="function") ? certSupplierBatch(vid, p.supplier||ex.supplier||"").length : 0;
+  const supBtnLabel = _batchN>1 ? ("📧 Richiesta unica al fornitore ("+_batchN+" certificati)") : "📧 Richiesta preventivo al fornitore";
   const masterEmail = (ex.masterEmailOverride!=null?ex.masterEmailOverride:(cfg.masterEmail||""));
   const masterPlaceholder = /example\.com|_{2,}/.test(masterEmail);
   const reps = eff._reports||[];
@@ -18970,7 +19012,7 @@ window.openCertEditor = function(vid, key){
           +'<div style="margin-top:16px;padding-top:14px;border-top:1px solid #e4e1f2;">'
             +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px;"><span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#7a8290;">Genera report</span><div style="display:flex;gap:4px;">'+langBtn("it","IT")+langBtn("en","EN")+langBtn("both","IT+EN")+'</div><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#4b5563;cursor:pointer;margin-left:auto;"><input type="checkbox" id="ce-ai" style="width:15px;height:15px;cursor:pointer;">✨ rifinisci con AI</label></div>'
             +'<div style="display:flex;gap:9px;flex-wrap:wrap;">'
-              +'<button onclick="window.certGenServiceReport(\''+escapeAttr(vid)+'\',\''+escapeAttr(key)+'\',\'supplier\')" style="flex:1;min-width:200px;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:#0e54c1;border:none;border-radius:9px;padding:11px;cursor:pointer;">📧 Richiesta preventivo al fornitore</button>'
+              +'<button onclick="window.certGenServiceReport(\''+escapeAttr(vid)+'\',\''+escapeAttr(key)+'\',\'supplier\')" style="flex:1;min-width:200px;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:#0e54c1;border:none;border-radius:9px;padding:11px;cursor:pointer;">'+supBtnLabel+'</button>'
               +'<button onclick="window.certGenServiceReport(\''+escapeAttr(vid)+'\',\''+escapeAttr(key)+'\',\'master\')" style="flex:1;min-width:200px;display:flex;align-items:center;justify-content:center;gap:7px;font-family:inherit;font-size:13px;font-weight:700;color:#0e54c1;background:#eaf1fd;border:1px solid #c9defb;border-radius:9px;padding:11px;cursor:pointer;">📧 Avviso al Comandante</button>'
             +'</div>'
             +'<div style="font-size:10.5px;color:#8a83a8;margin-top:8px;line-height:1.5;">Il testo è precompilato dai dati del certificato; si apre come bozza in Outlook/email — l\'invio lo fai tu. Ogni report resta tracciato qui sotto.</div>'
@@ -19034,30 +19076,82 @@ function certBuildServiceReport(vid, it, which, lang){
   else { subject=B.subjIt; body=B.it; }
   return { subject, body };
 }
+// v0.74 — tutti i certificati della nave che richiedono service dallo STESSO fornitore
+function certSupplierBatch(vid, supplier){
+  const sup=String(supplier||"").trim().toLowerCase();
+  if(!sup) return [];
+  const arr=(state.certificates&&state.certificates[vid])||[];
+  return arr.filter(it=>{
+    const ex=getCertExtra(vid,it); if(!ex.needsService) return false;
+    const p=ex.plan||{}; const s=String(p.supplier||ex.supplier||"").trim().toLowerCase();
+    return s===sup;
+  });
+}
+// v0.74 — UNA sola richiesta preventivo al fornitore con l'elenco di TUTTI i suoi certificati
+function certBuildSupplierBatchReport(vid, items, lang){
+  const cfg=VESSELS.find(v=>v.vesselId===vid)||{};
+  const vName=cfg.displayName||vid, imo=cfg.imo||"";
+  const ex0=getCertExtra(vid,items[0]); const p0=ex0.plan||{};
+  const sup=(p0.supplier||ex0.supplier||"").trim();
+  const TYPEMAP={ service:{it:"service",en:"service"}, audit:{it:"audit",en:"audit"}, survey:{it:"verifica/survey",en:"survey"}, inspection:{it:"ispezione",en:"inspection"} };
+  function line(it,en){
+    const ex=getCertExtra(vid,it); const p=ex.plan||{};
+    const T=TYPEMAP[p.type||"service"];
+    const cert=it.name||""; const certNum=it.certNum?(" (n. "+it.certNum+")"):"";
+    const port=p.port||(en?"(port TBC)":"(porto da definire)");
+    const d=p.date?new Date(p.date+"T00:00:00").toLocaleDateString(en?"en-GB":"it-IT",{day:"2-digit",month:"long",year:"numeric"}):(en?"(date TBC)":"(data da definire)");
+    return en ? ("• "+cert+certNum+" — "+T.en+" — port: "+port+" — date: "+d)
+              : ("• "+cert+certNum+" — "+T.it+" — porto: "+port+" — data: "+d);
+  }
+  const sign={it:"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA", en:"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA"};
+  const subjIt="Richiesta preventivo e disponibilità — "+items.length+" interventi — "+vName;
+  const subjEn="Request for quotation and availability — "+items.length+" services — "+vName;
+  const it="Spett.le "+(sup||"Fornitore")+",\n\ncon riferimento alla M/V "+vName+(imo?" (IMO "+imo+")":"")+", Vi chiediamo un preventivo e la Vostra disponibilità per l'esecuzione dei seguenti interventi:\n\n"+items.map(x=>line(x,false)).join("\n")+"\n\nVi preghiamo di confermare disponibilità, tempistiche e costi complessivi. Restiamo a disposizione per ogni dettaglio.\n\n"+sign.it;
+  const en="Dear "+(sup||"Sir/Madam")+",\n\nwith reference to M/V "+vName+(imo?" (IMO "+imo+")":"")+", we kindly request your quotation and availability for the following services:\n\n"+items.map(x=>line(x,true)).join("\n")+"\n\nPlease confirm availability, lead time and overall costs. We remain at your disposal for any detail.\n\n"+sign.en;
+  let subject, body;
+  if(lang==="en"){ subject=subjEn; body=en; }
+  else if(lang==="both"){ subject=subjIt+" / "+subjEn; body=it+"\n\n———————————————\n\n"+en; }
+  else { subject=subjIt; body=it; }
+  return { subject, body };
+}
 window.certGenServiceReport = async function(vid, key, which){
   const it=certFindItem(vid,key); if(!it) return;
   certEditorReadFields(vid, it); // salva le modifiche correnti prima di generare
   const lang=window._ceLang||"it";
   const aiOn=!!(document.getElementById("ce-ai")||{}).checked;
-  let rep=certBuildServiceReport(vid, it, which, lang);
+  // v0.74 — per il fornitore raggruppo TUTTI i certificati che richiedono service allo stesso fornitore
+  let rep, targets=[it];
+  if(which==="supplier"){
+    const exNow=getCertExtra(vid,it); const supName=(exNow.plan||{}).supplier||exNow.supplier||"";
+    const batch=certSupplierBatch(vid, supName);
+    targets = batch.length ? batch : [it];
+    rep = targets.length>1 ? certBuildSupplierBatchReport(vid, targets, lang) : certBuildServiceReport(vid, it, which, lang);
+  } else {
+    rep = certBuildServiceReport(vid, it, which, lang);
+  }
   const to = which==="supplier" ? ((document.getElementById("ce-sup-email")||{}).value||"").trim()
                                  : ((document.getElementById("ce-master-email")||{}).value||"").trim();
   if(aiOn && typeof aiComplete==="function"){
     showToast("Rifinisco con l'AI…");
     const langLabel = lang==="en"?"inglese":lang==="both"?"italiano e inglese (entrambe le versioni, separate)":"italiano";
-    const prompt="Sei l'assistente di un purchasing manager marittimo. Migliora fluidità e professionalità di questa email SENZA cambiare i dati (nave, tipo intervento, porto, data, fornitore) e senza aggiungere informazioni inventate. Mantieni la lingua: "+langLabel+". Restituisci SOLO il corpo, senza oggetto e senza markdown.\n\n"+rep.body;
+    const prompt="Sei l'assistente di un purchasing manager marittimo. Migliora fluidità e professionalità di questa email SENZA cambiare i dati (nave, tipo intervento, porto, data, fornitore, elenco certificati) e senza aggiungere informazioni inventate. Mantieni la lingua: "+langLabel+". Restituisci SOLO il corpo, senza oggetto e senza markdown.\n\n"+rep.body;
     try{ const txt=await aiComplete(prompt); if(txt && String(txt).trim()) rep.body=String(txt).trim(); }catch(e){ showToast("AI non disponibile, uso il testo base"); }
   }
   if(typeof openComposeMail==="function" && typeof buildComposeHref==="function"){
     openComposeMail(buildComposeHref(rep.subject, rep.body, to));
   }
-  // Audit trail + avanzamento stato
-  const ex=getCertExtra(vid,it); const reports=Array.isArray(ex.reports)?ex.reports.slice():[];
-  reports.unshift({ ts:new Date().toISOString(), which, to:to||"(nessun destinatario)", lang, subject:rep.subject });
-  const plan=Object.assign({}, ex.plan||{});
-  if(which==="supplier" && (!plan.status || plan.status==="none")) plan.status="requested";
-  setCertExtra(vid, it, { reports, plan });
-  showToast(which==="supplier"?"Bozza richiesta fornitore pronta · tracciata":"Bozza avviso Comandante pronta · tracciata");
+  // Audit trail + avanzamento stato su TUTTI i certificati inclusi (fornitore) o sul singolo (Comandante)
+  targets.forEach(t=>{
+    const ex=getCertExtra(vid,t); const reports=Array.isArray(ex.reports)?ex.reports.slice():[];
+    reports.unshift({ ts:new Date().toISOString(), which, to:to||"(nessun destinatario)", lang, subject:rep.subject, batch: (which==="supplier" && targets.length>1)?targets.length:undefined });
+    const plan=Object.assign({}, ex.plan||{});
+    if(which==="supplier" && (!plan.status || plan.status==="none")) plan.status="requested";
+    setCertExtra(vid, t, { reports, plan });
+  });
+  const msg = which==="supplier"
+    ? (targets.length>1 ? ("Bozza richiesta unica ("+targets.length+" certificati) pronta · tracciata") : "Bozza richiesta fornitore pronta · tracciata")
+    : "Bozza avviso Comandante pronta · tracciata";
+  showToast(msg);
   window.openCertEditor(vid, key); // ridisegna con audit trail aggiornato
 };
 
