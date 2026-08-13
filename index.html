@@ -17074,9 +17074,21 @@ function shipParse17Track(raw){
     if(c==="NFD"||c==="RCS"||c==="MAN"||c==="BKD") return "info";
     return "transit"; };
   const events=[];
+  const TRK_CODES=new Set(["DLV","RCF","ARR","DEP","BKD","NFD","MAN","RCS","POD","AWB","CCL","DIS","TRM","NFR","RCT","PRE","FOH","AWD"]);
   for(const l of lines){
     const tsm=l.match(/^\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
-    if(!tsm) continue;
+    if(!tsm){
+      // formato tabellare SENZA orario (alcuni AWB aerei): "\tCODICE\tdescrizione\tluogo\tflight\tpezzi"
+      if(l.indexOf("\t")>-1){
+        const c=l.split("\t").map(x=>x.trim()).filter(Boolean);
+        if(c.length>=2 && TRK_CODES.has((c[0]||"").toUpperCase())){
+          const code=c[0]||"", desc=c[1]||"", place=c[2]||"";
+          const flight=(c[3]&&c[3]!=="--")?c[3]:"";
+          events.push({ ts:"", place, text:(code?code+" · ":"")+desc+(flight?" ("+flight+")":""), code:stageOf(code,desc) });
+        }
+      }
+      continue;
+    }
     const ts=(tsm[1]+"T"+tsm[2]);
     let cols=l.split("\t").map(c=>c.trim()).filter(Boolean);
     if(cols.length<3) cols=l.split(/\s{2,}/).map(c=>c.trim()).filter(Boolean);
@@ -17096,8 +17108,10 @@ function shipParse17Track(raw){
       events.push({ ts, place, text:desc, code:stageOf("",desc) });
     }
   }
-  events.sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
-  const eta=events.length?String(events[0].ts).slice(0,10):"";
+  const hasTs=events.some(e=>e.ts);
+  if(hasTs) events.sort((a,b)=>String(b.ts).localeCompare(String(a.ts))); // con orario: dal più recente
+  // (senza orario mantengo l'ordine di 17TRACK, già dal più recente)
+  const eta=(events.find(e=>e.ts)||{}).ts ? String((events.find(e=>e.ts)).ts).slice(0,10) : "";
   if(!number && !events.length) return null;
   return { number, statusText, status:stStatus, from, to, eta, events };
 }
