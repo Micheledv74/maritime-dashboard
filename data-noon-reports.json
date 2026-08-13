@@ -1135,18 +1135,18 @@
         "type": "sea",
         "lat": "33-14.0S",
         "lon": "029-30.5E",
-        "positionText": null,
+        "positionText": "33-14.0S / 029-30.5E",
         "from": null,
-        "to": null,
+        "to": "PORT LOUIS",
         "nextPort": "Port Louis",
-        "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS",
+        "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS / BEDI 27.08.2026 AM",
         "etbText": null,
         "etdText": null,
-        "etaISO": "2026-08-18T00:00",
+        "etaISO": "2026-08-18",
         "etbISO": null,
         "etdISO": null,
         "speed": "8.63",
-        "course": "69",
+        "course": "069",
         "milesToGo": "1696",
         "bunkers": {
           "lsfo": "791.159",
@@ -1154,51 +1154,67 @@
         },
         "status": "in navigazione",
         "remarks": "Distanza rimanente a Port Louis: 1696 NM, a Bedi: 2712 NM. ETA Port Louis: 18.08.2026 EAM AGW WP.",
-        "vesselId": "medtoscana"
+        "vesselId": "medtoscana",
+        "isNoonReport": true,
+        "consumption": {
+          "lsfo": "22.97",
+          "lsmgo": "0.00"
+        },
+        "wind": "SE/6",
+        "sea": "SE/3.6 MTR",
+        "swell": "SSW/ABT 3.5 MTR"
       },
       {
         "date": "2026-08-12",
         "type": "sea",
         "lat": "31-52.5S",
         "lon": "033-33.9E",
-        "positionText": null,
+        "positionText": "31-52.5S / 033-33.9E",
         "from": null,
-        "to": null,
+        "to": "PORT LOUIS",
         "nextPort": "Port Louis",
-        "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS",
+        "etaText": "18.08.2026 EAM AGW WP, PORT LOUIS / BEDI 27.08.2026 AM",
         "etbText": null,
         "etdText": null,
-        "etaISO": "2026-08-18T00:00",
+        "etaISO": "2026-08-18",
         "etbISO": null,
         "etdISO": null,
-        "speed": 9.25,
-        "course": 69,
-        "milesToGo": 1474,
+        "speed": "9.25",
+        "course": "069",
+        "milesToGo": "1474",
         "bunkers": {
-          "lsfo": 767.549,
-          "lsmgo": 60.681
+          "lsfo": "767.549",
+          "lsmgo": "60.681"
         },
         "status": "in navigazione",
         "remarks": "Distanza rimanente a Port Louis: 1474 NM, a Bedi: 2712 NM. ETA Port Louis: 18.08.2026 AM",
-        "vesselId": "medtoscana"
+        "vesselId": "medtoscana",
+        "isNoonReport": true,
+        "consumption": {
+          "lsfo": "23.61",
+          "lsmgo": "0.10"
+        },
+        "wind": "SE/6",
+        "sea": "SE/3.7 MTR",
+        "swell": "SSW/ABT 3.0 MTR"
       },
       {
         "date": "2026-08-13",
         "type": "sea",
         "lat": "30-29.1S",
         "lon": "037-42.3E",
-        "positionText": null,
+        "positionText": "30-29.1S / 037-42.3E",
         "from": null,
-        "to": null,
+        "to": "PORT LOUIS",
         "nextPort": "Port Louis",
-        "etaText": "18.08.2026 1600lt",
+        "etaText": "18.08.2026 1600lt AGW WP, PORT LOUIS / BEDI 27.08.2026 AM",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-18T16:00",
         "etbISO": null,
         "etdISO": null,
         "speed": "9.91",
-        "course": "69",
+        "course": "069",
         "milesToGo": "1246",
         "bunkers": {
           "lsfo": "745.339",
@@ -1207,7 +1223,15 @@
         },
         "status": "in navigazione",
         "remarks": "1 Hour advance to conform ZD GMT+3",
-        "vesselId": "medtoscana"
+        "vesselId": "medtoscana",
+        "isNoonReport": true,
+        "consumption": {
+          "lsfo": "22.21",
+          "lsmgo": "0.0"
+        },
+        "wind": "SE/6",
+        "sea": "SE/3.4 MTR",
+        "swell": "ESE/ABT 2.6 MTR"
       }
     ],
     "medliguria": [
@@ -2438,11 +2462,11 @@
         "type": "sea",
         "lat": "03-21.9N",
         "lon": "100-18.8E",
-        "positionText": null,
+        "positionText": "03-21.9N / 100-18.8E",
         "from": "VITORIA",
         "to": "SINGAPORE",
         "nextPort": "WP AGW",
-        "etaText": "13 AUG 2026 1200LT",
+        "etaText": "ETA next port: 13 AUG 2026 1200LT WP AGW",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-13T12:00",
@@ -2450,15 +2474,39 @@
         "etdISO": null,
         "speed": "10.63",
         "course": null,
-        "milesToGo": 269,
+        "milesToGo": "269",
         "bunkers": {
-          "lsfo": 145.14,
-          "lsmgo": 80.43,
-          "fw": 425
+          "lsfo": "145.14",
+          "lsmgo": "80.43",
+          "fw": "425"
         },
         "status": "in navigazione",
         "remarks": "ADV CURRENT ABT 1.5 KTS",
-        "vesselId": "medliguria"
+        "vesselId": "medliguria",
+        "isNoonReport": true,
+        "voyageNo": "11",
+        "consumption": {
+          "lsfo": "19.33",
+          "lsmgo": "0",
+          "fw": "8"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "13168",
+          "unit": "L"
+        },
+        "wind": "SE/15 KTS",
+        "sea": "SE/2.0",
+        "current": "NW/1.5 KTS"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "wind": "ROB on arrival: EOSP 13 AUG 2026/ 1000LT: VLSFO-126.84 /LSMGO-80.43",
+        "sea": "Arrival Draft : Fwd 12.19 Aft 12.30",
+        "current": "Cargo to be Loaded: N/A",
+        "vesselId": "medliguria",
+        "date": "2026-08-13"
       }
     ],
     "peppino": [
@@ -3706,7 +3754,7 @@
         "lon": "018-35.7E",
         "positionText": null,
         "from": "Port Luis, Mauritius",
-        "to": "Takoradi, Ghana",
+        "to": "Takoradi, Ghana, W.A",
         "nextPort": "Takoradi",
         "etaText": "22.08.2026 1200LT",
         "etbText": null,
@@ -3714,17 +3762,34 @@
         "etaISO": "2026-08-22T12:00",
         "etbISO": null,
         "etdISO": null,
-        "speed": "10.32",
+        "speed": 10.32,
         "course": null,
-        "milesToGo": "2627.0",
+        "milesToGo": 2627,
         "bunkers": {
-          "lsfo": "1311.06",
-          "lsmgo": "161.44",
-          "fw": "71.0"
+          "lsfo": 1311.06,
+          "lsmgo": 161.44,
+          "fw": 71
         },
-        "status": "In navigazione con vento da Est forza 7, mare molto mosso, rollio moderato-grave per swell da Sud con altezza 5.0m",
-        "remarks": "Ora nave ritardata di un'ora per conformità ZD +01. Consumo giornaliero LSFO: 28.08MT, LSMGO: 0.00MT, FW: 4.0MT. Consumo LSFO ME: 27.15MT, AE: 0.93MT, Boiler: 0.00MT.",
-        "vesselId": "peppino"
+        "status": "Sailing E'ly wind Near gale, v. rough sea, rolling moderately to heavily due to S'ly swell (5.0m).",
+        "remarks": "Ship's time one hour retard to conformed ZD +01",
+        "vesselId": "peppino",
+        "isNoonReport": true,
+        "voyageNo": "18-L",
+        "consumption": {
+          "hfo": 0,
+          "lsfo": 28.08,
+          "lsmgo": 0,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 4
+        },
+        "cylinderOil": {
+          "daily": 180,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 70374,
+          "unit": "Ltrs"
+        }
       },
       {
         "date": "2026-08-12",
@@ -3733,8 +3798,8 @@
         "lon": "016-20.3E",
         "positionText": null,
         "from": "Port Luis, Mauritius",
-        "to": "Takoradi, Ghana",
-        "nextPort": "Takoradi Port Station",
+        "to": "Takoradi, Ghana, W.A",
+        "nextPort": "Takoradi",
         "etaText": "22.08.2026 1200LT",
         "etbText": null,
         "etdText": null,
@@ -3743,15 +3808,32 @@
         "etdISO": null,
         "speed": "11.21",
         "course": null,
-        "milesToGo": "2358.0",
+        "milesToGo": 2358,
         "bunkers": {
-          "lsfo": "1287.06",
-          "lsmgo": "161.44",
-          "fw": "77.0"
+          "lsfo": 1287.06,
+          "lsmgo": 161.44,
+          "fw": 77
         },
-        "status": "Sailing E 'ly wind strong breeze, rough sea, rolling moderately due to S 'ly swell with the height of 4.0m",
+        "status": "Sailing E 'ly wind strong breeze, rough sea, rolling moderately due to S 'ly swell (4.0m).",
         "remarks": "Vessel Sailing E 'ly wind strong breeze, rough sea, rolling moderately due to S 'ly swell with the height of 4.0m.",
-        "vesselId": "peppino"
+        "vesselId": "peppino",
+        "isNoonReport": true,
+        "voyageNo": "18-L",
+        "consumption": {
+          "hfo": 0,
+          "lsfo": 24.23,
+          "lsmgo": 0,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 4
+        },
+        "cylinderOil": {
+          "daily": 180,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 70194,
+          "unit": "Ltrs"
+        }
       }
     ],
     "norrbotten": [
@@ -4017,5 +4099,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-13T10:00:59.309Z"
+  "syncedAt": "2026-08-13T10:28:17.289Z"
 }
