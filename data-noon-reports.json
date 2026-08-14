@@ -2462,33 +2462,36 @@
         "type": "sea",
         "lat": "03-21.9N",
         "lon": "100-18.8E",
-        "positionText": "03-21.9N / 100-18.8E",
+        "positionText": "At Sea",
         "from": "VITORIA",
         "to": "SINGAPORE",
-        "nextPort": "WP AGW",
-        "etaText": "ETA next port: 13 AUG 2026 1200LT WP AGW",
+        "nextPort": "SINGAPORE",
+        "etaText": "13/8/2026 12:00 GMT+8:00",
         "etbText": null,
         "etdText": null,
         "etaISO": "2026-08-13T12:00",
         "etbISO": null,
         "etdISO": null,
         "speed": "10.63",
-        "course": null,
-        "milesToGo": "269",
+        "course": "131",
+        "milesToGo": 269,
         "bunkers": {
-          "lsfo": "145.14",
-          "lsmgo": "80.43",
-          "fw": "425"
+          "lsfo": 145.14,
+          "lsmgo": 80.43,
+          "fw": 425
         },
-        "status": "in navigazione",
+        "status": "Laden",
         "remarks": "ADV CURRENT ABT 1.5 KTS",
         "vesselId": "medliguria",
         "isNoonReport": true,
         "voyageNo": "11",
         "consumption": {
-          "lsfo": "19.33",
-          "lsmgo": "0",
-          "fw": "8"
+          "lsfo": 19.33,
+          "lsmgo": 0,
+          "fw": 0,
+          "hfo": 0,
+          "mdo": 0,
+          "mgo": 0
         },
         "cylinderOil": {
           "daily": "300",
@@ -4143,5 +4146,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-14T04:00:32.213Z"
+  "syncedAt": "2026-08-14T05:00:32.430Z"
 }
