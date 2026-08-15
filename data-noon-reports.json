@@ -1258,6 +1258,32 @@
         "sea": "SE/3.8 MTR",
         "swell": "E/ABT 2.5 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-15",
+        "lat": "28-08.1S",
+        "lon": "044-30.3E",
+        "positionText": "28-08.1S / 044-30.3E",
+        "speed": "6.92",
+        "course": "069",
+        "milesToGo": "863",
+        "etaText": "19.08.2026 0300lt AGW WP, PORT LOUIS / BEDI 28.08.2026 PM",
+        "etaISO": "2026-08-19T03:00",
+        "to": "PORT LOUIS",
+        "bunkers": {
+          "lsfo": "695.709",
+          "lsmgo": "60.581"
+        },
+        "consumption": {
+          "lsfo": "26.08",
+          "lsmgo": "0.0"
+        },
+        "wind": "ESE/7",
+        "sea": "ESE/4.2 MTR",
+        "swell": "SE/ABT 3.2 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -2531,11 +2557,12 @@
       {
         "isNoonReport": true,
         "type": "sea",
-        "wind": "ROB on arrival: EOSP 13 AUG 2026/ 1000LT: VLSFO-126.84 /LSMGO-80.43",
-        "sea": "Arrival Draft : Fwd 12.19 Aft 12.30",
-        "current": "Cargo to be Loaded: N/A",
+        "wind": "COSP : 14 AUG 2026 / 0230 LT",
+        "sea": "ROB on sailing : (COSP) VLSFO- 1023.34 mt/ LSMGO- 81.37 mt",
+        "current": "Bunker lifted, if any : VLSFO- 898.96 mt/ LSMGO- 0 mt",
         "vesselId": "medliguria",
-        "date": "2026-08-13"
+        "date": "2026-08-13",
+        "speed": "1.25"
       },
       {
         "isNoonReport": true,
@@ -4284,5 +4311,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-15T10:00:35.431Z"
+  "syncedAt": "2026-08-15T11:00:35.574Z"
 }
