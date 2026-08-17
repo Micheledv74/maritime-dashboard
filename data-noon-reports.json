@@ -2691,6 +2691,40 @@
         "sea": "W/1.0",
         "current": "ESE/0.5 KTS",
         "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "11",
+        "from": "SINGAPORE",
+        "to": "XIAMEN",
+        "date": "2026-08-17",
+        "lat": "14-32.0N",
+        "lon": "112-51.5E",
+        "positionText": "14-32.0N / 112-51.5E",
+        "speed": "12.17",
+        "milesToGo": "676",
+        "consumption": {
+          "lsfo": "18.98",
+          "lsmgo": "0",
+          "fw": "8"
+        },
+        "bunkers": {
+          "lsfo": "959.36",
+          "lsmgo": "81.37",
+          "fw": "349"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "31810",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 19 AUG 2026 2200LT WP AGW",
+        "etaISO": "2026-08-19T22:00",
+        "wind": "S/17 KTS",
+        "sea": "S/2.5",
+        "current": "SE/0.3 KTS",
+        "vesselId": "medliguria"
       }
     ],
     "peppino": [
@@ -4177,11 +4211,11 @@
           "fw": 82
         },
         "consumption": {
-          "hfo": 0,
-          "lsfo": 23.4,
+          "hfo": 23.4,
+          "lsfo": 22.5,
           "lsmgo": 0,
           "mdo": 0,
-          "mgo": 0,
+          "mgo": 0.9,
           "fw": 6
         },
         "cylinderOil": {
@@ -4459,5 +4493,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-17T04:00:41.492Z"
+  "syncedAt": "2026-08-17T05:00:40.914Z"
 }
