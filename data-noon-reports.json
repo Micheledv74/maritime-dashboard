@@ -1310,6 +1310,32 @@
         "sea": "E/3.8 MTR",
         "swell": "S/ABT 2.8 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-17",
+        "lat": "24-33.6S",
+        "lon": "051-39.6E",
+        "positionText": "24-33.6S / 051-39.6E",
+        "speed": "10.96",
+        "course": "054",
+        "milesToGo": "419",
+        "etaText": "19.08.2026 0500lt AGW WP, PORT LOUIS / BEDI 28.08.2026 PM",
+        "etaISO": "2026-08-19T05:00",
+        "to": "PORT LOUIS",
+        "bunkers": {
+          "lsfo": "646.969",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "22.58",
+          "lsmgo": "0.10"
+        },
+        "wind": "ENE/5",
+        "sea": "ENE/2.8 MTR",
+        "swell": "S/ABT 2.0 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -4123,11 +4149,11 @@
           "fw": 89
         },
         "consumption": {
-          "hfo": 23.42,
-          "lsfo": 22.52,
+          "hfo": 0,
+          "lsfo": 23.42,
           "lsmgo": 0,
           "mdo": 0,
-          "mgo": 0.9,
+          "mgo": 0,
           "fw": 4
         },
         "cylinderOil": {
@@ -4194,7 +4220,7 @@
         "positionText": "Lat 14-43.3S & Long 007-54.0E",
         "from": "Port Luis, Mauritius",
         "to": "Takoradi, Ghana, W.A",
-        "nextPort": "GH TKD P/STN",
+        "nextPort": "Takoradi",
         "voyageNo": "18-L",
         "etaText": "21.08.2026 1700LT",
         "etbText": null,
@@ -4202,7 +4228,7 @@
         "etaISO": "2026-08-21T17:00",
         "etbISO": null,
         "etdISO": null,
-        "speed": 11.33,
+        "speed": "11.33",
         "course": null,
         "milesToGo": 1304,
         "bunkers": {
@@ -4211,8 +4237,8 @@
           "fw": 82
         },
         "consumption": {
-          "hfo": 0,
-          "lsfo": 23.4,
+          "hfo": 23.4,
+          "lsfo": 0,
           "lsmgo": 0,
           "mdo": 0,
           "mgo": 0,
@@ -4493,5 +4519,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-17T08:00:41.964Z"
+  "syncedAt": "2026-08-17T09:00:41.490Z"
 }
