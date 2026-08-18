@@ -2758,31 +2758,38 @@
         "to": "XIAMEN",
         "date": "2026-08-17",
         "lat": "14-32.0N",
-        "lon": "112-51.5E",
-        "positionText": "14-32.0N / 112-51.5E",
-        "speed": "12.17",
-        "milesToGo": "676",
+        "lon": "112-51.3E",
+        "positionText": "At Sea",
+        "speed": 12.17,
+        "milesToGo": 676,
         "consumption": {
-          "lsfo": "18.98",
-          "lsmgo": "0",
-          "fw": "8"
+          "lsfo": 18.98,
+          "lsmgo": 0,
+          "fw": 0,
+          "hfo": 0,
+          "mdo": 0,
+          "mgo": 0
         },
         "bunkers": {
-          "lsfo": "959.36",
-          "lsmgo": "81.37",
-          "fw": "349"
+          "lsfo": 959.36,
+          "lsmgo": 0,
+          "fw": 349
         },
         "cylinderOil": {
           "daily": "300",
           "rob": "31810",
           "unit": "L"
         },
-        "etaText": "ETA next port: 19 AUG 2026 2200LT WP AGW",
+        "etaText": "19/8/2026 22:00 GMT+8:00",
         "etaISO": "2026-08-19T22:00",
         "wind": "S/17 KTS",
         "sea": "S/2.5",
         "current": "SE/0.3 KTS",
-        "vesselId": "medliguria"
+        "vesselId": "medliguria",
+        "nextPort": "XIAMEN",
+        "course": 31,
+        "status": "Laden",
+        "remarks": "Main Engine Hrs: 24.00; Ballast quantity: 211.00 MT; Fresh Water ROB: 349.000 MT"
       },
       {
         "isNoonReport": true,
@@ -4364,6 +4371,10 @@
         "status": "in navigazione",
         "remarks": "Ship’s time one hour retard to conformed ZD 00",
         "vesselId": "peppino"
+      },
+      {
+        "vesselId": "peppino",
+        "date": "2026-08-18"
       }
     ],
     "norrbotten": [
@@ -4629,5 +4640,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-18T11:00:31.144Z"
+  "syncedAt": "2026-08-18T12:00:32.011Z"
 }
