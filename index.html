@@ -6384,6 +6384,10 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .deliv-cell-date.deliv-infoship{ color:#9aa3af; }
 .voyage-arr-btn{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--accent); background:#eaf1fc; border:1px solid #cfe0fb; border-radius:7px; padding:6px 12px; cursor:pointer; margin-top:10px; }
 .voyage-arr-btn:hover{ background:#dce9fb; }
+.voyage-arr-btn-agency{ color:#6a4bff; background:#f1eefe; border-color:#ddd4fb; }
+.voyage-arr-btn-agency:hover{ background:#e7e1fc; }
+.voyage-arr-btn-due{ color:#8a4b00; background:#fff1dc; border-color:#f3d49a; box-shadow:0 0 0 3px rgba(243,212,154,.35); }
+.voyage-arr-btn-due:hover{ background:#ffe8c6; }
 .voyage-arr-btn .icon{ width:14px; height:14px; }
 
 /* === NOON REPORT — blocco posizione + proposta APPLICA === */
@@ -13657,6 +13661,8 @@ function renderItemsTable(v) {
     const _bo = itemOrigin(it), _bt = itemTransport(it);
     if (_bo) logBadges.push(`<span class="log-badge log-origin" title="Origine: ${escapeAttr(_bo)}">🌍 ${escapeHTML(_bo)}</span>`);
     if (_bt) logBadges.push(`<span class="log-badge log-transport" title="Trasporto: ${escapeAttr(_bt)}">✈️ ${escapeHTML(_bt)}</span>`);
+    const _ready = itemReadyBadgeHTML(it);
+    if (_ready) logBadges.push(_ready);
     const _eff = getEffectiveDelivery(it);
     const _delivCell = _eff.date
       ? `<span class="deliv-cell-date deliv-${_eff.source}" title="${escapeAttr((_eff.legLabel||"") + (_eff.port? " · "+_eff.port : ""))}">${formatDate(_eff.date)}${_eff.source==="voyage"?" ⚓":_eff.source==="manual"?" ✎":_eff.source==="infoship"?" ~":""}</span>`
@@ -14162,8 +14168,22 @@ window.closeItemDetailPopover = function() {
 
 // v0.43 — Handler override per-item (esclusione performance + logistica manuale)
 window.setItemLogistics = function(id, field, val){
-  setItemOverride(id, { [field]: (val || "").trim() });
-  if (typeof render === "function") render();
+  setItemOverride(id, { [field]: (val || "").trim() });  if (typeof render === "function") render();
+};
+// v0.75 — Lead time (giorni) e data ordine manuale per il calcolo del "pronto"
+window.setItemLeadTime = function(id, val){
+  const n = parseInt(val, 10);
+  setItemOverride(id, { leadTimeDays: isNaN(n) ? "" : n });
+  const it = (state.data?.vessels || []).flatMap(v => v.items || []).find(x => x.id === id);
+  const rd = it ? itemReadyDate(it) : null;
+  if (typeof showToast === "function") showToast(rd ? ("Pronto previsto: " + formatDate(rd)) : "Lead time salvato");
+  window.openItemDetailPopover(id);
+  if (state.view === "vessel") { const v = state.data.vessels.find(x => x.vesselId === state.selectedVesselId); if (v) renderItemsTable(v); }
+};
+window.setItemOrderDate = function(id, val){
+  setItemOverride(id, { orderDateManual: (val || "").slice(0,10) });
+  window.openItemDetailPopover(id);
+  if (state.view === "vessel") { const v = state.data.vessels.find(x => x.vesselId === state.selectedVesselId); if (v) renderItemsTable(v); }
 };
 window.togglePerfExclude = function(id, on, reopenCard){
   const patch = { excludePerf: !!on };
@@ -14394,9 +14414,29 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
     </div>
   `;
 
+  // v0.75 — Lead time & data pronta (calcolo automatico dalla data ordine)
+  const _lt = itemLeadTime(it);
+  const _base = itemOrderBaseDate(it);
+  const _rd = itemReadyDate(it);
+  const _ovLT = getItemOverride(it.id) || {};
+  const _baseSrc = _ovLT.orderDateManual ? "manuale" : (it.poDate ? "data PO" : it.orderDate ? "data ordine" : it.rfqDate ? "data RFQ" : it.reqDate ? "data REQ" : "—");
+  const leadTimeSection = `
+    <div class="detail-section">
+      <h4>Lead time & pronto</h4>
+      <div class="detail-logistics-grid">
+        <div class="detail-row"><span class="detail-label">⏳ Lead time (gg)</span>
+          <input class="detail-inline-input" type="number" min="0" step="1" value="${_lt==null?"":_lt}" placeholder="es. 10" onchange="window.setItemLeadTime('${escapeAttr(it.id)}', this.value)"></div>
+        <div class="detail-row"><span class="detail-label">📅 Data ordine <span class="muted" style="font-size:10px;">(${escapeHTML(_baseSrc)})</span></span>
+          <input class="detail-inline-input" type="date" value="${escapeAttr(_base||"")}" onchange="window.setItemOrderDate('${escapeAttr(it.id)}', this.value)"></div>
+        <div class="detail-row"><span class="detail-label">✅ Pronto previsto</span>
+          <span class="detail-value" style="font-weight:700;color:${_rd?(_rd<=new Date().toISOString().slice(0,10)?'#1f5a2c':'#8a6d1a'):'#8a93a0'};">${_rd?escapeHTML(formatDate(_rd)):(_lt!=null?"manca data ordine":"—")}</span></div>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:6px;">Il lead time lo inserisci tu; la data "pronto" = data ordine + lead time e compare come badge nella lista Items.</div>
+    </div>
+  `;
+
   // Nota locale editabile
-  const noteValue = state.notes[it.id] || "";
-  const noteSection = `
+  const noteValue = state.notes[it.id] || "";  const noteSection = `
     <div class="detail-section">
       <h4>Nota locale</h4>
       <textarea id="detail-note-${escapeAttr(it.id)}"
@@ -14431,6 +14471,8 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
             ${dnSection}
           </div>
         </div>
+
+        ${leadTimeSection}
 
         ${shipmentSection(it, vessel)}
 
@@ -16914,7 +16956,8 @@ function renderVoyageWidget(vesselId) {
       ${nxt.eta ? `<span class="voyage-next-eta">ETA ${formatVoyageDate(nxt.eta)}</span>` : ""}
       ${nxt.etb ? `<span class="voyage-next-eta">ETB ${formatVoyageDate(nxt.etb)}</span>` : ""}
       ${agencyChip("nxt", nxt.agency)}
-      ${nextArrCount ? `<button class="voyage-arr-btn" onclick="window.emailPortArrival('${escapeAttr(vesselId)}','next')" title="Email al Capitano: merce in arrivo a ${escapeAttr(nxt.to||'porto')}"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Email arrivo (${nextArrCount})</button>` : ""}
+      ${nextArrCount ? `<button class="voyage-arr-btn" onclick="window.emailPortArrival('${escapeAttr(vesselId)}','next')" title="Email al Capitano: merce in arrivo a ${escapeAttr(nxt.to||'porto')}"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Email Capitano (${nextArrCount})</button>
+      <button class="voyage-arr-btn voyage-arr-btn-agency" onclick="window.emailAgencyArrival('${escapeAttr(vesselId)}','next')" title="Email all'agenzia: conferma arrivo e consegna a bordo (AWB · PO · descrizione · fornitore)"><svg class="icon icon-sm"><use href="#i-building"/></svg> Email agenzia (${nextArrCount})</button>` : ""}
     </div>` : "";
 
   return `
@@ -16940,7 +16983,10 @@ function renderVoyageWidget(vesselId) {
       </div>
 
       ${curLegs ? `<div class="voyage-legs">${curLegs}</div>` : ""}
-      ${curArrCount ? `<button class="voyage-arr-btn" onclick="window.emailPortArrival('${escapeAttr(vesselId)}','current')" title="Email al Capitano: merce in arrivo a ${escapeAttr(cur.to||'porto')}"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Email arrivo a ${escapeHTML(cur.to||'porto')} (${curArrCount})</button>` : ""}
+      ${curArrCount ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button class="voyage-arr-btn" onclick="window.emailPortArrival('${escapeAttr(vesselId)}','current')" title="Email al Capitano: merce in arrivo a ${escapeAttr(cur.to||'porto')}"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Email Capitano a ${escapeHTML(cur.to||'porto')} (${curArrCount})</button>
+        <button class="voyage-arr-btn voyage-arr-btn-agency${(etaDays!=null && etaDays<=5) ? " voyage-arr-btn-due" : ""}" onclick="window.emailAgencyArrival('${escapeAttr(vesselId)}','current')" title="Email all'agenzia: conferma arrivo e consegna a bordo (AWB · PO · descrizione · fornitore)${(etaDays!=null && etaDays<=5) ? " — ETA vicina, conviene inviarla ora" : ""}"><svg class="icon icon-sm"><use href="#i-building"/></svg> Email agenzia (${curArrCount})${(etaDays!=null && etaDays<=5) ? ` · ${etaDays<=0?"in arrivo":"tra "+etaDays+"g"}` : ""}</button>
+      </div>` : ""}
       ${nextBlock}
       ${voy.notes ? `<div class="voyage-notes-line"><svg class="icon icon-sm"><use href="#i-note"/></svg> ${escapeHTML(voy.notes)}</div>` : ""}
     </section>
@@ -17019,6 +17065,56 @@ Your prompt action appreciated to close accounting.
 
 Best regards,`;
   const to = cfg.masterEmail || "";
+  openComposeMail(buildComposeHref(subject, body, to));
+};
+
+// === v0.75 — Email all'AGENZIA: conferma arrivo e consegna a bordo (AWB · PO · descrizione · fornitore) ===
+function itemAWB(it){ try{ const segs=getItemShipments(it.id)||[]; const s=segs.find(x=>x.number); return s?String(s.number):""; }catch(e){ return ""; } }
+function voyageAgencyEmail(ag){
+  ag = ag || {};
+  let em = "";
+  if(ag.name){ try{ const p=getEntityProfile("agency", ag.name); if(p&&p.email) em=p.email; }catch(e){} }
+  if(!em && ag.contacts){ const m=String(ag.contacts).match(/[\w.+-]+@[\w-]+\.[\w.-]+/); if(m) em=m[0]; }
+  return em;
+}
+window.emailAgencyArrival = function(vesselId, which){
+  const cfg = VESSELS.find(v=>v.vesselId===vesselId);
+  const voy = getVoyage(vesselId);
+  const leg = which==='next' ? (voy.next||{}) : (voy.current||{});
+  const port = leg.to || "next port";
+  const ag = leg.agency || {};
+  const items = itemsForLeg(vesselId, which);
+  if(!items.length){ showToast("Nessuna merce pianificata per questo scalo"); return; }
+  const nm = cfg.displayName.replace(/^M\/V\s*/i,'').trim();
+  const eta = leg.eta ? shipFmtDay(leg.eta) : "";
+  // Ogni ordine: AWB · PO · descrizione · fornitore
+  const lines = items.map((it, i) => {
+    const awb = itemAWB(it);
+    return `${i+1}) AWB ${awb || "—"}  |  PO ${it.poNumber || "—"}
+    ${it.description || "(no description)"}
+    Supplier: ${it.supplier || "—"}`;
+  }).join("\n\n");
+  const subject = `M/V ${nm} - Confirmation of goods arrival & delivery on board @ ${port}`;
+  const body =
+`Dear ${ag.name || "Agents"},
+
+with reference to M/V ${nm}${eta ? " (ETA " + eta + ")" : ""} calling at ${port}, kindly CONFIRM the arrival at your premises and the delivery on board of the following consignments:
+
+${lines}
+
+Please advise for each consignment:
+- Whether it has physically arrived at ${port} (and expected date if not yet).
+- Customs clearance status / any documents still required from our side.
+- Free storage time (to avoid demurrage/warehousing charges) and expected delivery date to the vessel.
+- Confirmation of delivery on board with signed/stamped delivery note once completed.
+
+Please treat as time-critical to align with the vessel's port stay and to close our procurement records.
+
+Best regards,
+Michele Del Vecchio
+Purchasing`;
+  const to = voyageAgencyEmail(ag);
+  if(!to) showToast(ag.name ? "Agenzia senza email in Rubrica — apro bozza senza destinatario" : "Nessuna agenzia sullo scalo — apro bozza senza destinatario");
   openComposeMail(buildComposeHref(subject, body, to));
 };
 
@@ -17196,6 +17292,15 @@ function shipmentMiniHTML(it){
   const lastToPort = toPortSegs[toPortSegs.length-1] || rep || segs[segs.length-1];
   const arr = (lastToPort && lastToPort.eta) || null;
   const arrLbl = portDone ? "Arrivata" : "Arrivo prev.";
+  // v0.75 — numero AWB / tracking sott'occhio nella lista Items
+  const nums = segs.map(s=>s.number).filter(Boolean);
+  const awbLine = nums.length
+    ? `<div style="margin-top:4px;display:flex;align-items:center;gap:5px;font-size:9.5px;line-height:1.3;">
+        <span style="color:#8a93a0;font-weight:700;">AWB</span>
+        <span style="font-family:var(--font-mono);font-weight:700;color:#12233a;background:#eef0f3;border-radius:4px;padding:1px 5px;">${escapeHTML(nums[0])}</span>
+        ${nums.length>1?`<span style="color:#8a93a0;">+${nums.length-1}</span>`:""}
+      </div>`
+    : "";
   const datesLine = (dep||arr)
     ? `<div style="margin-top:4px;display:flex;gap:14px;flex-wrap:wrap;font-size:9.5px;color:#5b6470;line-height:1.4;">
         ${dep?`<span>Partenza <b style="color:#12233a;">${escapeHTML(shipFmtDay(dep))}</b></span>`:""}
@@ -17209,6 +17314,7 @@ function shipmentMiniHTML(it){
       <div style="flex:1;height:5px;border-radius:3px;background:#eceef1;overflow:hidden;min-width:44px;"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;"></div></div>
       <span style="font-size:10px;font-weight:700;color:${color};white-space:nowrap;">${escapeHTML(label)}</span>
     </div>
+    ${awbLine}
     ${datesLine}
   </div>`;
 }
@@ -17401,6 +17507,12 @@ function setItemOverride(id, patch){
 function isPerfExcluded(it){ const o = getItemOverride(it && it.id); return !!(o && o.excludePerf); }
 function itemOrigin(it){ const o = getItemOverride(it && it.id); return (o && o.origin) || (it && it.origin) || ""; }
 function itemTransport(it){ const o = getItemOverride(it && it.id); return (o && o.transportMode) || (it && it.transportMode) || ""; }
+// v0.75 — Lead time (giorni per ordine pronto), inserito a mano; la data "pronto" è calcolata dalla data ordine.
+function itemLeadTime(it){ const o=getItemOverride(it&&it.id)||{}; const n=parseInt(o.leadTimeDays,10); return isNaN(n)?null:n; }
+function itemOrderBaseDate(it){ const o=getItemOverride(it&&it.id)||{}; return (o.orderDateManual||"").slice(0,10) || (it&&(it.poDate||it.orderDate||it.rfqDate||it.reqDate)||"").slice(0,10) || ""; }
+function itemReadyDate(it){ const lt=itemLeadTime(it); const base=itemOrderBaseDate(it); if(lt==null||!base) return null; const d=new Date(base.length>10?base:base+"T00:00:00"); if(isNaN(d)) return null; d.setDate(d.getDate()+lt); return d.toISOString().slice(0,10); }
+// Chip compatto "pronto ~ data · LT N gg" per la tabella Items (verde se già pronto)
+function itemReadyBadgeHTML(it){ const lt=itemLeadTime(it); if(lt==null) return ""; const rd=itemReadyDate(it); if(!rd) return '<span class="log-badge" title="Lead time impostato ma manca la data ordine" style="background:#f3f4f6;color:#5b6470;">⏳ LT '+lt+' gg</span>'; const today=new Date().toISOString().slice(0,10); const ready=rd<=today; const bg=ready?"#e7f0e9":"#fff5e6"; const fg=ready?"#1f5a2c":"#8a6d1a"; return '<span class="log-badge" title="Ordine pronto previsto (data ordine + '+lt+' gg lead time)" style="background:'+bg+';color:'+fg+';">'+(ready?"✓ Pronto":"⏳ Pronto")+' '+escapeHTML(formatDate(rd))+' · LT '+lt+' gg</span>'; }
 // Risolve la consegna effettiva: override voyage (live da ETA) / manuale / fallback Infoship.
 function getEffectiveDelivery(it, vesselId){
   vesselId = vesselId || vesselIdOfItem(it.id);
@@ -18746,13 +18858,13 @@ function renderCertWidgetCompact() {
 window.goCertificates = function(filterUrgency) {
   state.view = "certificates";
   state.selectedVesselId = null;
-  state._certFilter = { urgency: filterUrgency || "all", vessel: "all", category: "all" };
+  state._certFilter = { urgency: filterUrgency || "all", vessel: "all", category: "all", q: "" };
   render();
 };
 
 // Vista principale "Certificati" (tab globale)
 function renderCertificatesView() {
-  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all" };
+  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all", q: "" };
   const filter = state._certFilter;
 
   // Aggrega tutte le voci da tutte le navi con vesselId di provenienza
@@ -18766,6 +18878,12 @@ function renderCertificatesView() {
 
   // Filtra
   let filtered = allItems.slice();
+  const q = (filter.q || "").trim().toLowerCase();
+  if (q) filtered = filtered.filter(it => {
+    const hay = [it.name, it.certNum, it.place, it.vesselName, it.category, it.n, it.notes, it._supplier, (it._svc && it._svc.port)]
+      .filter(Boolean).join(" ").toLowerCase();
+    return hay.includes(q);
+  });
   if (filter.vessel !== "all") filtered = filtered.filter(it => it.vesselId === filter.vessel);
   if (filter.category !== "all") filtered = filtered.filter(it => it.category === filter.category);
   if (filter.urgency !== "all") {
@@ -18774,8 +18892,9 @@ function renderCertificatesView() {
     } else {
       filtered = filtered.filter(it => !it.isPermanent && classifyCertExpiry(it.expiry) === filter.urgency);
     }
-  } else {
-    // Default: nascondo permanent dalla vista principale (sono nello switch dedicato)
+  } else if (!q) {
+    // Default: nascondo permanent dalla vista principale (sono nello switch dedicato).
+    // In ricerca invece li mostro, così si trova qualsiasi certificato.
     filtered = filtered.filter(it => !it.isPermanent);
   }
 
@@ -18872,6 +18991,14 @@ function renderCertificatesView() {
 
       <section class="cert-filters-section">
         <div class="cert-filter-row">
+          <span class="cert-filter-label">Cerca:</span>
+          <div style="position:relative;flex:1;max-width:420px;">
+            <input id="cert-search" type="search" value="${escapeAttr(filter.q || "")}" placeholder="Nome, n° cert., nave, porto, categoria…" oninput="window.setCertSearch(this.value)"
+              style="width:100%;box-sizing:border-box;font-family:inherit;font-size:13.5px;padding:8px 30px 8px 12px;border:1px solid #cbd3dd;border-radius:9px;outline:none;">
+            ${filter.q ? `<button onclick="window.setCertSearch('')" title="Cancella" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#8a93a0;font-size:16px;cursor:pointer;line-height:1;">✕</button>` : ""}
+          </div>
+        </div>
+        <div class="cert-filter-row">
           <span class="cert-filter-label">Nave:</span>
           <div class="cert-filter-chips">${vesselChips}</div>
         </div>
@@ -18910,7 +19037,7 @@ function certTableRowHTML(it) {
   return `<tr class="cert-row cert-row-${cls}">
     <td><span class="cert-n">${escapeHTML(it.n || "")}</span></td>
     <td>
-      <div class="cert-name-cell">${escapeHTML(truncate(it.name, 60))}</div>
+      <div class="cert-name-cell">${escapeHTML(truncate(it.name, 60))}${(it._locked && Object.keys(it._locked).length) ? ` <span title="Ha dati modificati manualmente (bloccati, sopravvivono all'import)" style="font-size:11px;color:#6a4bff;">🔒</span>` : ""}</div>
       ${it.notes ? `<div class="cert-notes muted">${escapeHTML(truncate(it.notes, 80))}</div>` : ""}
     </td>
     <td><span class="vessel-tag">${escapeHTML(it.vesselName || "")}</span></td>
@@ -18941,8 +19068,18 @@ function setCertExtra(vid,it,patch){ const all=loadCertExtras(); if(!all[vid]) a
 function applyCertExtra(vid,it){
   const ex=getCertExtra(vid,it);
   const m=Object.assign({}, it, { vesselId:vid, vesselName:(VESSELS.find(v=>v.vesselId===vid)||{}).displayName||vid });
+  // Dato manuale (se presente e non vuoto) prevale sull'importato; se vuoto si usa l'importato.
   if(ex.expiry) m.expiry=ex.expiry;
   if(ex.place) m.place=ex.place;
+  if(ex.n!=null && String(ex.n).trim()!=="") m.n=ex.n;
+  if(ex.name && String(ex.name).trim()!=="") m.name=ex.name;
+  if(ex.certNum && String(ex.certNum).trim()!=="") m.certNum=ex.certNum;
+  if(ex.category && String(ex.category).trim()!=="") m.category=ex.category;
+  if(ex.notes && String(ex.notes).trim()!=="") m.notes=ex.notes;
+  // Traccia quali campi sono in override manuale (per il badge 🔒 e i riferimenti)
+  m._imported = { n:it.n, name:it.name, certNum:it.certNum, category:it.category, expiry:it.expiry, place:it.place, notes:it.notes };
+  m._locked = {};
+  ["n","name","certNum","category","expiry","place","notes"].forEach(k=>{ if(ex[k]!=null && String(ex[k]).trim()!=="") m._locked[k]=true; });
   m._extra=ex; m._key=certKey(it);
   m._supplier=ex.supplier||"";
   m._needsService=!!ex.needsService;
@@ -18964,9 +19101,18 @@ function certRubricaNames(){ const set=new Set(); try{ Object.keys(loadEntityPro
 function certFindItem(vid,key){ const arr=(state.certificates&&state.certificates[vid])||[]; return arr.find(x=>certKey(x)===key)||null; }
 
 window.setCertFilter = function(key, value) {
-  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all" };
+  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all", q: "" };
   state._certFilter[key] = value;
   render();
+};
+
+// Ricerca testuale nei certificati: re-render e ripristina il focus/caret sul campo
+window.setCertSearch = function(val) {
+  if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all", q: "" };
+  state._certFilter.q = val;
+  render();
+  const el = document.getElementById("cert-search");
+  if (el) { el.focus(); try { const n = el.value.length; el.setSelectionRange(n, n); } catch (e) {} }
 };
 
 // === v0.70 — EDITOR certificato: data/luogo, fornitore, pianificazione service/audit, report bilingue ===
@@ -18996,17 +19142,37 @@ window.openCertEditor = function(vid, key){
   }).join("") : '<div style="font-size:12px;color:#8a93a0;padding:6px 0;">Nessun report ancora inviato per questo certificato.</div>';
   const lab='display:block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#7a8290;margin-bottom:5px;';
   const inp='width:100%;font-family:inherit;font-size:13.5px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;outline:none;box-sizing:border-box;background:#fff;';
+  // Helper campo "manuale vs importato": vuoto = usa importato; valorizzato = dato manuale bloccato.
+  const CE_CATS=["Statutory/Class","Safety Equipment","Insurance/P&I","ISM/ISPS","Radio/GMDSS","Crew/Medical","Operational","Other"];
+  const revBtn=(id)=>'<button type="button" onclick="var e=document.getElementById(\''+id+'\');if(e){e.value=\'\';e.focus();}" title="Svuota per tornare al valore importato" style="border:none;background:transparent;color:#6a4bff;font-size:11px;font-weight:600;cursor:pointer;padding:0;">↩ usa importato</button>';
+  const impHint=(imported,ov)=>{ const has=imported!=null&&String(imported).trim()!==""; const impTxt=has?escapeHTML(String(imported)):"—"; return ov?'<div style="font-size:10.5px;color:#6a4bff;margin-top:4px;">🔒 Valore manuale (sopravvive all\'import) · importato: '+impTxt+'</div>':'<div style="font-size:10.5px;color:#aab2bd;margin-top:4px;">Importato: '+impTxt+'</div>'; };
+  const ceLabRow=(text,id,ov)=>'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;"><label style="font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#7a8290;">'+text+'</label>'+(ov?revBtn(id):'')+'</div>';
+  const ceText=(id,label,manual,imported,type,ph)=>{ const ov=manual!=null&&String(manual).trim()!==""; return '<div>'+ceLabRow(label,id,ov)+'<input type="'+(type||"text")+'" id="'+id+'" value="'+escapeAttr(manual==null?"":manual)+'"'+(ph?' placeholder="'+escapeAttr(ph)+'"':"")+' style="'+inp+'">'+impHint(imported,ov)+'</div>'; };
+  const ceCat=(manual,imported)=>{ const ov=manual!=null&&String(manual).trim()!==""; const opts='<option value="">— usa importato —</option>'+CE_CATS.map(c=>'<option value="'+escapeAttr(c)+'"'+(manual===c?" selected":"")+'>'+escapeHTML(c)+'</option>').join(""); return '<div>'+ceLabRow("Categoria","ce-category",ov)+'<select id="ce-category" style="'+inp+'">'+opts+'</select>'+impHint(imported,ov)+'</div>'; };
+  const ceNotes=(manual,imported)=>{ const ov=manual!=null&&String(manual).trim()!==""; return '<div>'+ceLabRow("Note","ce-notes",ov)+'<textarea id="ce-notes" rows="2" style="'+inp+'resize:vertical;min-height:56px;">'+escapeHTML(manual==null?"":String(manual))+'</textarea>'+impHint(imported,ov)+'</div>'; };
   const langBtn=(k,l)=>'<button type="button" onclick="window.ceSetLang(\''+k+'\')" style="font-family:inherit;font-size:11px;font-weight:700;color:'+(window._ceLang===k?"#fff":"#4b5563")+';background:'+(window._ceLang===k?"#0e54c1":"#eef1f5")+';border:none;border-radius:7px;padding:5px 11px;cursor:pointer;">'+l+'</button>';
   const html = '<div onclick="if(event.target===this)window.closeCertEditor()" style="position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.42);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:34px 16px;font-family:\'Inter\',system-ui,sans-serif;">'
     +'<div style="width:min(660px,96vw);background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.32);">'
       +'<div style="display:flex;align-items:center;gap:11px;padding:17px 22px;border-bottom:1px solid #eef1f5;position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0;z-index:2;">'
-        +'<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:15.5px;line-height:1.25;">'+escapeHTML(it.name||"Certificato")+'</div><div style="font-size:12px;color:#8a93a0;">'+escapeHTML(cfg.displayName||vid)+(it.certNum?' · n. '+escapeHTML(it.certNum):"")+'</div></div>'
+        +'<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:15.5px;line-height:1.25;">'+escapeHTML(eff.name||it.name||"Certificato")+'</div><div style="font-size:12px;color:#8a93a0;">'+escapeHTML(cfg.displayName||vid)+((eff.certNum||it.certNum)?' · n. '+escapeHTML(eff.certNum||it.certNum):"")+'</div></div>'
         +'<button onclick="window.closeCertEditor()" style="border:none;background:transparent;font-size:22px;color:#8a93a0;cursor:pointer;line-height:1;">✕</button>'
       +'</div>'
       +'<div style="padding:20px 22px;display:flex;flex-direction:column;gap:16px;">'
-        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
-          +'<div><label style="'+lab+'">Data scadenza</label><input type="date" id="ce-expiry" value="'+escapeAttr(eff.expiry||"")+'" style="'+inp+'"></div>'
-          +'<div><label style="'+lab+'">Luogo (Place)</label><input type="text" id="ce-place" value="'+escapeAttr(eff.place||"")+'" placeholder="es. Genova" style="'+inp+'"></div>'
+        +'<div style="border:1px solid #eef1f5;border-radius:12px;padding:15px;background:#fbfcfe;display:flex;flex-direction:column;gap:14px;">'
+          +'<div style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0e54c1;">Dati certificato <span style="font-weight:400;text-transform:none;color:#8a93a0;">— lascia vuoto per usare il dato importato; scrivi per bloccare un valore tuo</span></div>'
+          +'<div style="display:grid;grid-template-columns:90px 1fr;gap:14px;">'
+            +ceText("ce-n","N°",ex.n,it.n,"text")
+            +ceText("ce-name","Nome certificato",ex.name,it.name,"text","Nome del certificato")
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
+            +ceText("ce-certnum","N° certificato",ex.certNum,it.certNum,"text","es. IT-12345")
+            +ceCat(ex.category,it.category)
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
+            +ceText("ce-expiry","Data scadenza",ex.expiry,it.expiry,"date")
+            +ceText("ce-place","Luogo (Place)",ex.place,it.place,"text","es. Genova")
+          +'</div>'
+          +ceNotes(ex.notes,it.notes)
         +'</div>'
         +'<div><label style="'+lab+'">Fornitore / Agenzia (emittente o di riferimento)</label><input type="text" id="ce-supplier" list="ce-rubrica-dl" value="'+escapeAttr(ex.supplier||"")+'" placeholder="Nome dalla Rubrica o libero" style="'+inp+'"></div>'
         +'<label style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:#f7f9fb;border:1px solid #eef1f5;border-radius:10px;cursor:pointer;"><input type="checkbox" id="ce-needs" '+(needs?"checked":"")+' onchange="window.ceToggleNeeds(this.checked)" style="width:17px;height:17px;cursor:pointer;"><span style="font-size:13.5px;font-weight:600;color:#2b3240;">Richiede service / audit / verifica / ispezione</span></label>'
@@ -19049,6 +19215,9 @@ function certEditorReadFields(vid, it){
   const g=(id)=>{ const e=document.getElementById(id); return e?e.value:undefined; };
   const needs=!!(document.getElementById("ce-needs")||{}).checked;
   const patch={
+    // Dati certificato (vuoto = usa il valore importato; valorizzato = dato manuale bloccato)
+    n:(g("ce-n")||"").trim(), name:(g("ce-name")||"").trim(), certNum:(g("ce-certnum")||"").trim(),
+    category:(g("ce-category")||"").trim(), notes:(g("ce-notes")||"").trim(),
     expiry:g("ce-expiry")||"", place:(g("ce-place")||"").trim(), supplier:(g("ce-supplier")||"").trim(),
     needsService:needs,
     plan:{ type:g("ce-type")||"service", status:g("ce-status")||"none", date:g("ce-date")||"", port:(g("ce-port")||"").trim(), supplier:(g("ce-plan-supplier")||"").trim() },
@@ -19066,7 +19235,8 @@ function certBuildServiceReport(vid, it, which, lang){
   const ex=getCertExtra(vid,it); const p=ex.plan||{};
   const TYPE={ service:{it:"service",en:"service"}, audit:{it:"audit",en:"audit"}, survey:{it:"verifica/survey",en:"survey"}, inspection:{it:"ispezione",en:"inspection"} }[p.type||"service"];
   const vName=cfg.displayName||vid, imo=cfg.imo||"";
-  const cert=it.name||"", certNum=it.certNum?(" (n. "+it.certNum+")"):"";
+  const eff0=applyCertExtra(vid,it);
+  const cert=eff0.name||"", certNum=eff0.certNum?(" (n. "+eff0.certNum+")"):"";
   const sup=(p.supplier||ex.supplier||"").trim();
   const portIt=p.port||"(porto da definire)", portEn=p.port||"(port TBC)";
   const dIt=p.date?new Date(p.date+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"}):"(data da definire)";
@@ -19111,7 +19281,8 @@ function certBuildSupplierBatchReport(vid, items, lang){
   function line(it,en){
     const ex=getCertExtra(vid,it); const p=ex.plan||{};
     const T=TYPEMAP[p.type||"service"];
-    const cert=it.name||""; const certNum=it.certNum?(" (n. "+it.certNum+")"):"";
+    const eff=applyCertExtra(vid,it);
+    const cert=eff.name||""; const certNum=eff.certNum?(" (n. "+eff.certNum+")"):"";
     const port=p.port||(en?"(port TBC)":"(porto da definire)");
     const d=p.date?new Date(p.date+"T00:00:00").toLocaleDateString(en?"en-GB":"it-IT",{day:"2-digit",month:"long",year:"numeric"}):(en?"(date TBC)":"(data da definire)");
     return en ? ("• "+cert+certNum+" — "+T.en+" — port: "+port+" — date: "+d)
