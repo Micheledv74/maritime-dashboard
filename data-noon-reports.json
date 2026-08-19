@@ -4454,11 +4454,11 @@
           "fw": 71
         },
         "consumption": {
-          "hfo": 24.21,
-          "lsfo": 22.96,
+          "hfo": 0,
+          "lsfo": 24.21,
           "lsmgo": 0,
           "mdo": 0,
-          "mgo": 1.25,
+          "mgo": 0,
           "fw": 7
         },
         "cylinderOil": {
@@ -4469,6 +4469,50 @@
           "unit": "Ltrs"
         },
         "status": "in navigazione"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-08-19",
+        "type": "sea",
+        "lat": "02-36.3S",
+        "lon": "001-59.4E",
+        "positionText": "Lat 02-36.3S & Long 001-59.4E",
+        "from": "Port Luis, Mauritius",
+        "to": "Takoradi, Ghana, W.A",
+        "nextPort": "Takoradi",
+        "voyageNo": "18-L",
+        "etaText": "21.08.2026 1200LT",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": "2026-08-21T12:00",
+        "etbISO": null,
+        "etdISO": null,
+        "speed": 11.25,
+        "course": null,
+        "milesToGo": 500,
+        "bunkers": {
+          "lsfo": 1122.4,
+          "lsmgo": 161.44,
+          "fw": 66
+        },
+        "consumption": {
+          "hfo": 23.66,
+          "lsfo": 22.7,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": 0,
+          "fw": 5
+        },
+        "cylinderOil": {
+          "daily": 170,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 68414,
+          "unit": "Ltrs"
+        },
+        "status": "in navigazione",
+        "remarks": "Correzione R.O.B. olio cilindri: 68548.0Ltrs -> 68584.0Ltrs (18.08.2026)",
+        "vesselId": "peppino"
       }
     ],
     "norrbotten": [
@@ -4734,5 +4778,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-19T12:00:16.891Z"
+  "syncedAt": "2026-08-19T13:00:17.395Z"
 }
