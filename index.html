@@ -17087,12 +17087,18 @@ window.emailAgencyArrival = function(vesselId, which){
   if(!items.length){ showToast("Nessuna merce pianificata per questo scalo"); return; }
   const nm = cfg.displayName.replace(/^M\/V\s*/i,'').trim();
   const eta = leg.eta ? shipFmtDay(leg.eta) : "";
-  // Ogni ordine: AWB · PO · descrizione · fornitore
-  const lines = items.map((it, i) => {
-    const awb = itemAWB(it);
-    return `${i+1}) AWB ${awb || "—"}  |  PO ${it.poNumber || "—"}
-    ${it.description || "(no description)"}
-    Supplier: ${it.supplier || "—"}`;
+  // Raggruppo per AWB: un blocco per AWB con sotto i relativi PO · descrizione · fornitore
+  const groups = new Map();
+  for(const it of items){
+    const awb = itemAWB(it) || "—";
+    if(!groups.has(awb)) groups.set(awb, []);
+    groups.get(awb).push(it);
+  }
+  let gi = 0;
+  const lines = [...groups.entries()].map(([awb, its]) => {
+    gi++;
+    const rows = its.map(it => `   - PO ${it.poNumber || "—"} · ${it.description || "(no description)"} · Supplier: ${it.supplier || "—"}`).join("\n");
+    return `${gi}) AWB ${awb}\n${rows}`;
   }).join("\n\n");
   const subject = `M/V ${nm} - Confirmation of goods arrival & delivery on board @ ${port}`;
   const body =
