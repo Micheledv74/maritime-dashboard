@@ -17098,17 +17098,9 @@ window.emailAgencyArrival = function(vesselId, which){
   const body =
 `Dear ${ag.name || "Agents"},
 
-with reference to M/V ${nm}${eta ? " (ETA " + eta + ")" : ""} calling at ${port}, kindly CONFIRM the arrival at your premises and the delivery on board of the following consignments:
+with reference to M/V ${nm}${eta ? " (ETA " + eta + ")" : ""} calling at ${port}, kindly confirm for each consignment below: arrival, customs clearance, and readiness for delivery on board.
 
 ${lines}
-
-Please advise for each consignment:
-- Whether it has physically arrived at ${port} (and expected date if not yet).
-- Customs clearance status / any documents still required from our side.
-- Free storage time (to avoid demurrage/warehousing charges) and expected delivery date to the vessel.
-- Confirmation of delivery on board with signed/stamped delivery note once completed.
-
-Please treat as time-critical to align with the vessel's port stay and to close our procurement records.
 
 Best regards,
 Michele Del Vecchio
