@@ -1388,6 +1388,32 @@
         "sea": "E/2.0 MTR",
         "swell": "E/ABT 1.5 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-20",
+        "lat": "15-00.9S",
+        "lon": "057-59.0E",
+        "positionText": "15-00.9S / 057-59.0E",
+        "speed": "10.83",
+        "course": "007",
+        "milesToGo": "2405",
+        "etaText": "29.08.2026 am AGW WP, BEDI",
+        "etaISO": "2026-08-29",
+        "to": "BEDI",
+        "bunkers": {
+          "lsfo": "584.919",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "21.27",
+          "lsmgo": "0.0"
+        },
+        "wind": "SE/4",
+        "sea": "SE/2.5 MTR",
+        "swell": "ESE/ABT 2.2 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -4496,7 +4522,7 @@
         "etaISO": "2026-08-21T12:00",
         "etbISO": null,
         "etdISO": null,
-        "speed": 11.25,
+        "speed": "11.25",
         "course": null,
         "milesToGo": 500,
         "bunkers": {
@@ -4505,22 +4531,22 @@
           "fw": 66
         },
         "consumption": {
-          "hfo": 0,
-          "lsfo": 23.66,
+          "hfo": 23.66,
+          "lsfo": 22.7,
           "lsmgo": 0,
           "mdo": 0,
-          "mgo": 0,
+          "mgo": 0.96,
           "fw": 5
         },
         "cylinderOil": {
           "daily": 170,
           "dailyME": 0,
           "dailyDG": 0,
-          "rob": 68414,
+          "rob": 68584,
           "unit": "Ltrs"
         },
         "status": "in navigazione",
-        "remarks": "Correzione R.O.B. olio cilindri: 68548.0Ltrs -> 68584.0Ltrs",
+        "remarks": "Correzione R.O.B. olio cilindri: 68548.0Ltrs -> 68584.0Ltrs.",
         "vesselId": "peppino"
       }
     ],
@@ -4787,5 +4813,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-20T08:00:24.064Z"
+  "syncedAt": "2026-08-20T09:00:23.267Z"
 }
