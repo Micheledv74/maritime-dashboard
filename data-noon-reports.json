@@ -2926,11 +2926,11 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "XIAMEN",
+        "positionText": "In Port, XIAMEN",
         "from": null,
         "to": null,
         "nextPort": null,
-        "voyageNo": null,
+        "voyageNo": "11",
         "etaText": null,
         "etbText": null,
         "etdText": "24 AUG 2026 PM AGW WP",
@@ -2942,20 +2942,20 @@
         "milesToGo": null,
         "bunkers": {
           "lsfo": 908.22,
-          "lsmgo": 83.1,
+          "lsmgo": 0,
           "fw": 308
         },
         "consumption": {
-          "hfo": null,
-          "lsfo": null,
-          "lsmgo": null,
-          "mdo": null,
-          "mgo": null,
-          "fw": null
+          "hfo": 0,
+          "lsfo": 3.1,
+          "lsmgo": 0,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 0
         },
-        "cylinderOil": null,
-        "status": "In Port",
-        "remarks": "NIL",
+        "cylinderOil": {},
+        "status": "Laden, In Port",
+        "remarks": "Port Consumption: Working; Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs",
         "vesselId": "medliguria"
       }
     ],
@@ -4596,7 +4596,7 @@
         "positionText": "Lat 01-23.2N & Long 000-03.4E",
         "from": "Port Luis, Mauritius",
         "to": "Takoradi, Ghana, W.A",
-        "nextPort": "GH TKD P/STN",
+        "nextPort": "Takoradi",
         "voyageNo": "18-L",
         "etaText": "21.08.2026 1100LT",
         "etbText": null,
@@ -4604,7 +4604,7 @@
         "etaISO": "2026-08-21T11:00",
         "etbISO": null,
         "etdISO": null,
-        "speed": "11.04",
+        "speed": 11.04,
         "course": null,
         "milesToGo": 235,
         "bunkers": {
@@ -4895,5 +4895,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-21T07:00:22.546Z"
+  "syncedAt": "2026-08-21T08:00:26.849Z"
 }
