@@ -22271,6 +22271,159 @@ async function ghSyncReplaceFromCloud(){
   }catch(e){ ghSyncSetStatus("error", e.message); }
 }
 
+// ============================================================================
+// === RIPRISTINO DA CRONOLOGIA (v0.76) =======================================
+// Ogni push è un commit di state.json → la cronologia git è un backup granulare
+// di ogni salvataggio. Qui elenco i commit (data/ora + n. to-do) e permetto di
+// riportare lo stato a un punto preciso (es. "ieri 17:30"). In più elenco i
+// backup giornalieri datati in backups/. Ripristinare = adotto quella versione
+// in force + rendo QUESTO dispositivo la fonte, così diventa la verità sul cloud
+// e un altro device stantìo non può più risovrascriverla.
+// ============================================================================
+function ghRepoSlug() {
+  const s = state.settings || {};
+  return (s.ghSyncRepo || "").trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+}
+function ghStatePath() { return ((state.settings || {}).ghSyncPath || "state.json").trim().replace(/^\/+/, ""); }
+
+// Elenca i commit che toccano il file di stato (= la storia dei salvataggi).
+async function ghListStateHistory(limit) {
+  const repo = ghRepoSlug(), branch = ((state.settings || {}).ghSyncBranch || "main").trim();
+  const url = `https://api.github.com/repos/${repo}/commits?path=${encodeURIComponent(ghStatePath())}&sha=${encodeURIComponent(branch)}&per_page=${limit || 50}`;
+  const res = await fetch(url, { headers: ghSyncHeaders(), cache: "no-store" });
+  if (!res.ok) throw new Error("GitHub " + res.status + " (cronologia)");
+  const arr = await res.json();
+  return (Array.isArray(arr) ? arr : []).map(c => ({
+    sha: c.sha,
+    date: c.commit && c.commit.committer && c.commit.committer.date,
+    message: (c.commit && c.commit.message || "").split("\n")[0]
+  }));
+}
+// Elenca i backup giornalieri datati in backups/.
+async function ghListDailyBackups() {
+  const repo = ghRepoSlug(), branch = ((state.settings || {}).ghSyncBranch || "main").trim();
+  const url = `https://api.github.com/repos/${repo}/contents/backups?ref=${encodeURIComponent(branch)}`;
+  const res = await fetch(url, { headers: ghSyncHeaders(), cache: "no-store" });
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error("GitHub " + res.status + " (backup)");
+  const arr = await res.json();
+  return (Array.isArray(arr) ? arr : [])
+    .filter(f => /^state-\d{4}-\d{2}-\d{2}\.json$/.test(f.name))
+    .map(f => ({ name: f.name, path: f.path, date: f.name.slice(6, 16) }))
+    .sort((a, b) => b.name.localeCompare(a.name));
+}
+// Scarica e decodifica il payload di stato a un commit (ref = sha) o a un path.
+async function ghFetchStateAt(ref, path) {
+  const repo = ghRepoSlug();
+  const url = `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(path || ghStatePath()).replace(/%2F/g, "/")}?ref=${encodeURIComponent(ref)}`;
+  const res = await fetch(url, { headers: ghSyncHeaders(), cache: "no-store" });
+  if (!res.ok) throw new Error("GitHub " + res.status + " (lettura versione)");
+  const j = await res.json();
+  const txt = b64DecodeUtf8(j.content || "");
+  return JSON.parse(txt);
+}
+// Riepilogo to-do di un payload (per l'anteprima).
+function ghTodoSummary(payload) {
+  const todos = Array.isArray(payload && payload.todos) ? payload.todos : [];
+  const open = todos.filter(t => !t.done);
+  let today = 0, overdue = 0;
+  for (const t of open) {
+    const cls = classifyDueDate(t.dueDate);
+    if (cls === "today") today++; else if (cls === "overdue") overdue++;
+  }
+  return { total: todos.length, open: open.length, today, overdue,
+    titles: open.slice(0, 6).map(t => t.title || t.action || "(senza titolo)") };
+}
+// Ripristina un payload: adotto in force + rendo questo dispositivo la fonte + push.
+async function ghRestorePayload(payload) {
+  mpdMergeRemote(payload, true);                 // adotta tutte le collezioni dal payload scelto
+  ghSetSourceDevice({ id: ghDeviceId(), name: ghDeviceName(), ts: new Date().toISOString() });
+  await ghSyncMakeSource();                       // pubblica come verità sul cloud (no re-merge)
+  ghSetDirty(false);
+  render();
+}
+
+// --- UI modale --------------------------------------------------------------
+async function openRestoreModal() {
+  if (!ghSyncConfigured()) { showToast("Configura prima il Sync GitHub"); return; }
+  let host = document.getElementById("restore-modal-host");
+  if (!host) { host = document.createElement("div"); host.id = "restore-modal-host"; document.body.appendChild(host); }
+  host.innerHTML = `
+    <div class="restore-ov" style="position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #eceff3;position:sticky;top:0;background:#fff;">
+          <div>
+            <div style="font-weight:700;font-size:16px;">\ud83d\udd58 Ripristina una versione precedente</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">Ogni salvataggio \u00e8 un punto recuperabile. Scegli l'orario (es. ieri 17:30).</div>
+          </div>
+          <button class="btn btn-sm" id="restore-close">\u2715</button>
+        </div>
+        <div id="restore-body" style="padding:8px 20px 20px;">
+          <div style="padding:24px;text-align:center;color:#64748b;">Carico la cronologia\u2026</div>
+        </div>
+      </div>
+    </div>`;
+  host.querySelector("#restore-close").addEventListener("click", () => { host.innerHTML = ""; });
+  host.querySelector(".restore-ov").addEventListener("click", (e) => { if (e.target.classList.contains("restore-ov")) host.innerHTML = ""; });
+
+  const body = host.querySelector("#restore-body");
+  try {
+    const [commits, backups] = await Promise.all([
+      ghListStateHistory(50).catch(() => []),
+      ghListDailyBackups().catch(() => [])
+    ]);
+    const row = (label, sub, onclickId, badge) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #eceff3;border-radius:10px;margin-bottom:8px;">
+        <div style="min-width:0;">
+          <div style="font-weight:600;font-size:13px;">${label}${badge || ""}</div>
+          <div style="font-size:11px;color:#94a3b8;">${sub}</div>
+        </div>
+        <button class="btn btn-sm btn-primary" data-restore="${onclickId}">Ripristina</button>
+      </div>`;
+    let html = "";
+    if (commits.length) {
+      html += `<div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin:6px 0 10px;">Salvataggi (cronologia)</div>`;
+      commits.forEach((c, i) => {
+        const d = c.date ? new Date(c.date) : null;
+        const when = d ? d.toLocaleString("it-IT", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : c.sha.slice(0, 7);
+        html += row(when, c.message || c.sha.slice(0, 7), "c:" + c.sha);
+      });
+    }
+    if (backups.length) {
+      html += `<div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin:16px 0 10px;">Backup giornalieri</div>`;
+      backups.forEach(b => {
+        const d = new Date(b.date);
+        const when = isNaN(d) ? b.date : d.toLocaleDateString("it-IT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+        html += row(when, b.name, "b:" + b.path);
+      });
+    }
+    if (!commits.length && !backups.length) html = `<div style="padding:24px;text-align:center;color:#64748b;">Nessuna cronologia trovata sul repo.</div>`;
+    body.innerHTML = html;
+    body.querySelectorAll("[data-restore]").forEach(btn => {
+      btn.addEventListener("click", () => restorePreviewAndApply(btn.getAttribute("data-restore"), host));
+    });
+  } catch (e) {
+    body.innerHTML = `<div style="padding:24px;text-align:center;color:#c8362f;">Errore: ${escapeHTML(e.message)}</div>`;
+  }
+}
+async function restorePreviewAndApply(token, host) {
+  const kind = token.slice(0, 1), ref = token.slice(2);
+  try {
+    const payload = kind === "c" ? await ghFetchStateAt(ref) : await ghFetchStateAt(((state.settings || {}).ghSyncBranch || "main").trim(), ref);
+    const s = ghTodoSummary(payload);
+    const msg = `Ripristinare questa versione?\n\n`
+      + `\u2022 To-do: ${s.open} aperte (${s.today} oggi \u00b7 ${s.overdue} scadute) su ${s.total} totali\n`
+      + (s.titles.length ? `\u2022 Prime aperte:\n   - ${s.titles.join("\n   - ")}\n` : "")
+      + `\nLo stato attuale di questo dispositivo verr\u00e0 sostituito da questa versione e pubblicato sul cloud come fonte di verit\u00e0 (gli altri dispositivi la adotteranno).`;
+    if (!confirm(msg)) return;
+    await ghRestorePayload(payload);
+    if (host) host.innerHTML = "";
+    showToast("\u2713 Versione ripristinata \u2014 " + s.open + " to-do aperte");
+  } catch (e) {
+    alert("Ripristino non riuscito: " + e.message);
+  }
+}
+
 // Applica il documento remoto WHOLESALE: ogni chiave sostituisce la locale (le
 // cancellazioni si propagano perché l'intero array/dizionario viene rimpiazzato).
 // Guardato da suppressPush così i save*() non fanno ripartire un push a eco.
@@ -22554,6 +22707,7 @@ function renderGhSyncRow() {
         <input type="text" id="ghsync-devname" value="${escapeAttr(ghDeviceName())}" style="width:120px;font-size:var(--fs-xs);">
       </label>
       <button class="btn btn-sm" id="ghsync-replace-btn" title="Sostituisci completamente lo stato locale con quello del cloud">\ud83d\udce5 Sostituisci con cloud</button>
+      <button class="btn btn-sm" id="ghsync-restore-btn" title="Riporta lo stato a un salvataggio precedente (es. ieri 17:30)">\ud83d\udd58 Ripristina versione\u2026</button>
     </div>`;
   document.getElementById("ghsync-now-btn")?.addEventListener("click", async () => {
     await ghSyncPull({ render: false });
@@ -22595,6 +22749,7 @@ function renderGhSyncRow() {
     renderGhSyncRow();
     showToast("Stato locale sostituito con il cloud");
   });
+  document.getElementById("ghsync-restore-btn")?.addEventListener("click", () => { openRestoreModal(); });
 }
 
 // === UI: pannello connessione nelle Impostazioni ===========================
