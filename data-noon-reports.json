@@ -2980,8 +2980,8 @@
           "fw": 0
         },
         "cylinderOil": {},
-        "status": "Laden, In Port",
-        "remarks": "Ballast pump 1 used for 4.00 hrs, ballast water treatment system used for 4.00 hrs, air-conditioning compressor used for 24.00 hrs",
+        "status": "Laden, In Port, Working",
+        "remarks": "Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs; Scrubber not fitted.",
         "vesselId": "medliguria"
       }
     ],
@@ -4622,7 +4622,7 @@
         "positionText": "Lat 01-23.2N & Long 000-03.4E",
         "from": "Port Luis, Mauritius",
         "to": "Takoradi, Ghana, W.A",
-        "nextPort": "Takoradi",
+        "nextPort": "GH TKD P/STN",
         "voyageNo": "18-L",
         "etaText": "21.08.2026 1100LT",
         "etbText": null,
@@ -4639,8 +4639,8 @@
           "fw": 61
         },
         "consumption": {
-          "hfo": 0,
-          "lsfo": 23.03,
+          "hfo": 23.03,
+          "lsfo": 0,
           "lsmgo": 0,
           "mdo": 0,
           "mgo": 0,
@@ -4654,6 +4654,50 @@
           "unit": "Ltrs"
         },
         "status": "in navigazione",
+        "remarks": null,
+        "vesselId": "peppino"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-08-21",
+        "type": "anchor",
+        "lat": "04-54.0N",
+        "lon": "001-41.0W",
+        "positionText": "Anchorage",
+        "from": "Port Louis, Mauritius",
+        "to": "Takoradi, Ghana",
+        "nextPort": "Takoradi",
+        "voyageNo": "18-L",
+        "etaText": "TB1",
+        "etbText": "23 - 24.August 2026 As per agent information",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": "2026-08-23T00:00",
+        "etdISO": null,
+        "speed": 0,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 1078.82,
+          "lsmgo": 161.44,
+          "fw": 56
+        },
+        "consumption": {
+          "hfo": 0.07,
+          "lsfo": 0,
+          "lsmgo": 0.05,
+          "mdo": null,
+          "mgo": 0.02,
+          "fw": 5
+        },
+        "cylinderOil": {
+          "daily": 0,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 68074,
+          "unit": "Ltrs"
+        },
+        "status": "In anchorage",
         "remarks": null,
         "vesselId": "peppino"
       }
@@ -4921,5 +4965,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-21T13:00:23.210Z"
+  "syncedAt": "2026-08-21T14:00:24.381Z"
 }
