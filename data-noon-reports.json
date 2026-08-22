@@ -2981,7 +2981,7 @@
         },
         "cylinderOil": {},
         "status": "Laden, In Port",
-        "remarks": "Port Consumption: Working; Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs",
+        "remarks": "Port Consumption: Working",
         "vesselId": "medliguria"
       },
       {
@@ -2990,11 +2990,11 @@
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "XIAMEN",
+        "positionText": "In Port, XIAMEN",
         "from": null,
         "to": null,
         "nextPort": null,
-        "voyageNo": null,
+        "voyageNo": "11",
         "etaText": null,
         "etbText": null,
         "etdText": "24 AUG 2026 AM AGW WP",
@@ -3006,20 +3006,20 @@
         "milesToGo": null,
         "bunkers": {
           "lsfo": 905.12,
-          "lsmgo": 83.1,
+          "lsmgo": 0,
           "fw": 282
         },
         "consumption": {
-          "hfo": null,
-          "lsfo": null,
-          "lsmgo": null,
-          "mdo": null,
-          "mgo": null,
-          "fw": null
+          "hfo": 0,
+          "lsfo": 3.1,
+          "lsmgo": 0,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 0
         },
-        "cylinderOil": null,
-        "status": "In Port, discharging cargo",
-        "remarks": "NIL",
+        "cylinderOil": {},
+        "status": "Laden, In Port",
+        "remarks": "Port Consumption: Working; Ballast pump 1 used for 12h; Ballast water treatment system used for 12h; Air-conditioning compressor used for 24h",
         "vesselId": "medliguria"
       }
     ],
@@ -4677,8 +4677,8 @@
           "fw": 61
         },
         "consumption": {
-          "hfo": 0,
-          "lsfo": 23.03,
+          "hfo": 23.03,
+          "lsfo": 0,
           "lsmgo": 0,
           "mdo": 0,
           "mgo": 0,
@@ -4707,7 +4707,7 @@
         "nextPort": "Takoradi",
         "voyageNo": "18-L",
         "etaText": "TB1",
-        "etbText": "23 - 24.August 2026 As per agent information",
+        "etbText": "23-24.August 2026 As per agent information",
         "etdText": null,
         "etaISO": null,
         "etbISO": "2026-08-23T00:00",
@@ -4735,7 +4735,7 @@
           "rob": 68074,
           "unit": "Ltrs"
         },
-        "status": "in anchorage",
+        "status": "In anchorage",
         "remarks": null,
         "vesselId": "peppino"
       }
@@ -5003,5 +5003,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-22T05:00:17.367Z"
+  "syncedAt": "2026-08-22T06:00:17.129Z"
 }
