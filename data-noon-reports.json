@@ -3024,7 +3024,7 @@
         },
         "cylinderOil": {},
         "status": "Laden, In Port",
-        "remarks": "Ballast pump 1 used for 4.00 hrs; ballast water treatment system used for 4.00 hrs; air-conditioning compressor used for 24.00 hrs",
+        "remarks": "Port Consumption: Working; Ballast pump 1 used 4.00 hrs; Ballast water treatment system used 4.00 hrs; Air-conditioning compressor used 24.00 hrs",
         "vesselId": "medliguria"
       },
       {
@@ -3061,8 +3061,8 @@
           "fw": 0
         },
         "cylinderOil": {},
-        "status": "Laden, In Port, Working",
-        "remarks": "Ballast pump 1 used for 12h, ballast water treatment system used for 12h, air-conditioning compressor used for 24h",
+        "status": "Laden, In Port",
+        "remarks": "Port Consumption: Working",
         "vesselId": "medliguria"
       }
     ],
@@ -4720,11 +4720,11 @@
           "fw": 61
         },
         "consumption": {
-          "hfo": 23.03,
-          "lsfo": 22.05,
+          "hfo": 0,
+          "lsfo": 23.03,
           "lsmgo": 0,
           "mdo": 0,
-          "mgo": 0.98,
+          "mgo": 0,
           "fw": 5
         },
         "cylinderOil": {
@@ -4791,7 +4791,7 @@
         "positionText": "Anchorage",
         "from": "Port Louis, Mauritius",
         "to": "Takoradi, Ghana",
-        "nextPort": "Takoradi, Ghana",
+        "nextPort": "Takoradi",
         "voyageNo": "18-L",
         "etaText": "TBA",
         "etbText": "24th August 2026 as per agent information (iagw/wp)",
@@ -4822,7 +4822,7 @@
           "rob": 68074,
           "unit": "Ltrs"
         },
-        "status": "Anchored at Port Louis, Mauritius",
+        "status": "in anchorage",
         "remarks": null,
         "vesselId": "peppino"
       }
@@ -5090,5 +5090,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-22T17:00:21.199Z"
+  "syncedAt": "2026-08-22T18:00:21.455Z"
 }
