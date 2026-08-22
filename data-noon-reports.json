@@ -2939,12 +2939,29 @@
       },
       {
         "isNoonReport": true,
-        "type": "sea",
+        "type": "port",
         "wind": "ROB on arrival: EOSP 20 AUG 2026/ 0000LT: VLSFO-910.33 /LSMGO-81.37",
         "sea": "Arrival Draft : Fwd 12.32 Aft 12.33",
         "current": "Cargo to be Discharged: 49,521.7 Mt",
         "vesselId": "medliguria",
-        "date": "2026-08-20"
+        "date": "2026-08-20",
+        "positionText": "In Port, XIAMEN",
+        "voyageNo": "11",
+        "bunkers": {
+          "lsfo": 911.32,
+          "lsmgo": 0
+        },
+        "consumption": {
+          "hfo": 0,
+          "lsfo": 2.64,
+          "lsmgo": 1.73,
+          "mdo": 0,
+          "mgo": 0,
+          "fw": 0
+        },
+        "cylinderOil": {},
+        "status": "Laden, discharging operations commenced at 0945LT",
+        "remarks": "BUNKER FIGURE BASIS AS PER BUNKER SURVEY; VLSFO = 3.63 MT / LSMGO = 1.73 MT"
       },
       {
         "isNoonReport": true,
@@ -2981,7 +2998,7 @@
         },
         "cylinderOil": {},
         "status": "Laden, In Port",
-        "remarks": "Port Consumption: Working",
+        "remarks": "Port Consumption: Working; Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs",
         "vesselId": "medliguria"
       },
       {
@@ -3019,7 +3036,7 @@
         },
         "cylinderOil": {},
         "status": "Laden, In Port",
-        "remarks": "Port Consumption: Working; Ballast pump 1 used for 12h; Ballast water treatment system used for 12h; Air-conditioning compressor used for 24h",
+        "remarks": "Port Consumption: Working",
         "vesselId": "medliguria"
       }
     ],
@@ -4707,7 +4724,7 @@
         "nextPort": "Takoradi",
         "voyageNo": "18-L",
         "etaText": "TB1",
-        "etbText": "23-24.August 2026 As per agent information",
+        "etbText": "23 - 24.August 2026 As per agent information",
         "etdText": null,
         "etaISO": null,
         "etbISO": "2026-08-23T00:00",
@@ -4735,7 +4752,7 @@
           "rob": 68074,
           "unit": "Ltrs"
         },
-        "status": "In anchorage",
+        "status": "in anchorage",
         "remarks": null,
         "vesselId": "peppino"
       }
@@ -5003,5 +5020,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-22T06:00:17.129Z"
+  "syncedAt": "2026-08-22T07:00:18.173Z"
 }
