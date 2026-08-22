@@ -7020,6 +7020,118 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .vessel-switcher .pill-row .pill[data-vid]{ flex:none; min-height:40px; padding:8px 14px !important; font-size:13.5px !important; }
   .switcher-select-wrap{ display:none !important; }
 
+  /* ==== 2a — PLANCIA FLOTTA: card nave con semaforo ==================== */
+  .ma-fcard{ display:flex; width:100%; padding:0; margin:0 0 11px; background:#fff; border:1px solid #e3e8ee;
+    border-radius:16px; overflow:hidden; text-align:left; cursor:pointer; box-shadow:0 1px 2px rgba(15,32,51,.05); }
+  .ma-fband{ width:6px; flex:none; align-self:stretch; }
+  .ma-fbody{ flex:1; min-width:0; display:block; padding:13px 14px 0; }
+  .ma-frow1{ display:flex; align-items:center; gap:8px; }
+  .ma-frow1 b{ flex:1; min-width:0; font-size:15.5px; font-weight:800; color:#0f2033; letter-spacing:-.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ma-fstat{ font-size:10.5px; font-weight:800; border-radius:20px; padding:3px 9px; white-space:nowrap; letter-spacing:.02em; }
+  .ma-fchev{ color:#c7cdd7; font-size:20px; line-height:1; }
+  .ma-freason{ display:block; font-size:12.5px; font-weight:600; line-height:1.35; margin-top:5px; }
+  .ma-fpos{ display:block; font-size:11.5px; font-weight:600; color:#7b8698; margin-top:7px; }
+  .ma-fmetrics{ display:flex; margin:10px -14px 0; border-top:1px solid #eef0f4; background:#fafbfc; }
+  .ma-fm{ flex:1; display:flex; flex-direction:column; align-items:center; padding:8px 0; }
+  .ma-fm-n{ font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1; }
+  .ma-fm-l{ font-size:9.5px; font-weight:700; color:#7b8698; margin-top:3px; letter-spacing:.03em; }
+  .ma-striphead{ display:flex; align-items:baseline; justify-content:space-between; margin:4px 2px 9px; }
+  .ma-fleet-hint{ font-size:11px; font-weight:600; color:#9aa5b4; }
+
+  /* ==== 2a — banner sincronizzazione ==================================== */
+  .ma-syncban{ display:flex; align-items:center; gap:9px; width:100%; margin:0 0 12px; padding:11px 13px;
+    background:#fbf1dd; border:1px solid #f0d79a; border-radius:13px; cursor:pointer; text-align:left; }
+  .ma-syncban .d{ width:8px; height:8px; border-radius:50%; background:#b8860b; flex:none; }
+  .ma-syncban .t{ flex:1; font-size:12.5px; font-weight:700; color:#8a6608; }
+  .ma-syncban .go{ color:#b8860b; font-size:18px; }
+  .ma-tsync{ display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700;
+    border-radius:20px; padding:2px 8px; white-space:nowrap; }
+  .ma-tsync .d{ width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .ma-tsync.ok{ color:#117a3a; background:#e7f5ec; }
+  .ma-tsync.tv{ color:#b8860b; background:#fbf1dd; }
+  .ma-syncrow{ display:flex; align-items:center; gap:10px; padding:11px 13px; margin-bottom:8px; }
+  .ma-syncrow .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .ma-syncrow .tx b{ font-size:13px; font-weight:700; color:#0f2033; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ma-syncrow .tx small{ font-size:11.5px; font-weight:600; color:#7b8698; }
+  .ma-sync-ok{ flex:none; font-size:12px; font-weight:700; color:#fff; background:#b8860b;
+    border:none; border-radius:10px; padding:8px 12px; cursor:pointer; }
+  .ma-syncok{ display:flex; align-items:center; gap:9px; background:#e7f5ec; border-radius:12px;
+    padding:13px; font-size:13px; font-weight:700; color:#117a3a; }
+  .ma-syncok .d{ width:9px; height:9px; border-radius:50%; background:#117a3a; }
+  .ma-legrow{ display:flex; align-items:center; gap:10px; padding:8px 2px; }
+  .ma-legrow .lg{ flex:none; min-width:104px; text-align:center; font-size:11px; font-weight:700; border-radius:20px; padding:4px 10px; }
+  .ma-legrow .dz{ font-size:12.5px; font-weight:500; color:#7b8698; }
+
+  /* ==== 2a — briefing button + dettaglio nave a schede ================== */
+  .ma-brief-btn{ display:flex; align-items:center; gap:12px; width:100%; margin:0 0 14px; padding:14px 15px;
+    background:linear-gradient(100deg,#0c2f6b,#13519e); border:none; border-radius:16px; cursor:pointer;
+    text-align:left; box-shadow:0 4px 14px rgba(12,47,107,.26); }
+  .ma-brief-ic{ width:42px; height:42px; flex:none; border-radius:12px; background:rgba(255,255,255,.16);
+    display:flex; align-items:center; justify-content:center; font-size:21px; }
+  .ma-brief-tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; color:#fff; }
+  .ma-brief-tx b{ font-size:15px; font-weight:800; }
+  .ma-brief-tx small{ font-size:12px; font-weight:500; color:#bcd2f4; }
+  .ma-brief-go{ flex:none; font-size:12px; font-weight:800; color:#0c2f6b; background:#fff; border-radius:20px; padding:8px 13px; }
+  .ma-vhead{ background:#fff; border:1px solid #e3e8ee; border-radius:16px; padding:13px 14px; margin-bottom:12px; }
+  .ma-vhead-top{ display:flex; align-items:center; gap:9px; }
+  .ma-vhead-name{ flex:1; min-width:0; font-size:18px; font-weight:800; color:#0f2033; letter-spacing:-.02em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ma-vhead-sub{ font-size:12.5px; font-weight:600; color:#7b8698; margin-top:6px; }
+  .ma-dtabs{ display:flex; gap:4px; overflow-x:auto; margin:0 -14px 14px; padding:0 14px 2px;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .ma-dtabs::-webkit-scrollbar{ display:none; }
+  .ma-dtab{ flex:none; background:none; border:none; border-bottom:2.5px solid transparent; cursor:pointer;
+    font-size:12.5px; font-weight:700; color:#7b8698; padding:8px 12px 10px; white-space:nowrap; }
+  .ma-dtab.on{ color:#0a3f93; border-bottom-color:#0a3f93; }
+  .ma-anom{ display:flex; align-items:center; gap:9px; background:#fbe6e6; border:1px solid #f3c9c4;
+    border-radius:12px; padding:11px 13px; margin-bottom:13px; font-size:12.5px; font-weight:700; color:#c8362f; }
+  .ma-addtodo{ display:block; width:100%; background:#0a3f93; color:#fff; border:none; border-radius:12px;
+    padding:12px; font-size:13.5px; font-weight:700; cursor:pointer; margin-bottom:13px; }
+
+  /* ==== 2a — briefing overlay a step ==================================== */
+  .ma-brief-ov, .ma-brief-end{ position:fixed; inset:0; z-index:400; display:flex; flex-direction:column; background:#f4f6f9; }
+  .ma-brief-hd{ background:#0c2f6b; color:#fff; padding:calc(16px + env(safe-area-inset-top,0px)) 18px 16px; }
+  .ma-brief-hd1{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .ma-brief-hd1 span{ font-size:12px; font-weight:700; color:#9fb8e6; letter-spacing:.04em; }
+  .ma-brief-hd1 button{ background:none; border:none; color:#cfe0ff; font-size:13px; font-weight:700; cursor:pointer; padding:4px; }
+  .ma-brief-bars{ display:flex; gap:5px; margin-bottom:16px; }
+  .ma-brief-bars .b{ flex:1; height:4px; border-radius:3px; background:rgba(255,255,255,.24); }
+  .ma-brief-bars .b.on{ background:#fff; }
+  .ma-brief-hd2{ display:flex; align-items:center; gap:11px; }
+  .ma-brief-hd2 .ic{ width:42px; height:42px; flex:none; border-radius:12px; background:rgba(255,255,255,.16);
+    display:flex; align-items:center; justify-content:center; font-size:21px; }
+  .ma-brief-hd2 .tx{ display:flex; flex-direction:column; gap:2px; }
+  .ma-brief-hd2 .tx b{ font-size:19px; font-weight:800; letter-spacing:-.02em; }
+  .ma-brief-hd2 .tx small{ font-size:12.5px; font-weight:600; color:#9fb8e6; }
+  .ma-brief-body{ flex:1; overflow-y:auto; padding:15px 16px 20px; }
+  .ma-brief-row{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+    background:#fff; border:1px solid #e3e8ee; border-left:4px solid #ccc; border-radius:13px; padding:12px 13px; margin-bottom:9px; }
+  .ma-brief-row .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .ma-brief-row .tx b{ font-size:13.5px; font-weight:700; color:#0f2033; line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ma-brief-row .tx small{ font-size:11.5px; font-weight:600; color:#7b8698; }
+  .ma-brief-row .go{ color:#c7cdd7; font-size:18px; flex:none; }
+  .ma-brief-empty{ text-align:center; color:#9aa5b4; font-size:14px; font-weight:600; padding:50px 20px; }
+  .ma-brief-more{ text-align:center; color:#7b8698; font-size:12px; font-weight:600; padding:12px 10px 4px; }
+  .ma-brief-nav{ flex:none; display:flex; gap:10px; padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));
+    background:#fff; border-top:1px solid #e3e8ee; }
+  .ma-brief-nav button{ border:none; border-radius:12px; padding:14px; font-size:14px; font-weight:700; cursor:pointer; }
+  .ma-brief-nav .pri{ flex:2; background:#0a3f93; color:#fff; }
+  .ma-brief-nav .sec{ flex:1; background:#eef0f3; color:#3a4658; }
+  .ma-brief-end{ background:linear-gradient(160deg,#0c2f6b,#0a2350); color:#fff;
+    padding:calc(56px + env(safe-area-inset-top,0px)) 22px calc(24px + env(safe-area-inset-bottom,0px)); }
+  .ma-brief-check{ font-size:46px; margin-bottom:10px; }
+  .ma-brief-endh{ font-size:26px; font-weight:800; letter-spacing:-.02em; }
+  .ma-brief-endp{ font-size:14px; font-weight:500; color:#bcd2f4; margin-top:10px; line-height:1.5; }
+  .ma-brief-sums{ display:flex; flex-direction:column; gap:10px; margin-top:22px; }
+  .ma-brief-sum{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:rgba(255,255,255,.08); border-radius:12px; padding:13px 15px; }
+  .ma-brief-sum span{ font-size:13.5px; font-weight:700; }
+  .ma-brief-sum small{ font-size:12.5px; font-weight:500; color:#9fb8e6; text-align:right; }
+  .ma-brief-start{ margin-top:auto; background:#fff; color:#0c2f6b; border:none; border-radius:14px;
+    padding:15px; font-size:15px; font-weight:800; cursor:pointer; }
+
   /* ---- TAB BAR in basso (iOS-style) ---- */
   .mobile-tabbar{
     display:flex; position:fixed; left:0; right:0; bottom:0; z-index:200;
@@ -7027,6 +7139,13 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
     border-top:1px solid #e3e8ee;
     padding:6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
   }
+  .mtab-add{ justify-content:flex-start; }
+  .mtab-add-btn{ display:flex; align-items:center; justify-content:center; width:50px; height:50px;
+    margin-top:-20px; border-radius:50%; background:#0a3f93; color:#fff;
+    box-shadow:0 6px 16px rgba(10,63,147,.4); }
+  .mtab-add-btn .icon{ width:24px; height:24px; }
+  .mtab-add .mtab-l{ display:none; }
+
   .mtab{
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
     background:none; border:none; cursor:pointer; position:relative;
@@ -7362,32 +7481,31 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 
 <!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
 <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
-  <button class="mtab" data-mtab="home" aria-label="Oggi">
-    <svg class="icon"><use href="#i-home"/></svg>
-    <span class="mtab-l">Oggi</span>
-  </button>
-  <button class="mtab" data-mtab="email" aria-label="Email">
-    <svg class="icon"><use href="#i-mail"/></svg>
-    <span class="mtab-l">Email</span>
-    <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
+  <button class="mtab" data-mtab="flotta" aria-label="Flotta">
+    <svg class="icon"><use href="#i-ship"/></svg>
+    <span class="mtab-l">Flotta</span>
   </button>
   <button class="mtab" data-mtab="todo" aria-label="To-do">
     <svg class="icon"><use href="#i-checksquare"/></svg>
     <span class="mtab-l">To-do</span>
     <span class="mtab-dot" id="mtab-todos-dot" style="display:none;"></span>
   </button>
-  <button class="mtab" data-mtab="rubrica" aria-label="Rubrica">
-    <svg class="icon"><use href="#i-building"/></svg>
-    <span class="mtab-l">Rubrica</span>
+  <button class="mtab mtab-add" data-mtab="add" aria-label="Nuova to-do">
+    <span class="mtab-add-btn"><svg class="icon"><use href="#i-plus"/></svg></span>
   </button>
-  <button class="mtab" data-mtab="altro" aria-label="Altro">
-    <svg class="icon"><use href="#i-menu"/></svg>
-    <span class="mtab-l">Altro</span>
-    <span class="mtab-dot" id="mtab-cert-dot" style="display:none;"></span>
+  <button class="mtab" data-mtab="email" aria-label="Email">
+    <svg class="icon"><use href="#i-mail"/></svg>
+    <span class="mtab-l">Email</span>
+    <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
+  </button>
+  <button class="mtab" data-mtab="cerca" aria-label="Cerca">
+    <svg class="icon"><use href="#i-search"/></svg>
+    <span class="mtab-l">Cerca</span>
   </button>
 </nav>
 
 <div id="ma-sheet-host"></div>
+<div id="ma-brief-host"></div>
 <div id="ma-toast-host"></div>
 
 <!-- Modal: Settings -->
@@ -9328,8 +9446,8 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const scr2tab = { home:"home", flotta:"altro", todo:"todo", email:"email", cert:"altro", rubrica:"rubrica" };
-  const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "home") : "home";
+  const scr2tab = { home:"flotta", flotta:"flotta", todo:"todo", email:"email", cert:"flotta", rubrica:"flotta" };
+  const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "flotta") : "flotta";
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
   });
@@ -9352,7 +9470,7 @@ function updateMobileTabBar() {
 // Legge i dati REALI (navi, to-do, certificati, email, rubrica) e li presenta
 // come card / drill-down / one-tap / FAB, in stile mockup approvato.
 // ============================================================================
-let mstate = { screen: "home", vessel: null, rubKind: "supplier", certFilter: "all" };
+let mstate = { screen: "flotta", vessel: null, detTab: "ops", rubKind: "supplier", certFilter: "all" };
 function maIsMobile(){ return window.matchMedia("(max-width: 768px)").matches; }
 
 function maStatusColor(cfg){
@@ -9392,41 +9510,80 @@ function maFleetStaleRFQs(){
   out.sort((a,b)=>(b.it.rfqDays||0)-(a.it.rfqDays||0));
   return out;
 }
+// === 2a — PLANCIA FLOTTA: home = 5 navi con semaforo =======================
+function maStatusTok(cfg){
+  try{
+    const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
+    if(!v) return "green";
+    return vesselStatus({ ...v, ...cfg });
+  }catch(_){ return "green"; }
+}
+function maVesselMetrics(vid){
+  let todoOpen=0, lateTodo=0, emailW=0, rfq=0, expired=0, critCert=0;
+  try{ (state.todos||[]).forEach(t=>{ if(!t.done && t.vessel===vid){ todoOpen++; if((typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue") lateTodo++; } }); }catch(_){}
+  try{ if(typeof getEmailThreads==="function") getEmailThreads().forEach(r=>{ if(r.vesselId===vid && r.waiting) emailW++; }); }catch(_){}
+  try{ if(typeof getStaleRFQs==="function") rfq=(getStaleRFQs(vid,8)||[]).length; }catch(_){}
+  try{ ((state.certificates&&state.certificates[vid])||[]).forEach(c=>{ if(c.isPermanent||!c.expiry) return; const d=daysToExpiry(c.expiry); if(d==null) return; if(d<0) expired++; else if(d<=14) critCert++; }); }catch(_){}
+  return { todoOpen, lateTodo, emailW, rfq, expired, critCert };
+}
+function maVesselReasons(m){
+  const r=[];
+  if(m.expired) r.push(m.expired+" cert. scadut"+(m.expired>1?"i":"o"));
+  if(m.lateTodo) r.push(m.lateTodo+" to-do scadut"+(m.lateTodo>1?"e":"a"));
+  if(m.critCert) r.push(m.critCert+" cert. < 14g");
+  if(m.rfq) r.push(m.rfq+" RFQ ferm"+(m.rfq>1?"e":"a"));
+  if(m.emailW) r.push(m.emailW+" email in attesa");
+  return r;
+}
+function maVesselPosLine(cfg){
+  const vid=cfg.vesselId;
+  const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===vid);
+  let cur={}; try{ if(typeof getVoyage==="function") cur=(getVoyage(vid).current)||{}; }catch(_){}
+  if(cfg.manual) return "Gestione manuale";
+  const nextPort = cur.to || (v&&v.tracking&&v.tracking.nextPort) || "";
+  const eta = cur.eta || (v&&v.tracking&&v.tracking.eta);
+  const parts=[];
+  if(nextPort) parts.push("→ "+nextPort);
+  if(eta) parts.push("ETA "+formatDate(eta));
+  return parts.join(" · ") || "Rotta non impostata";
+}
+function maFleetCardHTML(cfg){
+  const vid=cfg.vesselId;
+  const tok=maStatusTok(cfg);
+  const color = tok==="crit"?"#c8362f":tok==="warn"?"#b8860b":"#117a3a";
+  const bg = tok==="crit"?"#fbe6e6":tok==="warn"?"#fbf1dd":"#e7f5ec";
+  const word = tok==="crit"?"CRITICO":tok==="warn"?"ATTENZIONE":"OK";
+  const m = maVesselMetrics(vid);
+  const reasons = maVesselReasons(m);
+  const reasonHTML = reasons.length ? reasons.slice(0,2).join(" · ") : "Nessuna criticità aperta";
+  const cell=(n,l,c)=>`<span class="ma-fm"><span class="ma-fm-n" style="color:${n?c:'#c2c9d2'}">${n}</span><span class="ma-fm-l">${l}</span></span>`;
+  return `<button class="ma-fcard" onclick="maOpenVessel('${escapeAttr(vid)}')">
+    <span class="ma-fband" style="background:${color}"></span>
+    <span class="ma-fbody">
+      <span class="ma-frow1"><b>${escapeHTML(cfg.displayName||vid)}</b><span class="ma-fstat" style="color:${color};background:${bg}">${word}</span><span class="ma-fchev">›</span></span>
+      <span class="ma-freason" style="color:${reasons.length?color:'#8a93a0'}">${escapeHTML(reasonHTML)}</span>
+      <span class="ma-fpos">📍 ${escapeHTML(maVesselPosLine(cfg))}</span>
+      <span class="ma-fmetrics">${cell(m.todoOpen,"TO-DO","#0a3f93")}${cell(m.emailW,"EMAIL","#0a3f93")}${cell(m.rfq,"RFQ","#b8860b")}${cell(m.expired+m.critCert,"CERT.",(m.expired+m.critCert)?"#c8362f":"#117a3a")}</span>
+    </span>
+  </button>`;
+}
+function maSyncBanner(){
+  const pend = (state.todos||[]).filter(t=>t.mobileSync==="toverify");
+  if(!pend.length) return "";
+  return `<button class="ma-syncban" onclick="maOpenSync()"><span class="d"></span><span class="t">${pend.length} modific${pend.length>1?'he':'a'} da validare al PC</span><span class="go">›</span></button>`;
+}
 function maHome(){
-  let certCrit=0, certWk=0;
-  try{ const cs=getCertStatsGlobal()||{}; certCrit=(cs.expired||0)+(cs.urgent||0)+(cs.week||0); }catch(_){}
-  const rfqList = maFleetStaleRFQs();
-  const rfqTot = rfqList.length;
-  let emailWait=0; try{ if(typeof getPendingReplies==="function") emailWait=getPendingReplies().length; }catch(_){}
-  let todoOpen=0; try{ todoOpen=todosOpen().length; }catch(_){}
-  const now = new Date();
-  const gg=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"][now.getDay()];
-  const mm=["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"][now.getMonth()];
-  const hr=now.getHours();
-  const hello = hr<12?"buongiorno":hr<18?"buon pomeriggio":"buonasera";
-  const tile=(n,lbl,sub,col,onclick)=>`<button class="ma-tile" style="border-left-color:${col}" onclick="${onclick}">
-    <div class="ma-tile-num" style="color:${col}">${n}</div>
-    <div class="ma-tile-lbl">${escapeHTML(lbl)}</div>
-    <div class="ma-tile-sub">${escapeHTML(sub)}</div></button>`;
-  const strip = (VESSELS||[]).map(maFleetRowHTML).join("");
-  return `
-    <div class="ma-greet">${escapeHTML(gg[0].toUpperCase()+gg.slice(1))} ${now.getDate()} ${escapeHTML(mm)} · ${escapeHTML(hello)}</div>
-    <div class="ma-greet-h">Cosa serve ora</div>
-    <div class="ma-tiles">
-      ${tile(certCrit,"Certificati critici","scaduti o < 14g","#c8362f","maGoCert('crit')")}
-      ${tile(rfqTot,"RFQ da sollecitare","ferme da 8+ giorni","#b8860b","maOpenRfqAll()")}
-      ${tile(emailWait,"Email in attesa","richiedono risposta","#0e54c1","mgo('email')")}
-      ${tile(todoOpen,"To-do aperte","oggi e scadute","#117a3a","mgo('todo')")}
-    </div>
-    <div class="ma-sec">Azioni rapide</div>
-    <div class="ma-qa">
-      <button class="ma-qa-btn primary" onclick="openTodoModal()">＋ To-do</button>
-      <button class="ma-qa-btn" onclick="maGoCert('all')">📅 Certificati</button>
-      <button class="ma-qa-btn" onclick="mgo('flotta')">🚢 Flotta</button>
-    </div>
-    <div class="ma-striphead"><div class="ma-sec">Flotta</div><button class="ma-see" onclick="mgo('flotta')">Vedi tutte ›</button></div>
-    ${strip}
-  `;
+  let critCount=0, lateCount=0;
+  try{ (VESSELS||[]).forEach(cfg=>{ if(maStatusTok(cfg)==="crit") critCount++; }); }catch(_){}
+  try{ lateCount=(state.todos||[]).filter(t=>!t.done && (typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue").length; }catch(_){}
+  const brief=`<button class="ma-brief-btn" onclick="maOpenBriefing()">
+    <span class="ma-brief-ic">☕</span>
+    <span class="ma-brief-tx"><b>Briefing mattutino</b><small>2 min · ${critCount} navi critiche · ${lateCount} to-do scadute</small></span>
+    <span class="ma-brief-go">Inizia ›</span></button>`;
+  const cards=(VESSELS||[]).map(maFleetCardHTML).join("");
+  return `${maSyncBanner()}${brief}
+    <div class="ma-striphead"><div class="ma-sec" style="margin:0">Flotta · ${(VESSELS||[]).length} navi</div><span class="ma-fleet-hint">toccane una per il dettaglio</span></div>
+    ${cards}`;
 }
 
 // === 1b — bottom sheet + toast infrastruttura ===============================
@@ -9498,6 +9655,7 @@ function maTodoRow(t){
       ${sub?`<span class="ma-tsub">${escapeHTML(sub)}</span>`:""}
       <span class="ma-tchips">${chips.join("")}</span>
       ${due?`<span class="ma-tdue" style="color:${dueColor};">${escapeHTML(due)}</span>`:""}
+      ${t.mobileSync==="toverify"?`<span class="ma-tsync tv"><span class="d"></span>da validare</span>`:t.mobileSync==="synced"?`<span class="ma-tsync ok"><span class="d"></span>sincronizzata</span>`:""}
     </button>
     <span class="ma-tgo" aria-hidden="true">›</span>
   </div>`;
@@ -9579,54 +9737,100 @@ function maNoonBlock(vid){
 
 function maVesselDetail(vid){
   const cfg = (VESSELS||[]).find(v=>v.vesselId===vid) || {};
+  const tok = maStatusTok(cfg);
+  const color = tok==="crit"?"#c8362f":tok==="warn"?"#b8860b":"#117a3a";
+  const bg = tok==="crit"?"#fbe6e6":tok==="warn"?"#fbf1dd":"#e7f5ec";
+  const word = tok==="crit"?"CRITICO":tok==="warn"?"ATTENZIONE":"OK";
+  const banner = `
+    <button class="ma-back" onclick="maBack()">‹ Flotta</button>
+    <div class="ma-vhead">
+      <div class="ma-vhead-top"><span class="ma-dot" style="background:${color};width:12px;height:12px"></span><span class="ma-vhead-name">${escapeHTML(cfg.displayName||vid)}</span><span class="ma-fstat" style="color:${color};background:${bg}">${word}</span></div>
+      <div class="ma-vhead-sub">📍 ${escapeHTML(maVesselPosLine(cfg))}</div>
+    </div>`;
+  const tabs=[["ops","Operativo"],["todo","To-do"],["email","Email"],["buy","Acquisti"],["docs","Documenti"]];
+  const active = mstate.detTab || "ops";
+  const tabBar = `<div class="ma-dtabs">${tabs.map(([id,l])=>`<button class="ma-dtab ${active===id?'on':''}" onclick="maDetTab('${id}')">${l}</button>`).join("")}</div>`;
+  let body="";
+  if(active==="ops") body=maOpsPane(vid,cfg);
+  else if(active==="todo") body=maVesselTodoPane(vid,cfg);
+  else if(active==="email") body=maVesselEmailPane(vid);
+  else if(active==="buy") body=maVesselBuyPane(vid,cfg);
+  else if(active==="docs") body=maVesselDocsPane(vid);
+  return banner+tabBar+body;
+}
+function maOpsPane(vid,cfg){
+  const noon = maNoonBlock(vid);
+  let anom="";
+  try{
+    const n=(typeof getNoonMerged==="function")?getNoonMerged(vid):null;
+    if(n && n.__stale){ const st=n.__stale; const grp=st.consumption||st.bunkers||st.cylinderOil||st.weather||st.nav; if(grp && grp.days>=1) anom=`<div class="ma-anom">⚠ Noon report non aggiornato da ${grp.days} giorn${grp.days>1?'i':'o'}</div>`; }
+  }catch(_){}
+  if(!noon){
+    return `${cfg.manual?`<div class="ma-anom" style="color:#b8860b;background:#fbf1dd;border-color:#f0d79a">⚠ Nave a gestione manuale — nessun noon report.</div>`:`<div class="ma-empty">Nessun noon report recente per questa nave.</div>`}
+      <div class="ma-sec">Posizione</div><div class="ma-card"><div class="ma-vhead-sub" style="margin:0">📍 ${escapeHTML(maVesselPosLine(cfg))}</div></div>`;
+  }
+  return anom+noon;
+}
+function maVesselTodoPane(vid,cfg){
+  let vtodos=[]; try{ vtodos=(state.todos||[]).filter(t=>!t.done && t.vessel===vid); }catch(_){}
+  const add=`<button class="ma-addtodo" onclick="maNewTodoFor('${escapeAttr(vid)}')">＋ Nuova to-do per ${escapeHTML(cfg.displayName||vid)}</button>`;
+  const list = vtodos.length ? vtodos.map(maTodoRow).join("") : `<div class="ma-empty">Nessuna to-do aperta.</div>`;
+  return add+list;
+}
+function maVesselEmailPane(vid){
+  let em=[]; try{ if(typeof getEmailThreads==="function") em=getEmailThreads().filter(r=>r.vesselId===vid); }catch(_){}
+  const rows = em.length ? em.map(maEmailRowHTML).join("") : `<div class="ma-empty">Nessuna comunicazione per questa nave.</div>`;
+  return `<div class="ma-sec">Triage · comunicazioni</div>${rows}<div class="ma-sheet-note" style="margin-top:8px">Risposta e invio completi → PC / Outlook.</div>`;
+}
+function maVesselBuyPane(vid,cfg){
   const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===vid);
-  const color = maStatusColor(cfg);
-  let cur = {};
-  try{ if(typeof getVoyage==="function"){ const voy=getVoyage(vid); cur=(voy&&voy.current)||{}; } }catch(_){}
-  const nextPort = (v&&v.tracking&&v.tracking.nextPort)||"";
-  const to = cur.to || nextPort;
-  const route = (cur.from||to) ? `${escapeHTML(cur.from||"—")}  →  ${escapeHTML(to||"—")}` : "Rotta non impostata";
-  const eta = cur.eta || (v&&v.tracking&&v.tracking.eta);
-  // Pipeline reale (cliccabile)
   let pl=null; try{ if(v && typeof computePipeline==="function") pl=computePipeline(v); }catch(_){}
   const plColors={REQ:"#5b6470",RFQ:"#0e54c1",PO:"#b8860b",DN:"#117a3a"};
   const plHTML = pl ? `<div class="ma-sec">Pipeline procurement</div><div class="ma-pl">${
-    ["REQ","RFQ","PO","DN"].map(s=>`<button class="ma-pl-cell" style="background:${plColors[s]}14" onclick="maOpenStage('${escapeAttr(vid)}','${s}')">
-      <div class="ma-pl-num" style="color:${plColors[s]}">${pl[s].total}</div><div class="ma-pl-lbl">${s}</div></button>`).join("")
-  }</div>` : (cfg.manual?`<div class="ma-sec">Pipeline procurement</div><div class="ma-empty">Nave a gestione manuale — nessuna pipeline.</div>`:"");
-  // RFQ da sollecitare (reale, con azione)
+    ["REQ","RFQ","PO","DN"].map(s=>`<button class="ma-pl-cell" style="background:${plColors[s]}14" onclick="maOpenStage('${escapeAttr(vid)}','${s}')"><div class="ma-pl-num" style="color:${plColors[s]}">${pl[s].total}</div><div class="ma-pl-lbl">${s}</div></button>`).join("")
+  }</div>` : (cfg.manual?`<div class="ma-empty">Nave a gestione manuale — nessuna pipeline.</div>`:"");
   let stale=[]; try{ if(typeof getStaleRFQs==="function") stale=getStaleRFQs(vid,8)||[]; }catch(_){}
   const rfqHTML = stale.length ? `<div class="ma-sec">RFQ da sollecitare (${stale.length})</div>` + stale.map(it=>{
     const ref=(Array.isArray(it.rfqNumbers)&&it.rfqNumbers[0])||it.reqNumber||"RFQ";
     const sup=it.supplier&&it.supplier!=="—"?it.supplier:(it.description||"—");
-    return `<div class="ma-card ma-rfq">
-      <button class="ma-rfq-body" onclick="maSollecita('${escapeAttr(vid)}','${escapeAttr(ref)}')">
-        <span class="ma-rfq-ref">${escapeHTML(ref)} ›</span>
-        <span class="ma-rfq-sub">${escapeHTML(sup)} · ${it.rfqDays||0}g</span></button>
-      <button class="ma-sol-btn" onclick="maSollecita('${escapeAttr(vid)}','${escapeAttr(ref)}')">Sollecita</button>
-    </div>`;
-  }).join("") : "";
+    return `<div class="ma-card ma-rfq"><button class="ma-rfq-body" onclick="maSollecita('${escapeAttr(vid)}','${escapeAttr(ref)}')"><span class="ma-rfq-ref">${escapeHTML(ref)} ›</span><span class="ma-rfq-sub">${escapeHTML(sup)} · ${it.rfqDays||0}g</span></button><button class="ma-sol-btn" onclick="maSollecita('${escapeAttr(vid)}','${escapeAttr(ref)}')">Sollecita</button></div>`;
+  }).join("") : `<div class="ma-empty">Nessuna RFQ ferma da oltre 8 giorni.</div>`;
+  return plHTML+rfqHTML+`<div class="ma-sheet-note" style="margin-top:8px">Ordini, offerte e allegati → PC.</div>`;
+}
+function maVesselDocsPane(vid){
   const certs = (((state.certificates&&state.certificates[vid])||[]))
     .filter(c=>!c.isPermanent && c.expiry)
     .map(c=>({ ...c, d: daysToExpiry(c.expiry) }))
-    .sort((a,b)=>(a.d??1e9)-(b.d??1e9)).slice(0,4);
-  const certHTML = certs.length ? certs.map(c=>maCertRow(c,false)).join("") : `<div class="ma-empty">Nessun certificato in scadenza.</div>`;
-  let vtodos = [];
-  try{ vtodos = (state.todos||[]).filter(t=>!t.done && t.vessel===vid); }catch(_){}
-  const todoHTML = vtodos.length ? vtodos.map(maTodoRow).join("") : `<div class="ma-empty">Nessuna to-do aperta.</div>`;
-  return `
-    <button class="ma-back" onclick="maBack()">‹ Flotta</button>
-    <div class="ma-hero" style="background:${color}14;border-color:${color}40">
-      <div class="ma-hero-name" style="color:${color}">${escapeHTML(cfg.displayName||vid)}</div>
-      <div class="ma-hero-route">${route}</div>
-      ${eta?`<div class="ma-hero-meta">ETA ${escapeHTML(formatDate(eta))}${cur.etb?` · ETB ${escapeHTML(formatDate(cur.etb))}`:""}</div>`:""}
-    </div>
-    ${maNoonBlock(vid)}
-    ${plHTML}
-    ${rfqHTML}
-    <div class="ma-sec">Certificati in scadenza</div>${certHTML}
-    <div class="ma-sec">To-do aperte</div>${todoHTML}
-  `;
+    .sort((a,b)=>(a.d??1e9)-(b.d??1e9));
+  return `<div class="ma-sec">Certificati e documenti</div>`+(certs.length ? certs.map(c=>maCertRow(c,false)).join("") : `<div class="ma-empty">Nessun certificato con scadenza.</div>`);
+}
+window.maNewTodoFor = function(vid){
+  try{ if(typeof openTodoModal==="function") openTodoModal(); }catch(_){}
+  try{ const sel=document.getElementById("todo-vessel"); if(sel){ sel.value=vid; if(typeof updateVesselRowVisibility==="function") updateVesselRowVisibility(); } }catch(_){}
+};
+
+function maEmailRowHTML(r){
+  const cat = EMAIL_CATS[r.category] || EMAIL_CATS.generic;
+  const vn = r.vesselId ? (((VESSELS||[]).find(x=>x.vesselId===r.vesselId)||{}).displayName||"") : "";
+  const doc = r.link ? `<span class="ma-etag" style="color:#0e54c1;background:#eaf0fb">${escapeHTML(r.link.docLabel)} ${escapeHTML(r.link.docNumber)}</span>` : "";
+  const thread = (r.messages&&r.messages.length>1) ? `<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">💬 ${r.messages.length}</span>` : "";
+  const dl = r.deadline ? `<span class="ma-etag" style="color:#b8860b;background:#fdf4e2">📅 ${escapeHTML(new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"}))}</span>` : "";
+  const what = (typeof emailActionText==="function") ? emailActionText(r) : "";
+  return `<div class="ma-card ma-erow" role="button" tabindex="0" onclick="maOpenEmail('${escapeAttr(r.id)}')">
+      <div class="ma-erow-top">
+        <span class="ma-efrom">${escapeHTML(r.fromName||r.fromEmail||"—")}</span>
+        <span class="ma-ecat" style="color:${cat.color};background:${cat.bg}">${escapeHTML(cat.label)}</span>
+      </div>
+      <div class="ma-esubj">${escapeHTML(r.subject||"(senza oggetto)")}</div>
+      ${what?`<div class="ma-ewhat"><span>→</span> ${escapeHTML(what)}</div>`:""}
+      <div class="ma-etags">
+        ${r.waiting?`<span class="ma-etag" style="color:#c8362f;background:#fbe6e6">⏳ ${r.days>0?r.days+"g":"in attesa"}</span>`:""}
+        ${vn?`<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">${escapeHTML(vn)}</span>`:""}${doc}${thread}${dl}
+      </div>
+      <div class="ma-erow-act">
+        <button class="ma-edone" onclick="event.stopPropagation();maDismissEmail('${escapeAttr(r.id)}')">✓ Fatto</button>
+      </div>
+    </div>`;
 }
 
 function maEmail(){
@@ -9643,29 +9847,7 @@ function maEmail(){
   Object.keys(counts).forEach(k=>{ const m=(EMAIL_CATS[k]||EMAIL_CATS.generic); chips+=chip(k,m.label,counts[k],f===k); });
   const chipRow = `<div class="ma-chips">${chips}</div>`;
   const shown = f==="all" ? active : f==="__waiting__" ? active.filter(r=>r.waiting) : active.filter(r=>r.category===f);
-  const rows = shown.length ? shown.map(r=>{
-    const cat = EMAIL_CATS[r.category] || EMAIL_CATS.generic;
-    const vn = r.vesselId ? (((VESSELS||[]).find(x=>x.vesselId===r.vesselId)||{}).displayName||"") : "";
-    const doc = r.link ? `<span class="ma-etag" style="color:#0e54c1;background:#eaf0fb">${escapeHTML(r.link.docLabel)} ${escapeHTML(r.link.docNumber)}</span>` : "";
-    const thread = (r.messages&&r.messages.length>1) ? `<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">💬 ${r.messages.length}</span>` : "";
-    const dl = r.deadline ? `<span class="ma-etag" style="color:#b8860b;background:#fdf4e2">📅 ${escapeHTML(new Date(r.deadline.iso+"T00:00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"}))}</span>` : "";
-    const what = (typeof emailActionText==="function") ? emailActionText(r) : "";
-    return `<div class="ma-card ma-erow" role="button" tabindex="0" onclick="maOpenEmail('${escapeAttr(r.id)}')">
-      <div class="ma-erow-top">
-        <span class="ma-efrom">${escapeHTML(r.fromName||r.fromEmail||"—")}</span>
-        <span class="ma-ecat" style="color:${cat.color};background:${cat.bg}">${escapeHTML(cat.label)}</span>
-      </div>
-      <div class="ma-esubj">${escapeHTML(r.subject||"(senza oggetto)")}</div>
-      ${what?`<div class="ma-ewhat"><span>→</span> ${escapeHTML(what)}</div>`:""}
-      <div class="ma-etags">
-        ${r.waiting?`<span class="ma-etag" style="color:#c8362f;background:#fbe6e6">⏳ ${r.days>0?r.days+"g":"in attesa"}</span>`:""}
-        ${vn?`<span class="ma-etag" style="color:#5b6470;background:#f0f1f4">${escapeHTML(vn)}</span>`:""}${doc}${thread}${dl}
-      </div>
-      <div class="ma-erow-act">
-        <button class="ma-edone" onclick="event.stopPropagation();maDismissEmail('${escapeAttr(r.id)}')">✓ Fatto</button>
-      </div>
-    </div>`;
-  }).join("") : `<div class="ma-empty">Nessuna email in questa vista.</div>`;
+  const rows = shown.length ? shown.map(maEmailRowHTML).join("") : `<div class="ma-empty">Nessuna email in questa vista.</div>`;
   return `<button class="ma-back" onclick="mgo('home')">‹ Oggi</button>
     <div class="ma-title">Assistente Email</div>${chipRow}${rows}`;
 }
@@ -9791,17 +9973,13 @@ function renderMobileApp(){
   if(!app) return;
   if(!state.data){ app.innerHTML = `<div class="ma-empty" style="margin-top:40px">Caricamento…</div>`; return; }
   let html;
-  if(mstate.screen==="home" && mstate.vessel) html = maVesselDetail(mstate.vessel);
-  else if(mstate.screen==="flotta" && mstate.vessel) html = maVesselDetail(mstate.vessel);
-  else if(mstate.screen==="home") html = maHome();
-  else if(mstate.screen==="flotta") html = maFlotta();
+  if(mstate.vessel) html = maVesselDetail(mstate.vessel);
   else if(mstate.screen==="todo") html = maTodo();
   else if(mstate.screen==="email") html = maEmail();
   else if(mstate.screen==="cert") html = maCert();
   else if(mstate.screen==="rubrica") html = maRubrica();
   else html = maHome();
-  const showFab = (mstate.screen==="todo");
-  app.innerHTML = html + (showFab?`<button class="ma-fab" onclick="openTodoModal()" aria-label="Nuova to-do">+</button>`:"");
+  app.innerHTML = html;
 }
 
 function mgo(screen){
@@ -9811,7 +9989,8 @@ function mgo(screen){
   try{ window.scrollTo({top:0}); }catch(_){}
 }
 window.mgo = mgo;
-window.maOpenVessel = function(vid){ if(mstate.screen!=="flotta") mstate.screen="home"; mstate.vessel=vid; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
+window.maOpenVessel = function(vid){ mstate.screen="flotta"; mstate.vessel=vid; mstate.detTab="ops"; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
+window.maDetTab = function(t){ mstate.detTab=t; renderMobileApp(); };
 window.maBack = function(){ mstate.vessel=null; renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
 window.maRubKind = function(k){ mstate.rubKind=k; renderMobileApp(); };
 window.maGoCert = function(f){ mstate.certFilter = f||"all"; mgo("cert"); };
@@ -9820,8 +9999,52 @@ window.maToggleTodo = function(id){
   const t = (state.todos||[]).find(x=>String(x.id)===String(id));
   if(!t) return;
   t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null;
+  maMarkSync(t,false);
   try{ saveTodos(); }catch(_){}
   try{ render(); }catch(_){ renderMobileApp(); }
+  maToast(t.done?"Completata · sincronizzata ✓":"Riaperta · sincronizzata ✓");
+};
+
+// === 2a — stati di sincronizzazione delle modifiche da mobile ===============
+// Modifiche semplici (spuntare, creare, testo/note) → "synced": valgono subito.
+// Modifiche critiche (scadenza, priorità, assegnatario) → "toverify": restano
+// tracciate e compaiono al PC in "Modifiche da mobile da verificare".
+function maMarkSync(t, critical){
+  if(!t) return;
+  t.mobileSync = critical ? "toverify" : "synced";
+  t.mobileSyncAt = new Date().toISOString();
+  if(critical){ t.mobileSyncBy = "mobile"; }
+}
+window.maConfirmSync = function(id){
+  const t=(state.todos||[]).find(x=>String(x.id)===String(id)); if(!t) return;
+  t.mobileSync="synced"; t.mobileSyncAt=new Date().toISOString();
+  try{ saveTodos(); }catch(_){}
+  maOpenSync(); try{ renderMobileApp(); }catch(_){}
+  maToast("Modifica confermata");
+};
+window.maConfirmSyncAll = function(){
+  (state.todos||[]).forEach(t=>{ if(t.mobileSync==="toverify"){ t.mobileSync="synced"; t.mobileSyncAt=new Date().toISOString(); } });
+  try{ saveTodos(); }catch(_){}
+  maCloseSheet(); try{ renderMobileApp(); }catch(_){}
+  maToast("Tutte le modifiche confermate");
+};
+window.maOpenSync = function(){
+  const pend=(state.todos||[]).filter(t=>t.mobileSync==="toverify");
+  const rows = pend.length ? pend.map(t=>{
+    const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : "—";
+    const title=(t.action&&t.action.toLowerCase()!=="altro")?t.action:(t.reference||t.note||"To-do");
+    return `<div class="ma-card ma-syncrow"><div class="tx"><b>${escapeHTML(title)}</b><small>${escapeHTML(vn)}${t.dueDate?" · "+escapeHTML(formatDate(t.dueDate)):""}</small></div><button class="ma-sync-ok" onclick="maConfirmSync('${escapeAttr(t.id)}')">Conferma</button></div>`;
+  }).join("") : `<div class="ma-syncok"><span class="d"></span>Tutto sincronizzato · nessun conflitto</div>`;
+  const legend=[["sincronizzata","#117a3a","#e7f5ec","modifiche semplici, applicate subito"],["da validare","#b8860b","#fbf1dd","modifiche critiche: le confermi al PC"]]
+    .map(([l,c,b,d])=>`<div class="ma-legrow"><span class="lg" style="color:${c};background:${b}">${l}</span><span class="dz">${escapeHTML(d)}</span></div>`).join("");
+  maRenderSheet(`
+    <div class="ma-sheet-h">SINCRONIZZAZIONE</div>
+    <div class="ma-sheet-note" style="margin:0 0 12px">Il PC dell'ufficio resta la fonte ufficiale. Dal telefono lavori offline-first: le modifiche si salvano subito, le critiche restano tracciate.</div>
+    ${pend.length?`<div class="ma-fld-lbl">Da validare al PC (${pend.length})</div>`:""}
+    ${rows}
+    <div class="ma-fld-lbl">Stati</div>
+    ${legend}
+    ${pend.length?`<div class="ma-sheet-act"><button class="ma-sheet-btn pri" onclick="maConfirmSyncAll()">Conferma tutte</button></div>`:""}`);
 };
 
 // === 1b — workspace to-do (bottom sheet mobile) =============================
@@ -9849,7 +10072,9 @@ window.maOpenTodo = function(id){
 };
 window.maTodoSetDue = function(id,val){
   const t=(state.todos||[]).find(x=>String(x.id)===String(id)); if(!t) return;
+  const changed = (t.dueDate||"") !== (val||"");
   t.dueDate = val||null;
+  if(changed) maMarkSync(t,true);
   document.querySelectorAll("#ma-sheet-host .ma-duechip").forEach(b=>{
     b.classList.toggle("on", b.getAttribute("onclick").includes(`'${val}'`));
   });
@@ -9860,8 +10085,9 @@ window.maTodoSave = function(id){
   const note=(document.getElementById("ma-todo-note")||{}).value;
   if(txt!=null && txt.trim()) t.action = txt.trim();
   if(note!=null) t.note = note;
+  if(t.mobileSync!=="toverify") maMarkSync(t,false);
   try{ saveTodos(); }catch(_){}
-  maCloseSheet(); maToast("To-do salvata");
+  maCloseSheet(); maToast(t.mobileSync==="toverify"?"Salvata · da validare al PC":"Salvata · sincronizzata ✓");
   try{ render(); }catch(_){ renderMobileApp(); }
 };
 window.maTodoComplete = function(id){
@@ -9872,10 +10098,130 @@ window.maTodoComplete = function(id){
   if(note!=null) t.note=note;
   const wasDone=t.done;
   t.done=!t.done; t.doneAt=t.done?new Date().toISOString():null;
+  maMarkSync(t,false);
   try{ saveTodos(); }catch(_){}
-  maCloseSheet(); maToast(wasDone?"To-do riaperta":"To-do completata");
+  maCloseSheet(); maToast(wasDone?"Riaperta · sincronizzata ✓":"Completata · sincronizzata ✓");
   try{ render(); }catch(_){ renderMobileApp(); }
 };
+
+// === 2a — BRIEFING MATTUTINO (2-3 min, a step, su dati reali) ===============
+let _maBrief = { step: 0 };
+function maBriefSteps(){
+  const steps = [];
+  // 1) urgenze per nave
+  const vrows = [];
+  (VESSELS||[]).forEach(cfg=>{
+    const tok = maStatusTok(cfg);
+    if(tok==="green") return;
+    const m = maVesselMetrics(cfg.vesselId);
+    const rs = maVesselReasons(m);
+    vrows.push({ c: tok==="crit"?"#c8362f":"#b8860b", t: cfg.displayName||cfg.vesselId,
+      s: rs.slice(0,2).join(" · ")||"Da controllare", go:`maBriefClose();maOpenVessel('${escapeAttr(cfg.vesselId)}')` });
+  });
+  steps.push({ ic:"🚦", title:"Urgenze per nave", rows:vrows });
+  // 2) to-do scadute o in scadenza
+  const trows = [];
+  try{
+    (state.todos||[]).filter(t=>!t.done).forEach(t=>{
+      const cls = (typeof classifyDueDate==="function")?classifyDueDate(t.dueDate):"";
+      if(cls!=="overdue" && cls!=="today") return;
+      const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : "—";
+      const title=(t.action&&t.action.toLowerCase()!=="altro")?t.action:(t.reference||t.note||"To-do");
+      trows.push({ c: cls==="overdue"?"#c8362f":"#b8860b", t:title,
+        s: vn + (t.dueDate?" · "+formatDate(t.dueDate):"") + (cls==="overdue"?" · scaduta":" · oggi"),
+        go:`maOpenTodo('${escapeAttr(t.id)}')` });
+    });
+  }catch(_){}
+  trows.sort((a,b)=>(a.c==="#c8362f"?0:1)-(b.c==="#c8362f"?0:1));
+  steps.push({ ic:"✅", title:"To-do scadute o in scadenza", rows:trows });
+  // 3) richieste senza risposta
+  const erows = [];
+  try{
+    const src = (typeof getEmailThreads==="function") ? getEmailThreads().filter(r=>r.waiting)
+              : ((typeof getPendingReplies==="function")?getPendingReplies():[]);
+    src.slice(0,25).forEach(r=>{
+      erows.push({ c:"#0e54c1", t:r.subject||"(senza oggetto)",
+        s:(r.fromName||r.fromEmail||"—")+(r.days>0?" · "+r.days+"g in attesa":""),
+        go:`maOpenEmail('${escapeAttr(r.id)}')` });
+    });
+  }catch(_){}
+  steps.push({ ic:"✉️", title:"Richieste senza risposta", rows:erows });
+  // 4) RFQ / ordini fermi
+  const rrows = [];
+  try{
+    (maFleetStaleRFQs()||[]).slice(0,25).forEach(x=>{
+      const it=x.it||{}; const vid=x.vid;
+      const ref=(Array.isArray(it.rfqNumbers)&&it.rfqNumbers[0])||it.reqNumber||"RFQ";
+      const sup=(it.supplier&&it.supplier!=="—")?it.supplier:(it.description||"—");
+      rrows.push({ c:"#b8860b", t:ref+" — "+sup, s:(x.vname||vid||"")+" · ferma da "+(it.rfqDays||0)+"g",
+        go:`maBriefClose();maOpenVessel('${escapeAttr(vid)}')` });
+    });
+  }catch(_){}
+  steps.push({ ic:"📨", title:"RFQ e ordini fermi", rows:rrows });
+  // 5) certificati e documenti
+  const crows = [];
+  try{
+    (VESSELS||[]).forEach(cfg=>{
+      (((state.certificates&&state.certificates[cfg.vesselId])||[])).forEach(c=>{
+        if(c.isPermanent||!c.expiry) return;
+        const d=daysToExpiry(c.expiry); if(d==null||d>14) return;
+        crows.push({ c: d<0?"#c8362f":"#b8860b", t:c.name||c.type||"Certificato",
+          s:(cfg.displayName||cfg.vesselId)+" · "+(d<0?("scaduto da "+Math.abs(d)+"g"):("tra "+d+"g")), d,
+          go:`maBriefClose();maOpenVessel('${escapeAttr(cfg.vesselId)}')` });
+      });
+    });
+    crows.sort((a,b)=>(a.d??1e9)-(b.d??1e9));
+  }catch(_){}
+  steps.push({ ic:"📅", title:"Documenti e certificati", rows:crows });
+  return steps;
+}
+window.maBriefClose = function(){ const h=document.getElementById("ma-brief-host"); if(h) h.innerHTML=""; };
+window.maOpenBriefing = function(){ _maBrief={step:0}; maRenderBriefing(); };
+window.maBriefGo = function(n){ _maBrief.step=n; maRenderBriefing(); };
+function maRenderBriefing(){
+  const host=document.getElementById("ma-brief-host"); if(!host) return;
+  const steps=maBriefSteps();
+  const i=_maBrief.step;
+  if(i>=steps.length){
+    const tot=steps.map(s=>s.rows.length);
+    const line=(a,b)=>`<div class="ma-brief-sum"><span>${a}</span><small>${escapeHTML(b)}</small></div>`;
+    host.innerHTML=`<div class="ma-brief-end">
+      <div class="ma-brief-check">✓</div>
+      <div class="ma-brief-endh">Pronto per l'ufficio</div>
+      <div class="ma-brief-endp">Sai cosa richiede attenzione oggi. Le azioni complete — ordini, offerte, email articolate — le chiudi al PC.</div>
+      <div class="ma-brief-sums">
+        ${line("🚦 "+tot[0]+" navi da seguire","urgenze aperte")}
+        ${line("✅ "+tot[1]+" to-do","scadute o in scadenza")}
+        ${line("✉️ "+tot[2]+" richieste","in attesa di risposta")}
+        ${line("📨 "+tot[3]+" RFQ ferme","da sollecitare")}
+        ${line("📅 "+tot[4]+" documenti","scadenza ravvicinata")}
+      </div>
+      <button class="ma-brief-start" onclick="maBriefClose()">Inizia la giornata</button>
+    </div>`;
+    return;
+  }
+  const s=steps[i];
+  const bars=steps.map((_,k)=>`<span class="b ${k<=i?'on':''}"></span>`).join("");
+  const MAXB = 25;
+  const shown = s.rows.slice(0, MAXB);
+  const more = s.rows.length - shown.length;
+  const rows = s.rows.length ? shown.map(r=>`<button class="ma-brief-row" style="border-left-color:${r.c}" onclick="${r.go}">
+      <span class="tx"><b>${escapeHTML(r.t)}</b><small>${escapeHTML(r.s)}</small></span><span class="go">›</span></button>`).join("")
+      + (more>0?`<div class="ma-brief-more">+ altre ${more} — le vedi per intero nella sezione dedicata</div>`:"")
+    : `<div class="ma-brief-empty">Niente qui — tutto in ordine ✓</div>`;
+  host.innerHTML=`<div class="ma-brief-ov">
+    <div class="ma-brief-hd">
+      <div class="ma-brief-hd1"><span>BRIEFING · ${i+1} di ${steps.length}</span><button onclick="maBriefClose()">Salta ✕</button></div>
+      <div class="ma-brief-bars">${bars}</div>
+      <div class="ma-brief-hd2"><span class="ic">${s.ic}</span><span class="tx"><b>${escapeHTML(s.title)}</b><small>${s.rows.length} element${s.rows.length===1?'o':'i'}</small></span></div>
+    </div>
+    <div class="ma-brief-body">${rows}</div>
+    <div class="ma-brief-nav">
+      ${i>0?`<button class="sec" onclick="maBriefGo(${i-1})">‹ Indietro</button>`:""}
+      <button class="pri" onclick="maBriefGo(${i+1})">${i===steps.length-1?"Riepilogo ›":"Avanti ›"}</button>
+    </div>
+  </div>`;
+}
 
 // === 1b — sheet: Altro (funzioni desktop non in tab bar) ====================
 window.maOpenAltro = function(){
@@ -23085,13 +23431,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // FAB (+) apre la modale to-do
   document.getElementById("fab-quick").addEventListener("click", () => openTodoModal(null));
 
-  // Bottom tab bar (mobile): naviga alle 4 viste principali
+  // Bottom tab bar (mobile): Flotta / To-do / ＋ / Email / Cerca
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.addEventListener("click", () => {
       const t = tab.dataset.mtab;
-      if (t === "altro") { maOpenAltro(); return; }
-      const tab2scr = { home:"home", email:"email", todo:"todo", rubrica:"rubrica" };
-      mgo(tab2scr[t] || "home");
+      if (t === "add") { if (typeof openTodoModal === "function") openTodoModal(); return; }
+      if (t === "cerca") { const b = document.getElementById("btn-palette"); if (b) b.click(); return; }
+      const tab2scr = { flotta:"flotta", email:"email", todo:"todo" };
+      mgo(tab2scr[t] || "flotta");
     });
   });
 
