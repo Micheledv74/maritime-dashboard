@@ -1440,6 +1440,32 @@
         "sea": "SE/2.8 MTR",
         "swell": "ESE/ABT 2.5 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-22",
+        "lat": "06-24.4S",
+        "lon": "059-14.6E",
+        "positionText": "06-24.4S / 059-14.6E",
+        "speed": "10.88",
+        "course": "018",
+        "milesToGo": "1884",
+        "etaText": "29.08.2026 noon AGW WP, BEDI",
+        "etaISO": "2026-08-29",
+        "to": "BEDI",
+        "bunkers": {
+          "lsfo": "541.549",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "21.47",
+          "lsmgo": "0.0"
+        },
+        "wind": "SE/5-6",
+        "sea": "SE/2.9 MTR",
+        "swell": "SE/ABT 2.6 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -2997,8 +3023,8 @@
           "fw": 0
         },
         "cylinderOil": {},
-        "status": "Laden, In Port",
-        "remarks": "Port Consumption: Working; Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs",
+        "status": "Laden, In Port, Working",
+        "remarks": "Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs; Scrubber not fitted.",
         "vesselId": "medliguria"
       },
       {
@@ -4752,7 +4778,7 @@
           "rob": 68074,
           "unit": "Ltrs"
         },
-        "status": "in anchorage",
+        "status": "In anchorage",
         "remarks": null,
         "vesselId": "peppino"
       }
@@ -5020,5 +5046,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-22T07:00:18.173Z"
+  "syncedAt": "2026-08-22T09:00:19.410Z"
 }
