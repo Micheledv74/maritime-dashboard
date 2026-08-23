@@ -1466,6 +1466,32 @@
         "sea": "SE/2.9 MTR",
         "swell": "SE/ABT 2.6 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-23",
+        "lat": "02-25.3S",
+        "lon": "060-30.5E",
+        "positionText": "02-25.3S / 060-30.5E",
+        "speed": "10.87",
+        "course": "018",
+        "milesToGo": "1634",
+        "etaText": "29.08.2026 noon AGW WP, BEDI",
+        "etaISO": "2026-08-29",
+        "to": "BEDI",
+        "bunkers": {
+          "lsfo": "520.839",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "20.71",
+          "lsmgo": "0.0"
+        },
+        "wind": "S/5-6",
+        "sea": "S/2.5 MTR",
+        "swell": "SE/ABT 2.2 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -3024,7 +3050,7 @@
         },
         "cylinderOil": {},
         "status": "Laden, In Port",
-        "remarks": "Port Consumption: Working; Ballast pump 1 used for 4.00 hrs; Ballast water treatment system used for 4.00 hrs; Air-conditioning compressor used for 24.00 hrs",
+        "remarks": "Port Consumption: Working",
         "vesselId": "medliguria"
       },
       {
@@ -3099,8 +3125,8 @@
           "fw": 0
         },
         "cylinderOil": {},
-        "status": "Laden, Port Consumption: Working",
-        "remarks": "Ballast pump 1 used for 11.00 hrs; ballast water treatment system used for 11.00 hrs; air-conditioning compressor used for 24.00 hrs",
+        "status": "Laden, In Port",
+        "remarks": "Port Consumption: Working",
         "vesselId": "medliguria"
       }
     ],
@@ -4758,8 +4784,8 @@
           "fw": 61
         },
         "consumption": {
-          "hfo": 0,
-          "lsfo": 23.03,
+          "hfo": 23.03,
+          "lsfo": 0,
           "lsmgo": 0,
           "mdo": 0,
           "mgo": 0,
@@ -4816,7 +4842,7 @@
           "rob": 68074,
           "unit": "Ltrs"
         },
-        "status": "In anchorage",
+        "status": "in anchorage",
         "remarks": null,
         "vesselId": "peppino"
       },
@@ -4832,7 +4858,7 @@
         "nextPort": "Takoradi, Ghana",
         "voyageNo": "18-L",
         "etaText": "TBA",
-        "etbText": "24th August 2026 as per agent information (iagw/wp)",
+        "etbText": "24th August 2026 as per agent information",
         "etdText": null,
         "etaISO": null,
         "etbISO": "2026-08-24T00:00",
@@ -5128,5 +5154,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-23T07:00:21.692Z"
+  "syncedAt": "2026-08-23T08:00:24.571Z"
 }
