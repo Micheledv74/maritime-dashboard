@@ -1492,6 +1492,58 @@
         "sea": "S/2.5 MTR",
         "swell": "SE/ABT 2.2 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-24",
+        "lat": "02-09.3N",
+        "lon": "061-58.4E",
+        "positionText": "02-09.3N / 061-58.4E",
+        "speed": "11.92",
+        "course": "018",
+        "milesToGo": "1348",
+        "etaText": "29.08.2026 am AGW WP, BEDI",
+        "etaISO": "2026-08-29",
+        "to": "BEDI",
+        "bunkers": {
+          "lsfo": "499.339",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "21.50",
+          "lsmgo": "0.0"
+        },
+        "wind": "S/4-5",
+        "sea": "S/2.0 MTR",
+        "swell": "S/ABT 1.8 MTR",
+        "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-25",
+        "lat": "06-46.2N",
+        "lon": "063-26.8E",
+        "positionText": "06-46.2N / 063-26.8E",
+        "speed": "12.04",
+        "course": "018",
+        "milesToGo": "1059",
+        "etaText": "29.08.2026 am AGW WP, BEDI",
+        "etaISO": "2026-08-29",
+        "to": "BEDI",
+        "bunkers": {
+          "lsfo": "477.739",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "21.60",
+          "lsmgo": "0.0"
+        },
+        "wind": "SW/4",
+        "sea": "SW/2.0 MTR",
+        "swell": "SSE/ABT 1.6 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -3127,6 +3179,40 @@
         "cylinderOil": {},
         "status": "In Port, Laden, Ballast 15856.00 MT",
         "remarks": "Port Consumption: Working; Ballast pump 1 used 11.00 hrs; Ballast water treatment system used 11.00 hrs; Air-conditioning compressor used 24.00 hrs",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "XIAMEN",
+        "to": "YANGZHOU",
+        "date": "2026-08-25",
+        "lat": "28-06.2N",
+        "lon": "122-07.8E",
+        "positionText": "28-06.2N / 122-07.8E",
+        "speed": "13.00",
+        "milesToGo": "223",
+        "consumption": {
+          "lsfo": "20.31",
+          "lsmgo": "0",
+          "fw": "4"
+        },
+        "bunkers": {
+          "lsfo": "876.78",
+          "lsmgo": "83.00",
+          "fw": "309"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "30683",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 26 AUG 2026 0800LT WP AGW",
+        "etaISO": "2026-08-26T08:00",
+        "wind": "E/12 KTS",
+        "sea": "E/1.5",
+        "current": "SE/0.5 KTS",
         "vesselId": "medliguria"
       }
     ],
@@ -4889,6 +4975,50 @@
         "status": "Anchored at Port Louis, Mauritius",
         "remarks": null,
         "vesselId": "peppino"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-08-24",
+        "type": "anchor",
+        "lat": "04-54.0N",
+        "lon": "001-41.0W",
+        "positionText": "Anchorage",
+        "from": "Port Louis, Mauritius",
+        "to": "Takoradi, Ghana",
+        "nextPort": null,
+        "voyageNo": "18-L",
+        "etaText": "TBA",
+        "etbText": "24th August 2026 PM / As per agent information (iagw/wp)",
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": "2026-08-24T12:00",
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 1076.22,
+          "lsmgo": 161.44,
+          "fw": 50
+        },
+        "consumption": {
+          "hfo": 0.85,
+          "lsfo": 0,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": 0.5,
+          "fw": 1
+        },
+        "cylinderOil": {
+          "daily": 0,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 68014,
+          "unit": "Ltrs"
+        },
+        "status": "Anchored",
+        "remarks": null,
+        "vesselId": "peppino"
       }
     ],
     "norrbotten": [
@@ -5154,5 +5284,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-23T09:00:26.019Z"
+  "syncedAt": "2026-08-25T11:00:18.149Z"
 }
