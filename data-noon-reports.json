@@ -1570,6 +1570,32 @@
         "sea": "SW/2.2 MTR",
         "swell": "WSW/ABT 2.0 MTR",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-08-27",
+        "lat": "15-37.9N",
+        "lon": "066-18.9E",
+        "positionText": "15-37.9N / 066-18.9E",
+        "speed": "11.58",
+        "course": "018",
+        "milesToGo": "502",
+        "etaText": "29.08.2026 am AGW WP, BEDI",
+        "etaISO": "2026-08-29",
+        "to": "BEDI",
+        "bunkers": {
+          "lsfo": "431.509",
+          "lsmgo": "60.481"
+        },
+        "consumption": {
+          "lsfo": "22.50",
+          "lsmgo": "0.0"
+        },
+        "wind": "W/5",
+        "sea": "W/2.6 MTR",
+        "swell": "W/ABT 2.2 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -5056,7 +5082,7 @@
         "type": "port",
         "lat": "04-53.7N",
         "lon": "001-44.5W",
-        "positionText": "Port Louis, Mauritius Berth No. 17",
+        "positionText": "Port Louis, Mauritius",
         "from": "Port Louis, Mauritius",
         "to": "Takoradi, Ghana",
         "nextPort": "Takoradi",
@@ -5090,8 +5116,8 @@
           "rob": 68004,
           "unit": "Ltrs"
         },
-        "status": "In porto, operazioni di scarico in corso",
-        "remarks": "Bilancio cargo scaricato: 1,078.23MT. Cargo residuo: 14,241.77MT per Takoradi.",
+        "status": "In porto a Port Louis, operazioni di scarico in corso",
+        "remarks": "Operazioni di scarico canali 5, 3 e 2 in corso. Totale scaricato: 1,078.23MT. Resto da scaricare: 14,241.77MT per Takoradi.",
         "vesselId": "peppino"
       },
       {
@@ -5134,8 +5160,8 @@
           "rob": 68004,
           "unit": "Ltrs"
         },
-        "status": "in porto a Port Louis, in attesa di partenza",
-        "remarks": "Cargo discharged: 8,103.45MT; Balance cargo to discharge: 7,846.55MT; Total cargo balance on board: 46,736.55MT",
+        "status": "in porto",
+        "remarks": "Cargo discharged 8,103.45MT; balance to discharge 7,846.55MT for Takoradi",
         "vesselId": "peppino"
       }
     ],
@@ -5402,5 +5428,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-27T07:00:20.509Z"
+  "syncedAt": "2026-08-27T08:00:20.429Z"
 }
