@@ -5056,7 +5056,7 @@
         "type": "port",
         "lat": "04-53.7N",
         "lon": "001-44.5W",
-        "positionText": "Port Louis, Mauritius, Berth No. 17",
+        "positionText": "Port Louis, Mauritius Berth No. 17",
         "from": "Port Louis, Mauritius",
         "to": "Takoradi, Ghana",
         "nextPort": "Takoradi",
@@ -5091,7 +5091,7 @@
           "unit": "Ltrs"
         },
         "status": "In porto, operazioni di scarico in corso",
-        "remarks": "Operazioni di scarico interrotte per pioggia dalle 0045LT alle 0250LT. Totale scaricato: 1,078.23MT. Resto da scaricare: 14,241.77MT per Takoradi.",
+        "remarks": "Bilancio cargo scaricato: 1,078.23MT. Cargo residuo: 14,241.77MT per Takoradi.",
         "vesselId": "peppino"
       },
       {
@@ -5120,11 +5120,11 @@
           "fw": 42
         },
         "consumption": {
-          "hfo": null,
+          "hfo": 0,
           "lsfo": 1.8,
           "lsmgo": 0,
-          "mdo": null,
-          "mgo": null,
+          "mdo": 0,
+          "mgo": 1.5,
           "fw": 6
         },
         "cylinderOil": {
@@ -5134,8 +5134,8 @@
           "rob": 68004,
           "unit": "Ltrs"
         },
-        "status": "in porto",
-        "remarks": "Bilancio carico: 46736.55MT (totale 8103.45MT scaricati, 7846.55MT da scaricare)",
+        "status": "in porto a Port Louis, in attesa di partenza",
+        "remarks": "Cargo discharged: 8,103.45MT; Balance cargo to discharge: 7,846.55MT; Total cargo balance on board: 46,736.55MT",
         "vesselId": "peppino"
       }
     ],
@@ -5402,5 +5402,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-27T05:00:18.996Z"
+  "syncedAt": "2026-08-27T07:00:20.509Z"
 }
