@@ -5126,7 +5126,7 @@
         "type": "port",
         "lat": "04-53.7N",
         "lon": "001-44.5W",
-        "positionText": "Port Louis, Mauritius Berth No. 17",
+        "positionText": "Port Louis, Mauritius",
         "from": "Port Louis, Mauritius",
         "to": "Takoradi, Ghana",
         "nextPort": "Takoradi",
@@ -5161,7 +5161,51 @@
           "unit": "Ltrs"
         },
         "status": "in porto",
-        "remarks": "Cargo operations in progress. Total cargo discharged: 8,103.45MT. Balance cargo to discharge: 7,846.55MT for Takoradi.",
+        "remarks": "Cargo discharged 8,103.45MT; balance to discharge 7,846.55MT for Takoradi",
+        "vesselId": "peppino"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-08-27",
+        "type": "port",
+        "lat": "04-53.7N",
+        "lon": "001-44.5W",
+        "positionText": "Port Louis, Mauritius Berth No. 17",
+        "from": "Port Louis, Mauritius",
+        "to": "Takoradi, Ghana",
+        "nextPort": "Takoradi",
+        "voyageNo": "18-L",
+        "etaText": "TBA",
+        "etbText": null,
+        "etdText": "27.08.2026 1800LT",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": "2026-08-27T18:00",
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 1070.69,
+          "lsmgo": 161.44,
+          "fw": 82
+        },
+        "consumption": {
+          "hfo": null,
+          "lsfo": 1.9,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": null,
+          "fw": 2
+        },
+        "cylinderOil": {
+          "daily": 0,
+          "dailyME": null,
+          "dailyDG": 0,
+          "rob": 68004,
+          "unit": "Ltrs"
+        },
+        "status": "Berth/Anchorage in Port Louis, Mauritius",
+        "remarks": "Received fresh water: 50.0MT. Total Cargo Discharged: 13,955.62MT. Balance Cargo to discharge: 1,994.38MT for Takoradi port. Total cargo balance on board: 40884.38MT",
         "vesselId": "peppino"
       }
     ],
@@ -5428,5 +5472,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-28T03:00:16.283Z"
+  "syncedAt": "2026-08-28T04:00:19.110Z"
 }
