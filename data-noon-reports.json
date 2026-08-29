@@ -1656,9 +1656,9 @@
           "mgo": null,
           "fw": null
         },
-        "cylinderOil": null,
-        "status": "In port/anchorage at BEDI ANCHORAGE AREA, discharging petcoke cargo.",
-        "remarks": "Cargo discharge ongoing: 50031.69 MT remaining to discharge.",
+        "cylinderOil": {},
+        "status": "In port/anchorage at BEDI ANCHORAGE AREA, discharging petcoke (50031.69 MT remaining).",
+        "remarks": "No cargo discharged in last 24h. Bunkers ROB: VLSFO 386.492 MT, LSMGO 60.381 MT.",
         "vesselId": "medtoscana"
       }
     ],
@@ -5272,7 +5272,7 @@
         "type": "port",
         "lat": "04-53.7N",
         "lon": "001-44.5W",
-        "positionText": "Port Louis, Mauritius Berth No. 17",
+        "positionText": "Port Louis, Mauritius",
         "from": "Port Louis, Mauritius",
         "to": "Takoradi, Ghana",
         "nextPort": "Takoradi",
@@ -5306,8 +5306,8 @@
           "rob": 68004,
           "unit": "Ltrs"
         },
-        "status": "in porto a Port Louis, Mauritius",
-        "remarks": "Cargo balance: 40884.38MT (1994.38MT da scaricare a Takoradi)",
+        "status": "in berth",
+        "remarks": "Cargo discharge in progress: 13,955.62MT discharged, 1,994.38MT remaining for Takoradi.",
         "vesselId": "peppino"
       }
     ],
@@ -5574,5 +5574,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-29T08:00:21.726Z"
+  "syncedAt": "2026-08-29T12:00:19.093Z"
 }
