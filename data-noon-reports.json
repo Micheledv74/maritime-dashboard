@@ -5272,7 +5272,7 @@
         "type": "port",
         "lat": "04-53.7N",
         "lon": "001-44.5W",
-        "positionText": "Port Louis, Mauritius",
+        "positionText": "Port Louis, Mauritius Berth No. 17",
         "from": "Port Louis, Mauritius",
         "to": "Takoradi, Ghana",
         "nextPort": "Takoradi",
@@ -5306,8 +5306,8 @@
           "rob": 68004,
           "unit": "Ltrs"
         },
-        "status": "in porto",
-        "remarks": "Cargo discharged: 13,955.62MT. Balance to discharge: 1,994.38MT for Takoradi. Received fresh water: 50.0MT",
+        "status": "in port",
+        "remarks": "Cargo discharge in progress: 13,955.62MT discharged, 1,994.38MT remaining for Takoradi. Received 50.0MT fresh water.",
         "vesselId": "peppino"
       },
       {
@@ -5347,6 +5347,50 @@
           "daily": 0,
           "dailyME": 0,
           "dailyDG": 100,
+          "rob": 67774,
+          "unit": "Ltrs"
+        },
+        "status": "At anchor, waiting for information",
+        "remarks": "Vessel At Anchored Tema Gulf Anchorage, Waiting for information.",
+        "vesselId": "peppino"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-08-30",
+        "type": "anchor",
+        "lat": "05-31.5N",
+        "lon": "000-01.4E",
+        "positionText": "Tema Gulf Anchorage",
+        "from": "Takoradi, Ghana",
+        "to": "Tema, Ghana",
+        "nextPort": null,
+        "voyageNo": "18-L",
+        "etaText": "TBA",
+        "etbText": null,
+        "etdText": null,
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 1057.77,
+          "lsmgo": 161.44,
+          "fw": 73
+        },
+        "consumption": {
+          "hfo": 0.8,
+          "lsfo": 0,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": 0.5,
+          "fw": 2
+        },
+        "cylinderOil": {
+          "daily": 0,
+          "dailyME": 0,
+          "dailyDG": 0,
           "rob": 67774,
           "unit": "Ltrs"
         },
@@ -5618,5 +5662,5 @@
       }
     ]
   },
-  "syncedAt": "2026-08-30T12:00:22.447Z"
+  "syncedAt": "2026-08-30T13:00:23.683Z"
 }
