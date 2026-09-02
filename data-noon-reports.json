@@ -5601,12 +5601,12 @@
         "lat": "05-31.5N",
         "lon": "000-01.4E",
         "positionText": "Anchorage",
-        "from": "Port Takoradi, Ghana",
+        "from": "Takoradi, Ghana",
         "to": "Tema, Ghana",
         "nextPort": "Tema, Ghana",
         "voyageNo": "18-L",
         "etaText": "TBA",
-        "etbText": "ETB is not fixed. Berth # 14. Likely ETB 23/09/2026 PM and ETC/D 29/09/2026 PM Agw/wp. As per agent.",
+        "etbText": "23/09/2026 PM",
         "etdText": "29/09/2026 PM",
         "etaISO": null,
         "etbISO": "2026-09-23T12:00",
@@ -5634,8 +5634,52 @@
           "rob": 67724,
           "unit": "Ltrs"
         },
-        "status": "Anchored at Port Takoradi, Ghana",
-        "remarks": "ETA next port: TBA. ETB not fixed. Berth #14. Likely ETB 23/09/2026 PM and ETC/D 29/09/2026 PM Agw/wp. As per agent.",
+        "status": "Anchored",
+        "remarks": "ETB likely 23/09/2026 PM, ETC/D 29/09/2026 PM. Berth #14.",
+        "vesselId": "peppino"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-09-02",
+        "type": "anchor",
+        "lat": "05-31.6N",
+        "lon": "000-01.4E",
+        "positionText": "Anchorage",
+        "from": "Port Takoradi, Ghana",
+        "to": "Tema, Ghana",
+        "nextPort": "Tema, Ghana",
+        "voyageNo": "18-L",
+        "etaText": "TBA",
+        "etbText": "Likely ETB 23/09/2026 PM",
+        "etdText": "ETC/D 29/09/2026 PM Agw/wp. As per agent",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 1055.37,
+          "lsmgo": 161.44,
+          "fw": 71
+        },
+        "consumption": {
+          "hfo": 0.8,
+          "lsfo": 0,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": 0.5,
+          "fw": 1
+        },
+        "cylinderOil": {
+          "daily": 0,
+          "dailyME": 0,
+          "dailyDG": 0,
+          "rob": 67724,
+          "unit": "Ltrs"
+        },
+        "status": "Anchored at position",
+        "remarks": "ETB likely 23/09/2026 PM, ETC/D 29/09/2026 PM as per agent",
         "vesselId": "peppino"
       }
     ],
@@ -5902,5 +5946,5 @@
       }
     ]
   },
-  "syncedAt": "2026-09-02T12:00:15.570Z"
+  "syncedAt": "2026-09-02T13:00:16.663Z"
 }
