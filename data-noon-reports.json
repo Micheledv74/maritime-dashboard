@@ -1660,6 +1660,44 @@
         "status": "In port/anchorage operations (petcoke discharge)",
         "remarks": "Cargo discharge ongoing: 50031.69 MT petcoke remaining to discharge. No stoppages reported.",
         "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-09-02",
+        "type": "anchor",
+        "lat": null,
+        "lon": null,
+        "positionText": "BEDI ANCHORAGE AREA",
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "voyageNo": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": "04.09.2026 am agw, wp",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": null,
+          "lsmgo": 60.381,
+          "fw": null
+        },
+        "consumption": {
+          "hfo": null,
+          "lsfo": null,
+          "lsmgo": null,
+          "mdo": null,
+          "mgo": null,
+          "fw": null
+        },
+        "cylinderOil": null,
+        "status": "in port/anchorage operations (discharging petcoke)",
+        "remarks": "Cargo discharge ongoing: 14927 MT in last 24h, 17798 MT remaining. ETD 04.09.2026 am agw, wp",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -3413,11 +3451,49 @@
       },
       {
         "isNoonReport": true,
-        "date": "2026-09-02",
+        "date": "2026-09-01",
         "type": "port",
         "lat": null,
         "lon": null,
-        "positionText": "Taizhou Anchorage Area",
+        "positionText": "Yangtze River",
+        "from": null,
+        "to": null,
+        "nextPort": null,
+        "voyageNo": null,
+        "etaText": null,
+        "etbText": null,
+        "etdText": "06 SEP 2026 AM AGW WP",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": "2026-09-06T00:00",
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 834.82,
+          "lsmgo": 82.72,
+          "fw": 275
+        },
+        "consumption": {
+          "hfo": null,
+          "lsfo": null,
+          "lsmgo": null,
+          "mdo": null,
+          "mgo": null,
+          "fw": null
+        },
+        "cylinderOil": null,
+        "status": "In port, transit Yangtze River, changeover from VLSFO to LSMGO in progress",
+        "remarks": "01 SEPT 2026 / 0824LT – Anchor aweigh; 1115LT – POB (sea pilot); 1200LT – commenced changeover from VLSFO to LSMGO",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-09-02",
+        "type": "port",
+        "lat": "31-32.9N",
+        "lon": "121-20.0E",
+        "positionText": "TAIZHOU ANCHORAGE",
         "from": null,
         "to": null,
         "nextPort": "AGW WP",
@@ -3445,8 +3521,8 @@
           "fw": null
         },
         "cylinderOil": {},
-        "status": "In port, anchor aweigh at Taizhou Anchorage Area, preparing for departure",
-        "remarks": "Completed fuel changeover on 01 SEP 2026 at 1500LT. Pilot operations and ECA passage noted. Anchor dropped at 0224LT and aweigh at 0900LT.",
+        "status": "in port, anchor aweigh at 0900LT, ETD 06 SEP 2026 AM AGW WP",
+        "remarks": "Completed fuel changeover on 01 SEP 2026 at 1500LT; pilot operations on 01-02 SEP 2026; anchored at TAIZHOU ANCHORAGE at 0224LT, anchor aweigh at 0900LT",
         "vesselId": "medliguria"
       }
     ],
@@ -5559,7 +5635,7 @@
           "unit": "Ltrs"
         },
         "status": "In anchorage",
-        "remarks": "ETB likely 23/09/2026 PM, ETC/D 29/09/2026 PM. Berth #14.",
+        "remarks": "ETB likely 23/09/2026 PM, ETC/D 29/09/2026 PM as per agent.",
         "vesselId": "peppino"
       }
     ],
@@ -5826,5 +5902,5 @@
       }
     ]
   },
-  "syncedAt": "2026-09-02T07:00:13.095Z"
+  "syncedAt": "2026-09-02T08:00:14.565Z"
 }
