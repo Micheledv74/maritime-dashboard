@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-09-02T11:20:47.863Z",
+  "lastSync": "2026-09-02T11:25:46.893Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -7,17 +7,17 @@
       "vesselName": "MED TOSCANA",
       "totalReq": 237,
       "rfqOpen": 12,
-      "rfqOverdue7": 8,
-      "rfqOverdue15": 7,
+      "rfqOverdue7": 7,
+      "rfqOverdue15": 6,
       "readyForPO": 3,
-      "orders": 6,
+      "orders": 7,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 26,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 92,
-      "pctPOToDN": 98,
+      "pctReqToPO": 93,
+      "pctPOToDN": 97,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -37,28 +37,28 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00201"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00105",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "reqDate": "2026-07-21",
-          "poDate": "",
+          "poDate": "2026-09-02",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-09-16",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-09-16"
         },
         {
           "id": "med toscana::publication",
@@ -355,27 +355,21 @@
           "reqNumber": "2026-MDT-SHPR-00079",
           "rfqNumbers": [
             "2026-MDT-HQRQ-00203",
-            "2026-MDT-HQRQ-00202",
-            "2026-MDT-HQRQ-00200",
-            "2026-MDT-HQRQ-00199",
-            "2026-MDT-HQRQ-00198",
-            "2026-MDT-HQRQ-00197",
-            "2026-MDT-HQRQ-00176"
+            "2026-MDT-HQRQ-00202"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 7,
-          "rfqClosed": 2,
-          "rfqPct": 29,
-          "rfqDays": 21,
+          "rfqIssued": 2,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 1,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor",
-            "RFQ Offer Acknowledged"
+            "RFQ Sent to Vendor"
           ],
           "reqDate": "2026-07-21",
           "poDate": "",
@@ -717,23 +711,21 @@
           "reqNumber": "2026-MDT-SHPR-00085",
           "rfqNumbers": [
             "2026-MDT-HQRQ-00205",
-            "2026-MDT-HQRQ-00204",
-            "2026-MDT-HQRQ-00139"
+            "2026-MDT-HQRQ-00204"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 3,
+          "rfqIssued": 2,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": 30,
-          "rfqStatus": "RFQ Refused",
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor",
-            "RFQ Refused"
+            "RFQ Sent to Vendor"
           ],
           "reqDate": "2026-07-27",
           "poDate": "",
@@ -856,24 +848,22 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00208",
             "2026-MDT-HQRQ-00207",
-            "2026-MDT-HQRQ-00206",
-            "2026-MDT-HQRQ-00166"
+            "2026-MDT-HQRQ-00206"
           ],
           "poNumber": "2026-MDT-HQPO-00087",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 4,
-          "rfqClosed": 1,
-          "rfqPct": 25,
-          "rfqDays": 30,
-          "rfqStatus": "RFQ Offer Acknowledged",
+          "rfqIssued": 3,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Cancelled",
           "poStatus": "PO Cancelled",
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [
             "RFQ Sent to Vendor",
-            "RFQ Cancelled",
-            "RFQ Offer Acknowledged"
+            "RFQ Cancelled"
           ],
           "reqDate": "2026-07-15",
           "poDate": "2026-08-19",
