@@ -1733,8 +1733,8 @@
           "fw": null
         },
         "cylinderOil": {},
-        "status": "In port/anchorage at BEDI ANCHORAGE AREA, discharging petcoke. Cargo balance remaining: 4894 MT.",
-        "remarks": "ETS 04.09.2026 pm agw, wp",
+        "status": "In port/anchorage at BEDI ANCHORAGE AREA, discharging petcoke (50031.69 MT total, 4894 MT remaining).",
+        "remarks": "ETS 04.09.2026 pm agw, wp; cargo discharge last 24h: 12904 MT",
         "vesselId": "medtoscana"
       }
     ],
@@ -5726,8 +5726,8 @@
         "nextPort": "Tema, Ghana",
         "voyageNo": "18-L",
         "etaText": "TBA",
-        "etbText": "Likely ETB 23/09/2026 PM",
-        "etdText": "ETC/D 29/09/2026 PM Agw/wp. As per agent.",
+        "etbText": "23/09/2026 PM",
+        "etdText": "29/09/2026 PM",
         "etaISO": null,
         "etbISO": "2026-09-23T12:00",
         "etdISO": "2026-09-29T12:00",
@@ -5755,7 +5755,51 @@
           "unit": "Ltrs"
         },
         "status": "Anchored at Port Takoradi, Ghana",
-        "remarks": "ETB likely 23/09/2026 PM, ETC/D 29/09/2026 PM Agw/wp. As per agent.",
+        "remarks": "ETB not fixed. Berth #14. Likely ETB 23/09/2026 PM and ETC/D 29/09/2026 PM Agw/wp. As per agent.",
+        "vesselId": "peppino"
+      },
+      {
+        "isNoonReport": true,
+        "date": "2026-09-03",
+        "type": "anchor",
+        "lat": "05-31.6N",
+        "lon": "000-01.4E",
+        "positionText": "Anchorage",
+        "from": "Takoradi, Ghana",
+        "to": "Tema, Ghana",
+        "nextPort": "Tema, Ghana",
+        "voyageNo": "18-L",
+        "etaText": "TBA",
+        "etbText": "Likely ETB 23/09/2026 PM",
+        "etdText": "ETC/D 29/09/2026 PM",
+        "etaISO": null,
+        "etbISO": null,
+        "etdISO": null,
+        "speed": null,
+        "course": null,
+        "milesToGo": null,
+        "bunkers": {
+          "lsfo": 1054.57,
+          "lsmgo": 161.44,
+          "fw": 73
+        },
+        "consumption": {
+          "hfo": 0.8,
+          "lsfo": 0,
+          "lsmgo": 0,
+          "mdo": null,
+          "mgo": 0.5,
+          "fw": 2
+        },
+        "cylinderOil": {
+          "daily": 0,
+          "dailyME": 0,
+          "dailyDG": 30,
+          "rob": 67694,
+          "unit": "Ltrs"
+        },
+        "status": "Anchored at Takoradi",
+        "remarks": "ETB not fixed. Berth #14. Likely ETB 23/09/2026 PM and ETC/D 29/09/2026 PM Agw/wp. As per agent.",
         "vesselId": "peppino"
       }
     ],
@@ -6022,5 +6066,5 @@
       }
     ]
   },
-  "syncedAt": "2026-09-03T12:00:17.332Z"
+  "syncedAt": "2026-09-03T13:00:15.873Z"
 }
