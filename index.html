@@ -5835,16 +5835,25 @@ a:hover { text-decoration: underline; }
   font-size:12px; font-weight:600; color:#475569; cursor:pointer; }
 
 /* ==== v0.79b — riga azione ristrutturata: STATO+FLUSSO | DESCRIZIONE | NAVE | DATA | AZIONI ==== */
-.actions-table-wrap{ overflow:clip; }
+/* Tracce definite UNA volta sul contenitore: header, righe normali e righe dentro i blocchi
+   leggono le stesse variabili, così non possono disallinearsi. */
+.actions-table-wrap{ overflow:clip; --act-type:172px; --act-nave:118px; --act-date:148px; --act-btns:266px; }
 .actions-table-head{ position:sticky; top:0; z-index:4; }
 .actions-table-head,
 .action-row.action-row-cols{
-  grid-template-columns:172px minmax(0,1fr) 118px 148px auto !important;
+  grid-template-columns:var(--act-type) minmax(0,1fr) var(--act-nave) var(--act-date) var(--act-btns) !important;
   column-gap:14px; align-items:center;
 }
-/* dentro i blocchi nave il badge nave sarebbe la terza ripetizione: tolgo il contenuto, non la traccia */
-.action-row.action-row-cols.in-group{ grid-template-columns:172px minmax(0,1fr) 0 148px auto !important; }
+/* dentro i blocchi nave il badge sarebbe la terza ripetizione: nascondo il contenuto, non la traccia */
 .action-row-cols.in-group .action-col-nave{ visibility:hidden; overflow:hidden; }
+/* le righe annidate devono partire dalla stessa x dell'intestazione */
+.actions-table-wrap .action-group-expanded{ padding-left:0; padding-right:0; }
+.actions-table-wrap .supplier-subgroup .action-row.action-row-cols,
+.actions-table-wrap .fa-vessel .action-row.action-row-cols{ padding-left:12px; padding-right:16px; }
+.actions-table-wrap .fa-vessel .supplier-subgroup-header,
+.actions-table-wrap .fa-vessel .fa-vessel-head{ padding-left:14px; }
+.actions-table-wrap .fa-vessel{ border-left:none; border-right:none; border-radius:0; margin:0; }
+.actions-table-wrap .fa-vessel + .fa-vessel{ border-top:1px solid #e6eaef; }
 
 .action-col-type{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; min-width:0; }
 .action-col-type .pill-status{ max-width:100%; }
@@ -5871,7 +5880,7 @@ a:hover { text-decoration: underline; }
 
 .actions-table-wrap .action-row-cols .action-btns{ justify-content:flex-end; flex-wrap:nowrap; }
 @media (max-width:1240px){
-  .actions-table-head, .action-row.action-row-cols{ grid-template-columns:158px minmax(0,1fr) 0 138px auto !important; }
+  .actions-table-wrap{ --act-type:158px; --act-nave:0px; --act-date:138px; }
   .actions-table-head > *:nth-child(3), .action-row-cols .action-col-nave{ visibility:hidden; overflow:hidden; }
 }
 
