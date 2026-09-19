@@ -5819,6 +5819,33 @@ a:hover { text-decoration: underline; }
 .action-row.action-row-cols[data-vid="medtoscana"]{ border-left-color:var(--c-toscana) !important; }
 .action-row.action-row-cols[data-vid="norrbotten"]{ border-left-color:var(--c-norrbotten) !important; }
 
+/* ==== v0.79 — RFQ da sollecitare: flusso, raggruppamento per nave, ricerca ==== */
+.flow-mini{ display:inline-flex; gap:2px; vertical-align:1px; margin-left:4px; }
+.fm-seg{ font-family:var(--font-mono); font-size:8.5px; font-weight:700; letter-spacing:.02em;
+  padding:1px 4px; border-radius:3px; background:#eef1f5; color:#a7b0bb; line-height:1.5; }
+.fm-seg.on{ background:#dbe7f8; color:#2c5a9a; }
+.fm-seg.cur{ background:#0a3f93; color:#fff; }
+.fm-seg.cur.st-po{ background:#0f6b33; }
+.fm-seg.cur.st-dn{ background:#6b4bb8; }
+
+.fa-vessel{ border:1px solid #e6eaef; border-radius:10px; margin:0 0 10px; overflow:hidden; background:#fff; }
+.fa-vessel-head{ display:flex; align-items:center; gap:10px; padding:8px 12px; background:#f6f8fb; border-bottom:1px solid #eceff3; }
+.fa-vessel-head .fa-vname{ font-size:12px; font-weight:800; letter-spacing:.02em; }
+.fa-vessel-head .fa-vcount{ font-size:11px; font-weight:600; color:#7a838f; }
+.fa-vessel[data-vid="peppino"] .fa-vessel-head{ box-shadow:inset 3px 0 0 var(--c-peppino); }
+.fa-vessel[data-vid="medliguria"] .fa-vessel-head{ box-shadow:inset 3px 0 0 var(--c-liguria); }
+.fa-vessel[data-vid="medtoscana"] .fa-vessel-head{ box-shadow:inset 3px 0 0 var(--c-toscana); }
+.fa-vessel[data-vid="norrbotten"] .fa-vessel-head{ box-shadow:inset 3px 0 0 var(--c-norrbotten); }
+.fa-vessel[data-vid="vega"] .fa-vessel-head{ box-shadow:inset 3px 0 0 var(--c-vega); }
+.fa-vessel .supplier-subgroup{ border-top:1px solid #f2f4f7; }
+.fa-vessel .supplier-subgroup:first-child{ border-top:none; }
+
+.fleet-search-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 12px; }
+.fleet-search-row .search-input{ flex:1; min-width:220px; }
+.fleet-search-hint{ font-size:11.5px; color:#8a93a0; }
+.fleet-search-clear{ border:1px solid var(--border); background:#fff; border-radius:7px; padding:6px 11px;
+  font-size:12px; font-weight:600; color:#475569; cursor:pointer; }
+
 /* Scadenza "Scaduto" = rosso pieno, comando d'azione */
 .action-row .due-pill-past{ background:var(--c-red-strong) !important; color:#fff !important; border-color:var(--c-red-strong) !important; }
 
@@ -6242,7 +6269,21 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .voyage-route-line .vr-port-to{ color:var(--accent); }
 .voyage-route-line .vr-arrow-big{ width:22px; height:22px; color:#c2cad4; flex:none; }
 /* tappe ETA/ETB/ETD */
-.voyage-legs{ display:flex; gap:10px; flex-wrap:wrap; }
+.voyage-legs{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+/* v0.79 — messaggio pronto ETA/ETB/ETD */
+.voyage-msg-btn{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+  color:var(--accent); background:#eef4fd; border:1px solid #cfe0fb; border-radius:8px; padding:7px 12px; cursor:pointer; }
+.voyage-msg-btn:hover{ background:#e2edfc; }
+.vm-rows{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+.vm-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.vm-lbl{ font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#8a93a0; min-width:78px; }
+.vm-segs{ display:flex; gap:6px; flex-wrap:wrap; }
+.vm-seg{ font-size:12.5px; font-weight:600; color:#475569; background:#fff; border:1px solid var(--border);
+  border-radius:8px; padding:6px 12px; cursor:pointer; }
+.vm-seg.on{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.vm-text{ width:100%; padding:12px; border:1px solid var(--border); border-radius:9px; font-family:var(--font-mono);
+  font-size:12.5px; line-height:1.65; color:#2a313c; resize:vertical; }
+.vm-hint{ font-size:11.5px; color:#8a93a0; margin-top:7px; }
 .voyage-leg{ display:flex; flex-direction:column; gap:2px; background:#fafbfc; border:1px solid #eef1f4; border-radius:9px; padding:8px 14px; min-width:96px; }
 .voyage-leg .vl-label{ font-size:10px; font-weight:700; letter-spacing:.08em; color:#aab2bd; }
 .voyage-leg .vl-date{ font-size:13.5px; font-weight:600; color:#374151; font-family:var(--font-mono); }
@@ -6987,6 +7028,22 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 .day-detail-row .dd-vessel{ flex:none; display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#5b6470; }
 .dd-todo-btn{ flex:none; font-size:11.5px; font-weight:600; color:var(--accent); background:#eaf1fc; border:1px solid #cfe0fb; border-radius:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
 .dd-todo-btn:hover{ background:#dce9fb; }
+/* v0.79 — pannellino to-do dentro il calendario */
+.cal-todo-panel{ align-items:flex-start; }
+.cal-todo-panel .dd-ic{ margin-top:2px; color:#1f8a4c; font-weight:700; }
+.cal-todo-panel.is-done .dd-label{ text-decoration:line-through; color:#98a1ad; }
+.ctp-note{ font-size:12px; color:#5b6470; margin-top:3px; }
+.ctp-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+.ctp-chip{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:#5b6470;
+  background:#f2f5f8; border-radius:20px; padding:3px 9px; }
+.ctp-chip.ctp-due-past{ background:#fbdcde; color:#8f1219; }
+.ctp-chip.ctp-due-today{ background:#fdf2dd; color:#9a4a00; }
+.ctp-actions{ display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
+.ctp-btn{ font-size:12px; font-weight:600; padding:6px 11px; border-radius:7px; border:1px solid var(--border);
+  background:#fff; color:#475569; cursor:pointer; white-space:nowrap; }
+.ctp-btn:hover{ background:#f5f7fa; }
+.ctp-btn.ok{ border-color:#bfe3cd; background:#eef8f2; color:#0f6b33; }
+.ctp-btn.pri{ border-color:#cfe0fb; background:#eaf1fc; color:var(--accent); }
 .dd-todo-btn.done{ background:#e7f0e9; border-color:#bcd9c4; color:#1f5a2c; cursor:default; }
 </style>
 
@@ -8205,7 +8262,8 @@ const VESSELS = [
   },
   {
     vesselId: "norrbotten",
-    displayName: "NORRBOTTEN",
+    displayName: "ATLAS",
+    formerName: "NORRBOTTEN",   // ex nome: usato solo per ricerche/compatibilità dati storici
     allowManual: true,           // oltre al feed Infoship, consente il registro ordini manuale
     imo: "9191931",
     mmsi: "255624000",
@@ -8659,6 +8717,10 @@ const priorityRules = [
   // 3. RFQ overdue: in attesa di risposta da troppi giorni
   function ruleRFQOverdue(item, vessel) {
     const threshold = state.settings.overdueDays || 7;
+    // v0.79 — MAI sollecitare ciò che è già ordinato o già in consegna: se esiste un PO o un DN
+    // la RFQ è superata, la riga esce dalla lista (richiesta utente: "non vorrei sollecitare una
+    // RFQ dove ho già fatto un ordine").
+    if ((item.poStatus && item.poStatus !== "") || (item.dnStatus && item.dnStatus !== "") || item.poNumber) return null;
     if (item.rfqDays && item.rfqDays > threshold &&
         item.rfqStatus && item.rfqStatus !== "RFQ Offer Acknowledged" &&
         item.rfqStatus !== "RFQ Refused") {
@@ -8682,7 +8744,9 @@ const priorityRules = [
           context: {
             description: item.description || "",
             days: item.rfqDays,
+            rfqDate: item.rfqDate || "",       // v0.79 — data di emissione: nell'email va la DATA, non i giorni
             supplier: item.supplier,
+            vesselName: vessel.displayName || vessel.vesselName || "",
             rfqNumber: rfqsOv[0] || "",        // v0.10.4 — incluso nel template
             rfqAllNumbers: rfqsOv              // tutti i numeri (per template avanzati)
           }
@@ -8721,6 +8785,7 @@ function batchSupplierRule(vessel) {
   if (!vessel.items) return [];
   const bySupplier = {};
   for (const it of vessel.items) {
+    if ((it.poStatus && it.poStatus !== "") || (it.dnStatus && it.dnStatus !== "") || it.poNumber) continue;  // v0.79 — già ordinato: niente sollecito
     if (it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" &&
         it.rfqStatus !== "RFQ Refused" && it.supplier && it.supplier !== "—") {
       bySupplier[it.supplier] = bySupplier[it.supplier] || [];
@@ -8747,6 +8812,7 @@ function batchSupplierRule(vessel) {
             items: items.map(i => ({
               description: i.description,
               days: i.rfqDays,
+              rfqDate: i.rfqDate || "",
               rfqNumber: (Array.isArray(i.rfqNumbers) && i.rfqNumbers[0]) || i.reqNumber || ""
             }))
           }
@@ -11131,6 +11197,7 @@ function renderEntityCardInto(kind, name) {
       ${wa ? `<a class="ec-link ec-wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
       ${wechat ? `<button class="ec-link ec-wc" onclick="window.copyWeChat('${escapeAttr(wechat)}')">📱 WeChat: ${escapeHTML(wechat)} ⧉</button>` : ""}
       ${!phoneHref && !email && !wa && !wechat ? `<span class="ec-nolinks">Aggiungi i contatti qui sotto per attivare i pulsanti diretti.</span>` : ""}
+      <button class="ec-link ec-copy" onclick="window.copyEntityBlock('${kind}','${escapeAttr(name)}')" title="Copia un blocco pronto da incollare in una email di presentazione">📋 Copia blocco presentazione</button>
     </div>`;
 
   // Form anagrafica (campi editabili)
@@ -11171,6 +11238,26 @@ function renderEntityCardInto(kind, name) {
 
 window.copyWeChat = function(id) {
   if (navigator.clipboard) navigator.clipboard.writeText(id).then(() => showToast("WeChat ID copiato: " + id)).catch(() => showToast("Copia non riuscita"));
+};
+// v0.79 — Blocco anagrafico pronto da incollare in una email di presentazione del fornitore/agenzia
+function entityPresentationBlock(kind, name){
+  const p = getEntityProfile(kind, name) || {};
+  const L = [];
+  L.push(`${kind === "agency" ? "AGENZIA" : "FORNITORE"}: ${name}${p.code ? "  (cod. " + p.code + ")" : ""}`);
+  if (p.contact) L.push(`Referente: ${p.contact}`);
+  const contatti = [p.email ? "Email: " + p.email : "", p.phone ? "Tel: " + p.phone : "",
+    p.whatsapp ? "WhatsApp: " + p.whatsapp : "", p.wechat ? "WeChat: " + p.wechat : ""].filter(Boolean);
+  if (contatti.length) L.push(contatti.join("  ·  "));
+  const indirizzo = [p.address, p.city, p.country].filter(Boolean).join(", ");
+  if (indirizzo) L.push(`Indirizzo: ${indirizzo}`);
+  if (p.notes) L.push(`Note: ${String(p.notes).replace(/\s*\n\s*/g, " — ")}`);
+  return L.join("\n");
+}
+window.copyEntityBlock = function(kind, name){
+  const t = entityPresentationBlock(kind, name);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(() => showToast("📋 Blocco " + name + " copiato")).catch(() => showToast("Copia non riuscita"));
+  } else showToast("Copia non supportata");
 };
 // v0.40 — Elimina un fornitore/agenzia dalla rubrica (locale + push cancellazione su Notion se configurato)
 window.deleteEntity = function(kind, name) {
@@ -11770,6 +11857,7 @@ function renderRubricaPage() {
       phoneHref ? `<a class="rub-chip rub-chip-action" href="tel:${phoneHref}" onclick="event.stopPropagation()" title="Chiama ${escapeAttr(p.phone)}">📞</a>` : "",
       p.email ? `<a class="rub-chip rub-chip-action" href="mailto:${escapeAttr(p.email)}" onclick="event.stopPropagation()" title="${escapeAttr(p.email)}">📧</a>` : "",
       waHref ? `<a class="rub-chip rub-chip-action" href="https://wa.me/${waHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="WhatsApp">💬</a>` : "",
+      `<span class="rub-chip rub-chip-action" role="button" tabindex="0" onclick="event.stopPropagation(); window.copyEntityBlock('${kind}','${escapeAttr(name)}')" title="Copia blocco pronto da incollare in email">📋</span>`,
       p.wechat ? `<span class="rub-chip">📱</span>` : ""
     ].filter(Boolean).join("");
     const loc = [p.city, p.country].filter(Boolean).join(", ");
@@ -13220,7 +13308,7 @@ function collectWeekEvents(fromISO, toISO, opts) {
   if (opts.includeTodos) {
     for (const t of (state.todos || [])) {
       if (t.done || !t.dueDate) continue;
-      push(t.dueDate, { type: "todo", vesselId: t.vessel || null, label: truncate(t.action || t.reference || "To-do", 40), sub: t.category || "", sort: 1 });
+      push(t.dueDate, { type: "todo", vesselId: t.vessel || null, label: truncate(t.action || t.reference || "To-do", 40), sub: t.category || "", sort: 1, todoId: t.id });
     }
   }
   // 4) Appuntamenti Outlook (opzionale, da data-outlook-calendar.json via n8n)
@@ -15655,8 +15743,12 @@ function renderTodosPage() {
     <div id="todo-mode-actions" style="display:${pageMode==='actions'?'':'none'};">
       ${state._fleetActionCat ? `<div class="fleet-cat-banner"><span>Filtro attivo: <strong>${{rfq:"RFQ da sollecitare",po:"Pronte a PO",dn:"Consegne (DN)"}[state._fleetActionCat]}</strong></span><button class="btn-mini-link" onclick="window.clearFleetActionCat()">✕ mostra tutte</button></div>` : ""}
       <div class="fleet-actions-intro">
-        <p class="fleet-actions-lead">Tutte le azioni operative aperte sulla flotta, raggruppate per urgenza. Filtra per nave o segna come fatto direttamente da qui.</p>
+        <p class="fleet-actions-lead">Tutte le azioni operative aperte sulla flotta, raggruppate per nave e fornitore. Cerca una RFQ, filtra per nave o segna come fatto direttamente da qui.</p>
         <button class="btn-mini-link" onclick="window.openCompletionsArchive()" title="Archivio azioni completate"><svg class="icon icon-sm"><use href="#i-eye"/></svg> Archivio fatte</button>
+      </div>
+      <div class="fleet-search-row">
+        <input type="search" class="search-input" id="fleet-action-search" placeholder="Cerca RFQ: numero, fornitore, articolo, nave, marca o modello…" value="${escapeAttr(state._fleetActionQ||"")}">
+        ${(state._fleetActionQ||"").trim() ? `<button class="fleet-search-clear" onclick="window.clearFleetActionQuery()">✕ Azzera ricerca</button>` : `<span class="fleet-search-hint">Le righe già diventate PO o DN non compaiono: non si sollecita ciò che è già ordinato.</span>`}
       </div>
       <span class="section-meta" id="actions-today-meta" style="display:none;"></span>
       <div class="todo-actions-system">
@@ -15763,6 +15855,17 @@ function renderTodosPage() {
 
   attachTodoHandlers(document.getElementById("view-root"));
   attachActionHandlers(document.getElementById("view-root"));
+
+  // v0.79 — Ricerca RFQ nelle Azioni flotta (ri-render conservando il cursore)
+  const fas = document.getElementById("fleet-action-search");
+  if (fas) {
+    fas.addEventListener("input", e => {
+      state._fleetActionQ = e.target.value;
+      renderTodosPage();
+      const again = document.getElementById("fleet-action-search");
+      if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+    });
+  }
 }
 
 // ----- DEBUG VIEW --------------------------------------------------------
@@ -15807,32 +15910,57 @@ function renderDebug() {
 //    Altrimenti → mini picker "🇮🇹 Italiano / 🇬🇧 English" → memorizza scelta
 // 3. La scelta è salvata in state.supplierLanguages[supplier] e sincronizzata via Drive
 
+// v0.79 — Data di emissione RFQ per i testi email: usa rfqDate se presente,
+// altrimenti la ricostruisce da "giorni in attesa". Formato gg/mm/aaaa.
+function rfqIssueDate(o){
+  let iso = (o && o.rfqDate || "").slice(0,10);
+  if(!iso && o && o.days != null){
+    const d = new Date(); d.setDate(d.getDate() - (parseInt(o.days,10)||0));
+    iso = d.toISOString().slice(0,10);
+  }
+  if(!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  if(isNaN(d)) return "";
+  return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
+}
+// v0.79 — Riga elenco RFQ: "RFQ <numero> – <descrizione>, inviata il <data>."
+function rfqBullet(o, lang){
+  const num = o.rfqNumber ? `RFQ ${o.rfqNumber}` : "RFQ";
+  const desc = (o.description || "").trim();
+  const dt = rfqIssueDate(o);
+  const sentIT = dt ? `, inviata il ${dt}` : "";
+  const sentEN = dt ? `, sent on ${dt}` : "";
+  return `- ${num}${desc ? " – " + desc : ""}${lang === "it" ? sentIT : sentEN}.`;
+}
+
+// v0.79 — Sollecito offerta: UN SOLO testo, identico per sollecito singolo e multiplo
+// (cambia solo il numero di righe nell'elenco). Nave nell'oggetto e nel corpo.
 const EMAIL_TEMPLATES = {
   "rfq-overdue": {
+    it: (ctx) => ({
+      subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offerta – RFQ ${ctx.rfqNumber || ""}`.trim(),
+      body: `Buongiorno,\n\nrestiamo in attesa della vostra cortese offerta relativa alla seguente RFQ (Request for Quotation)${ctx.vesselName ? " per la " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "it")}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio dell'offerta.\n\nGrazie per il cortese riscontro.`
+    }),
+    en: (ctx) => ({
+      subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – RFQ ${ctx.rfqNumber || ""}`.trim(),
+      body: `Good morning,\n\nwe are still awaiting your kind quotation for the following RFQ (Request for Quotation)${ctx.vesselName ? " for " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "en")}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer.\n\nThank you for your kind reply.`
+    })
+  },
+  "rfq-batch": {
     it: (ctx) => {
-      const ref = ctx.rfqNumber ? ` (rif. nostra RFQ ${ctx.rfqNumber})` : "";
+      const its = ctx.items || [];
       return {
-        subject: `Sollecito offerta ${ctx.description}${ctx.rfqNumber ? ' - ' + ctx.rfqNumber : ''}`,
-        body: `Buongiorno,\n\nin attesa di vostra cortese offerta per "${ctx.description}"${ref} inviata ${ctx.days} giorni fa.\nÈ possibile ricevere un riscontro?\n\nGrazie,\nMichele`
+        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offerte – ${its.length} RFQ`,
+        body: `Buongiorno,\n\nrestiamo in attesa delle vostre cortesi offerte relative alle seguenti RFQ (Request for Quotation)${ctx.vesselName ? " per la " + ctx.vesselName : ""}:\n\n${its.map(i => rfqBullet(i, "it")).join("\n")}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio delle offerte.\n\nGrazie per il cortese riscontro.`
       };
     },
     en: (ctx) => {
-      const ref = ctx.rfqNumber ? ` (ref. our RFQ ${ctx.rfqNumber})` : "";
+      const its = ctx.items || [];
       return {
-        subject: `Quotation reminder: ${ctx.description}${ctx.rfqNumber ? ' - ' + ctx.rfqNumber : ''}`,
-        body: `Good morning,\n\nwe are still awaiting your kind quotation for "${ctx.description}"${ref}, which was sent ${ctx.days} days ago.\nCould you please let us know the status?\n\nThank you,\nMichele`
+        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – ${its.length} RFQ`,
+        body: `Good morning,\n\nwe are still awaiting your kind quotations for the following RFQ (Request for Quotation)${ctx.vesselName ? " for " + ctx.vesselName : ""}:\n\n${its.map(i => rfqBullet(i, "en")).join("\n")}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offers.\n\nThank you for your kind reply.`
       };
     }
-  },
-  "rfq-batch": {
-    it: (ctx) => ({
-      subject: `Sollecito offerte multiple - ${ctx.vesselName}`,
-      body: `Buongiorno,\n\nin attesa delle seguenti offerte:\n\n${(ctx.items || []).map(i => "• " + (i.rfqNumber ? i.rfqNumber + " - " : "") + i.description + " (" + (i.days || "?") + "g)").join("\n")}\n\nGrazie per il riscontro,\nMichele`
-    }),
-    en: (ctx) => ({
-      subject: `Multiple quotation reminder - ${ctx.vesselName}`,
-      body: `Good morning,\n\nwe are still awaiting the following quotations:\n\n${(ctx.items || []).map(i => "• " + (i.rfqNumber ? i.rfqNumber + " - " : "") + i.description + " (" + (i.days || "?") + "d)").join("\n")}\n\nThank you for your reply,\nMichele`
-    })
   },
   "delivery-out-of-window": {
     it: (ctx) => {
@@ -17295,12 +17423,13 @@ function renderVoyageWidget(vesselId) {
   const curArrCount = itemsForLeg(vesselId, "current").length;
   const nextArrCount = itemsForLeg(vesselId, "next").length;
 
-  const nextBlock = (nxt.from || nxt.to) ? `
-    <div class="voyage-next">
+  const nextBlock = (nxt.from || nxt.to) ? `    <div class="voyage-next">
       <span class="voyage-next-tag">POI</span>
       <span class="voyage-next-route">${escapeHTML(nxt.from || "?")} <svg class="icon icon-sm vr-arrow"><use href="#i-arrow-right"/></svg> <strong>${escapeHTML(nxt.to || "?")}</strong></span>
       ${nxt.eta ? `<span class="voyage-next-eta">ETA ${formatVoyageDate(nxt.eta)}</span>` : ""}
       ${nxt.etb ? `<span class="voyage-next-eta">ETB ${formatVoyageDate(nxt.etb)}</span>` : ""}
+      ${nxt.etd ? `<span class="voyage-next-eta">ETD ${formatVoyageDate(nxt.etd)}</span>` : ""}
+      ${(nxt.eta || nxt.etb || nxt.etd) ? `<button class="voyage-msg-btn" onclick="window.openVoyageMsg('${escapeAttr(vesselId)}','next')" title="Messaggio pronto da incollare in email o WhatsApp"><svg class="icon icon-sm"><use href="#i-copy"/></svg> Messaggio</button>` : ""}
       ${agencyChip("nxt", nxt.agency)}
       ${nextArrCount ? `<button class="voyage-arr-btn" onclick="window.emailPortArrival('${escapeAttr(vesselId)}','next')" title="Email al Capitano: merce in arrivo a ${escapeAttr(nxt.to||'porto')}"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Email Capitano (${nextArrCount})</button>
       <button class="voyage-arr-btn voyage-arr-btn-agency" onclick="window.emailAgencyArrival('${escapeAttr(vesselId)}','next')" title="Email all'agenzia: conferma arrivo e consegna a bordo (AWB · PO · descrizione · fornitore)"><svg class="icon icon-sm"><use href="#i-building"/></svg> Email agenzia (${nextArrCount})</button>` : ""}
@@ -17328,7 +17457,7 @@ function renderVoyageWidget(vesselId) {
         <span class="vr-port vr-port-to">${escapeHTML(cur.to || "—")}</span>
       </div>
 
-      ${curLegs ? `<div class="voyage-legs">${curLegs}</div>` : ""}
+      ${curLegs ? `<div class="voyage-legs">${curLegs}<button class="voyage-msg-btn" onclick="window.openVoyageMsg('${escapeAttr(vesselId)}','current')" title="Messaggio pronto da incollare in email o WhatsApp"><svg class="icon icon-sm"><use href="#i-copy"/></svg> Messaggio ETA/ETB/ETD</button></div>` : ""}
       ${curArrCount ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
         <button class="voyage-arr-btn" onclick="window.emailPortArrival('${escapeAttr(vesselId)}','current')" title="Email al Capitano: merce in arrivo a ${escapeAttr(cur.to||'porto')}"><svg class="icon icon-sm"><use href="#i-mail"/></svg> Email Capitano a ${escapeHTML(cur.to||'porto')} (${curArrCount})</button>
         <button class="voyage-arr-btn voyage-arr-btn-agency${(etaDays!=null && etaDays<=5) ? " voyage-arr-btn-due" : ""}" onclick="window.emailAgencyArrival('${escapeAttr(vesselId)}','current')" title="Email all'agenzia: conferma arrivo e consegna a bordo (AWB · PO · descrizione · fornitore)${(etaDays!=null && etaDays<=5) ? " — ETA vicina, conviene inviarla ora" : ""}"><svg class="icon icon-sm"><use href="#i-building"/></svg> Email agenzia (${curArrCount})${(etaDays!=null && etaDays<=5) ? ` · ${etaDays<=0?"in arrivo":"tra "+etaDays+"g"}` : ""}</button>
@@ -17350,6 +17479,122 @@ window.copyVoyageAgency = function(vesselId, which){
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(()=>showToast("📋 "+(name||"Agenzia")+" copiata")).catch(()=>showToast("Copia non riuscita"));
   } else { showToast("Copia non supportata"); }
+};
+
+// === v0.79 — Messaggi pronti ETA/ETB/ETD (nuova destinazione / variazione) ===
+// Due tipi × due canali (WhatsApp breve, email formale) × IT/EN. Testo modificabile prima di copiare.
+function vmFmt(v, short){
+  if(!v) return "—";
+  const d = new Date(v.length <= 10 ? v + "T00:00:00" : v);
+  if(isNaN(d)) return String(v);
+  const p = n => String(n).padStart(2,"0");
+  const day = `${p(d.getDate())}/${p(d.getMonth()+1)}`;
+  const hm = (v.length > 10) ? ` ${p(d.getHours())}${p(d.getMinutes())} LT` : "";
+  return short ? day + hm : `${day}/${d.getFullYear()}${hm}`;
+}
+function voyageMsgText(vesselId, which, tipo, canale, lang){
+  const cfg = VESSELS.find(v => v.vesselId === vesselId) || {};
+  const voy = getVoyage(vesselId);
+  const leg = which === "next" ? (voy.next || {}) : (voy.current || {});
+  const ship = cfg.displayName || vesselId;
+  const port = leg.to || "—";
+  const short = canale === "wa";
+  const eta = vmFmt(leg.eta, short), etb = vmFmt(leg.etb, short), etd = vmFmt(leg.etd, short);
+  if (canale === "wa") {
+    const head = lang === "it"
+      ? (tipo === "new" ? `${ship} — nuova destinazione: ${port}` : `${ship} — aggiornamento ${port}`)
+      : (tipo === "new" ? `${ship} — next port: ${port}` : `${ship} — schedule update ${port}`);
+    return `${head}\nETA ${eta} | ETB ${etb} | ETD ${etd}`;
+  }
+  if (lang === "it") {
+    const subj = tipo === "new"
+      ? `${ship} - Nuova destinazione: ${port}`
+      : `${ship} - Variazione ETA/ETB/ETD - ${port}`;
+    const apertura = tipo === "new"
+      ? `vi informiamo che la ${ship} è diretta a ${port}. Di seguito le tempistiche previste:`
+      : `vi comunichiamo la variazione delle tempistiche previste della ${ship} a ${port}:`;
+    const chiusura = tipo === "new"
+      ? `Vi preghiamo di confermare ricezione e di segnalarci qualsiasi implicazione sulle consegne già concordate.`
+      : `Vi preghiamo di aggiornare i vostri riferimenti e di confermarci che le consegne già concordate restano possibili.`;
+    return `Oggetto: ${subj}\n\nBuongiorno,\n\n${apertura}\n\nETA ${eta}\nETB ${etb}\nETD ${etd}\n\n${chiusura}\n\nGrazie e cordiali saluti.`;
+  }
+  const subj = tipo === "new"
+    ? `${ship} - Next port: ${port}`
+    : `${ship} - Revised ETA/ETB/ETD - ${port}`;
+  const opening = tipo === "new"
+    ? `please be informed that ${ship} is bound for ${port}. Please find below the expected schedule:`
+    : `please note the revised schedule of ${ship} at ${port}:`;
+  const closing = tipo === "new"
+    ? `Kindly acknowledge receipt and advise any implication on the deliveries already arranged.`
+    : `Kindly update your records and confirm that the deliveries already arranged remain feasible.`;
+  return `Subject: ${subj}\n\nDear Sirs,\n\n${opening}\n\nETA ${eta}\nETB ${etb}\nETD ${etd}\n\n${closing}\n\nThank you and best regards.`;
+}
+window.openVoyageMsg = function(vesselId, which){
+  window._vmsg = Object.assign({ tipo: "new", canale: "mail", lang: "en" }, window._vmsg || {}, { vid: vesselId, which: which || "current" });
+  let bd = document.getElementById("voyage-msg-backdrop");
+  if (!bd) {
+    bd = document.createElement("div");
+    bd.id = "voyage-msg-backdrop";
+    bd.className = "item-detail-backdrop";
+    document.body.appendChild(bd);
+  }
+  renderVoyageMsg();
+  bd.classList.add("open");
+};
+function renderVoyageMsg(){
+  const s = window._vmsg; if(!s) return;
+  const bd = document.getElementById("voyage-msg-backdrop"); if(!bd) return;
+  const cfg = VESSELS.find(v => v.vesselId === s.vid) || {};
+  const voy = getVoyage(s.vid);
+  const leg = s.which === "next" ? (voy.next || {}) : (voy.current || {});
+  const txt = voyageMsgText(s.vid, s.which, s.tipo, s.canale, s.lang);
+  const seg = (key, val, label) => `<button class="vm-seg ${s[key]===val?"on":""}" onclick="window.setVoyageMsg('${key}','${val}')">${label}</button>`;
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width:640px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Messaggio — ${escapeHTML(cfg.displayName || s.vid)}</h2>
+          <div class="item-detail-meta"><span class="muted">${escapeHTML(leg.from || "?")} → ${escapeHTML(leg.to || "?")} · ${s.which === "next" ? "scalo successivo" : "scalo in corso"}</span></div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeVoyageMsg()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body">
+        <div class="vm-rows">
+          <div class="vm-row"><span class="vm-lbl">Messaggio</span><div class="vm-segs">${seg("tipo","new","Nuova destinazione")}${seg("tipo","chg","Variazione ETA/ETB/ETD")}</div></div>
+          <div class="vm-row"><span class="vm-lbl">Canale</span><div class="vm-segs">${seg("canale","mail","Email formale")}${seg("canale","wa","WhatsApp breve")}</div></div>
+          <div class="vm-row"><span class="vm-lbl">Lingua</span><div class="vm-segs">${seg("lang","it","Italiano")}${seg("lang","en","English")}</div></div>
+        </div>
+        <textarea id="vm-text" rows="${s.canale==="wa"?4:14}" class="vm-text">${escapeHTML(txt)}</textarea>
+        <div class="vm-hint">Modificalo pure prima di copiarlo: il testo qui sopra è quello che viene copiato.</div>
+      </div>
+      <div class="item-detail-footer">
+        <div style="flex:1;"></div>
+        ${s.canale==="mail" ? `<button class="btn btn-sm" onclick="window.voyageMsgMail()">✉ Apri in email</button>` : ""}
+        <button class="btn btn-sm btn-primary" onclick="window.voyageMsgCopy()"><svg class="icon icon-sm"><use href="#i-copy"/></svg> Copia</button>
+      </div>
+    </div>`;
+}
+window.setVoyageMsg = function(key, val){ if(!window._vmsg) return; window._vmsg[key] = val; renderVoyageMsg(); };
+window.closeVoyageMsg = function(){ const bd = document.getElementById("voyage-msg-backdrop"); if(bd) bd.classList.remove("open"); };
+window.voyageMsgCopy = function(){
+  const ta = document.getElementById("vm-text"); if(!ta) return;
+  const t = ta.value;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>showToast("📋 Messaggio copiato")).catch(()=>showToast("Copia non riuscita"));
+  } else showToast("Copia non supportata");
+};
+window.voyageMsgMail = function(){
+  const ta = document.getElementById("vm-text"); if(!ta) return;
+  const lines = ta.value.split("\n");
+  let subject = "", body = ta.value;
+  const m = lines[0].match(/^(Oggetto|Subject):\s*(.+)$/i);
+  if(m){ subject = m[2].trim(); body = lines.slice(1).join("\n").replace(/^\n+/, ""); }
+  const s = window._vmsg || {};
+  const voy = getVoyage(s.vid);
+  const leg = s.which === "next" ? (voy.next || {}) : (voy.current || {});
+  let to = "";
+  try { to = voyageAgencyEmail(leg.agency) || ""; } catch(e){}
+  openComposeMail(buildComposeHref(subject, body, to));
 };
 
 // === Email arrivo in porto: lista merce in consegna a quello scalo (PO/descrizione/ditta) ===
@@ -18130,6 +18375,11 @@ window.openVoyageEditor = function(vesselId) {
             <div class="voyage-form-row"><label>A</label><input type="text" id="voy-nxt-to" value="${escapeAttr(nxt.to || "")}" placeholder="Es. Rotterdam"></div>
             <div class="voyage-form-row"><label>ETA (arrivo)</label><input type="datetime-local" id="voy-nxt-eta" value="${escapeAttr(nxt.eta || "")}"></div>
             <div class="voyage-form-row"><label>ETB (banchina)</label><input type="datetime-local" id="voy-nxt-etb" value="${escapeAttr(nxt.etb || "")}"></div>
+            <div class="voyage-form-row">
+              <label>ETD (partenza)</label>
+              <input type="datetime-local" id="voy-nxt-etd" value="${escapeAttr(nxt.etd || "")}">
+              <button type="button" class="btn-mini-link" onclick="window.proposeNextEtd('${escapeAttr(vesselId)}')" title="Propone l'ETD sommando all'ETA la sosta media di questa nave (dal viaggio in corso, altrimenti 2 giorni). Resta modificabile." style="align-self:flex-start;margin-top:3px;">↺ proponi da ETA + sosta</button>
+            </div>
           </div>
           ${agencyBlock("nxt", nxt.agency)}
         </div>
@@ -18160,6 +18410,34 @@ window.openVoyageEditor = function(vesselId) {
 window.closeVoyageEditor = function() {
   const bd = document.getElementById("voyage-editor-backdrop");
   if (bd) bd.classList.remove("open");
+};
+
+// v0.79 — ETD del secondo porto: proposta automatica (ETA + sosta), sempre sovrascrivibile a mano.
+// La sosta è quella reale del viaggio in corso (ETD−ETA o ETD−ETB); se non c'è, 2 giorni.
+function voyageStayHours(cur){
+  cur = cur || {};
+  const a = cur.eta || cur.etb, b = cur.etd;
+  if (!a || !b) return 48;
+  const da = new Date(a), db = new Date(b);
+  if (isNaN(da) || isNaN(db)) return 48;
+  const h = (db - da) / 3600000;
+  return (h > 0 && h < 24 * 30) ? h : 48;
+}
+window.proposeNextEtd = function(vesselId){
+  const etaEl = document.getElementById("voy-nxt-eta");
+  const etbEl = document.getElementById("voy-nxt-etb");
+  const etdEl = document.getElementById("voy-nxt-etd");
+  if (!etdEl) return;
+  const base = (etbEl && etbEl.value) || (etaEl && etaEl.value) || "";
+  if (!base) { showToast("Compila prima ETA o ETB del secondo porto"); return; }
+  const voy = getVoyage(vesselId);
+  const hours = voyageStayHours(voy.current || {});
+  const d = new Date(base);
+  if (isNaN(d)) { showToast("Data non valida"); return; }
+  d.setTime(d.getTime() + hours * 3600000);
+  const pad = n => String(n).padStart(2, "0");
+  etdEl.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  showToast(`Proposto ETD = ETA + ${Math.round(hours/24*10)/10} gg — correggilo pure`);
 };
 
 // v0.52 — Storico consegne: elenco dei viaggi conclusi con la merce arrivata a ciascuno scalo
@@ -18449,7 +18727,7 @@ window.saveVoyageFromEditor = function(vesselId) {
   };
 
   const curHasData = getVal("voy-cur-from") || getVal("voy-cur-to") || getVal("voy-cur-eta") || getVal("voy-cur-etb") || getVal("voy-cur-etd");
-  const nxtHasData = getVal("voy-nxt-from") || getVal("voy-nxt-to") || getVal("voy-nxt-eta") || getVal("voy-nxt-etb");
+  const nxtHasData = getVal("voy-nxt-from") || getVal("voy-nxt-to") || getVal("voy-nxt-eta") || getVal("voy-nxt-etb") || getVal("voy-nxt-etd");
 
   const payload = Object.assign({}, existing, {
     status: getVal("voy-status"),
@@ -18470,6 +18748,7 @@ window.saveVoyageFromEditor = function(vesselId) {
       to: getVal("voy-nxt-to"),
       etb: getVal("voy-nxt-etb"),
       eta: getVal("voy-nxt-eta"),
+      etd: getVal("voy-nxt-etd"),
       agency: (()=>{ const n=getVal("voy-nxt-agency-name"), c=getVal("voy-nxt-agency-contacts"); if(n) upsertAgency(n,c); return (n||c)?{name:n,contacts:c}:null; })()
     },
     notes: getVal("voy-notes"),
@@ -20071,13 +20350,19 @@ function renderActionsTodayV2(opts) {
     if (re) systemActions = systemActions.filter(a => re.test(a.key));
   }
 
+  // v0.79 — Ricerca libera sulle azioni flotta (numero RFQ/REQ, fornitore, articolo, nave, marca/modello)
+  const faq = (state._fleetActionQ || "").trim().toLowerCase();
+  if (faq && !forcedVesselId) {
+    systemActions = systemActions.filter(a => faActionMatches(a, faq));
+  }
+
   // Aggiungo le to-do utente non completate come "azioni" (con classificazione per scadenza)
   const today = todayISO();
   const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); })();
   const weekEnd = (() => { const d = new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
 
   // v0.33 — Se filtro per categoria attivo, nascondo le to-do (mostro solo le azioni di quel tipo)
-  const userTodos = (state.todos || []).filter(t => !t.done && t.kind === "fleet" && !state._fleetActionCat);
+  const userTodos = (state.todos || []).filter(t => !t.done && t.kind === "fleet" && !state._fleetActionCat && !faq);
   const userTodosFiltered = vesselFilter === "all" ? userTodos :
     userTodos.filter(t => t.vessel === vesselFilter);
 
@@ -20297,6 +20582,49 @@ window.closeCompletionsArchive = function() {
   if (bd) bd.classList.remove("open");
 };
 
+// === v0.79 — Flusso REQ→RFQ→PO→DN a colpo d'occhio sulla riga azione ==========
+let _faIdxSrc = null, _faIdx = null;
+function faFindItem(id){
+  if(!id) return null;
+  const src = state.data;
+  if(_faIdxSrc !== src){
+    _faIdx = new Map();
+    ((src && src.vessels) || []).forEach(v => (v.items || []).forEach(it => _faIdx.set(it.id, it)));
+    _faIdxSrc = src;
+  }
+  return _faIdx.get(id) || null;
+}
+// Stadio canonico dell'item (stessa logica di computePipeline)
+function faItemStage(it){
+  if(!it) return null;
+  if(it.reqStatus === "REQ Cancelled" || it.rfqStatus === "RFQ Cancelled" || it.poStatus === "PO Cancelled") return null;
+  if(it.dnStatus && it.dnStatus !== "") return "DN";
+  if(it.poStatus && it.poStatus !== "") return "PO";
+  if(it.rfqStatus && it.rfqStatus !== "") return "RFQ";
+  return "REQ";
+}
+function faFlowHTML(itemId){
+  const it = faFindItem(itemId);
+  const st = faItemStage(it);
+  if(!st) return "";
+  const order = ["REQ","RFQ","PO","DN"];
+  const idx = order.indexOf(st);
+  const num = (it.reqNumber ? "REQ "+it.reqNumber : "") + (it.poNumber ? " · PO "+it.poNumber : "");
+  const segs = order.map((s,i) =>
+    `<span class="fm-seg ${i<=idx?"on":""} ${i===idx?"cur st-"+s.toLowerCase():""}">${s}</span>`).join("");
+  return `<span class="flow-mini" title="Flusso: arrivato a ${st}${num?" — "+num:""}">${segs}</span>`;
+}
+// Testo su cui cerca la barra di ricerca RFQ (numero RFQ/REQ, fornitore, descrizione, nave, marca/modello)
+function faActionMatches(a, q){
+  if(!q) return true;
+  const it = faFindItem(a.itemId);
+  const parts = [a.label, a.description, a.body, a.supplier, a.vesselName, a.docNumber,
+    ...(Array.isArray(a.docAllNumbers) ? a.docAllNumbers : [])];
+  if(it) parts.push(it.description, it.reqNumber, it.poNumber, it.dnNumber, it.supplier,
+    ...(Array.isArray(it.rfqNumbers) ? it.rfqNumbers : []));
+  return parts.filter(Boolean).join(" ").toLowerCase().includes(q);
+}
+
 // Render di un gruppo (urgente/settimana/quando puoi)
 function renderActionGroup(groupId, title, actions) {
   if (actions.length === 0) return "";
@@ -20349,7 +20677,8 @@ function renderActionGroup(groupId, title, actions) {
 // v0.10.2 — Sub-grouping per fornitore (batch sollecito ha senso solo per stesso supplier)
 function renderHomogeneousGroup(parentGroup, ruleType, items) {
   const groupKey = parentGroup + ":" + ruleType;
-  const isExpanded = state._actionsTodayExpanded.has(groupKey);
+  // Con una ricerca attiva i gruppi si aprono da soli: altrimenti i risultati resterebbero nascosti
+  const isExpanded = state._actionsTodayExpanded.has(groupKey) || !!(state._fleetActionQ || "").trim();
   const labels = {
     overdue: { icon: '<svg class="icon icon-sm"><use href="#i-phone"/></svg>', verb: "RFQ da sollecitare" },
     refused: { icon: '<svg class="icon icon-sm" style="color:var(--c-red-dot)"><use href="#i-alert"/></svg>', verb: "RFQ rifiutate" },
@@ -20358,51 +20687,76 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
   };
   const l = labels[ruleType] || { icon: "•", verb: ruleType };
 
-  // Sub-grouping per fornitore (solo se ruleType è "sollecitabile" — overdue/refused)
+  // v0.79 — Sollecitabili (overdue/refused): PRIMO livello NAVE, dentro i FORNITORI
   const groupableByVendor = (ruleType === "overdue" || ruleType === "refused");
-  let supplierSubgroups = null;
-  if (groupableByVendor) {
-    const bySupplier = {};
-    for (const a of items) {
-      const sup = a.supplier || "(senza fornitore)";
-      if (!bySupplier[sup]) bySupplier[sup] = [];
-      bySupplier[sup].push(a);
+
+  // Blocco di un fornitore (header + eventuale sollecito unico + righe)
+  function supplierBlockHTML(sup, supItems){
+    const canBatch = sup !== "(senza fornitore)" && supItems.length >= 2;
+    let batchBtn = "";
+    if (canBatch) {
+      const ctx = {
+        vesselName: supItems[0].vesselName || "",
+        supplier: sup,
+        items: supItems.map(i => {
+          const src = (i.action && i.action.context) || {};
+          return {
+            description: src.description || i.description || "",
+            days: src.days != null ? src.days : (i.ageDays || "?"),
+            rfqDate: src.rfqDate || "",
+            rfqNumber: src.rfqNumber || i.docNumber || (Array.isArray(i.docAllNumbers) && i.docAllNumbers[0]) || ""
+          };
+        })
+      };
+      const ctxJson = encodeURIComponent(JSON.stringify(ctx));
+      batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')"><svg class="icon icon-sm"><use href="#i-send"/></svg> Sollecita tutti (${supItems.length}) →</button>`;
     }
-    supplierSubgroups = Object.entries(bySupplier)
-      .sort((a, b) => b[1].length - a[1].length);  // più voluminosi in cima
+    return `
+      <div class="supplier-subgroup">
+        <div class="supplier-subgroup-header">
+          <span class="supplier-name">${escapeHTML(sup)}</span>
+          <span class="supplier-count muted">${supItems.length} item${supItems.length === 1 ? "" : "s"}</span>
+          ${batchBtn}
+        </div>
+        ${supItems.map(a => actionRowHTMLv2(a, true)).join("")}
+      </div>
+    `;
   }
 
   let expandedHTML = "";
   if (isExpanded) {
-    if (supplierSubgroups) {
-      // Per ogni fornitore: una mini-card con sollecito batch + items
-      expandedHTML = supplierSubgroups.map(([sup, supItems]) => {
-        // Bottone "Sollecita tutti" applicabile solo se ci sono 2+ items e il fornitore è noto
-        const canBatch = sup !== "(senza fornitore)" && supItems.length >= 2;
-        let batchBtn = "";
-        if (canBatch) {
-          // Costruisco context per batch
-          const ctx = {
-            vesselName: supItems[0].vesselName || "",
-            supplier: sup,
-            items: supItems.map(i => ({ description: i.description || "", days: i.ageDays || "?", rfqNumber: i.rfqNumber || i.docNumber || (Array.isArray(i.docAllNumbers) && i.docAllNumbers[0]) || "" }))
-          };
-          const ctxJson = encodeURIComponent(JSON.stringify(ctx));
-          batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')"><svg class="icon icon-sm"><use href="#i-send"/></svg> Sollecita tutti (${supItems.length}) →</button>`;
+    if (groupableByVendor) {
+      // 1° livello: nave (ordine della flotta) — 2° livello: fornitore (più voluminosi in cima)
+      const byVessel = new Map();
+      for (const a of items) {
+        const vid = a.vesselId || "";
+        if (!byVessel.has(vid)) byVessel.set(vid, []);
+        byVessel.get(vid).push(a);
+      }
+      const order = VESSELS.map(v => v.vesselId);
+      const vids = [...byVessel.keys()].sort((x, y) => {
+        const ix = order.indexOf(x), iy = order.indexOf(y);
+        return (ix < 0 ? 99 : ix) - (iy < 0 ? 99 : iy);
+      });
+      expandedHTML = vids.map(vid => {
+        const vItems = byVessel.get(vid);
+        const vName = (vItems[0] && vItems[0].vesselName) || (VESSELS.find(v => v.vesselId === vid) || {}).displayName || "Senza nave";
+        const bySupplier = {};
+        for (const a of vItems) {
+          const sup = a.supplier || "(senza fornitore)";
+          if (!bySupplier[sup]) bySupplier[sup] = [];
+          bySupplier[sup].push(a);
         }
-        return `
-          <div class="supplier-subgroup">
-            <div class="supplier-subgroup-header">
-              <span class="supplier-name">${escapeHTML(sup)}</span>
-              <span class="supplier-count muted">${supItems.length} item${supItems.length === 1 ? "" : "s"}</span>
-              ${batchBtn}
-            </div>
-            ${supItems.map(a => actionRowHTMLv2(a, true)).join("")}
+        const subs = Object.entries(bySupplier).sort((a, b) => b[1].length - a[1].length);
+        return `<div class="fa-vessel" data-vid="${escapeAttr(vid)}">
+          <div class="fa-vessel-head">
+            <span class="vessel-tag-colored" data-vid="${escapeAttr(vid)}">${escapeHTML(vName)}</span>
+            <span class="fa-vcount">${vItems.length} da sollecitare · ${subs.length} fornitor${subs.length === 1 ? "e" : "i"}</span>
           </div>
-        `;
+          ${subs.map(([sup, supItems]) => supplierBlockHTML(sup, supItems)).join("")}
+        </div>`;
       }).join("");
     } else {
-      // Senza sub-grouping
       expandedHTML = items.map(a => actionRowHTMLv2(a, true)).join("");
     }
   }
@@ -20468,7 +20822,17 @@ function actionRowHTMLv2(a, isInGroup) {
   const desc = a.description || a.body || "";
   const supplier = a.supplier ? `· <span class="supplier-tag">${escapeHTML(a.supplier)}</span>` : "";
   const vesselTag = a.vesselName && state.view === "overview" ? `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>` : "";
-  const ageTag = a.ageDays != null ? `<span class="action-age">da ${a.ageDays}g</span>` : "";
+  const ageTag = (() => {
+    if (a.ageDays == null) return "";
+    // v0.79 — per le RFQ mostro la DATA DI EMISSIONE (i giorni restano come contorno)
+    const ctx = (a.action && a.action.context) || null;
+    const isRfq = /^(overdue|refused)/.test(String(a.key || ""));
+    if (isRfq && ctx) {
+      const d = (typeof rfqIssueDate === "function") ? rfqIssueDate(ctx) : "";
+      if (d) return `<span class="action-age" title="RFQ inviata il ${escapeAttr(d)}">inviata ${escapeHTML(d)} · ${a.ageDays}g</span>`;
+    }
+    return `<span class="action-age">da ${a.ageDays}g</span>`;
+  })();
   const todoTag = a._kind === "todo" ? `<span class="kind-tag-todo">personale</span>` : "";
   // v0.10.2 fix — Etichetta "rimandata da te" se l'azione era snoozed e oggi è tornata
   let returnedTag = "";
@@ -20571,7 +20935,7 @@ function actionRowHTMLv2(a, isInGroup) {
   return `<div class="action-row action-row-cols ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}" data-vid="${escapeAttr(a.vesselId || '')}">
     <span class="pill-status ${cfg.color}">${actionTypeIconHTML(a)}${escapeHTML(a.label)}</span>
     <div class="action-body">
-      ${escapeHTML(truncate(desc, 90))} ${docHTML} ${ageTag} ${returnedTag}
+      ${escapeHTML(truncate(desc, 90))} ${docHTML} ${faFlowHTML(a.itemId)} ${ageTag} ${returnedTag}
     </div>
     <div class="action-col-nave">${naveCell}</div>
     <div class="action-col-scad">${scadenzaCell}</div>
@@ -21206,6 +21570,7 @@ function goFleetActions(cat){
 }
 window.goFleetActions = goFleetActions;
 window.clearFleetActionCat = function(){ state._fleetActionCat = null; render(); };
+window.clearFleetActionQuery = function(){ state._fleetActionQ = ""; renderTodosPage(); };
 
 // v0.33 — Naviga alla pagina Performance procurement
 function goPerformance(){
@@ -21216,6 +21581,64 @@ function goPerformance(){
 window.goPerformance = goPerformance;
 
 // v0.18 — Dettaglio eventi di una cella (nave + giorno), o agenda generale del giorno
+
+// v0.79 — Pannellino to-do dentro il calendario: dice COSA fare e lo fa fare da lì.
+function calTodoPanelHTML(todoId){
+  const t = (state.todos || []).find(x => x.id === todoId);
+  if (!t) return "";
+  const cfg = VESSELS.find(v => v.vesselId === t.vessel);
+  const nave = cfg ? cfg.displayName : (t.category === "Personale" ? "Personale" : "Ufficio");
+  const origine = t.kind === "fleet" ? "azione flotta" : (t.source || t.category || "personale");
+  const rel = (typeof relativeDueLabel === "function") ? relativeDueLabel(t.dueDate) : null;
+  const meta = [
+    `<span class="ctp-chip"><span class="cal-vdot" data-vid="${escapeAttr(t.vessel || "")}"></span>${escapeHTML(nave)}</span>`,
+    `<span class="ctp-chip">origine: ${escapeHTML(origine)}</span>`,
+    rel ? `<span class="ctp-chip ctp-due-${rel.cls}">${escapeHTML(rel.text)}</span>` : "",
+    t.priority ? `<span class="ctp-chip">priorità ${escapeHTML(t.priority)}</span>` : ""
+  ].filter(Boolean).join("");
+  const what = t.action || "To-do";
+  const ref = t.reference || "";
+  return `<div class="day-detail-row ev-todo cal-todo-panel${t.done ? " is-done" : ""}">
+    <span class="dd-ic">✓</span>
+    <div class="dd-main">
+      <div class="dd-label">${escapeHTML(what)}${ref ? ` — <span style="font-weight:500;color:#4a5361;">${escapeHTML(ref)}</span>` : ""}</div>
+      ${t.note ? `<div class="ctp-note">${escapeHTML(t.note)}</div>` : ""}
+      <div class="ctp-meta">${meta}</div>
+      <div class="ctp-actions">
+        <button class="ctp-btn ok" onclick="window.calTodoDone('${escapeAttr(t.id)}')">✓ Fatto</button>
+        <button class="ctp-btn" onclick="window.calTodoSnooze('${escapeAttr(t.id)}',1)">⏱ Rinvia a domani</button>
+        <button class="ctp-btn" onclick="window.calTodoSnooze('${escapeAttr(t.id)}',7)">+7g</button>
+        <button class="ctp-btn pri" onclick="window.calTodoOpen('${escapeAttr(t.id)}')">✎ Apri</button>
+      </div>
+    </div>
+  </div>`;
+}
+function calTodoRefresh(){
+  const ctx = window.__cellDetail;
+  if (ctx) openCellDetail(ctx.vesselId, ctx.dateISO);
+  try { if (typeof renderSwitcher === "function") renderSwitcher(); } catch(e){}
+}
+window.calTodoDone = function(id){
+  updateTodo(id, { done: true, completedAt: new Date().toISOString() });
+  showToast("To-do completata");
+  calTodoRefresh();
+};
+window.calTodoSnooze = function(id, days){
+  const t = (state.todos || []).find(x => x.id === id);
+  if (!t) return;
+  const base = t.dueDate ? new Date(t.dueDate + "T00:00:00") : new Date();
+  const from = (base < new Date() ? new Date() : base);
+  from.setDate(from.getDate() + (days || 1));
+  const iso = from.toISOString().slice(0,10);
+  updateTodo(id, { dueDate: iso });
+  showToast("Rinviata al " + formatDate(iso));
+  calTodoRefresh();
+};
+window.calTodoOpen = function(id){
+  const md = document.getElementById("modal-heatmap-detail");
+  if (md) md.classList.remove("open");
+  openTodoModal(id);
+};
 function openCellDetail(vesselId, dateISO) {
   const all = collectWeekEvents(dateISO, dateISO, { includeTodos: true })[dateISO] || [];
   const events = all.filter(e => vesselId ? e.vesselId === vesselId : !e.vesselId);
@@ -21238,6 +21661,8 @@ function openCellDetail(vesselId, dateISO) {
     events.sort((a,b) => (order[a.type] - order[b.type]));
     body = `<div class="day-detail-list">${events.map((ev, i) => {
       const m = typeMeta[ev.type] || typeMeta.delivery;
+      // v0.79 — To-do: pannellino con descrizione, nave, origine e azioni (Fatto / Rinvia / Apri)
+      if (ev.type === "todo" && ev.todoId) return calTodoPanelHTML(ev.todoId);
       const canTodo = ev.type !== "todo";
       const todoBtn = canTodo
         ? `<button class="dd-todo-btn" data-idx="${i}" onclick="window.createTodoFromEvent(${i})" title="Crea una to-do da questo evento">+ To-do</button>`
