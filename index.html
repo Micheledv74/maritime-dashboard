@@ -7587,7 +7587,56 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   border-radius: 20px !important;
   box-shadow: 0 10px 26px -14px rgba(6,24,42,.55) !important;
 }
-:root:not([data-theme="dark"]) body.skin-glass .cn-tile { border-radius: 18px !important; }
+/* Tessere "Cosa serve ora" — impaginazione 4a: etichetta, numerone, sottotitolo */
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile {
+  border-radius: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  padding: 16px 18px 15px !important;
+  min-height: 0 !important;
+  text-align: left !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile .cn-lbl {
+  order: 1;
+  margin: 0 0 4px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  color: #3f5365 !important;
+  max-width: 100%;
+  text-wrap: pretty;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile .cn-num {
+  order: 2;
+  font-size: 42px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: -.02em;
+  margin: 0 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile .cn-sub {
+  order: 3;
+  margin: 2px 0 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+  color: #5c6c80 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile .cn-go {
+  order: 4;
+  margin-top: auto !important;
+  padding-top: 10px;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  color: #1553d8 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-amber {
+  background: linear-gradient(150deg, rgba(255,252,246,.94), rgba(255,240,216,.82)) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-amber .cn-lbl { color: #7a5620 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-amber .cn-sub { color: #7a5620 !important; }
 :root:not([data-theme="dark"]) body.skin-glass .cn-tile:hover,
 :root:not([data-theme="dark"]) body.skin-glass .vessel-card:hover,
 :root:not([data-theme="dark"]) body.skin-glass .panel-card:hover {
@@ -7771,12 +7820,184 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 :root:not([data-theme="dark"]) body.skin-glass .brand-sub,
 :root:not([data-theme="dark"]) body.skin-glass .brand small { color: #66788f !important; }
 
+/* Barra navigazione: seconda riga di vetro, come la testata */
+:root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
+:root:not([data-theme="dark"]) body.skin-glass .pills-bar,
+:root:not([data-theme="dark"]) body.skin-glass .nav-pills {
+  background: rgba(255,255,255,.58) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(255,255,255,.52) !important;
+  border-radius: 999px !important;
+  margin: 10px 18px 0 !important;
+  padding: 6px 8px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 16px 36px -18px rgba(6,24,42,.5) !important;
+}
+
+/* Intestazione card nave allineata a sinistra (era centrata) */
+:root:not([data-theme="dark"]) body.skin-glass .vessel-name {
+  flex: 1 1 auto !important;
+  display: block !important;
+  text-align: left !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .vessel-name-text {
+  text-align: left !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+  padding-left: 0 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .vessel-card-head > div:last-child {
+  margin-left: auto !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .vh-num { letter-spacing: -.02em; }
+:root:not([data-theme="dark"]) body.skin-glass .kpi-strip { gap: 7px !important; padding: 0 16px !important; background: transparent !important; }
+:root:not([data-theme="dark"]) body.skin-glass .kpis-l { font-size: 9px !important; letter-spacing: .1em !important; font-weight: 700 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .kpis-v { font-size: 20px !important; font-weight: 700 !important; }
+
 /* Modali e popover restano solidi (leggibilità) */
 :root:not([data-theme="dark"]) body.skin-glass .modal,
 :root:not([data-theme="dark"]) body.skin-glass .modal-content,
 :root:not([data-theme="dark"]) body.skin-glass .filters-popover,
 :root:not([data-theme="dark"]) body.skin-glass .todo-more-menu { background: #fff !important; }
 }
+
+/* ======================================================================
+   BLOCCHI 4A (v0.83) — saluto, anzianità RFQ, prossimo scalo, rail
+   Solo presentazione: leggono il DOM già renderizzato e le funzioni
+   pubbliche esistenti. Nessun dato scritto, nessuna logica modificata.
+   ====================================================================== */
+@media (min-width: 769px) {
+:root:not([data-theme="dark"]) body.skin-glass .g4-hello {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin: 0 0 18px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-hello h1 {
+  margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -.02em; color: #0c1d33;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-hello .g4-sub {
+  margin-top: 3px; font-size: 13px; color: #3f5365;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-hello .g4-sub b { color: #a33326; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-seg {
+  margin-left: auto; display: flex; gap: 3px; padding: 4px;
+  border-radius: 999px; background: rgba(12,29,51,.10);
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-seg button {
+  border: none; cursor: pointer; padding: 7px 17px; border-radius: 999px;
+  font: 600 12px/1 inherit; color: #3f5365; background: transparent;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-seg button.on {
+  background: #fff; color: #0c1d33; font-weight: 700;
+  box-shadow: 0 2px 6px rgba(6,24,42,.14);
+}
+
+:root:not([data-theme="dark"]) body.skin-glass .g4-row {
+  display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin: 0 0 22px;
+}
+@media (max-width: 1100px) {
+  :root:not([data-theme="dark"]) body.skin-glass .g4-row { grid-template-columns: 1fr; }
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-card {
+  background: rgba(255,255,255,.74); border: 1px solid rgba(255,255,255,.92);
+  border-radius: 20px; padding: 16px 18px;
+  box-shadow: 0 10px 26px -14px rgba(6,24,42,.55);
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-card h3 {
+  margin: 0; font-size: 13px; font-weight: 700; color: #0c1d33;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-legend {
+  margin-left: auto; display: flex; gap: 12px; font-size: 11px; color: #51657a;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-legend i {
+  width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-bars {
+  display: flex; align-items: flex-end; gap: 16px; height: 126px;
+  margin-top: 14px; padding: 0 4px; border-bottom: 1px solid rgba(12,29,51,.14);
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar .g4-cols {
+  display: flex; gap: 3px; align-items: flex-end; height: 96px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar .g4-cols span {
+  width: 14px; border-radius: 4px 4px 0 0; background: #2b7cff; min-height: 2px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar .g4-cols span.b2 { background: #00c2ff; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar.peak .g4-cols span { box-shadow: 0 0 16px rgba(43,124,255,.5); }
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar em {
+  font-style: normal; font-size: 10.5px; color: #51657a;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar.peak em { color: #0c1d33; font-weight: 700; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-foot {
+  display: flex; align-items: center; gap: 10px; margin-top: 11px; font-size: 11.5px; color: #51657a;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-foot b { color: #0c1d33; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-foot .g4-link {
+  margin-left: auto; font-weight: 700; color: #1553d8; cursor: pointer;
+}
+
+:root:not([data-theme="dark"]) body.skin-glass .g4-next {
+  position: relative; overflow: hidden; border-radius: 20px; padding: 16px 18px; color: #fff;
+  background: linear-gradient(140deg, #1553d8 0%, #2b7cff 48%, #00c2ff 100%);
+  box-shadow: 0 14px 30px -10px rgba(21,83,216,.7); cursor: pointer;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-next::before,
+:root:not([data-theme="dark"]) body.skin-glass .g4-next::after {
+  content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,.13);
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-next::before { right: -40px; top: -50px; width: 150px; height: 150px; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-next::after { right: -70px; bottom: -80px; width: 170px; height: 170px; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-next > * { position: relative; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-next .g4-eyebrow {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .14em; opacity: .85;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-next .g4-port {
+  font-size: 22px; font-weight: 800; letter-spacing: -.01em; margin-top: 4px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-next .g4-ship { font-size: 12px; opacity: .88; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-next .g4-eta {
+  display: flex; align-items: baseline; gap: 9px; margin-top: 12px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-next .g4-eta b {
+  font-family: var(--font-mono, ui-monospace, monospace); font-size: 24px; font-weight: 700;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-next .g4-line {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 12px; padding-top: 11px; font-size: 11.5px;
+  border-top: 1px solid rgba(255,255,255,.28);
+}
+
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail {
+  position: fixed; left: 14px; top: 190px; z-index: 40;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; width: 52px;
+  border-radius: 999px; background: rgba(255,255,255,.44);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 16px 34px -12px rgba(6,24,42,.5);
+}
+@media (max-width: 1320px) { :root:not([data-theme="dark"]) body.skin-glass .g4-rail { display: none; } }
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail button {
+  width: 36px; height: 36px; border-radius: 12px; border: none; cursor: pointer;
+  background: transparent; color: #51657a; font-size: 15px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail button:hover { background: rgba(255,255,255,.72); color: #0c1d33; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail button.g4-plus {
+  border-radius: 50%; color: #fff; font-size: 19px;
+  background: linear-gradient(145deg, #2b7cff, #00c2ff);
+  box-shadow: 0 6px 14px rgba(20,110,255,.45);
+}
+body:not(.skin-glass) .g4-hello,
+body:not(.skin-glass) .g4-row,
+body:not(.skin-glass) .g4-rail { display: none !important; }
+}
+@media (max-width: 768px) { .g4-hello, .g4-row, .g4-rail { display: none !important; } }
 
 /* Bottone di cambio pelle nell'header */
 .skin-toggle { font-size: 15px; line-height: 1; }
@@ -24776,6 +24997,227 @@ function importBackup(e) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountBtn);
   else mountBtn();
   setTimeout(mountBtn, 1200);
+})();
+</script>
+
+<script>
+/* === BLOCCHI 4A (v0.83) — additivi, sola presentazione =================
+   Leggono il DOM già renderizzato (card nave, tessere) e le funzioni
+   pubbliche esistenti (getStaleRFQs). Non scrivono dati, non toccano
+   la pipeline né i workflow. Si rimuovono spegnendo la pelle Vetro.   */
+(function(){
+  var MONTHS = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio",
+                "agosto","settembre","ottobre","novembre","dicembre"];
+  var DAYS = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+
+  function glass(){ return document.body.classList.contains("skin-glass"); }
+  function overview(){ var p = document.querySelector(".pill.active[data-view]"); return !p || p.dataset.view === "overview"; }
+  function main(){ return document.querySelector(".main-wrap"); }
+
+  function vessels(){
+    return [].map.call(document.querySelectorAll(".vessel-card"), function(c){
+      var nm = c.querySelector(".vessel-name-text");
+      var foot = c.querySelector(".vessel-foot");
+      var eta = c.querySelector(".eta-badge");
+      return {
+        vid: c.dataset.vid || "",
+        name: nm ? nm.textContent.trim() : "",
+        status: c.dataset.status || "",
+        route: foot ? foot.textContent.replace(/\s+/g," ").trim() : "",
+        eta: eta ? eta.textContent.replace(/\s+/g," ").trim() : ""
+      };
+    });
+  }
+
+  /* --- saluto ---------------------------------------------------------- */
+  function hello(){
+    var n = new Date();
+    var h = n.getHours();
+    var greet = h < 13 ? "Buongiorno" : (h < 18 ? "Buon pomeriggio" : "Buonasera");
+    var vs = vessels();
+    var warn = vs.filter(function(v){ return v.status === "warn" || v.status === "alert"; }).length;
+    var el = document.createElement("div");
+    el.className = "g4-hello";
+    el.innerHTML =
+      '<div><h1>' + greet + ', Michele</h1>' +
+      '<div class="g4-sub">' + DAYS[n.getDay()] + " " + n.getDate() + " " + MONTHS[n.getMonth()] +
+      " · " + String(n.getHours()).padStart(2,"0") + ":" + String(n.getMinutes()).padStart(2,"0") +
+      " · " + vs.length + " navi in flotta" +
+      (warn ? ", <b>" + warn + " chiedono attenzione</b>" : "") + "</div></div>" +
+      '<div class="g4-seg" role="group">' +
+        '<button class="on" data-f="all">Tutte</button>' +
+        '<button data-f="warn">Urgenti</button>' +
+        '<button data-f="port">In porto</button>' +
+      "</div>";
+    el.querySelector(".g4-seg").addEventListener("click", function(e){
+      var b = e.target.closest("button"); if (!b) return;
+      [].forEach.call(el.querySelectorAll(".g4-seg button"), function(x){ x.classList.toggle("on", x === b); });
+      var f = b.dataset.f;
+      [].forEach.call(document.querySelectorAll(".vessel-card"), function(c){
+        var show = f === "all" ||
+          (f === "warn" && (c.dataset.status === "warn" || c.dataset.status === "alert")) ||
+          (f === "port" && /in porto|ormeggi|banchina|alongside|berth/i.test(c.textContent));
+        c.style.display = show ? "" : "none";
+      });
+    });
+    return el;
+  }
+
+  /* --- anzianità RFQ ---------------------------------------------------- */
+  function aging(){
+    var buckets = [
+      { lab: "<3 gg", lo: 0,  hi: 2  },
+      { lab: "3-7",   lo: 3,  hi: 7  },
+      { lab: "8-14",  lo: 8,  hi: 14 },
+      { lab: "15-30", lo: 15, hi: 30 },
+      { lab: ">30",   lo: 31, hi: 1e9 }
+    ];
+    var rows = [], oldest = null;
+    function docOf(it){
+      var n = (it.rfqNumbers && it.rfqNumbers[0]) || it.reqNumber || "";
+      return String(n).replace(/^\d{4}-/, "");
+    }
+    vessels().forEach(function(v){
+      if (!v.vid || typeof window.getStaleRFQs !== "function") return;
+      var list = [];
+      try { list = window.getStaleRFQs(v.vid, 0) || []; } catch(e){ list = []; }
+      list.forEach(function(it){
+        var d = it.rfqDays || 0;
+        rows.push({ d: d, v: v.name, doc: docOf(it), sup: it.supplier || "" });
+        if (!oldest || d > oldest.d) oldest = { d: d, v: v.name, doc: docOf(it), sup: it.supplier || "" };
+      });
+    });
+    if (!rows.length) return null;
+    var counts = buckets.map(function(b){
+      var inB = rows.filter(function(r){ return r.d >= b.lo && r.d <= b.hi; });
+      return { lab: b.lab, waiting: inB.length, chased: inB.filter(function(r){ return r.d >= 14; }).length };
+    });
+    var max = Math.max.apply(null, counts.map(function(c){ return c.waiting; })) || 1;
+    var peak = counts.reduce(function(a,b){ return b.waiting > a.waiting ? b : a; }, counts[0]);
+
+    var el = document.createElement("div");
+    el.className = "g4-card";
+    el.innerHTML =
+      '<div style="display:flex;align-items:baseline;gap:12px">' +
+        "<h3>Anzianità delle " + rows.length + " RFQ senza risposta</h3>" +
+        '<div class="g4-legend"><span><i style="background:#2b7cff"></i>in attesa</span>' +
+        '<span><i style="background:#00c2ff"></i>oltre 14 gg</span></div></div>' +
+      '<div class="g4-bars">' + counts.map(function(c){
+        return '<div class="g4-bar' + (c === peak ? " peak" : "") + '"><div class="g4-cols">' +
+          '<span style="height:' + Math.max(2, Math.round(c.waiting / max * 96)) + 'px"></span>' +
+          '<span class="b2" style="height:' + Math.max(2, Math.round(c.chased / max * 96)) + 'px"></span>' +
+          "</div><em>" + c.lab + "</em></div>";
+      }).join("") + "</div>" +
+      '<div class="g4-foot">' + (oldest
+        ? "Più vecchia: <b>" + (oldest.doc || "—") + "</b> · " + oldest.v +
+          (oldest.sup ? " · " + oldest.sup : "") + " · " + oldest.d + " giorni"
+        : "") + "</div>";
+    return el;
+  }
+
+  /* --- prossimo scalo --------------------------------------------------- */
+  function nextCall(){
+    var cand = null;
+    vessels().forEach(function(v){
+      if (!v.route) return;
+      var m = v.route.match(/prossimo:\s*([A-Za-zÀ-ü' .-]{3,}?)(?=\s*(?:ETA|ETB|ETD|\d|$))/i);
+      var port = m ? m[1].trim().replace(/[·|]+$/, "").trim() : "";
+      if (!port || /^-+$/.test(port)) return;
+      var days = null, mm = (v.eta || v.route).match(/(\d+)\s*g/i);
+      if (mm) days = parseInt(mm[1], 10);
+      var future = !/fa\b/i.test(v.eta || v.route);
+      if (!cand || (future && !cand.future) || (future === cand.future && days != null && (cand.days == null || days < cand.days))) {
+        cand = { port: port, ship: v.name, vid: v.vid, days: days, future: future, eta: v.eta || "" };
+      }
+    });
+    if (!cand) return null;
+    var el = document.createElement("div");
+    el.className = "g4-next";
+    el.innerHTML =
+      '<div class="g4-eyebrow">PROSSIMO SCALO</div>' +
+      '<div class="g4-port">' + cand.port.replace(/\b(\w)(\w*)/g, function(_,a,b){ return a + b.toLowerCase(); }) + "</div>" +
+      '<div class="g4-ship">' + cand.ship + "</div>" +
+      '<div class="g4-eta"><b>' + (cand.days != null ? cand.days + (cand.future ? " gg" : " gg fa") : "—") +
+        "</b><span>" + (cand.future ? "all'arrivo previsto" : "dato di viaggio non aggiornato") + "</span></div>" +
+      '<div class="g4-line"><span style="opacity:.85;white-space:nowrap">Apri il quadro nave</span><span style="font-weight:700;white-space:nowrap">Dettagli →</span></div>';
+    el.addEventListener("click", function(){
+      if (cand.vid && typeof window.goVessel === "function") window.goVessel(cand.vid);
+    });
+    return el;
+  }
+
+  /* --- rail laterale ---------------------------------------------------- */
+  function rail(){
+    var el = document.createElement("div");
+    el.className = "g4-rail";
+    var acts = [
+      { i: "+",  t: "Nuova to-do",  sel: ".fab, #btn-add-todo" },
+      { i: "⛴", t: "Flotta",       view: "overview" },
+      { i: "▤",  t: "To-do",        view: "todos" },
+      { i: "✉",  t: "Email",        view: "email" },
+      { i: "◷",  t: "Certificati",  view: "certificates" },
+      { i: "⚙",  t: "Impostazioni", sel: "#btn-settings, .icon-btn[title*='mpostazioni']" }
+    ];
+    acts.forEach(function(a, idx){
+      var b = document.createElement("button");
+      b.textContent = a.i; b.title = a.t;
+      if (!idx) b.className = "g4-plus";
+      b.addEventListener("click", function(){
+        if (a.view) { var p = document.querySelector('.pill[data-view="' + a.view + '"]'); if (p) p.click(); return; }
+        var t = a.sel && document.querySelector(a.sel); if (t) t.click();
+      });
+      el.appendChild(b);
+    });
+    return el;
+  }
+
+  /* --- montaggio -------------------------------------------------------- */
+  function mount(){
+    var host = main();
+    if (!host) return;
+    [].forEach.call(document.querySelectorAll(".g4-hello,.g4-row,.g4-rail"), function(n){ n.remove(); });
+    if (!glass() || !overview()) return;
+
+    host.insertBefore(hello(), host.firstChild);
+
+    var chart = aging(), next = nextCall();
+    if (chart || next) {
+      var row = document.createElement("div");
+      row.className = "g4-row";
+      if (chart) row.appendChild(chart);
+      if (next) row.appendChild(next);
+      var first = host.querySelector("section");
+      if (first && first.nextElementSibling) host.insertBefore(row, first.nextElementSibling);
+      else host.appendChild(row);
+    }
+    document.body.appendChild(rail());
+  }
+
+  var t = null;
+  function schedule(){ clearTimeout(t); t = setTimeout(mount, 160); }
+  window.g4Refresh = mount;
+
+  function start(){
+    schedule();
+    var host = main();
+    if (host && window.MutationObserver) {
+      new MutationObserver(function(muts){
+        for (var i = 0; i < muts.length; i++) {
+          var added = muts[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            var n = added[j];
+            if (n.nodeType === 1 && !/g4-/.test(n.className || "")) { schedule(); return; }
+          }
+        }
+      }).observe(host, { childList: true });
+    }
+    document.addEventListener("click", function(e){
+      if (e.target.closest(".pill[data-view], #skin-toggle-btn, #skin-toggle-setting")) schedule();
+    }, true);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
+  setTimeout(schedule, 1500);
 })();
 </script>
 
