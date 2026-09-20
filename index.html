@@ -7821,6 +7821,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 :root:not([data-theme="dark"]) body.skin-glass .brand small { color: #66788f !important; }
 
 /* Barra navigazione: seconda riga di vetro, come la testata */
+:root:not([data-theme="dark"]) body.skin-glass .vessel-switcher,
 :root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
 :root:not([data-theme="dark"]) body.skin-glass .pills-bar,
 :root:not([data-theme="dark"]) body.skin-glass .nav-pills {
@@ -7861,16 +7862,18 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 /* Barre in alto: si ritraggono scorrendo in giù (il rail le sostituisce),
    tornano appena si risale o si è in cima */
 :root:not([data-theme="dark"]) body.skin-glass .app-header,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-switcher,
 :root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
 :root:not([data-theme="dark"]) body.skin-glass .pills-bar,
 :root:not([data-theme="dark"]) body.skin-glass .nav-pills {
   transition: transform .25s ease, opacity .2s ease;
 }
 :root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .app-header,
+:root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .vessel-switcher,
 :root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .tabs-bar,
 :root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .pills-bar,
 :root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .nav-pills {
-  transform: translateY(-140%); opacity: 0; pointer-events: none;
+  transform: translateY(-160%); opacity: 0; pointer-events: none;
 }
 
 /* Modali e popover restano solidi (leggibilità) */
@@ -7992,7 +7995,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 }
 
 :root:not([data-theme="dark"]) body.skin-glass .g4-rail {
-  position: fixed; left: 10px; top: 126px; bottom: 22px; z-index: 60;
+  position: fixed; left: 10px; top: 196px; bottom: 22px; z-index: 30;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 6px; padding: 12px 0; width: 48px;
   border-radius: 999px; background: rgba(255,255,255,.52);
@@ -8006,6 +8009,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 /* il pannello lascia il posto al rail: mai sovrapposizione */
 :root:not([data-theme="dark"]) body.skin-glass .main-wrap,
 :root:not([data-theme="dark"]) body.skin-glass .app-header,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-switcher,
 :root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
 :root:not([data-theme="dark"]) body.skin-glass .pills-bar,
 :root:not([data-theme="dark"]) body.skin-glass .nav-pills { margin-left: 72px !important; }
@@ -8013,6 +8017,7 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   :root:not([data-theme="dark"]) body.skin-glass .g4-rail { display: none; }
   :root:not([data-theme="dark"]) body.skin-glass .main-wrap,
   :root:not([data-theme="dark"]) body.skin-glass .app-header,
+  :root:not([data-theme="dark"]) body.skin-glass .vessel-switcher,
   :root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
   :root:not([data-theme="dark"]) body.skin-glass .pills-bar,
   :root:not([data-theme="dark"]) body.skin-glass .nav-pills { margin-left: 18px !important; }
