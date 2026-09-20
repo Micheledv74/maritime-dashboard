@@ -7664,6 +7664,113 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   box-shadow: 0 10px 26px -14px rgba(6,24,42,.55) !important;
 }
 
+/* Strisce fusi orari, FX, orologi — rifinitura 2a */
+:root:not([data-theme="dark"]) body.skin-glass .fusi-section,
+:root:not([data-theme="dark"]) body.skin-glass .fx-section {
+  background: rgba(255,255,255,.74) !important;
+  border: 1px solid rgba(255,255,255,.92) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 26px -14px rgba(6,24,42,.55) !important;
+  overflow: hidden;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fusi-bar,
+:root:not([data-theme="dark"]) body.skin-glass .fx-bar {
+  background: transparent !important;
+  border: none !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fusi-bar-label,
+:root:not([data-theme="dark"]) body.skin-glass .fx-title {
+  color: #51657a !important;
+  font-weight: 800 !important;
+  letter-spacing: .14em !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item {
+  background: rgba(12,29,51,.05) !important;
+  border: 1px solid rgba(12,29,51,.07) !important;
+  border-radius: 999px !important;
+  padding: 6px 11px !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fusi-code { color: #51657a !important; opacity: 1 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-time { color: #0c1d33 !important; font-weight: 700 !important; opacity: 1 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.ph-night { background: rgba(12,29,51,.08) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.is-utc,
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc { background: #0c1d33 !important; border-color: #0c1d33 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.is-utc .fusi-code,
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc .fusi-code { color: #9fb0cc !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.is-utc .fusi-time,
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc .fusi-time { color: #fff !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fx-rate { color: #0c1d33 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fx-sub,
+:root:not([data-theme="dark"]) body.skin-glass .fx-inv { color: #5c6c80 !important; }
+
+/* Card nave — rifinitura 2a: testa allineata a sinistra, hero e KPI morbidi */
+:root:not([data-theme="dark"]) body.skin-glass .vessel-card-head {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(12,29,51,.07) !important;
+  justify-content: flex-start !important;
+  gap: 9px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .vessel-name,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-name-text {
+  color: #0c1d33 !important;
+  letter-spacing: -.01em;
+  text-align: left !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .vessel-state-pill,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-todo-badge,
+:root:not([data-theme="dark"]) body.skin-glass .manual-tag,
+:root:not([data-theme="dark"]) body.skin-glass .eta-badge {
+  border-radius: 999px !important;
+  border-color: transparent !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero { border-radius: 14px !important; box-shadow: none !important; }
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero.tier-red { background: rgba(224,72,60,.08) !important; border: 1px solid rgba(224,72,60,.16) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero.tier-green,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero.tier-ok { background: rgba(10,124,83,.07) !important; border: 1px solid rgba(10,124,83,.16) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero.tier-amber { background: rgba(224,138,0,.09) !important; border: 1px solid rgba(224,138,0,.18) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .vh-label { color: #0c1d33 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .vh-sub { color: #5c6c80 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .kpis {
+  background: rgba(255,255,255,.9) !important;
+  border: 1px solid rgba(12,29,51,.06) !important;
+  border-radius: 12px !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .kpis-v { color: #0c1d33 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .vessel-foot,
+:root:not([data-theme="dark"]) body.skin-glass .route-info {
+  background: rgba(255,255,255,.7) !important;
+  border-color: rgba(12,29,51,.07) !important;
+  border-radius: 12px !important;
+}
+
+/* Calendario, banner salute, tabella azioni */
+:root:not([data-theme="dark"]) body.skin-glass .cal-wrap,
+:root:not([data-theme="dark"]) body.skin-glass .calendar-card,
+:root:not([data-theme="dark"]) body.skin-glass .actions-table-wrap {
+  background: rgba(255,255,255,.78) !important;
+  border: 1px solid rgba(255,255,255,.92) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 26px -14px rgba(6,24,42,.55) !important;
+  overflow: hidden;
+}
+:root:not([data-theme="dark"]) body.skin-glass .actions-table-head,
+:root:not([data-theme="dark"]) body.skin-glass .group-head {
+  background: rgba(12,29,51,.045) !important;
+  border-color: rgba(12,29,51,.07) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .perf-banner { border-radius: 20px !important; }
+
+/* FAB nello stile 2a */
+:root:not([data-theme="dark"]) body.skin-glass .fab {
+  background: linear-gradient(145deg, #2b7cff, #00c2ff) !important;
+  box-shadow: 0 10px 24px -6px rgba(20,110,255,.6) !important;
+  border: none !important;
+}
+
+/* Brand e occhielli leggibili sul vetro */
+:root:not([data-theme="dark"]) body.skin-glass .brand-sub,
+:root:not([data-theme="dark"]) body.skin-glass .brand small { color: #66788f !important; }
+
 /* Modali e popover restano solidi (leggibilità) */
 :root:not([data-theme="dark"]) body.skin-glass .modal,
 :root:not([data-theme="dark"]) body.skin-glass .modal-content,
