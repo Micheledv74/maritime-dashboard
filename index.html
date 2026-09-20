@@ -7858,6 +7858,21 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 :root:not([data-theme="dark"]) body.skin-glass .kpis-l { font-size: 9px !important; letter-spacing: .1em !important; font-weight: 700 !important; }
 :root:not([data-theme="dark"]) body.skin-glass .kpis-v { font-size: 20px !important; font-weight: 700 !important; }
 
+/* Barre in alto: si ritraggono scorrendo in giù (il rail le sostituisce),
+   tornano appena si risale o si è in cima */
+:root:not([data-theme="dark"]) body.skin-glass .app-header,
+:root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
+:root:not([data-theme="dark"]) body.skin-glass .pills-bar,
+:root:not([data-theme="dark"]) body.skin-glass .nav-pills {
+  transition: transform .25s ease, opacity .2s ease;
+}
+:root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .app-header,
+:root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .tabs-bar,
+:root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .pills-bar,
+:root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .nav-pills {
+  transform: translateY(-140%); opacity: 0; pointer-events: none;
+}
+
 /* Modali e popover restano solidi (leggibilità) */
 :root:not([data-theme="dark"]) body.skin-glass .modal,
 :root:not([data-theme="dark"]) body.skin-glass .modal-content,
@@ -7977,13 +7992,17 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 }
 
 :root:not([data-theme="dark"]) body.skin-glass .g4-rail {
-  position: fixed; left: 10px; top: 50%; transform: translateY(-50%); z-index: 60;
-  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; width: 48px;
+  position: fixed; left: 10px; top: 126px; bottom: 22px; z-index: 60;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 12px 0; width: 48px;
   border-radius: 999px; background: rgba(255,255,255,.52);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255,255,255,.6);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 16px 34px -12px rgba(6,24,42,.5);
+  transition: top .25s ease;
 }
+/* quando le barre in alto si ritraggono il rail sale */
+:root:not([data-theme="dark"]) body.skin-glass.g4-hidebars .g4-rail { top: 22px; }
 /* il pannello lascia il posto al rail: mai sovrapposizione */
 :root:not([data-theme="dark"]) body.skin-glass .main-wrap,
 :root:not([data-theme="dark"]) body.skin-glass .app-header,
@@ -25228,8 +25247,26 @@ function importBackup(e) {
   function schedule(){ clearTimeout(t); t = setTimeout(mount, 160); }
   window.g4Refresh = mount;
 
+  /* barre in alto: si ritraggono scorrendo in giù, tornano risalendo */
+  function autoHideBars(){
+    var last = window.scrollY, ticking = false;
+    window.addEventListener("scroll", function(){
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function(){
+        var y = window.scrollY, down = y > last + 4, up = y < last - 4;
+        if (document.body.classList.contains("skin-glass")) {
+          if (y < 140 || up) document.body.classList.remove("g4-hidebars");
+          else if (down && y > 200) document.body.classList.add("g4-hidebars");
+        } else document.body.classList.remove("g4-hidebars");
+        last = y; ticking = false;
+      });
+    }, { passive: true });
+  }
+
   function start(){
     schedule();
+    autoHideBars();
     var host = main();
     if (host && window.MutationObserver) {
       new MutationObserver(function(muts){
