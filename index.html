@@ -7497,6 +7497,182 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   #email-ws-modal .draft-modal-body{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   #email-ws-modal .draft-modal-foot{ padding-bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important; flex-wrap:wrap; }
 }
+/* ======================================================================
+   SKIN 4A — "Vetro sul mare" (v0.80)
+   Solo pelle: colori, superfici, raggi, ombre. Nessuna logica toccata.
+   Attiva con <body class="skin-glass">; si spegne da Impostazioni o con
+   window.setSkin("classic"). Non si applica in tema scuro nè su mobile.
+   ====================================================================== */
+@media (min-width: 769px) {
+:root:not([data-theme="dark"]) body.skin-glass {
+  --text-muted: #3f5365;
+  --text-faint: #51657a;
+  --accent: #1553d8;
+  --accent-2: #0c3ca6;
+  background:
+    radial-gradient(620px 360px at 80% -4%, rgba(255,214,170,.38), rgba(255,214,170,0) 70%),
+    radial-gradient(760px 480px at 4% 78%, rgba(13,32,51,.42), rgba(13,32,51,0) 70%),
+    radial-gradient(340px 340px at 58% 62%, rgba(120,220,255,.14), rgba(120,220,255,0) 70%),
+    linear-gradient(200deg, #16344f 0%, #1d4a6b 30%, #2f6f86 58%, #93b6ba 100%);
+  background-attachment: fixed;
+}
+
+/* Header: barra flottante in vetro */
+:root:not([data-theme="dark"]) body.skin-glass .app-header {
+  background: rgba(255,255,255,.62) !important;
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  border: 1px solid rgba(255,255,255,.55) !important;
+  border-radius: 999px;
+  margin: 12px 18px 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 20px 46px -16px rgba(6,24,42,.55);
+}
+:root:not([data-theme="dark"]) body.skin-glass .app-header .header-inner { padding-inline: 8px; }
+:root:not([data-theme="dark"]) body.skin-glass .brand { color: #0c1d33; }
+
+/* Tabs → pill */
+:root:not([data-theme="dark"]) body.skin-glass .pill {
+  border-radius: 999px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  color: #2c4054 !important;
+  font-weight: 600;
+}
+:root:not([data-theme="dark"]) body.skin-glass .pill.active {
+  background: rgba(12,29,51,.92) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(6,24,42,.3);
+}
+:root:not([data-theme="dark"]) body.skin-glass .pill.active .pill-key { color: rgba(255,255,255,.75) !important; }
+
+/* Barra navi: vetro, agganciata sotto l'header */
+:root:not([data-theme="dark"]) body.skin-glass .vessel-switcher {
+  background: rgba(255,255,255,.44) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.5) !important;
+  border-radius: 999px;
+  margin: 10px 18px 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 16px 34px -14px rgba(6,24,42,.5);
+}
+:root:not([data-theme="dark"]) body.skin-glass .switcher-inner { padding-inline: 8px; }
+
+/* Contenuto: un unico pannello di vetro */
+:root:not([data-theme="dark"]) body.skin-glass .main-wrap {
+  background: rgba(255,255,255,.55);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid rgba(255,255,255,.52);
+  border-radius: 26px;
+  padding: 22px 24px 30px;
+  margin-top: 16px;
+  margin-bottom: 28px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 40px 80px -30px rgba(6,24,42,.62);
+}
+:root:not([data-theme="dark"]) body.skin-glass .section-title h2 { color: #0c1d33 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .section-title .section-meta,
+:root:not([data-theme="dark"]) body.skin-glass .section-meta { color: #3f5365 !important; }
+
+/* Superfici: tessere, card, pannelli */
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-card,
+:root:not([data-theme="dark"]) body.skin-glass .panel-card,
+:root:not([data-theme="dark"]) body.skin-glass .perf-banner,
+:root:not([data-theme="dark"]) body.skin-glass .pp-kpi,
+:root:not([data-theme="dark"]) body.skin-glass .actions-group,
+:root:not([data-theme="dark"]) body.skin-glass .position-panel,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero {
+  background: rgba(255,255,255,.78) !important;
+  border: 1px solid rgba(255,255,255,.92) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 26px -14px rgba(6,24,42,.55) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile { border-radius: 18px !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile:hover,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-card:hover,
+:root:not([data-theme="dark"]) body.skin-glass .panel-card:hover {
+  box-shadow: 0 16px 34px -14px rgba(6,24,42,.6) !important;
+  border-color: #fff !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-calm { background: rgba(255,255,255,.72) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-calm .cn-num { color: #7b8ca0 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-calm .cn-lbl { color: #3f5365 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-sub { color: #5c6c80 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-lbl { color: #0c1d33 !important; }
+
+/* KPI interni alle card nave */
+:root:not([data-theme="dark"]) body.skin-glass .kpi-row,
+:root:not([data-theme="dark"]) body.skin-glass .kpi-strip {
+  background: transparent !important;
+  border: none !important;
+  gap: 7px;
+}
+:root:not([data-theme="dark"]) body.skin-glass .kpi,
+:root:not([data-theme="dark"]) body.skin-glass .kpis {
+  background: rgba(255,255,255,.85) !important;
+  border: 1px solid rgba(12,29,51,.06) !important;
+  border-right: 1px solid rgba(12,29,51,.06) !important;
+  border-radius: 12px !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .kpi-label,
+:root:not([data-theme="dark"]) body.skin-glass .kpis-l { color: #51657a !important; }
+
+/* Bottoni → pill; primario in gradiente */
+:root:not([data-theme="dark"]) body.skin-glass .btn {
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.82) !important;
+  border-color: rgba(12,29,51,.12) !important;
+  color: #2c4054;
+}
+:root:not([data-theme="dark"]) body.skin-glass .btn:hover:not(:disabled) { background: #fff !important; }
+:root:not([data-theme="dark"]) body.skin-glass .btn-primary,
+:root:not([data-theme="dark"]) body.skin-glass .sollecita-btn,
+:root:not([data-theme="dark"]) body.skin-glass .btn-batch {
+  background: linear-gradient(145deg, #2b7cff, #1553d8) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  box-shadow: 0 7px 16px -5px rgba(21,83,216,.6) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(145deg, #1f6bff, #0c3ca6) !important;
+}
+
+/* Righe azioni, filtri, campi */
+:root:not([data-theme="dark"]) body.skin-glass .action-row:hover { background: rgba(255,255,255,.62); }
+:root:not([data-theme="dark"]) body.skin-glass .filter-chip,
+:root:not([data-theme="dark"]) body.skin-glass .time-chip,
+:root:not([data-theme="dark"]) body.skin-glass .filters-trigger,
+:root:not([data-theme="dark"]) body.skin-glass .search-input,
+:root:not([data-theme="dark"]) body.skin-glass .filter-select {
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.78) !important;
+  border-color: rgba(12,29,51,.12) !important;
+}
+
+/* Strisce fusi orari, FX, orologi */
+:root:not([data-theme="dark"]) body.skin-glass .wc-tile,
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item {
+  background: rgba(255,255,255,.72) !important;
+  border-radius: 999px !important;
+  border-color: rgba(255,255,255,.9) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fx-card,
+:root:not([data-theme="dark"]) body.skin-glass .world-clock-strip-compact {
+  background: rgba(255,255,255,.72) !important;
+  border: 1px solid rgba(255,255,255,.9) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 26px -14px rgba(6,24,42,.55) !important;
+}
+
+/* Modali e popover restano solidi (leggibilità) */
+:root:not([data-theme="dark"]) body.skin-glass .modal,
+:root:not([data-theme="dark"]) body.skin-glass .modal-content,
+:root:not([data-theme="dark"]) body.skin-glass .filters-popover,
+:root:not([data-theme="dark"]) body.skin-glass .todo-more-menu { background: #fff !important; }
+}
+
+/* Bottone di cambio pelle nell'header */
+.skin-toggle { font-size: 15px; line-height: 1; }
 </style>
 
 <header class="app-header">
@@ -7620,6 +7796,10 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
       <div class="setting-row">
         <label>Tema scuro forzato</label>
         <div class="toggle" data-toggle="dark"></div>
+      </div>
+      <div class="setting-row">
+        <label>Pelle "Vetro sul mare" (solo desktop, tema chiaro)</label>
+        <div class="toggle" id="skin-toggle-setting" onclick="window.toggleSkin&amp;&amp;window.toggleSkin()"></div>
       </div>
       <div class="setting-row">
         <label>Modalità solo lettura</label>
@@ -24450,6 +24630,46 @@ function importBackup(e) {
   reader.readAsText(file);
 }
 
+</script>
+
+<script>
+/* === SKIN 4A — attivazione + interruttore (v0.80) ======================
+   Solo presentazione: aggiunge/toglie la classe .skin-glass sul body.
+   Preferenza in localStorage "mpd.skin" ("glass" | "classic").          */
+(function(){
+  var KEY = "mpd.skin";
+  function current(){ try { return localStorage.getItem(KEY) || "glass"; } catch(e){ return "glass"; } }
+  function apply(v){
+    document.body.classList.toggle("skin-glass", v !== "classic");
+    var st = document.getElementById("skin-toggle-setting");
+    if (st) st.classList.toggle("on", v !== "classic");
+    var b = document.getElementById("skin-toggle-btn");
+    if (b){
+      b.textContent = (v === "classic") ? "🌊" : "◻";
+      b.title = (v === "classic") ? "Pelle: Classica — passa a Vetro" : "Pelle: Vetro sul mare — passa a Classica";
+    }
+  }
+  window.setSkin = function(v){
+    try { localStorage.setItem(KEY, v); } catch(e){}
+    apply(v);
+  };
+  window.toggleSkin = function(){ window.setSkin(current() === "classic" ? "glass" : "classic"); };
+  function mountBtn(){
+    var host = document.querySelector(".app-header .header-actions");
+    if (!host || document.getElementById("skin-toggle-btn")) return;
+    var btn = document.createElement("button");
+    btn.id = "skin-toggle-btn";
+    btn.className = "btn btn-sm skin-toggle";
+    btn.setAttribute("aria-label", "Cambia pelle");
+    btn.addEventListener("click", function(){ window.toggleSkin(); });
+    host.insertBefore(btn, host.firstChild);
+    apply(current());
+  }
+  apply(current());
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountBtn);
+  else mountBtn();
+  setTimeout(mountBtn, 1200);
+})();
 </script>
 
 </body>
