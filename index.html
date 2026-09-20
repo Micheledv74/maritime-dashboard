@@ -7921,7 +7921,10 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 }
 :root:not([data-theme="dark"]) body.skin-glass .g4-bar {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; border: none; background: transparent; padding: 4px 0 0; border-radius: 10px;
 }
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar:hover { background: rgba(43,124,255,.08); }
+:root:not([data-theme="dark"]) body.skin-glass .g4-bar[disabled] { cursor: default; opacity: .55; }
 :root:not([data-theme="dark"]) body.skin-glass .g4-bar .g4-cols {
   display: flex; gap: 3px; align-items: flex-end; height: 96px;
 }
@@ -7974,20 +7977,35 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 }
 
 :root:not([data-theme="dark"]) body.skin-glass .g4-rail {
-  position: fixed; left: 14px; top: 190px; z-index: 40;
-  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; width: 52px;
-  border-radius: 999px; background: rgba(255,255,255,.44);
+  position: fixed; left: 10px; top: 50%; transform: translateY(-50%); z-index: 60;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; width: 48px;
+  border-radius: 999px; background: rgba(255,255,255,.52);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,.5);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 16px 34px -12px rgba(6,24,42,.5);
+  border: 1px solid rgba(255,255,255,.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 16px 34px -12px rgba(6,24,42,.5);
 }
-@media (max-width: 1320px) { :root:not([data-theme="dark"]) body.skin-glass .g4-rail { display: none; } }
+/* il pannello lascia il posto al rail: mai sovrapposizione */
+:root:not([data-theme="dark"]) body.skin-glass .main-wrap,
+:root:not([data-theme="dark"]) body.skin-glass .app-header,
+:root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
+:root:not([data-theme="dark"]) body.skin-glass .pills-bar,
+:root:not([data-theme="dark"]) body.skin-glass .nav-pills { margin-left: 72px !important; }
+@media (max-width: 1000px) {
+  :root:not([data-theme="dark"]) body.skin-glass .g4-rail { display: none; }
+  :root:not([data-theme="dark"]) body.skin-glass .main-wrap,
+  :root:not([data-theme="dark"]) body.skin-glass .app-header,
+  :root:not([data-theme="dark"]) body.skin-glass .tabs-bar,
+  :root:not([data-theme="dark"]) body.skin-glass .pills-bar,
+  :root:not([data-theme="dark"]) body.skin-glass .nav-pills { margin-left: 18px !important; }
+}
 :root:not([data-theme="dark"]) body.skin-glass .g4-rail button {
   width: 36px; height: 36px; border-radius: 12px; border: none; cursor: pointer;
   background: transparent; color: #51657a; font-size: 15px; line-height: 1;
   display: flex; align-items: center; justify-content: center;
 }
-:root:not([data-theme="dark"]) body.skin-glass .g4-rail button:hover { background: rgba(255,255,255,.72); color: #0c1d33; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail button:hover { background: rgba(255,255,255,.85); color: #0c1d33; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail button.on { background: rgba(12,29,51,.92); color: #fff; }
+:root:not([data-theme="dark"]) body.skin-glass .g4-rail .g4-sep { width: 22px; height: 1px; background: rgba(12,29,51,.14); margin: 3px 0; }
 :root:not([data-theme="dark"]) body.skin-glass .g4-rail button.g4-plus {
   border-radius: 50%; color: #fff; font-size: 19px;
   background: linear-gradient(145deg, #2b7cff, #00c2ff);
@@ -25043,23 +25061,7 @@ function importBackup(e) {
       '<div class="g4-sub">' + DAYS[n.getDay()] + " " + n.getDate() + " " + MONTHS[n.getMonth()] +
       " · " + String(n.getHours()).padStart(2,"0") + ":" + String(n.getMinutes()).padStart(2,"0") +
       " · " + vs.length + " navi in flotta" +
-      (warn ? ", <b>" + warn + " chiedono attenzione</b>" : "") + "</div></div>" +
-      '<div class="g4-seg" role="group">' +
-        '<button class="on" data-f="all">Tutte</button>' +
-        '<button data-f="warn">Urgenti</button>' +
-        '<button data-f="port">In porto</button>' +
-      "</div>";
-    el.querySelector(".g4-seg").addEventListener("click", function(e){
-      var b = e.target.closest("button"); if (!b) return;
-      [].forEach.call(el.querySelectorAll(".g4-seg button"), function(x){ x.classList.toggle("on", x === b); });
-      var f = b.dataset.f;
-      [].forEach.call(document.querySelectorAll(".vessel-card"), function(c){
-        var show = f === "all" ||
-          (f === "warn" && (c.dataset.status === "warn" || c.dataset.status === "alert")) ||
-          (f === "port" && /in porto|ormeggi|banchina|alongside|berth/i.test(c.textContent));
-        c.style.display = show ? "" : "none";
-      });
-    });
+      (warn ? ", <b>" + warn + " chiedono attenzione</b>" : "") + "</div></div>";
     return el;
   }
 
@@ -25083,14 +25085,18 @@ function importBackup(e) {
       try { list = window.getStaleRFQs(v.vid, 0) || []; } catch(e){ list = []; }
       list.forEach(function(it){
         var d = it.rfqDays || 0;
-        rows.push({ d: d, v: v.name, doc: docOf(it), sup: it.supplier || "" });
-        if (!oldest || d > oldest.d) oldest = { d: d, v: v.name, doc: docOf(it), sup: it.supplier || "" };
+        rows.push({ d: d, v: v.name, vid: v.vid, doc: docOf(it), sup: it.supplier || "" });
+        if (!oldest || d > oldest.d) oldest = { d: d, v: v.name, vid: v.vid, doc: docOf(it), sup: it.supplier || "" };
       });
     });
     if (!rows.length) return null;
     var counts = buckets.map(function(b){
       var inB = rows.filter(function(r){ return r.d >= b.lo && r.d <= b.hi; });
-      return { lab: b.lab, waiting: inB.length, chased: inB.filter(function(r){ return r.d >= 14; }).length };
+      var byV = {};
+      inB.forEach(function(r){ byV[r.vid] = byV[r.vid] || { vid: r.vid, v: r.v, n: 0 }; byV[r.vid].n++; });
+      var top = Object.keys(byV).map(function(k){ return byV[k]; })
+        .sort(function(a,b2){ return b2.n - a.n; })[0] || null;
+      return { lab: b.lab, waiting: inB.length, chased: inB.filter(function(r){ return r.d >= 14; }).length, top: top };
     });
     var max = Math.max.apply(null, counts.map(function(c){ return c.waiting; })) || 1;
     var peak = counts.reduce(function(a,b){ return b.waiting > a.waiting ? b : a; }, counts[0]);
@@ -25102,46 +25108,57 @@ function importBackup(e) {
         "<h3>Anzianità delle " + rows.length + " RFQ senza risposta</h3>" +
         '<div class="g4-legend"><span><i style="background:#2b7cff"></i>in attesa</span>' +
         '<span><i style="background:#00c2ff"></i>oltre 14 gg</span></div></div>' +
-      '<div class="g4-bars">' + counts.map(function(c){
-        return '<div class="g4-bar' + (c === peak ? " peak" : "") + '"><div class="g4-cols">' +
+      '<div class="g4-bars">' + counts.map(function(c, i){
+        return '<button class="g4-bar' + (c === peak ? " peak" : "") + '" data-i="' + i + '"' +
+          (c.waiting ? ' title="' + c.waiting + " RFQ " + c.lab + (c.top ? " · apri " + c.top.v : "") + '"' : " disabled") +
+          '><div class="g4-cols">' +
           '<span style="height:' + Math.max(2, Math.round(c.waiting / max * 96)) + 'px"></span>' +
           '<span class="b2" style="height:' + Math.max(2, Math.round(c.chased / max * 96)) + 'px"></span>' +
-          "</div><em>" + c.lab + "</em></div>";
+          "</div><em>" + c.lab + "</em></button>";
       }).join("") + "</div>" +
       '<div class="g4-foot">' + (oldest
         ? "Più vecchia: <b>" + (oldest.doc || "—") + "</b> · " + oldest.v +
-          (oldest.sup ? " · " + oldest.sup : "") + " · " + oldest.d + " giorni"
+          (oldest.sup ? " · " + oldest.sup : "") + " · " + oldest.d + " giorni" +
+          '<span class="g4-link" data-open="' + oldest.vid + '">Apri la nave →</span>'
         : "") + "</div>";
+    el.addEventListener("click", function(e){
+      var bar = e.target.closest(".g4-bar"), link = e.target.closest("[data-open]");
+      var vid = link ? link.dataset.open
+        : (bar && counts[+bar.dataset.i] && counts[+bar.dataset.i].top ? counts[+bar.dataset.i].top.vid : "");
+      if (vid && typeof window.goVessel === "function") window.goVessel(vid);
+    });
     return el;
   }
 
-  /* --- prossimo scalo --------------------------------------------------- */
+  /* --- prossimo scalo: prima nave realmente in arrivo -------------------- */
   function nextCall(){
-    var cand = null;
+    var best = null;
     vessels().forEach(function(v){
-      if (!v.route) return;
-      var m = v.route.match(/prossimo:\s*([A-Za-zÀ-ü' .-]{3,}?)(?=\s*(?:ETA|ETB|ETD|\d|$))/i);
-      var port = m ? m[1].trim().replace(/[·|]+$/, "").trim() : "";
-      if (!port || /^-+$/.test(port)) return;
-      var days = null, mm = (v.eta || v.route).match(/(\d+)\s*g/i);
-      if (mm) days = parseInt(mm[1], 10);
-      var future = !/fa\b/i.test(v.eta || v.route);
-      if (!cand || (future && !cand.future) || (future === cand.future && days != null && (cand.days == null || days < cand.days))) {
-        cand = { port: port, ship: v.name, vid: v.vid, days: days, future: future, eta: v.eta || "" };
-      }
+      var txt = (v.eta + " " + v.route).replace(/\s+/g, " ");
+      if (/\bfa\b|\bago\b/i.test(v.eta)) return;            // dato di viaggio scaduto: si salta
+      var days = null;
+      if (/arrivo oggi/i.test(txt)) days = 0;
+      else if (/arrivo domani/i.test(txt)) days = 1;
+      else { var m = txt.match(/arrivo tra\s*(\d+)\s*g/i); if (m) days = parseInt(m[1], 10); }
+      if (days == null) return;
+      var pm = v.route.match(/prossimo:\s*([A-Za-zÀ-ü' .,-]{3,}?)(?=\s*(?:ETA|ETB|ETD|arrivo|\d|$))/i);
+      var port = pm ? pm[1].trim().replace(/[·|,]+$/, "").trim() : "";
+      if (!port) return;
+      if (!best || days < best.days) best = { port: port, ship: v.name, vid: v.vid, days: days };
     });
-    if (!cand) return null;
+    if (!best) return null;                                   // nessun arrivo previsto: niente card
+    var when = best.days === 0 ? "Oggi" : (best.days === 1 ? "Domani" : "Tra " + best.days + " giorni");
     var el = document.createElement("div");
     el.className = "g4-next";
     el.innerHTML =
-      '<div class="g4-eyebrow">PROSSIMO SCALO</div>' +
-      '<div class="g4-port">' + cand.port.replace(/\b(\w)(\w*)/g, function(_,a,b){ return a + b.toLowerCase(); }) + "</div>" +
-      '<div class="g4-ship">' + cand.ship + "</div>" +
-      '<div class="g4-eta"><b>' + (cand.days != null ? cand.days + (cand.future ? " gg" : " gg fa") : "—") +
-        "</b><span>" + (cand.future ? "all'arrivo previsto" : "dato di viaggio non aggiornato") + "</span></div>" +
-      '<div class="g4-line"><span style="opacity:.85;white-space:nowrap">Apri il quadro nave</span><span style="font-weight:700;white-space:nowrap">Dettagli →</span></div>';
+      '<div class="g4-eyebrow">PROSSIMO ARRIVO IN PORTO</div>' +
+      '<div class="g4-port">' + best.port.replace(/\b(\w)(\w*)/g, function(_,a,b){ return a + b.toLowerCase(); }) + "</div>" +
+      '<div class="g4-ship">' + best.ship + "</div>" +
+      '<div class="g4-eta"><b>' + when + "</b><span>prima nave della flotta ad arrivare</span></div>" +
+      '<div class="g4-line"><span style="opacity:.85;white-space:nowrap">Consegne e RFQ da chiudere prima dello scalo</span>' +
+      '<span style="font-weight:700;white-space:nowrap">Apri →</span></div>';
     el.addEventListener("click", function(){
-      if (cand.vid && typeof window.goVessel === "function") window.goVessel(cand.vid);
+      if (best.vid && typeof window.goVessel === "function") window.goVessel(best.vid);
     });
     return el;
   }
@@ -25152,17 +25169,29 @@ function importBackup(e) {
     el.className = "g4-rail";
     var acts = [
       { i: "+",  t: "Nuova to-do",  sel: ".fab, #btn-add-todo" },
+      { sep: true },
       { i: "⛴", t: "Flotta",       view: "overview" },
       { i: "▤",  t: "To-do",        view: "todos" },
       { i: "✉",  t: "Email",        view: "email" },
       { i: "◷",  t: "Certificati",  view: "certificates" },
+      { i: "◱",  t: "Performance",  view: "performance" },
+      { i: "☎",  t: "Rubrica",      view: "rubrica" },
+      { sep: true },
+      { i: "↑",  t: "Torna su",     top: true },
+      { i: "↓",  t: "Vai in fondo", bottom: true },
+      { i: "↺",  t: "Aggiorna",     sel: ".icon-btn.refresh" },
       { i: "⚙",  t: "Impostazioni", sel: "#btn-settings, .icon-btn[title*='mpostazioni']" }
     ];
+    var active = (document.querySelector(".pill.active[data-view]") || {}).dataset;
     acts.forEach(function(a, idx){
+      if (a.sep) { var s = document.createElement("div"); s.className = "g4-sep"; el.appendChild(s); return; }
       var b = document.createElement("button");
       b.textContent = a.i; b.title = a.t;
       if (!idx) b.className = "g4-plus";
+      if (a.view && active && active.view === a.view) b.classList.add("on");
       b.addEventListener("click", function(){
+        if (a.top) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+        if (a.bottom) { window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); return; }
         if (a.view) { var p = document.querySelector('.pill[data-view="' + a.view + '"]'); if (p) p.click(); return; }
         var t = a.sel && document.querySelector(a.sel); if (t) t.click();
       });
@@ -25176,7 +25205,9 @@ function importBackup(e) {
     var host = main();
     if (!host) return;
     [].forEach.call(document.querySelectorAll(".g4-hello,.g4-row,.g4-rail"), function(n){ n.remove(); });
-    if (!glass() || !overview()) return;
+    if (!glass()) return;
+    document.body.appendChild(rail());
+    if (!overview()) return;
 
     host.insertBefore(hello(), host.firstChild);
 
@@ -25184,13 +25215,13 @@ function importBackup(e) {
     if (chart || next) {
       var row = document.createElement("div");
       row.className = "g4-row";
+      if (!next) row.style.gridTemplateColumns = "1fr";
       if (chart) row.appendChild(chart);
       if (next) row.appendChild(next);
       var first = host.querySelector("section");
       if (first && first.nextElementSibling) host.insertBefore(row, first.nextElementSibling);
       else host.appendChild(row);
     }
-    document.body.appendChild(rail());
   }
 
   var t = null;
