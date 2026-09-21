@@ -2227,7 +2227,7 @@ a:hover { text-decoration: underline; }
 /* === POPOVER (lista RFQ multiple) ======================================== */
 .docnum-popover {
   position: fixed;
-  z-index: 200;
+  z-index: 4000;
   background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
@@ -15784,9 +15784,11 @@ function openRfqMultiPopover(anchor, it) {
 
   // Posiziono il popover sotto l'anchor
   const rect = anchor.getBoundingClientRect();
-  pop.style.top = (rect.bottom + 6 + window.scrollY) + "px";
-  pop.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+  pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 340)) + "px";
   pop.classList.add("open");
+  const ph = pop.offsetHeight || 200;
+  const pbelow = rect.bottom + 6;
+  pop.style.top = (pbelow + ph > window.innerHeight - 8 ? Math.max(8, rect.top - ph - 6) : pbelow) + "px";
 
   // Click su Copia → copia negli appunti
   pop.querySelectorAll("[data-copy-rfq]").forEach(btn => {
@@ -16546,40 +16548,61 @@ function rfqIssueDate(o){
   return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
 }
 // v0.79 — Riga elenco RFQ: "RFQ <numero> – <descrizione>, inviata il <data>."
+// v0.87 — una riga può portare PIÙ numeri RFQ (stesso materiale, richieste multiple):
+// il sollecito li elenca TUTTI, altrimenti il fornitore risponde su una sola richiesta.
+function rfqAllNums(o){
+  const all = Array.isArray(o && o.rfqAllNumbers) ? o.rfqAllNumbers.filter(Boolean) : [];
+  if (all.length) return all;
+  return (o && o.rfqNumber) ? [o.rfqNumber] : [];
+}
 function rfqBullet(o, lang){
-  const num = o.rfqNumber ? `RFQ ${o.rfqNumber}` : "RFQ";
+  const nums = rfqAllNums(o);
+  const num = nums.length ? `RFQ ${nums.join(" / ")}` : "RFQ";
   const desc = (o.description || "").trim();
   const dt = rfqIssueDate(o);
   const sentIT = dt ? `, inviata il ${dt}` : "";
   const sentEN = dt ? `, sent on ${dt}` : "";
   return `- ${num}${desc ? " – " + desc : ""}${lang === "it" ? sentIT : sentEN}.`;
 }
+// Oggetto email: fino a 3 numeri per esteso, oltre "N RFQ"
+function rfqSubjRef(o, lang){
+  const nums = rfqAllNums(o);
+  if (!nums.length) return "";
+  if (nums.length <= 3) return `RFQ ${nums.join(", ")}`;
+  return lang === "it" ? `${nums.length} RFQ` : `${nums.length} RFQs`;
+}
 
 // v0.79 — Sollecito offerta: UN SOLO testo, identico per sollecito singolo e multiplo
 // (cambia solo il numero di righe nell'elenco). Nave nell'oggetto e nel corpo.
 const EMAIL_TEMPLATES = {
   "rfq-overdue": {
-    it: (ctx) => ({
-      subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offerta – RFQ ${ctx.rfqNumber || ""}`.trim(),
-      body: `Buongiorno,\n\nrestiamo in attesa della vostra cortese offerta relativa alla seguente RFQ (Request for Quotation)${ctx.vesselName ? " per la " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "it")}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio dell'offerta.\n\nGrazie per il cortese riscontro.`
-    }),
-    en: (ctx) => ({
-      subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – RFQ ${ctx.rfqNumber || ""}`.trim(),
-      body: `Good morning,\n\nwe are still awaiting your kind quotation for the following RFQ (Request for Quotation)${ctx.vesselName ? " for " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "en")}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer.\n\nThank you for your kind reply.`
-    })
+    it: (ctx) => {
+      const pl = rfqAllNums(ctx).length > 1;   // v0.87 — accordo singolare/plurale
+      return {
+        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offert${pl ? "e" : "a"} – ${rfqSubjRef(ctx, "it")}`.trim(),
+        body: `Buongiorno,\n\nrestiamo in attesa d${pl ? "elle vostre cortesi offerte relative alle seguenti RFQ" : "ella vostra cortese offerta relativa alla seguente RFQ"} (Request for Quotation)${ctx.vesselName ? " per la " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "it")}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio ${pl ? "delle offerte" : "dell'offerta"}.\n\nGrazie per il cortese riscontro.`
+      };
+    },
+    en: (ctx) => {
+      const pl = rfqAllNums(ctx).length > 1;
+      return {
+        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – ${rfqSubjRef(ctx, "en")}`.trim(),
+        body: `Good morning,\n\nwe are still awaiting your kind quotation${pl ? "s" : ""} for the following RFQ${pl ? "s" : ""} (Request for Quotation)${ctx.vesselName ? " for " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "en")}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer${pl ? "s" : ""}.\n\nThank you for your kind reply.`
+      };
+    }
   },
   "rfq-batch": {
     it: (ctx) => {
       const its = ctx.items || [];
       return {
-        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offerte – ${its.length} RFQ`,
+        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offerte – ${its.reduce((n,i)=>n+Math.max(1,rfqAllNums(i).length),0)} RFQ`,
         body: `Buongiorno,\n\nrestiamo in attesa delle vostre cortesi offerte relative alle seguenti RFQ (Request for Quotation)${ctx.vesselName ? " per la " + ctx.vesselName : ""}:\n\n${its.map(i => rfqBullet(i, "it")).join("\n")}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio delle offerte.\n\nGrazie per il cortese riscontro.`
       };
     },
     en: (ctx) => {
       const its = ctx.items || [];
       return {
-        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – ${its.length} RFQ`,
+        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – ${its.reduce((n,i)=>n+Math.max(1,rfqAllNums(i).length),0)} RFQ`,
         body: `Good morning,\n\nwe are still awaiting your kind quotations for the following RFQ (Request for Quotation)${ctx.vesselName ? " for " + ctx.vesselName : ""}:\n\n${its.map(i => rfqBullet(i, "en")).join("\n")}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offers.\n\nThank you for your kind reply.`
       };
     }
@@ -21326,7 +21349,10 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
             description: src.description || i.description || "",
             days: src.days != null ? src.days : (i.ageDays || "?"),
             rfqDate: src.rfqDate || "",
-            rfqNumber: src.rfqNumber || i.docNumber || (Array.isArray(i.docAllNumbers) && i.docAllNumbers[0]) || ""
+            rfqNumber: src.rfqNumber || i.docNumber || (Array.isArray(i.docAllNumbers) && i.docAllNumbers[0]) || "",
+            // v0.87 — nel sollecito cumulativo ogni riga porta TUTTI i suoi numeri RFQ
+            rfqAllNumbers: (Array.isArray(src.rfqAllNumbers) && src.rfqAllNumbers.length ? src.rfqAllNumbers
+                            : (Array.isArray(i.docAllNumbers) ? i.docAllNumbers : []))
           };
         })
       };
@@ -21601,7 +21627,7 @@ window.showActionDocMulti = function(anchorBtn, ctxJson) {
 
   pop.innerHTML = `
     <div class="docnum-popover-header">
-      <span><strong>${(ctx.numbers || []).length} ${escapeHTML(ctx.label || "DOC")}</strong> su questa azione</span>
+      <span><strong>${(ctx.numbers || []).length} ${escapeHTML(ctx.label || "DOC")}</strong> su questa riga</span>
       <button class="close" onclick="document.getElementById('rfq-multi-popover').classList.remove('open')">✕</button>
     </div>
     <div class="docnum-popover-list">
@@ -21612,12 +21638,29 @@ window.showActionDocMulti = function(anchorBtn, ctxJson) {
         </div>
       `).join("")}
     </div>
+    <div style="font-size:10.5px;color:var(--text-faint);line-height:1.45;padding:7px 2px 0;border-top:1px solid var(--border);margin-top:6px;">
+      Stesso materiale, richieste multiple: il pulsante <strong>Sollecita</strong> di questa riga li elenca tutti nella stessa email.
+    </div>
   `;
 
+  // v0.87 — il popover è position:fixed: le coordinate sono già relative alla finestra.
+  // Sommare window.scrollY lo spediva fuori schermo → il click sembrava non fare nulla.
   const rect = anchorBtn.getBoundingClientRect();
-  pop.style.top = (rect.bottom + 6 + window.scrollY) + "px";
-  pop.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+  pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 340)) + "px";
   pop.classList.add("open");
+  const h = pop.offsetHeight || 200;
+  const below = rect.bottom + 6;
+  pop.style.top = (below + h > window.innerHeight - 8 ? Math.max(8, rect.top - h - 6) : below) + "px";
+
+  // chiusura al click fuori
+  setTimeout(() => {
+    const off = (e) => {
+      if (pop.contains(e.target)) return;
+      pop.classList.remove("open");
+      document.removeEventListener("mousedown", off, true);
+    };
+    document.addEventListener("mousedown", off, true);
+  }, 0);
 };
 
 // === Handler per +to-do, pin, rimanda intelligente ===
