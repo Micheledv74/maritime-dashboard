@@ -8166,9 +8166,9 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
     <span class="mtab-l">Email</span>
     <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
   </button>
-  <button class="mtab" data-mtab="cerca" aria-label="Cerca">
-    <svg class="icon"><use href="#i-search"/></svg>
-    <span class="mtab-l">Cerca</span>
+  <button class="mtab" data-mtab="altro" aria-label="Altro">
+    <svg class="icon"><use href="#i-menu"/></svg>
+    <span class="mtab-l">Altro</span>
   </button>
 </nav>
 
@@ -9899,7 +9899,7 @@ function deleteTodo(id) {
 
 function todosForVessel(vesselId, includeDone) {
   return state.todos.filter(t =>
-    t.vessel === vesselId && (includeDone || !t.done)
+    t.vessel === vesselId && (includeDone || todoActive(t))
   );
 }
 
@@ -9909,9 +9909,54 @@ function todosGeneral(includeDone) {
   );
 }
 
+// v0.88 — "Archiviata" ≠ "fatta": toglie la to-do dalle viste senza chiuderla in
+// Outlook. Serve a smaltire il pregresso di email flaggate senza falsare lo storico
+// di cosa hai davvero completato. L'archiviazione si fa dal PC ufficio (fonte di verità).
+function todoArchived(t){ return !!(t && t.archivedAt); }
+function todoActive(t){ return !!t && !t.done && !t.archivedAt; }
+function todosArchived(){ return (state.todos||[]).filter(t => !t.done && t.archivedAt); }
 function todosOpen() {
-  return state.todos.filter(t => !t.done);
+  return state.todos.filter(todoActive);
 }
+
+// Pregresso archiviabile: to-do importate da Outlook, ancora aperte, vecchie di 90+ giorni.
+// Sono quasi sempre email flaggate a suo tempo e mai sflaggate: archiviarle pulisce la
+// vista senza toccare Outlook e senza dichiararle "fatte".
+function oldOutlookTodos(days){
+  const cut = new Date(Date.now() - ((days || 90) * 86400000)).toISOString();
+  return (state.todos || []).filter(t => todoActive(t) && t.outlookTaskId && (t.createdAt || "") < cut);
+}
+window.archiveOldOutlookTodos = function(days){
+  // La fonte di verità per "cosa è stato fatto" è il PC ufficio: se un ALTRO dispositivo
+  // è designato fonte, da qui non si tocca. Se non c'è nessuna fonte designata il sync
+  // lavora a unione e l'operazione è consentita.
+  const other = (typeof ghCurrentSourceName === "function") ? ghCurrentSourceName() : null;
+  if (other && !ghIsThisSource()) {
+    alert(`La fonte di verit\u00e0 per le azioni fatte è «${other}».\n\nFai l'operazione da quel dispositivo: qui la ritroverai al primo sync.`);
+    return;
+  }
+  const list = oldOutlookTodos(days);
+  // Sul resto delle to-do Outlook: la scadenza ereditata dal flag (≤ data di creazione)
+  // non è una vera scadenza — la tolgo, così smettono di risultare "Scadute".
+  const fake = (state.todos || []).filter(t => todoActive(t) && t.outlookTaskId && t.dueDate &&
+    t.dueDate <= String(t.createdAt || "").slice(0, 10) && !list.includes(t));
+  if (!list.length && !fake.length) { showToast("Niente da sistemare"); return; }
+  if (!confirm(`Archiviare ${list.length} to-do importate da Outlook e pi\u00f9 vecchie di ${days || 90} giorni?\n\nEscono dalle liste ma NON vengono chiuse in Outlook e NON risultano "fatte": le ritrovi nel filtro \u201cArchiviate\u201d e puoi ripristinarle.${fake.length ? `\n\nInoltre tolgo la falsa scadenza (la data del flag) ad altre ${fake.length} to-do: restano aperte, ma senza "Scaduto".` : ""}`)) return;
+  const ts = new Date().toISOString();
+  list.forEach(t => { t.archivedAt = ts; t.archivedBy = (typeof ghDeviceName === "function") ? ghDeviceName() : ""; });
+  fake.forEach(t => { t.dueDate = ""; });
+  saveTodos();
+  showToast(`\ud83d\uddc4 ${list.length} archiviate${fake.length ? ` · ${fake.length} senza falsa scadenza` : ""}`);
+  render();
+};
+window.unarchiveTodo = function(id){
+  const t = (state.todos || []).find(x => String(x.id) === String(id));
+  if (!t) return;
+  delete t.archivedAt; delete t.archivedBy;
+  saveTodos();
+  showToast("To-do ripristinata");
+  render();
+};
 
 // Classifica una data: "overdue" (passata), "today", "future"
 function classifyDueDate(dueDate) {
@@ -10141,7 +10186,7 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const scr2tab = { home:"flotta", flotta:"flotta", todo:"todo", email:"email", cert:"flotta", rubrica:"flotta" };
+  const scr2tab = { home:"flotta", flotta:"flotta", todo:"todo", email:"email", cert:"altro", rubrica:"altro" };
   const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "flotta") : "flotta";
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
@@ -10177,23 +10222,6 @@ function maStatusColor(cfg){
   }catch(_){ return "#9aa3af"; }
 }
 
-function maFleetRowHTML(cfg){
-  const v = state.data && state.data.vessels && state.data.vessels.find(x=>x.vesselId===cfg.vesselId);
-  const color = maStatusColor(cfg);
-  const sub = (v && v.tracking && v.tracking.nextPort)
-    ? (v.tracking.nextPort + (v.tracking.eta ? " · ETA " + formatDate(v.tracking.eta) : ""))
-    : (cfg.manual ? "Gestione manuale" : "—");
-  let stale = 0, expired = 0;
-  try{ if(typeof getStaleRFQs==="function") stale = getStaleRFQs(cfg.vesselId, 8).length; }catch(_){}
-  try{ if(typeof getCertStatsForVessel==="function"){ const cs=getCertStatsForVessel(cfg.vesselId)||{}; expired=(cs.expired||0); } }catch(_){}
-  const alerts = stale + expired;
-  return `<button class="ma-card ma-vrow" onclick="maOpenVessel('${escapeAttr(cfg.vesselId)}')">
-    <span class="ma-dot" style="background:${color}"></span>
-    <span class="ma-vbody"><span class="ma-vname">${escapeHTML(cfg.displayName||cfg.vesselId)}</span><span class="ma-vsub">${escapeHTML(sub)}</span></span>
-    ${alerts>0?`<span class="ma-badge">${alerts}</span>`:""}<span class="ma-chev">›</span>
-  </button>`;
-}
-
 // === 1b — HOME "OGGI": cruscotto priorità ===================================
 function maFleetStaleRFQs(){
   const out = [];
@@ -10215,7 +10243,7 @@ function maStatusTok(cfg){
 }
 function maVesselMetrics(vid){
   let todoOpen=0, lateTodo=0, emailW=0, rfq=0, expired=0, critCert=0;
-  try{ (state.todos||[]).forEach(t=>{ if(!t.done && t.vessel===vid){ todoOpen++; if((typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue") lateTodo++; } }); }catch(_){}
+  try{ (state.todos||[]).forEach(t=>{ if(todoActive(t) && t.vessel===vid){ todoOpen++; if((typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue") lateTodo++; } }); }catch(_){}
   try{ if(typeof getEmailThreads==="function") getEmailThreads().forEach(r=>{ if(r.vesselId===vid && r.waiting) emailW++; }); }catch(_){}
   try{ if(typeof getStaleRFQs==="function") rfq=(getStaleRFQs(vid,8)||[]).length; }catch(_){}
   try{ ((state.certificates&&state.certificates[vid])||[]).forEach(c=>{ if(c.isPermanent||!c.expiry) return; const d=daysToExpiry(c.expiry); if(d==null) return; if(d<0) expired++; else if(d<=14) critCert++; }); }catch(_){}
@@ -10270,7 +10298,7 @@ function maSyncBanner(){
 function maHome(){
   let critCount=0, lateCount=0;
   try{ (VESSELS||[]).forEach(cfg=>{ if(maStatusTok(cfg)==="crit") critCount++; }); }catch(_){}
-  try{ lateCount=(state.todos||[]).filter(t=>!t.done && (typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue").length; }catch(_){}
+  try{ lateCount=(state.todos||[]).filter(t=>todoActive(t) && (typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue").length; }catch(_){}
   const brief=`<button class="ma-brief-btn" onclick="maOpenBriefing()">
     <span class="ma-brief-ic">☕</span>
     <span class="ma-brief-tx"><b>Briefing mattutino</b><small>2 min · ${critCount} navi critiche · ${lateCount} to-do scadute</small></span>
@@ -10294,12 +10322,6 @@ function maToast(msg){
   const h=document.getElementById("ma-toast-host"); if(!h) return;
   h.innerHTML = `<div class="ma-toast">${escapeHTML(msg)}</div>`;
   clearTimeout(_maToastT); _maToastT=setTimeout(()=>{ if(h) h.innerHTML=""; }, 1800);
-}
-
-function maFlotta(){
-  const rows = (VESSELS||[]).map(maFleetRowHTML).join("");
-  return `<button class="ma-back" onclick="mgo('home')">‹ Oggi</button>
-    <div class="ma-title">Flotta</div>${rows||'<div class="ma-empty">Nessuna nave.</div>'}`;
 }
 
 function maCertRow(c, showVessel){
@@ -10467,7 +10489,7 @@ function maOpsPane(vid,cfg){
   return anom+noon;
 }
 function maVesselTodoPane(vid,cfg){
-  let vtodos=[]; try{ vtodos=(state.todos||[]).filter(t=>!t.done && t.vessel===vid); }catch(_){}
+  let vtodos=[]; try{ vtodos=(state.todos||[]).filter(t=>todoActive(t) && t.vessel===vid); }catch(_){}
   const add=`<button class="ma-addtodo" onclick="maNewTodoFor('${escapeAttr(vid)}')">＋ Nuova to-do per ${escapeHTML(cfg.displayName||vid)}</button>`;
   const list = vtodos.length ? vtodos.map(maTodoRow).join("") : `<div class="ma-empty">Nessuna to-do aperta.</div>`;
   return add+list;
@@ -10570,7 +10592,7 @@ function maTodo(){
     if(t.dueDate && t.dueDate>tomorrow && t.dueDate<=weekEnd) return "week";
     return "future";
   };
-  const open = all.filter(t=>!t.done);
+  const open = all.filter(todoActive);
   const counts = {
     all: open.length,
     overdue: open.filter(t=>bucket(t)==="overdue").length,
@@ -10817,7 +10839,7 @@ function maBriefSteps(){
   // 2) to-do scadute o in scadenza
   const trows = [];
   try{
-    (state.todos||[]).filter(t=>!t.done).forEach(t=>{
+    (state.todos||[]).filter(todoActive).forEach(t=>{
       const cls = (typeof classifyDueDate==="function")?classifyDueDate(t.dueDate):"";
       if(cls!=="overdue" && cls!=="today") return;
       const vn = t.vessel ? (((VESSELS||[]).find(x=>x.vesselId===t.vessel)||{}).displayName||t.vessel) : "—";
@@ -10926,8 +10948,9 @@ window.maOpenAltro = function(){
     ${row("🌙","Fine giornata","",'maCloseSheet();(document.getElementById(\'btn-eod\')||{click:()=>{}}).click()')}
     <div class="ma-sheet-h" style="margin-top:8px">NAVIGA</div>
     ${row("🚢","Flotta","",'mgo(\'flotta\')')}
+    ${row("📇","Rubrica","fornitori e agenzie",'mgo(\'rubrica\')')}
     ${row("📅","Certificati","",'maGoCert(\'all\')')}
-    ${row("🔗","Pipeline REQ→RFQ→PO→DN","apri una nave",'mgo(\'flotta\')')}
+    ${row("📨","RFQ da sollecitare","tutta la flotta",'maOpenRfqAll()')}
     <div class="ma-sheet-h" style="margin-top:8px">STRUMENTI</div>
     ${row("🔍","Cerca","",'maCloseSheet();(document.getElementById(\'btn-palette\')||{click:()=>{}}).click()')}
     ${row("📦","Storico consegne","export Excel da PC",'maCloseSheet();(document.getElementById(\'btn-delivery-archive\')||{click:()=>{}}).click()')}
@@ -16159,7 +16182,10 @@ function renderTodosPage() {
   };
 
   // Filtra to-do (modalità "Le mie to-do": esclude le azioni flotta, che stanno nel loro tab)
-  let aperte = state.todos.filter(t => !t.done && t.kind !== "fleet");
+  const archiveView = (state._todoTimeFilter === "archived");
+  let aperte = archiveView
+    ? state.todos.filter(t => !t.done && t.archivedAt && t.kind !== "fleet")
+    : state.todos.filter(t => todoActive(t) && t.kind !== "fleet");
   let completate = state.todos.filter(t => t.done && t.kind !== "fleet");
 
   const matchFilter = t => {
@@ -16192,9 +16218,10 @@ function renderTodosPage() {
   completate.sort((a, b) => (b.doneAt || b.createdAt || "").localeCompare(a.doneAt || a.createdAt || ""));
 
   // Stats
-  const totaleAperte = state.todos.filter(t => !t.done && t.kind !== "fleet").length;
-  const scaduteCount = state.todos.filter(t => !t.done && t.kind !== "fleet" && classifyDueDate(t.dueDate) === "overdue").length;
-  const oggiCount = state.todos.filter(t => !t.done && t.kind !== "fleet" && classifyDueDate(t.dueDate) === "today").length;
+  const totaleAperte = state.todos.filter(t => todoActive(t) && t.kind !== "fleet").length;
+  const scaduteCount = state.todos.filter(t => todoActive(t) && t.kind !== "fleet" && classifyDueDate(t.dueDate) === "overdue").length;
+  const oggiCount = state.todos.filter(t => todoActive(t) && t.kind !== "fleet" && classifyDueDate(t.dueDate) === "today").length;
+  const archivedCount = state.todos.filter(t => !t.done && t.archivedAt && t.kind !== "fleet").length;
   const fatteSettimana = state.todos.filter(t => {
     if (!t.done || !t.doneAt) return false;
     const days = (Date.now() - new Date(t.doneAt).getTime()) / 86400000;
@@ -16205,7 +16232,7 @@ function renderTodosPage() {
   const CATEGORIES = ["Nave", "Ufficio", "Colleghi", "Infoship", "Sistema", "Personale", "Altro"];
 
   // Conteggi per chip temporali — usano TUTTE le aperte (non filtrate)
-  const allOpen = state.todos.filter(t => !t.done && t.kind !== "fleet");
+  const allOpen = state.todos.filter(t => todoActive(t) && t.kind !== "fleet");
   const tomorrowISO = tomorrow();
   const today = new Date();
   const day = today.getDay() === 0 ? 7 : today.getDay();
@@ -16232,7 +16259,7 @@ function renderTodosPage() {
   // v0.22 — Modalità pagina: "todos" (le mie to-do) | "actions" (azioni flotta cross-nave)
   const pageMode = state._todoPageMode === "actions" ? "actions" : "todos";
   const fleetActionsCount = (() => {
-    try { return generateAllActions().length + (state.todos||[]).filter(t=>!t.done).length; }
+    try { return generateAllActions().length + (state.todos||[]).filter(todoActive).length; }
     catch(e){ return 0; }
   })();
 
@@ -16244,7 +16271,7 @@ function renderTodosPage() {
     try { sys = generateAllActions(); } catch(e) { sys = []; }
     const rfq = sys.filter(a => /^(overdue|refused):/.test(a.key || "")).length;
     const po = sys.filter(a => /^readyPO:/.test(a.key || "")).length;
-    const fleetTodos = (state.todos || []).filter(t => !t.done && t.kind === "fleet");
+    const fleetTodos = (state.todos || []).filter(t => todoActive(t) && t.kind === "fleet");
     const late = fleetTodos.filter(t => t.dueDate && t.dueDate < todayISO()).length;
     return { tot: sys.length + fleetTodos.length, rfq, po, late };
   })();
@@ -16275,6 +16302,17 @@ function renderTodosPage() {
             <button class="todo-more-item" id="todo-new-from-email" onclick="window.openEmailCapture()">📧 Da email</button>
             <button class="todo-more-item" id="todo-outlook-export" onclick="window.openOutlookQueueExport()" title="Esporta queue completati Outlook">📤 Queue Outlook <span id="todo-outlook-export-count" class="badge-count" style="display:none;"></span></button>
             <button class="todo-more-item" id="todo-export-excel">📥 Esporta Excel</button>
+            ${(() => {
+              const nOld = oldOutlookTodos().length;
+              const nFake = (state.todos || []).filter(t => todoActive(t) && t.outlookTaskId && t.dueDate &&
+                t.dueDate <= String(t.createdAt || "").slice(0, 10)).length;
+              const n = nOld + nFake;
+              if (!n) return "";
+              const otherSource = ghCurrentSourceName() && !ghIsThisSource();
+              return otherSource
+                ? `<button class="todo-more-item" disabled title="La fonte di verit\u00e0 è «${escapeAttr(ghCurrentSourceName())}»: fallo da l\u00ec." style="opacity:.55;cursor:not-allowed;">🗄 Sistema il pregresso (${n}) · dal PC ufficio</button>`
+                : `<button class="todo-more-item" onclick="window.archiveOldOutlookTodos()" title="Archivia le to-do Outlook oltre i 90 giorni e toglie le scadenze finte ereditate dal flag. Non chiude nulla in Outlook.">🗄 Sistema il pregresso Outlook (${n})</button>`;
+            })()}
           </div>
         </details>
       </div>
@@ -16326,6 +16364,9 @@ function renderTodosPage() {
       <button class="time-chip ${timeFilter === "outlook" ? "active" : ""}" data-tt="outlook" role="radio" title="Solo to-do importate da Outlook ToDo">
         📧 Outlook <span class="count">${countOutlook}</span>
       </button>
+      ${archivedCount > 0 ? `<button class="time-chip ${timeFilter === "archived" ? "active" : ""}" data-tt="archived" role="radio" title="Tolte dalla vista senza chiuderle in Outlook">
+        🗄 Archiviate <span class="count">${archivedCount}</span>
+      </button>` : ""}
     </div>
 
     <!-- Filtri avanzati compatti (riga unica + chip per attivi) — v0.4.2 -->
@@ -16347,7 +16388,7 @@ function renderTodosPage() {
         <div class="pop-options">
           <button class="pop-opt ${filter.category === "all" ? "active" : ""}" data-pop-cat="all">Tutte</button>
           ${CATEGORIES.map(c => {
-            const n = state.todos.filter(t => !t.done && t.category === c).length;
+            const n = state.todos.filter(t => todoActive(t) && t.category === c).length;
             if (n === 0 && filter.category !== c) return "";
             return `<button class="pop-opt ${filter.category === c ? "active" : ""}" data-pop-cat="${escapeAttr(c)}">${c} (${n})</button>`;
           }).join("")}
@@ -16368,7 +16409,7 @@ function renderTodosPage() {
         <div class="pop-options">
           <button class="pop-opt ${filter.vessel === "all" ? "active" : ""}" data-pop-ves="all">Tutte</button>
           ${VESSELS.map(v => {
-            const n = state.todos.filter(t => !t.done && t.vessel === v.vesselId).length;
+            const n = state.todos.filter(t => todoActive(t) && t.vessel === v.vesselId).length;
             if (n === 0 && filter.vessel !== v.vesselId) return "";
             return `<button class="pop-opt ${filter.vessel === v.vesselId ? "active" : ""}" data-pop-ves="${escapeAttr(v.vesselId)}">${v.displayName} (${n})</button>`;
           }).join("")}
@@ -17246,6 +17287,15 @@ function syncOutlookTasksToTodos(outlookData) {
       const combinedText = (task.title || "") + "\n\n" + (task.body || "");
       const parsed = parseEmailText(combinedText);
 
+      // v0.88 — Le email flaggate arrivano da Outlook con dueDate = giorno del flag:
+      // non è una scadenza, è il giorno in cui l'hai segnata. Importarla come scadenza
+      // faceva nascere ogni to-do già "Scaduta" (332 su 336 nel tuo archivio). Se il task
+      // è una email flaggata e la data non è nel futuro, la to-do nasce senza scadenza.
+      const isFlaggedEmail = !!(task.webUrl || task.linkedDisplayName);
+      let dueImported = task.dueDate || "";
+      if (isFlaggedEmail && dueImported && dueImported <= String(task.createdAt || "").slice(0, 10)) dueImported = "";
+      if (!dueImported && !isFlaggedEmail) dueImported = resolveWhen("tomorrow", null);
+
       // Costruisci la to-do
       const newTodo = {
         id: "outlook_" + task.id.slice(-12),
@@ -17260,7 +17310,7 @@ function syncOutlookTasksToTodos(outlookData) {
         action: parsed.suggestedAction || "Verificare",
         reference: task.title || "",
         tags: ["outlook"],
-        dueDate: task.dueDate || resolveWhen("tomorrow", null),
+        dueDate: dueImported,
         note: task.body ? task.body.substring(0, 500) : "",
         createdAt: task.createdAt,
         done: task.status === "completed",
@@ -21307,7 +21357,7 @@ function renderActionsTodayV2(opts) {
   const weekEnd = (() => { const d = new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
 
   // v0.33 — Se filtro per categoria attivo, nascondo le to-do (mostro solo le azioni di quel tipo)
-  const userTodos = (state.todos || []).filter(t => !t.done && t.kind === "fleet" && !state._fleetActionCat && !faq);
+  const userTodos = (state.todos || []).filter(t => todoActive(t) && t.kind === "fleet" && !state._fleetActionCat && !faq);
   const userTodosFiltered = vesselFilter === "all" ? userTodos :
     userTodos.filter(t => t.vessel === vesselFilter);
 
@@ -22263,10 +22313,12 @@ function todoRowHTML(t) {
   if (vesselName) contextParts.push(`<span class="cert-vessel-chip" data-vid="${escapeAttr(t.vessel || '')}" style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;">${escapeHTML(vesselName)}</span>`);
   if (showRefInContext) contextParts.push(`<span class="todo-target">${escapeHTML(ref)}</span>`);
 
+  const isArch = !!t.archivedAt;
   return `<div class="todo-item ${t.done ? "done" : cls}${t.outlookTaskId ? " todo-outlook" : ""}" data-todo-id="${escapeAttr(t.id)}" data-priority="${escapeAttr(priority)}" data-vid="${escapeAttr(t.vessel || '')}">
     <span class="todo-meta ${cls}">${escapeHTML(dateLabel)}</span>
     <div class="todo-body">
       ${t.outlookTaskId ? `<span class="todo-outlook-badge" title="Importato da Outlook ToDo">📧 Outlook</span>` : ""}
+      ${isArch ? `<span class="todo-outlook-badge" style="background:#eef0f3;color:#5b636d;" title="Archiviata — non chiusa in Outlook">🗄 Archiviata</span>` : ""}
       <span class="todo-cat" data-cat="${escapeAttr(category)}">${escapeHTML(category)}</span>
       <span class="todo-action">${escapeHTML(mainText)}</span>
       ${t.recur ? `<span class="todo-recur-badge" title="${escapeAttr(recurLabel(t.recur))}">↻ ${escapeHTML(recurLabel(t.recur))}</span>` : ""}
@@ -22277,6 +22329,7 @@ function todoRowHTML(t) {
     <div class="todo-actions">
       ${t.outlookWebUrl ? `<button class="btn btn-sm btn-outlook-open" data-outlook-open="${escapeAttr(t.outlookWebUrl)}" title="Apri email in Outlook${t.outlookLinkedName ? ': ' + escapeAttr(t.outlookLinkedName) : ''}">📧 Apri</button>` : ""}
       <button class="btn btn-sm" data-todo-edit="${escapeAttr(t.id)}" title="Modifica">✎</button>
+      ${isArch ? `<button class="btn btn-sm" data-todo-unarchive="${escapeAttr(t.id)}" title="Rimetti tra le to-do aperte">↩ Ripristina</button>` : ""}
       ${!t.done ? `<button class="btn btn-sm" data-todo-done="${escapeAttr(t.id)}" title="Fatto">✓</button>` :
                   `<button class="btn btn-sm" data-todo-undone="${escapeAttr(t.id)}" title="Riapri">↺</button>`}
       <button class="btn-snooze" data-todo-delete="${escapeAttr(t.id)}" title="Elimina">🗑</button>
@@ -22309,6 +22362,9 @@ function attachTodoHandlers(root) {
       showToast("To-do riaperto");
       render();
     });
+  });
+  root.querySelectorAll("[data-todo-unarchive]").forEach(btn => {
+    btn.addEventListener("click", () => window.unarchiveTodo(btn.dataset.todoUnarchive));
   });
   root.querySelectorAll("[data-todo-delete]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -24886,11 +24942,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // FAB (+) apre la modale to-do
   document.getElementById("fab-quick").addEventListener("click", () => openTodoModal(null));
 
-  // Bottom tab bar (mobile): Flotta / To-do / ＋ / Email / Cerca
+  // Bottom tab bar (mobile): Flotta / To-do / ＋ / Email / Altro
+  // v0.88 — "Altro" apre il menù completo (Rubrica, Certificati, Cerca, Impostazioni…):
+  // prima quelle schermate erano scritte ma irraggiungibili dal telefono.
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.addEventListener("click", () => {
       const t = tab.dataset.mtab;
       if (t === "add") { if (typeof openTodoModal === "function") openTodoModal(); return; }
+      if (t === "altro") { if (typeof maOpenAltro === "function") maOpenAltro(); return; }
       if (t === "cerca") { const b = document.getElementById("btn-palette"); if (b) b.click(); return; }
       const tab2scr = { flotta:"flotta", email:"email", todo:"todo" };
       mgo(tab2scr[t] || "flotta");
