@@ -5807,6 +5807,33 @@ a:hover { text-decoration: underline; }
 .action-row.action-row-cols[data-vid="medtoscana"]{ border-left-color:var(--c-toscana) !important; }
 .action-row.action-row-cols[data-vid="norrbotten"]{ border-left-color:var(--c-norrbotten) !important; }
 
+/* ==== v0.88 — Registro solleciti RFQ ==== */
+.chase-tag{ display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700;
+  letter-spacing:.02em; padding:1px 7px; border-radius:20px; border:1px solid var(--border); color:var(--text-muted); }
+.chase-tag.lv1{ color:#1553d8; background:#e8f0ff; border-color:#c3d8ff; }
+.chase-tag.lv2{ color:#9a4a00; background:#fbf1dd; border-color:#f0dcb4; }
+.chase-tag.lv3, .chase-tag.lv4{ color:#8a1414; background:#fbe6e6; border-color:#f2c9c9; }
+.chase-tag.wait{ color:#3d7a4a; background:#e9f5ec; border-color:#c6e3cd; }
+.rc-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding:10px 0 12px; border-bottom:1px solid var(--border); margin-bottom:12px; }
+.rc-lang{ display:inline-flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; }
+.rc-lang button{ border:none; background:var(--bg-surface); color:var(--text-muted);
+  padding:5px 12px; font:inherit; font-size:11px; font-weight:700; cursor:pointer; }
+.rc-lang button.on{ background:var(--accent); color:var(--accent-fg); }
+.rc-row{ border:1px solid var(--border); border-radius:8px; padding:11px 13px; margin-bottom:10px; background:var(--bg-surface); }
+.rc-row.done{ opacity:.72; }
+.rc-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.rc-num{ font-family:var(--font-mono); font-size:12.5px; font-weight:700; color:var(--text); }
+.rc-desc{ font-size:11.5px; color:var(--text-muted); flex:1; min-width:120px; }
+.rc-acts{ display:flex; gap:6px; align-items:center; margin-left:auto; }
+.rc-tl{ margin-top:9px; padding-top:8px; border-top:1px dashed var(--border); display:flex; flex-direction:column; gap:5px; }
+.rc-ev{ display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-muted); }
+.rc-ev b{ color:var(--text); font-weight:700; }
+.rc-ev .rc-x{ margin-left:auto; border:none; background:none; cursor:pointer; color:var(--text-faint); font-size:12px; }
+.rc-ev .rc-x:hover{ color:#b02020; }
+.rc-hint{ font-size:11px; color:var(--text-muted); line-height:1.5; margin-top:6px; }
+.rc-step{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-faint); }
+
 /* ==== v0.79 — RFQ da sollecitare: flusso, raggruppamento per nave, ricerca ==== */
 .flow-mini{ display:inline-flex; gap:2px; vertical-align:1px; margin-left:4px; }
 .fm-seg{ font-family:var(--font-mono); font-size:8.5px; font-weight:700; letter-spacing:.02em;
@@ -10961,6 +10988,8 @@ window.maSollecita = function(vid, ref){
   const draft = `Gentili,\n\nin riferimento alla nostra richiesta ${ref} (${vname}), non avendo ancora ricevuto riscontro${days?` dopo ${days} giorni`:""}, Vi chiediamo cortesemente un aggiornamento sui tempi di offerta.\n\nRestiamo in attesa. Cordiali saluti,\nMichele Del Vecchio — Purchasing`;
   const subj = `Sollecito offerta ${ref} — ${vname}`;
   window._maDraft = draft; window._maDraftMail = email; window._maDraftSubj = subj;
+  // v0.88 — anche dal telefono il sollecito finisce nel registro (numero RFQ + livello)
+  window._maDraftRef = ref; window._maDraftVid = vid; window._maDraftSup = sup;
   const mailBtn = `<button class="ma-sheet-btn pri" onclick="maSollecitaMail()">✉️ Apri email</button>`;
   maRenderSheet(`
     <div class="ma-sheet-h">SOLLECITO ${escapeHTML(ref)}${sup?` · ${escapeHTML(sup)}`:""}</div>
@@ -10978,6 +11007,14 @@ window.maSollecita = function(vid, ref){
 window.maSollecitaMail = function(){
   const ta=document.getElementById("ma-sol-ta"); const body=ta?ta.value:(window._maDraft||"");
   const to=window._maDraftMail||""; const subj=window._maDraftSubj||"Sollecito RFQ";
+  try{
+    const ref=window._maDraftRef;
+    if(ref && typeof recordRfqChase==="function"){
+      const lvl=(typeof rfqNextLevel==="function")?rfqNextLevel(ref):1;
+      recordRfqChase(ref,{level:lvl, lang:"it", to, subject:subj, vesselId:window._maDraftVid||"", supplier:window._maDraftSup||""});
+      if(typeof maToast==="function") maToast((typeof rfqLadder==="function"?rfqLadder(lvl).it:"Sollecito")+" registrato");
+    }
+  }catch(_){}
   const url=buildComposeHref(subj, body, to);
   try{ window.location.href=url; }catch(_){}
 };
@@ -16572,23 +16609,140 @@ function rfqSubjRef(o, lang){
   return lang === "it" ? `${nums.length} RFQ` : `${nums.length} RFQs`;
 }
 
+// ============================================================================
+// === v0.88 — REGISTRO SOLLECITI RFQ =========================================
+// Pratica procurement marittimo: OGNI RFQ ha la sua catena di solleciti, con
+// data e livello. Niente più email cumulative che mescolano richieste diverse:
+// il fornitore deve poter rispondere richiesta per richiesta, e noi dobbiamo
+// poter dimostrare quando abbiamo sollecitato (1°, 2°, 3°, chiusura).
+const RFQ_CHASE_LADDER = [
+  { level:1, it:"1° sollecito",  en:"1st reminder",   wait:7,
+    hint:"Richiamo cortese: chiedi conferma di presa in carico e tempi di quotazione." },
+  { level:2, it:"2° sollecito",  en:"2nd reminder",   wait:5,
+    hint:"Richiesta formale di riscontro entro 48 h: la nave ha una finestra di consegna." },
+  { level:3, it:"3° sollecito",  en:"Final reminder", wait:3,
+    hint:"Ultimo avviso: senza riscontro la richiesta passa a fornitore alternativo." },
+  { level:4, it:"Chiusura RFQ",  en:"RFQ closure",    wait:0,
+    hint:"Chiusura formale: si procede con altro fornitore, il fornitore resta in rubrica." }
+];
+function rfqLadder(l){ return RFQ_CHASE_LADDER[Math.min(Math.max(parseInt(l,10)||1,1),4)-1]; }
+function loadRfqChases(){ try{ const o=JSON.parse(localStorage.getItem("mpd.rfqChases")||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function saveRfqChases(o){ try{ localStorage.setItem("mpd.rfqChases", JSON.stringify(o));
+  if(typeof driveSchedulePush==="function") driveSchedulePush();
+  if(typeof ghSetDirty==="function") ghSetDirty(); }catch(e){} }
+function rfqChaseKey(n){ return String(n||"").trim().toUpperCase(); }
+function getRfqChase(n){ const r=loadRfqChases()[rfqChaseKey(n)]; return (r&&Array.isArray(r.entries))?r:null; }
+function rfqChaseEntries(n){ const r=getRfqChase(n); return r?r.entries.slice().sort((a,b)=>String(a.ts).localeCompare(String(b.ts))):[]; }
+function rfqChaseLast(n){ const e=rfqChaseEntries(n); return e.length?e[e.length-1]:null; }
+function rfqChaseLevel(n){ const e=rfqChaseLast(n); return e?(e.level||1):0; }
+function rfqNextLevel(n){ return Math.min(rfqChaseLevel(n)+1, 4); }
+function rfqDaysSince(iso){ if(!iso) return null; const d=new Date(iso); if(isNaN(d)) return null; return Math.floor((Date.now()-d.getTime())/86400000); }
+// Giorni che mancano al sollecito successivo secondo la scala (0 = tocca adesso)
+function rfqChaseWaitLeft(n){
+  const last=rfqChaseLast(n); if(!last) return 0;
+  const w=(rfqLadder(last.level)||{}).wait||0;
+  const d=rfqDaysSince(last.ts); if(d==null) return 0;
+  return Math.max(0, w-d);
+}
+function rfqChaseDateLabel(iso){
+  const d=new Date(iso); if(isNaN(d)) return "—";
+  const M=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+  return d.getDate()+" "+M[d.getMonth()];
+}
+function rfqChaseDateFull(iso){
+  const d=new Date(iso); if(isNaN(d)) return "";
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+}
+function recordRfqChase(num, info){
+  const k=rfqChaseKey(num); if(!k) return null;
+  info=info||{};
+  const all=loadRfqChases();
+  const rec=(all[k]&&Array.isArray(all[k].entries))?all[k]:{entries:[]};
+  const entry={ id:"ch_"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+    ts:new Date().toISOString(), level:Math.min(Math.max(parseInt(info.level,10)||1,1),4),
+    lang:info.lang||"en", to:info.to||"", subject:info.subject||"", channel:info.channel||"email" };
+  rec.entries.push(entry);
+  rec.rfqNumber=String(num);
+  rec.vesselId=info.vesselId||rec.vesselId||"";
+  rec.supplier=info.supplier||rec.supplier||"";
+  rec.description=info.description||rec.description||"";
+  rec.updatedAt=entry.ts;
+  all[k]=rec; saveRfqChases(all);
+  return entry.id;
+}
+function removeRfqChase(num, entryId){
+  const all=loadRfqChases(); const k=rfqChaseKey(num); const rec=all[k];
+  if(!rec||!Array.isArray(rec.entries)) return;
+  rec.entries=rec.entries.filter(e=>e.id!==entryId);
+  if(!rec.entries.length) delete all[k]; else { rec.updatedAt=new Date().toISOString(); all[k]=rec; }
+  saveRfqChases(all);
+}
+// Sintesi per una riga azione che può portare più numeri RFQ
+function rfqChaseRowState(nums){
+  const list=(nums||[]).filter(Boolean);
+  let level=0, last=null, chased=0;
+  list.forEach(n=>{ const e=rfqChaseLast(n); if(e){ chased++; if((e.level||1)>level) level=e.level||1; if(!last||String(e.ts)>String(last.ts)) last=e; } });
+  const waits=list.map(n=>rfqChaseWaitLeft(n));
+  return { total:list.length, chased, level, last,
+    dueNow: list.some((n,i)=>waits[i]===0),
+    waitLeft: waits.length?Math.min(...waits):0 };
+}
+
 // v0.79 — Sollecito offerta: UN SOLO testo, identico per sollecito singolo e multiplo
 // (cambia solo il numero di righe nell'elenco). Nave nell'oggetto e nel corpo.
+// v0.88 — il testo ora sale di tono col LIVELLO (ctx.chaseLevel 1-4) e cita le date
+// dei solleciti precedenti (ctx.chaseHistory: array di date gg/mm/aaaa).
 const EMAIL_TEMPLATES = {
   "rfq-overdue": {
     it: (ctx) => {
       const pl = rfqAllNums(ctx).length > 1;   // v0.87 — accordo singolare/plurale
-      return {
-        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Sollecito offert${pl ? "e" : "a"} – ${rfqSubjRef(ctx, "it")}`.trim(),
-        body: `Buongiorno,\n\nrestiamo in attesa d${pl ? "elle vostre cortesi offerte relative alle seguenti RFQ" : "ella vostra cortese offerta relativa alla seguente RFQ"} (Request for Quotation)${ctx.vesselName ? " per la " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "it")}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio ${pl ? "delle offerte" : "dell'offerta"}.\n\nGrazie per il cortese riscontro.`
-      };
+      const L = Math.min(Math.max(parseInt(ctx.chaseLevel, 10) || 1, 1), 4);
+      const hist = Array.isArray(ctx.chaseHistory) ? ctx.chaseHistory.filter(Boolean) : [];
+      const prev = hist.length
+        ? (hist.length === 1 ? `del ${hist[0]}` : `del ${hist.slice(0, -1).join(", ")} e del ${hist[hist.length - 1]}`)
+        : "";
+      const elenco = `${rfqBullet(ctx, "it")}`;
+      const capo = `${ctx.vesselName ? " per la " + ctx.vesselName : ""}`;
+      const subjHead = L === 1 ? `Sollecito offert${pl ? "e" : "a"}`
+        : L === 2 ? `2° sollecito offert${pl ? "e" : "a"}`
+        : L === 3 ? `3° e ultimo sollecito offert${pl ? "e" : "a"}`
+        : `Chiusura richiest${pl ? "e" : "a"} di offerta`;
+      let body;
+      if (L === 1) {
+        body = `Buongiorno,\n\nrestiamo in attesa d${pl ? "elle vostre cortesi offerte relative alle seguenti RFQ" : "ella vostra cortese offerta relativa alla seguente RFQ"} (Request for Quotation)${capo}:\n\n${elenco}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio ${pl ? "delle offerte" : "dell'offerta"}.\n\nGrazie per il cortese riscontro.`;
+      } else if (L === 2) {
+        body = `Buongiorno,\n\nfacciamo seguito al nostro sollecito ${prev || "precedente"}, ad oggi senza riscontro, relativo a${pl ? "lle seguenti RFQ" : "lla seguente RFQ"}${capo}:\n\n${elenco}\n\nLa nave ha una finestra di consegna da rispettare: Vi chiediamo cortesemente un riscontro entro 48 ore, anche solo per confermare se siete in grado di quotare. In caso contrario Vi saremo grati di comunicarcelo, così da poter interpellare per tempo un fornitore alternativo.\n\nRestiamo in attesa di un Vostro cortese riscontro.`;
+      } else if (L === 3) {
+        body = `Buongiorno,\n\nnonostante i nostri solleciti ${prev || "precedenti"} non abbiamo ancora ricevuto alcun riscontro in merito a${pl ? "lle seguenti RFQ" : "lla seguente RFQ"}${capo}:\n\n${elenco}\n\nQuesto è il nostro terzo e ultimo sollecito. In mancanza di una Vostra risposta entro 24 ore saremo costretti a considerare la richiesta non quotabile da parte Vostra e ad affidarla ad altro fornitore.\n\nConfidiamo in un Vostro riscontro immediato.`;
+      } else {
+        body = `Buongiorno,\n\nnon avendo ricevuto riscontro ai nostri solleciti ${prev || "precedenti"}, comunichiamo che ${pl ? "le seguenti richieste di offerta vengono chiuse" : "la seguente richiesta di offerta viene chiusa"} da parte nostra e affidat${pl ? "e" : "a"} ad altro fornitore${capo}:\n\n${elenco}\n\nRestiamo naturalmente a disposizione per le prossime richieste, auspicando tempi di riscontro più rapidi.\n\nCordiali saluti.`;
+      }
+      return { subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}${subjHead} – ${rfqSubjRef(ctx, "it")}`.trim(), body };
     },
     en: (ctx) => {
       const pl = rfqAllNums(ctx).length > 1;
-      return {
-        subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}Quotation reminder – ${rfqSubjRef(ctx, "en")}`.trim(),
-        body: `Good morning,\n\nwe are still awaiting your kind quotation${pl ? "s" : ""} for the following RFQ${pl ? "s" : ""} (Request for Quotation)${ctx.vesselName ? " for " + ctx.vesselName : ""}:\n\n${rfqBullet(ctx, "en")}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer${pl ? "s" : ""}.\n\nThank you for your kind reply.`
-      };
+      const L = Math.min(Math.max(parseInt(ctx.chaseLevel, 10) || 1, 1), 4);
+      const hist = Array.isArray(ctx.chaseHistory) ? ctx.chaseHistory.filter(Boolean) : [];
+      const prev = hist.length
+        ? (hist.length === 1 ? `dated ${hist[0]}` : `dated ${hist.slice(0, -1).join(", ")} and ${hist[hist.length - 1]}`)
+        : "";
+      const elenco = `${rfqBullet(ctx, "en")}`;
+      const forV = `${ctx.vesselName ? " for " + ctx.vesselName : ""}`;
+      const subjHead = L === 1 ? "Quotation reminder"
+        : L === 2 ? "2nd reminder – quotation"
+        : L === 3 ? "Final reminder – quotation"
+        : "RFQ closure";
+      let body;
+      if (L === 1) {
+        body = `Good morning,\n\nwe are still awaiting your kind quotation${pl ? "s" : ""} for the following RFQ${pl ? "s" : ""} (Request for Quotation)${forV}:\n\n${elenco}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer${pl ? "s" : ""}.\n\nThank you for your kind reply.`;
+      } else if (L === 2) {
+        body = `Good morning,\n\nwe refer to our reminder ${prev || "already sent"}, still unanswered, concerning the following RFQ${pl ? "s" : ""}${forV}:\n\n${elenco}\n\nThe vessel has a delivery window to meet: we kindly ask for your feedback within 48 hours, even only to confirm whether you are able to quote. Should you not be in a position to do so, please advise, so that we may approach an alternative supplier in due time.\n\nAwaiting your kind reply.`;
+      } else if (L === 3) {
+        body = `Good morning,\n\ndespite our reminders ${prev || "already sent"} we have not received any feedback regarding the following RFQ${pl ? "s" : ""}${forV}:\n\n${elenco}\n\nThis is our third and final reminder. Failing your reply within 24 hours we will have to consider the enquiry as not quotable on your side and place it with an alternative supplier.\n\nWe trust in your immediate feedback.`;
+      } else {
+        body = `Good morning,\n\nhaving received no feedback to our reminders ${prev || "already sent"}, we hereby inform you that the following enquir${pl ? "ies are" : "y is"} closed on our side and placed with an alternative supplier${forV}:\n\n${elenco}\n\nWe remain of course available for future enquiries, trusting in faster feedback.\n\nBest regards.`;
+      }
+      return { subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}${subjHead} – ${rfqSubjRef(ctx, "en")}`.trim(), body };
     }
   },
   "rfq-batch": {
@@ -16763,6 +16917,152 @@ window.changeSupplierLanguage = function(supplier) {
 
 
 
+
+// ============================================================================
+// === v0.88 — PANNELLO "SOLLECITI RFQ" (procedura + registro) =================
+// Una riga per ogni RFQ: stato della catena, storico datato, invio del sollecito
+// successivo. L'email si apre già scritta al livello giusto e l'invio viene
+// registrato (con annulla) così resta traccia di quando è partito ogni sollecito.
+function rfqSupplierEmail(sup){
+  try{ if(sup && typeof getEntityProfile==="function"){ const p=getEntityProfile("supplier", sup)||{}; return p.email||""; } }catch(e){}
+  return "";
+}
+window.openRfqChasePanel = function(ctxJson){
+  let ctx;
+  try{ ctx = JSON.parse(decodeURIComponent(ctxJson)); }
+  catch(e){ console.error("[Solleciti] context non valido", e); return; }
+  ctx.rows = (ctx.rows||[]).filter(r=>r && r.n);
+  const stored = ctx.supplier && state.supplierLanguages ? state.supplierLanguages[ctx.supplier] : null;
+  window._rfqPanel = { ctx, lang: (stored==="it"||stored==="en") ? stored : "en", dirty:false };
+  let bd = document.getElementById("rfq-chase-backdrop");
+  if(!bd){
+    bd = document.createElement("div");
+    bd.id = "rfq-chase-backdrop";
+    bd.className = "item-detail-backdrop";
+    bd.addEventListener("click", ev => { if(ev.target===bd) window.closeRfqChasePanel(); });
+    document.body.appendChild(bd);
+  }
+  bd.innerHTML = `
+    <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width:640px;">
+      <div class="item-detail-header">
+        <div class="item-detail-title">
+          <h2>Solleciti offerta · ${escapeHTML(ctx.supplier || "fornitore")}</h2>
+          <div class="item-detail-meta">
+            <span class="muted">${escapeHTML(ctx.vesselName || "")}${ctx.rows.length>1 ? " · "+ctx.rows.length+" RFQ, un sollecito ciascuna" : ""}</span>
+          </div>
+        </div>
+        <button class="item-detail-close" onclick="window.closeRfqChasePanel()" title="Chiudi">✕</button>
+      </div>
+      <div class="item-detail-body" id="rfq-chase-body"></div>
+    </div>`;
+  bd.classList.add("open");
+  renderRfqChaseBody();
+};
+window.closeRfqChasePanel = function(){
+  const bd = document.getElementById("rfq-chase-backdrop");
+  if(bd) bd.classList.remove("open");
+  const st = window._rfqPanel;
+  window._rfqPanel = null;
+  if(st && st.dirty && typeof render==="function") render();
+};
+window.rfqChaseSetLang = function(l){
+  const st = window._rfqPanel; if(!st) return;
+  st.lang = (l==="it") ? "it" : "en";
+  const sup = st.ctx.supplier;
+  if(sup && sup!=="—" && state.supplierLanguages){ state.supplierLanguages[sup]=st.lang; saveSupplierLanguages(); }
+  renderRfqChaseBody();
+};
+function renderRfqChaseBody(){
+  const st = window._rfqPanel; if(!st) return;
+  const host = document.getElementById("rfq-chase-body"); if(!host) return;
+  const ctx = st.ctx;
+  const mail = rfqSupplierEmail(ctx.supplier);
+  const rows = ctx.rows.map(r => {
+    const num = r.n;
+    const entries = rfqChaseEntries(num);
+    const next = rfqNextLevel(num);
+    const lad = rfqLadder(next);
+    const wait = rfqChaseWaitLeft(num);
+    const doneAll = entries.length >= 4;
+    const tl = entries.length ? `<div class="rc-tl">${entries.map(e => `
+        <div class="rc-ev">
+          <b>${escapeHTML(rfqLadder(e.level).it)}</b>
+          <span>${escapeHTML(rfqChaseDateFull(e.ts))}</span>
+          <span>· ${e.channel==="manual" ? "registrato a mano" : (e.lang||"en").toUpperCase()}</span>
+          <button class="rc-x" onclick="window.rfqChaseUndo('${escapeAttr(num)}','${escapeAttr(e.id)}')" title="Rimuovi dal registro">✕</button>
+        </div>`).join("")}</div>` : `<div class="rc-hint">Mai sollecitata${r.rfqDate ? " — RFQ inviata il "+escapeHTML(r.rfqDate) : ""}${r.days ? ", "+r.days+" giorni fa" : ""}.</div>`;
+    const sendLabel = doneAll ? "Catena completata" : `Invia ${lad.it}`;
+    const sendBtn = doneAll
+      ? `<button class="btn btn-sm" disabled>${sendLabel}</button>`
+      : `<button class="btn btn-sm ${wait===0 ? "btn-primary" : ""}" onclick="window.rfqChaseSend('${escapeAttr(num)}')">${sendLabel} →</button>`;
+    return `<div class="rc-row ${doneAll ? "done" : ""}">
+      <div class="rc-top">
+        <span class="rc-num">${escapeHTML(num)}</span>
+        <span class="rc-desc">${escapeHTML(truncate(r.description || ctx.description || "", 70))}</span>
+        <span class="rc-acts">
+          ${sendBtn}
+          <button class="btn btn-sm" onclick="window.rfqChaseMark('${escapeAttr(num)}')" title="Registra un sollecito già inviato (telefono, email fuori dashboard)">✓ Già fatto</button>
+        </span>
+      </div>
+      ${tl}
+      ${doneAll ? "" : `<div class="rc-hint"><span class="rc-step">Prossimo passo</span> · ${escapeHTML(lad.hint)}${wait>0 ? ` <b>Da procedura mancano ancora ${wait} g</b> dall'ultimo sollecito — puoi comunque inviarlo.` : ""}</div>`}
+    </div>`;
+  }).join("");
+  host.innerHTML = `
+    <div class="rc-head">
+      <span class="muted" style="font-size:11.5px;">Destinatario: ${mail ? escapeHTML(mail) : "<b>nessuna email in rubrica</b> — la aggiungi nella scheda fornitore"}</span>
+      <span class="rc-lang">
+        <button class="${st.lang==="it"?"on":""}" onclick="window.rfqChaseSetLang('it')">IT</button>
+        <button class="${st.lang==="en"?"on":""}" onclick="window.rfqChaseSetLang('en')">EN</button>
+      </span>
+    </div>
+    ${rows || '<div class="muted">Nessun numero RFQ su questa riga.</div>'}
+    <div class="rc-hint" style="margin-top:12px;">
+      Procedura: 1° sollecito dopo 7 giorni · 2° dopo altri 5 · 3° e ultimo dopo altri 3 · poi chiusura e fornitore alternativo.
+      Ogni RFQ viaggia con la sua email: il fornitore risponde richiesta per richiesta e resta traccia delle date.
+    </div>`;
+}
+window.rfqChaseSend = function(num){
+  const st = window._rfqPanel; if(!st) return;
+  const ctx = st.ctx;
+  const row = (ctx.rows||[]).find(r => String(r.n)===String(num)) || {};
+  const level = rfqNextLevel(num);
+  const hist = rfqChaseEntries(num).map(e => rfqChaseDateFull(e.ts)).filter(Boolean);
+  const tctx = {
+    description: row.description || ctx.description || "",
+    days: row.days != null ? row.days : ctx.days,
+    rfqDate: row.rfqDate || "",
+    supplier: ctx.supplier || "",
+    vesselName: ctx.vesselName || "",
+    rfqNumber: num,
+    rfqAllNumbers: [num],
+    chaseLevel: level,
+    chaseHistory: hist
+  };
+  const r = resolveEmailTemplate("rfq-overdue", tctx, st.lang);
+  if(!r) return;
+  const to = rfqSupplierEmail(ctx.supplier);
+  openComposeMail(buildComposeHref(r.subject, r.body, to));
+  const id = recordRfqChase(num, { level, lang:st.lang, to, subject:r.subject,
+    vesselId:ctx.vesselId||"", supplier:ctx.supplier||"", description:tctx.description });
+  st.dirty = true;
+  renderRfqChaseBody();
+  if(typeof showToast==="function" && id) showToast(`${rfqLadder(level).it} registrato per ${num} \u2014 puoi rimuoverlo dal registro con \u2715`);
+};
+window.rfqChaseMark = function(num){
+  const st = window._rfqPanel; if(!st) return;
+  const level = rfqNextLevel(num);
+  recordRfqChase(num, { level, lang:st.lang, channel:"manual",
+    vesselId:st.ctx.vesselId||"", supplier:st.ctx.supplier||"" });
+  st.dirty = true;
+  renderRfqChaseBody();
+  if(typeof showToast==="function") showToast(`${rfqLadder(level).it} registrato a mano per ${num}`);
+};
+window.rfqChaseUndo = function(num, entryId){
+  removeRfqChase(num, entryId);
+  if(window._rfqPanel) window._rfqPanel.dirty = true;
+  renderRfqChaseBody();
+};
 
 // ============================================================================
 // === OUTLOOK SYNC v0.14 — Sync bidirezionale task Outlook ↔ to-do dashboard
@@ -21335,29 +21635,26 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
   // v0.79 — Sollecitabili (overdue/refused): PRIMO livello NAVE, dentro i FORNITORI
   const groupableByVendor = (ruleType === "overdue" || ruleType === "refused");
 
-  // Blocco di un fornitore (header + eventuale sollecito unico + righe)
+  // Blocco di un fornitore (header + registro solleciti del fornitore + righe)
   function supplierBlockHTML(sup, supItems){
     const canBatch = sup !== "(senza fornitore)" && supItems.length >= 2;
     let batchBtn = "";
     if (canBatch) {
-      const ctx = {
-        vesselName: supItems[0].vesselName || "",
-        supplier: sup,
-        items: supItems.map(i => {
-          const src = (i.action && i.action.context) || {};
-          return {
-            description: src.description || i.description || "",
-            days: src.days != null ? src.days : (i.ageDays || "?"),
-            rfqDate: src.rfqDate || "",
-            rfqNumber: src.rfqNumber || i.docNumber || (Array.isArray(i.docAllNumbers) && i.docAllNumbers[0]) || "",
-            // v0.87 — nel sollecito cumulativo ogni riga porta TUTTI i suoi numeri RFQ
-            rfqAllNumbers: (Array.isArray(src.rfqAllNumbers) && src.rfqAllNumbers.length ? src.rfqAllNumbers
-                            : (Array.isArray(i.docAllNumbers) ? i.docAllNumbers : []))
-          };
-        })
-      };
-      const ctxJson = encodeURIComponent(JSON.stringify(ctx));
-      batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.handleMailtoBilingualClick('batch:${escapeAttr(sup)}', '${escapeAttr(sup)}', 'rfq-batch', '${ctxJson}')"><svg class="icon icon-sm"><use href="#i-send"/></svg> Sollecita tutti (${supItems.length}) →</button>`;
+      // v0.88 — niente più email cumulativa: si apre il REGISTRO con tutte le RFQ del
+      // fornitore su questa nave, e ognuna parte con la sua email al proprio livello.
+      const rows = [];
+      supItems.forEach(i => {
+        const src = (i.action && i.action.context) || {};
+        const nums = (Array.isArray(src.rfqAllNumbers) && src.rfqAllNumbers.length) ? src.rfqAllNumbers
+          : (Array.isArray(i.docAllNumbers) && i.docAllNumbers.length ? i.docAllNumbers
+          : (i.docNumber ? [i.docNumber] : []));
+        const dt = (typeof rfqIssueDate === "function") ? rfqIssueDate(src) : "";
+        nums.forEach(n => rows.push({ n, description: src.description || i.description || "", rfqDate: dt, days: src.days != null ? src.days : i.ageDays }));
+      });
+      const pctx = { rows, supplier: sup, vesselName: supItems[0].vesselName || "", vesselId: supItems[0].vesselId || "" };
+      const pj = encodeURIComponent(JSON.stringify(pctx));
+      const s = rfqChaseRowState(rows.map(r => r.n));
+      batchBtn = `<button class="btn btn-sm btn-batch" onclick="window.openRfqChasePanel('${pj}')"><svg class="icon icon-sm"><use href="#i-send"/></svg> Registro solleciti (${rows.length} RFQ)${s.chased ? ` · ${s.chased} già sollecitate` : ""} →</button>`;
     }
     return `
       <div class="supplier-subgroup">
@@ -21508,9 +21805,27 @@ function actionRowHTMLv2(a, isInGroup) {
       const href = buildComposeHref(p.subject || "", p.body || "", p.to || "");
       actionBtn = `<button class="btn btn-sm" onclick="openComposeMail('${escapeAttr(href)}')">${escapeHTML(a.action.label)} →</button>`;
     } else if (a.action.type === "mailto-bilingual") {
-      // v0.10.2 — handler smart con scelta lingua memorizzata o picker
-      const ctxJson = encodeURIComponent(JSON.stringify(a.action.context || {}));
-      actionBtn = `<button class="btn btn-sm" onclick="window.handleMailtoBilingualClick('${escapeAttr(a.key)}', '${escapeAttr(a.supplier || "")}', '${escapeAttr(a.action.template)}', '${ctxJson}')">${escapeHTML(a.action.label)} →</button>${langBadge}`;
+      // v0.88 — solleciti RFQ: non si apre più un'email diretta ma il registro solleciti,
+      // dove ogni RFQ ha la sua email al livello giusto e la data d'invio resta registrata.
+      if (a.action.template === "rfq-overdue") {
+        const c = a.action.context || {};
+        const nums = (Array.isArray(a.docAllNumbers) && a.docAllNumbers.length)
+          ? a.docAllNumbers : (c.rfqNumber ? [c.rfqNumber] : []);
+        const pctx = {
+          rows: nums.map(n => ({ n, description: c.description || "", rfqDate: (typeof rfqIssueDate === "function" ? rfqIssueDate(c) : ""), days: c.days })),
+          description: c.description || "", supplier: a.supplier || c.supplier || "",
+          vesselName: a.vesselName || c.vesselName || "", vesselId: a.vesselId || "", days: c.days
+        };
+        const pj = encodeURIComponent(JSON.stringify(pctx));
+        const stc = rfqChaseRowState(nums);
+        const lbl = nums.length > 1 ? `Solleciti (${nums.length})`
+          : (stc.level ? `${Math.min(stc.level + 1, 4)}° sollecito` : "Sollecita");
+        actionBtn = `<button class="btn btn-sm" onclick="window.openRfqChasePanel('${pj}')">${escapeHTML(lbl)} →</button>${langBadge}`;
+      } else {
+        // v0.10.2 — handler smart con scelta lingua memorizzata o picker
+        const ctxJson = encodeURIComponent(JSON.stringify(a.action.context || {}));
+        actionBtn = `<button class="btn btn-sm" onclick="window.handleMailtoBilingualClick('${escapeAttr(a.key)}', '${escapeAttr(a.supplier || "")}', '${escapeAttr(a.action.template)}', '${ctxJson}')">${escapeHTML(a.action.label)} →</button>${langBadge}`;
+      }
     } else if (a.action.type === "todo-edit") {
       actionBtn = `<button class="btn btn-sm" onclick="openTodoModal('${escapeAttr(a.action.payload)}')">Apri →</button>`;
     } else if (a.action.type === "link-internal") {
@@ -21589,6 +21904,21 @@ function actionRowHTMLv2(a, isInGroup) {
     ? `<span class="ab-sup">${escapeHTML(a.supplier)}${langBadge}</span>`
     : (!isInGroup && a._kind === "todo" ? `<span class="ab-sup faint">personale</span>` : "");
 
+  // v0.88 — stato della catena di solleciti sulla riga (livello raggiunto + data)
+  const chaseTag = (() => {
+    if (!/^(overdue|refused)/.test(String(a.key || ""))) return "";
+    const nums = (Array.isArray(a.docAllNumbers) && a.docAllNumbers.length)
+      ? a.docAllNumbers : (a.docNumber ? [a.docNumber] : []);
+    if (!nums.length) return "";
+    const s = rfqChaseRowState(nums);
+    if (!s.level) return `<span class="chase-tag" title="Nessun sollecito registrato">mai sollecitata</span>`;
+    const part = s.chased < s.total ? ` · ${s.chased}/${s.total} RFQ` : "";
+    const wait = s.waitLeft > 0
+      ? `<span class="chase-tag wait" title="Da procedura, prossimo sollecito tra ${s.waitLeft} giorni">attendi ${s.waitLeft}g</span>`
+      : "";
+    return `<span class="chase-tag lv${s.level}" title="Ultimo sollecito: ${escapeAttr(rfqChaseDateFull(s.last.ts))}">${s.level}° sollecito · ${escapeHTML(rfqChaseDateLabel(s.last.ts))}${part}</span> ${wait}`;
+  })();
+
   return `<div class="action-row action-row-cols ${isInGroup ? "in-group" : ""} ${isPinned ? "is-pinned" : ""}" data-action-key="${escapeAttr(a.key)}" data-vid="${escapeAttr(a.vesselId || '')}">
     <div class="action-col-type">
       <span class="pill-status ${cfg.color}">${actionTypeIconHTML(a)}${escapeHTML(a.label)}</span>
@@ -21596,7 +21926,7 @@ function actionRowHTMLv2(a, isInGroup) {
     </div>
     <div class="action-body">
       <div class="ab-main">${escapeHTML(truncate(desc, 170))}</div>
-      <div class="ab-meta">${docHTML} ${supMeta} ${returnedTag}</div>
+      <div class="ab-meta">${docHTML} ${supMeta} ${chaseTag} ${returnedTag}</div>
     </div>
     <div class="action-col-nave">${naveCell}</div>
     <div class="action-col-scad">${scadenzaCell}</div>
@@ -23073,6 +23403,7 @@ function buildStatePayload() {
     itemOverrides: (typeof loadItemOverrides === "function" ? loadItemOverrides() : {}),
     repliesDismissed: (typeof loadDismissedReplies === "function" ? loadDismissedReplies() : []),
     shipments: (typeof loadShipments === "function" ? loadShipments() : {}),
+    rfqChases: (typeof loadRfqChases === "function" ? loadRfqChases() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
   };
@@ -23549,7 +23880,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -23581,7 +23912,8 @@ function collSnapshot(){
     worldClockCities: f(typeof loadWorldClockCities==="function"?loadWorldClockCities():[]),
     itemOverrides: f(typeof loadItemOverrides==="function"?loadItemOverrides():{}),
     repliesDismissed: f(typeof loadDismissedReplies==="function"?loadDismissedReplies():[]),
-    shipments: f(typeof loadShipments==="function"?loadShipments():{})
+    shipments: f(typeof loadShipments==="function"?loadShipments():{}),
+    rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{})
   };
 }
 
@@ -23642,6 +23974,27 @@ function mpdMergeRemote(remote, force){
     adopt("worldClockCities", ()=>{ if(!Array.isArray(remote.worldClockCities)||typeof saveWorldClockCities!=="function") return false; saveWorldClockCities(remote.worldClockCities); });
     adopt("itemOverrides", ()=>{ if(!remote.itemOverrides||typeof remote.itemOverrides!=="object"||typeof saveItemOverrides!=="function") return false; saveItemOverrides(remote.itemOverrides); });
     adopt("shipments", ()=>{ if(!remote.shipments||typeof remote.shipments!=="object"||typeof saveShipmentsDB!=="function") return false; saveShipmentsDB(remote.shipments); });
+    // v0.88 — registro solleciti RFQ: UNIONE additiva per numero RFQ (un sollecito inviato
+    // da un device non può sparire perché un altro device è rimasto indietro).
+    if (remote.rfqChases && typeof remote.rfqChases==="object" && typeof loadRfqChases==="function") {
+      const local = loadRfqChases(); let touched=false;
+      for (const k of Object.keys(remote.rfqChases)) {
+        const rr = remote.rfqChases[k]; if(!rr||!Array.isArray(rr.entries)) continue;
+        const lr = (local[k] && Array.isArray(local[k].entries)) ? local[k] : null;
+        if (!lr) { local[k]=rr; touched=true; continue; }
+        const ids = new Set(lr.entries.map(e=>e.id));
+        const add = rr.entries.filter(e=>e && !ids.has(e.id));
+        if (add.length) { lr.entries=lr.entries.concat(add); touched=true; }
+        lr.supplier = lr.supplier || rr.supplier || "";
+        lr.vesselId = lr.vesselId || rr.vesselId || "";
+        lr.description = lr.description || rr.description || "";
+      }
+      if (touched) {
+        try{ localStorage.setItem("mpd.rfqChases", JSON.stringify(local)); }catch{}
+        lMeta["rfqChases"] = force ? (rMeta["rfqChases"]||lMeta["rfqChases"]) : (rMeta["rfqChases"]||new Date().toISOString());
+        changed = true;
+      }
+    }
     // email "fatte": UNIONE additiva (un "fatto" non deve mai essere annullato da un altro device),
     // quindi la applico sempre se il remoto porta qualcosa di nuovo, non solo per timestamp.
     if (Array.isArray(remote.repliesDismissed)) {
