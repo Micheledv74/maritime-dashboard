@@ -2084,6 +2084,15 @@
         "positionText": "06-22.4S / 047-21.6E",
         "milesToGo": "476",
         "to": "MOMBASA"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "lon": "93-43E",
+        "positionText": "93-43E",
+        "current": "please note that the vessel is currently outside the range of our hub.",
+        "vesselId": "medtoscana",
+        "date": "2026-09-22"
       }
     ],
     "medliguria": [
@@ -4379,9 +4388,17 @@
         "_loose": true,
         "lon": "633-23E",
         "positionText": "633-23E",
-        "current": "Meanwhile, pls be informed that your departure pilot is confirmed for 1145LT 22 Sep 2026 basis your current bunkering progress and you may contact Pilot Station through VHF CH20 for early departure if the bunkering is completed earlier than schedule.",
+        "current": "Bunker lifted, if any : NIL",
         "vesselId": "medliguria",
-        "date": "2026-09-22"
+        "date": "2026-09-22",
+        "bunkers": {
+          "lsfo": "764.14",
+          "lsmgo": "45.77",
+          "fw": "252"
+        },
+        "type": "sea",
+        "wind": "COSP : 1330 LT",
+        "sea": "ROB on sailing : (COSP) LSFO- 1383.13 mt/ LSMGO- 45.77 mt"
       }
     ],
     "peppino": [
@@ -7217,5 +7234,5 @@
       }
     ]
   },
-  "syncedAt": "2026-09-22T06:08:33.855Z"
+  "syncedAt": "2026-09-22T07:08:40.708Z"
 }
