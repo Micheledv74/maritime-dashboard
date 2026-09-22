@@ -2088,11 +2088,30 @@
       {
         "isNoonReport": true,
         "_loose": true,
-        "lon": "93-43E",
-        "positionText": "93-43E",
+        "lon": "042-47.5E",
+        "positionText": "05-05.4S / 042-47.5E",
         "current": "please note that the vessel is currently outside the range of our hub.",
         "vesselId": "medtoscana",
-        "date": "2026-09-22"
+        "date": "2026-09-22",
+        "type": "sea",
+        "bunkers": {
+          "lsfo": "401.906",
+          "lsmgo": "58.381"
+        },
+        "course": "290",
+        "speed": "11.36",
+        "wind": "SE/4",
+        "sea": "SE/2.6 MTR",
+        "swell": "SE/ABT 2.5 MTR",
+        "etaText": "23.09.2026 0600lt AGW WP, MOMBASA",
+        "etaISO": "2026-09-23T06:00",
+        "consumption": {
+          "lsfo": "23.25",
+          "lsmgo": "0.10"
+        },
+        "lat": "05-05.4S",
+        "milesToGo": "192",
+        "to": "MOMBASA"
       }
     ],
     "medliguria": [
@@ -4388,7 +4407,7 @@
         "_loose": true,
         "lon": "633-23E",
         "positionText": "633-23E",
-        "current": "Bunker lifted, if any : NIL",
+        "current": "Please confirm the data retention period (in months) for the Engine Room (ER) alarm logging system. Furthermore, provide full details of the current ER monitoring system so we can verify with the manufacturer if a printer can be integrated.",
         "vesselId": "medliguria",
         "date": "2026-09-22",
         "bunkers": {
@@ -7243,5 +7262,5 @@
       }
     ]
   },
-  "syncedAt": "2026-09-22T09:07:57.564Z"
+  "syncedAt": "2026-09-22T10:08:30.632Z"
 }
