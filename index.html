@@ -8196,6 +8196,123 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   .paix-shell .paix-col1 { display: none !important; }
 }
 
+/* ======================================================================
+   v0.91 — "INCHIOSTRO E SEGNALI": colori decisi sulla pelle Vetro
+   Diagnosi: le superfici di LAVORO erano vetro traslucido (.55–.78) e il
+   fondo teal filtrava attraverso, sbiadendo ogni tinta; i segnali erano
+   pastelli (rosa, crema, azzurrino) con inchiostro a mezzo tono. Risultato:
+   nulla gridava, tutto sussurrava.
+   Rimedio: il vetro resta nel CROMO (header, barra navi, rail), dove serve
+   a far respirare; le superfici su cui si LEGGE e si DECIDE diventano
+   opache, e i segnali si riducono a quattro, saturi e sempre gli stessi:
+   rosso allarme · ambra attesa · blu azione · verde chiuso.
+   ====================================================================== */
+:root:not([data-theme="dark"]) body.skin-glass {
+  --text: #0a1b2e;
+  --text-muted: #44576b;
+  --text-faint: #6a7d90;
+  --c-red-bg: #fde3e0;  --c-red-fg: #96150c;  --c-red-dot: #c0261c;
+  --c-amber-bg: #fdeed0; --c-amber-fg: #8a4b00; --c-amber-dot: #c07800;
+  --c-blue-bg: #dce8ff;  --c-blue-fg: #0b3ea8;  --c-blue-dot: #1553d8;
+  --c-green-bg: #dff1e6; --c-green-fg: #0f5c3a; --c-green-dot: #14794e;
+}
+/* Superfici di lavoro opache: l'inchiostro torna nero su bianco */
+:root:not([data-theme="dark"]) body.skin-glass .main-wrap {
+  background: rgba(255,255,255,.93) !important;
+  border-color: rgba(255,255,255,.75) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-card,
+:root:not([data-theme="dark"]) body.skin-glass .panel-card,
+:root:not([data-theme="dark"]) body.skin-glass .actions-group,
+:root:not([data-theme="dark"]) body.skin-glass .actions-table-wrap,
+:root:not([data-theme="dark"]) body.skin-glass .g4-card,
+:root:not([data-theme="dark"]) body.skin-glass .cal-wrap,
+:root:not([data-theme="dark"]) body.skin-glass .calendar-card,
+:root:not([data-theme="dark"]) body.skin-glass .position-panel,
+:root:not([data-theme="dark"]) body.skin-glass .vessel-hero,
+:root:not([data-theme="dark"]) body.skin-glass .perf-banner,
+:root:not([data-theme="dark"]) body.skin-glass .pp-kpi {
+  background: #fff !important;
+  border: 1px solid rgba(10,27,46,.10) !important;
+  box-shadow: 0 1px 2px rgba(10,27,46,.06), 0 12px 28px -18px rgba(10,27,46,.45) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .section-title h2,
+:root:not([data-theme="dark"]) body.skin-glass .g4-hello h1,
+:root:not([data-theme="dark"]) body.skin-glass .g4-card h3 { color: #0a1b2e !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile .cn-lbl { color: #44576b !important; }
+
+/* SEGNALI — pill a tinta satura, inchiostro pieno, bordo del proprio colore */
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status {
+  border: 1px solid transparent !important;
+  font-weight: 750 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.crit,
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.alert,
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.urgent {
+  background: #c0261c !important; color: #fff !important; border-color: #9d1d14 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.warn,
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.attesa {
+  background: #fdeed0 !important; color: #8a4b00 !important; border-color: rgba(192,120,0,.42) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.info {
+  background: #dce8ff !important; color: #0b3ea8 !important; border-color: rgba(21,83,216,.38) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.ok,
+:root:not([data-theme="dark"]) body.skin-glass .action-row .pill-status.success {
+  background: #dff1e6 !important; color: #0f5c3a !important; border-color: rgba(20,121,78,.4) !important;
+}
+/* anzianità: il numero di giorni è un segnale, non una didascalia */
+:root:not([data-theme="dark"]) body.skin-glass .action-age { color: #96150c !important; }
+:root:not([data-theme="dark"]) body.skin-glass .ds-lbl { color: #6a7d90 !important; }
+
+/* FASCE DI PRIORITÀ — riga d'inchiostro con barra del proprio segnale */
+:root:not([data-theme="dark"]) body.skin-glass .actions-group-title {
+  background: rgba(10,27,46,.055) !important;
+  color: #0a1b2e !important;
+  font-weight: 800 !important;
+  border-left: 4px solid rgba(10,27,46,.35) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .actions-group[data-group="urgent"] .actions-group-title {
+  background: #fdeceb !important; border-left-color: #c0261c !important; color: #96150c !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .actions-group[data-group="week"] .actions-group-title {
+  background: #fdf3e2 !important; border-left-color: #c07800 !important; color: #8a4b00 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .actions-group[data-group="later"] .actions-group-title {
+  background: #eaf0fb !important; border-left-color: #1553d8 !important; color: #0b3ea8 !important;
+}
+/* sottogruppo fornitore e banda nave: inchiostro, non grigiolino */
+:root:not([data-theme="dark"]) body.skin-glass .supplier-subgroup-header .supplier-name,
+:root:not([data-theme="dark"]) body.skin-glass .fa-vessel-head { color: #0a1b2e !important; }
+:root:not([data-theme="dark"]) body.skin-glass .action-row-cols:nth-child(even) {
+  background: rgba(10,27,46,.022) !important;
+}
+
+/* TESSERE "COSA SERVE ORA" — il numero porta il colore del suo stato */
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-red .cn-num,
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-crit .cn-num { color: #c0261c !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-amber .cn-num { color: #b06a00 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-blue .cn-num { color: #1553d8 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-slate .cn-num { color: #0a1b2e !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-calm .cn-num { color: #14794e !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-slate,
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-blue,
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-calm { background: #fff !important; }
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-amber {
+  background: #fffaf0 !important; border-color: rgba(192,120,0,.32) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-red,
+:root:not([data-theme="dark"]) body.skin-glass .cn-tile.tier-crit {
+  background: #fff9f8 !important; border-color: rgba(192,38,28,.30) !important;
+}
+
+/* Etichette minute: maiuscoletto d'inchiostro invece di grigio evanescente */
+:root:not([data-theme="dark"]) body.skin-glass .kpi-label,
+:root:not([data-theme="dark"]) body.skin-glass .vc-kpi-label,
+:root:not([data-theme="dark"]) body.skin-glass .section-meta { color: #55697d !important; }
+
 body:not(.skin-glass) .g4-hello,
 body:not(.skin-glass) .g4-row,
 body:not(.skin-glass) .g4-rail { display: none !important; }
