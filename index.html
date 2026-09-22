@@ -9812,7 +9812,8 @@ function addTodo(todo) {
     // v0.54 — link email di origine: mostrato come bottone "📧 Apri" nella lista to-do
     ...(todo.outlookWebUrl ? { outlookWebUrl: todo.outlookWebUrl, outlookLinkedName: todo.outlookLinkedName || "" } : {}),
     done: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()   // v0.89 — serve al merge per singola to-do
   };
   state.todos.unshift(newTodo);
   saveTodos();
@@ -9892,7 +9893,20 @@ function spawnNextRecurrence(todo) {
   showToast("↻ Prossima occorrenza creata per " + nextDue);
 }
 
+// v0.89 — Cancellare una to-do è un'intenzione, non l'assenza di un dato: senza una
+// traccia esplicita il dispositivo che non ha ancora ricevuto la cancellazione la
+// ripropone al sync successivo ("le to-do risorgono"). Qui scrivo una pietra tombale
+// {id: quando} che viaggia col sync e vince sulla voce se è più recente.
+function loadTodoTombs(){ try{ const o=JSON.parse(localStorage.getItem("mpd.todoTombs")||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function saveTodoTombs(o){
+  // tengo solo le più recenti: 400 tombe bastano e non gonfiano il payload
+  const ent=Object.entries(o).sort((a,b)=>String(b[1]).localeCompare(String(a[1]))).slice(0,400);
+  try{ localStorage.setItem("mpd.todoTombs", JSON.stringify(Object.fromEntries(ent))); }catch(e){}
+}
+function addTodoTomb(id){ const o=loadTodoTombs(); o[String(id)]=new Date().toISOString(); saveTodoTombs(o); }
+
 function deleteTodo(id) {
+  addTodoTomb(id);
   state.todos = state.todos.filter(t => t.id !== id);
   saveTodos();
 }
@@ -9943,8 +9957,8 @@ window.archiveOldOutlookTodos = function(days){
   if (!list.length && !fake.length) { showToast("Niente da sistemare"); return; }
   if (!confirm(`Archiviare ${list.length} to-do importate da Outlook e pi\u00f9 vecchie di ${days || 90} giorni?\n\nEscono dalle liste ma NON vengono chiuse in Outlook e NON risultano "fatte": le ritrovi nel filtro \u201cArchiviate\u201d e puoi ripristinarle.${fake.length ? `\n\nInoltre tolgo la falsa scadenza (la data del flag) ad altre ${fake.length} to-do: restano aperte, ma senza "Scaduto".` : ""}`)) return;
   const ts = new Date().toISOString();
-  list.forEach(t => { t.archivedAt = ts; t.archivedBy = (typeof ghDeviceName === "function") ? ghDeviceName() : ""; });
-  fake.forEach(t => { t.dueDate = ""; });
+  list.forEach(t => { t.archivedAt = ts; t.archivedBy = (typeof ghDeviceName === "function") ? ghDeviceName() : ""; t.updatedAt = ts; });
+  fake.forEach(t => { t.dueDate = ""; t.updatedAt = ts; });
   saveTodos();
   showToast(`\ud83d\uddc4 ${list.length} archiviate${fake.length ? ` · ${fake.length} senza falsa scadenza` : ""}`);
   render();
@@ -9953,6 +9967,7 @@ window.unarchiveTodo = function(id){
   const t = (state.todos || []).find(x => String(x.id) === String(id));
   if (!t) return;
   delete t.archivedAt; delete t.archivedBy;
+  t.updatedAt = new Date().toISOString();
   saveTodos();
   showToast("To-do ripristinata");
   render();
@@ -10716,6 +10731,7 @@ window.maToggleTodo = function(id){
   const t = (state.todos||[]).find(x=>String(x.id)===String(id));
   if(!t) return;
   t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null;
+  t.updatedAt = new Date().toISOString();   // v0.89 — il merge deve sapere che è più recente
   maMarkSync(t,false);
   try{ saveTodos(); }catch(_){}
   try{ render(); }catch(_){ renderMobileApp(); }
@@ -23460,6 +23476,7 @@ function buildStatePayload() {
     repliesDismissed: (typeof loadDismissedReplies === "function" ? loadDismissedReplies() : []),
     shipments: (typeof loadShipments === "function" ? loadShipments() : {}),
     rfqChases: (typeof loadRfqChases === "function" ? loadRfqChases() : {}),
+    todoTombs: (typeof loadTodoTombs === "function" ? loadTodoTombs() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
   };
@@ -23936,7 +23953,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","todoTombs"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -23969,7 +23986,8 @@ function collSnapshot(){
     itemOverrides: f(typeof loadItemOverrides==="function"?loadItemOverrides():{}),
     repliesDismissed: f(typeof loadDismissedReplies==="function"?loadDismissedReplies():[]),
     shipments: f(typeof loadShipments==="function"?loadShipments():{}),
-    rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{})
+    rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{}),
+    todoTombs: f(typeof loadTodoTombs==="function"?loadTodoTombs():{})
   };
 }
 
@@ -23997,6 +24015,51 @@ function ghSyncBaselineFromLocal(){ const snap=collSnapshot(); const nb={}; for(
 
 // Merge del documento remoto nel locale, LWW per collezione. force=true adotta
 // tutto il cloud (pulsante "Sostituisci con la versione cloud").
+// v0.89 — Fusione delle to-do voce per voce (vedi commento dentro il merge).
+// "rev" di una to-do = l'ultimo momento in cui è stata toccata.
+function todoRev(t){ return String((t && (t.updatedAt || t.doneAt || t.completedAt || t.archivedAt || t.createdAt)) || ""); }
+function todoClosed(t){ return !!(t && (t.done || t.archivedAt)); }
+function mergeTodosPerId(remoteList, remoteTombs){
+  const localList = Array.isArray(state.todos) ? state.todos : [];
+  const tombs = loadTodoTombs();
+  let tombChanged = false;
+  if (remoteTombs && typeof remoteTombs === "object") {
+    for (const [id, ts] of Object.entries(remoteTombs)) {
+      if (!tombs[id] || String(ts) > String(tombs[id])) { tombs[id] = ts; tombChanged = true; }
+    }
+  }
+  const byId = new Map();
+  localList.forEach(t => { if (t && t.id) byId.set(String(t.id), t); });
+  let changed = false;
+  (Array.isArray(remoteList) ? remoteList : []).forEach(r => {
+    if (!r || !r.id) return;
+    const k = String(r.id), l = byId.get(k);
+    if (!l) {
+      // arrivata da un altro dispositivo: la prendo, salvo che io l'abbia cancellata dopo
+      if (tombs[k] && String(tombs[k]) >= todoRev(r)) return;
+      byId.set(k, r); changed = true; return;
+    }
+    const lr = todoRev(l), rr = todoRev(r);
+    let win = l;
+    if (rr > lr) win = r;
+    else if (rr === lr && todoClosed(r) && !todoClosed(l)) win = r;   // a pari data, "fatta" non si annulla
+    if (win !== l) { byId.set(k, win); changed = true; }
+  });
+  for (const [id, ts] of Object.entries(tombs)) {
+    const t = byId.get(String(id));
+    if (t && String(ts) >= todoRev(t)) { byId.delete(String(id)); changed = true; }
+  }
+  if (tombChanged) saveTodoTombs(tombs);
+  if (changed) {
+    const seen = new Set(), out = [];
+    localList.forEach(t => { const k = String(t && t.id); if (byId.has(k) && !seen.has(k)) { out.push(byId.get(k)); seen.add(k); } });
+    byId.forEach((v, k) => { if (!seen.has(k)) { out.unshift(v); seen.add(k); } });
+    state.todos = out;
+    try{ localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos)); }catch(e){}
+  }
+  return changed || tombChanged;
+}
+
 function mpdMergeRemote(remote, force){
   if(!remote||typeof remote!=="object") return false;
   const rMeta = remote.collMeta || {};
@@ -24010,7 +24073,23 @@ function mpdMergeRemote(remote, force){
         if (apply()!==false){ lMeta[k]= force ? (rMeta[k]||lt) : rt; changed=true; }
       }
     };
-    adopt("todos", ()=>{ if(!Array.isArray(remote.todos)) return false; state.todos=remote.todos; localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos)); });
+    adopt("todos", ()=>{ if(!Array.isArray(remote.todos)) return false;
+      if (force){ state.todos=remote.todos; localStorage.setItem(LS_KEYS.todos, JSON.stringify(state.todos));
+        if(remote.todoTombs&&typeof remote.todoTombs==="object") saveTodoTombs(remote.todoTombs); return; }
+      return false;   // fuori dal force le to-do si fondono voce per voce (sotto)
+    });
+    // v0.89 — TO-DO: unione PER SINGOLA VOCE, non a blocco.
+    // Prima la collezione "todos" era un blocco unico: chi la toccava per ultimo
+    // sostituiva l'elenco dell'altro, e le spunte fatte dal telefono sparivano
+    // (o riapparivano to-do già chiuse sul PC). Ora ogni to-do viaggia col suo id e
+    // il suo updatedAt: vince la versione più recente, a pari data vince "fatta" su
+    // "aperta", e una cancellazione conta solo se accompagnata dalla sua pietra tombale.
+    if (!force && Array.isArray(remote.todos)) {
+      if (mergeTodosPerId(remote.todos, remote.todoTombs)) {
+        lMeta["todos"] = (rMeta["todos"] && rMeta["todos"] > (lMeta["todos"]||"")) ? rMeta["todos"] : new Date().toISOString();
+        changed = true;
+      }
+    }
     adopt("notes", ()=>{ if(!remote.notes||typeof remote.notes!=="object") return false; state.notes=remote.notes; saveNotes(); });
     adopt("snoozed", ()=>{ if(!remote.snoozed||typeof remote.snoozed!=="object") return false; state.snoozed=remote.snoozed; saveSnoozed(); });
     adopt("archivedActions", ()=>{ if(!remote.archivedActions||typeof remote.archivedActions!=="object") return false; state.archivedActions=remote.archivedActions; saveArchivedActions(); });
