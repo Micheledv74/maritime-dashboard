@@ -8062,6 +8062,140 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   background: linear-gradient(145deg, #2b7cff, #00c2ff);
   box-shadow: 0 6px 14px rgba(20,110,255,.45);
 }
+/* === v0.90 — scheda a filo delle barre superiori ======================
+   Il pannello di vetro aveva margine destro 0 (auto) mentre le barre in
+   alto ne hanno 18: la scheda usciva di 18px fuori squadra. Ora il
+   pannello occupa esattamente la stessa fascia delle barre. */
+:root:not([data-theme="dark"]) body.skin-glass .main-wrap {
+  max-width: none !important;
+  margin-right: 18px !important;
+}
+
+/* === v0.90 — Vista Email dentro la scheda ============================
+   Era un blocco a tutta pagina (100vw, margini negativi) che scavalcava
+   il pannello: unica vista fuori dal linguaggio delle altre. */
+:root:not([data-theme="dark"]) body.skin-glass .paix-shell {
+  background: rgba(255,255,255,.62) !important;
+  border: 1px solid rgba(255,255,255,.92) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 26px -14px rgba(6,24,42,.55);
+}
+
+/* === v0.90 — AZIONI FLOTTA, impaginazione 4a =========================
+   Solo presentazione: le stesse righe e le stesse informazioni della
+   tabella azioni, con la grammatica del mockup 4a — documento in mono,
+   flusso come barra di avanzamento, Sollecita come pillola blu.
+   NB: nessun override di --act-type — la colonna DESCRIZIONE resta la più
+   larga, la barra da 148px sta comunque dentro la colonna Stato. */
+:root:not([data-theme="dark"]) body.skin-glass .actions-table-head {
+  background: rgba(255,255,255,.5) !important;
+  border-bottom: 1px solid rgba(12,29,51,.08) !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .actions-table-head span {
+  font-size: 9.5px !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase;
+  color: #8496a8 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-row-cols {
+  border-bottom: 1px solid rgba(12,29,51,.06) !important;
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-row-cols:hover {
+  background: rgba(255,255,255,.55) !important;
+}
+/* fascia nave: banda chiara con pallino di stato, come in 4a */
+:root:not([data-theme="dark"]) body.skin-glass .fa-vessel-head,
+:root:not([data-theme="dark"]) body.skin-glass .actions-group-title {
+  background: rgba(12,29,51,.045) !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  font-size: 11.5px !important;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #24405e !important;
+}
+/* numero documento in mono, REQ sotto in tono minore */
+:root:not([data-theme="dark"]) body.skin-glass .action-col-type .doc-num,
+:root:not([data-theme="dark"]) body.skin-glass .action-col-type .action-doc {
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  letter-spacing: .01em;
+  color: #14304f !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-body .ab-title {
+  font-size: 13.5px !important;
+  font-weight: 650 !important;
+  color: #0c1d33 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-body .ab-meta {
+  font-size: 11.5px !important;
+  color: #64768a !important;
+}
+/* FLUSSO: da tre etichette a una barra di avanzamento continua */
+:root:not([data-theme="dark"]) body.skin-glass .flow-mini {
+  gap: 0 !important;
+  width: 148px;
+  max-width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(12,29,51,.13);
+  vertical-align: middle;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fm-seg {
+  flex: 1;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .fm-seg.on { background: #2b7cff !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fm-seg.on:first-child { background: #1553d8 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fm-seg.cur { background: #3d8bff !important; }
+/* EMISSIONE: data in mono sopra, anzianità a colore sotto */
+:root:not([data-theme="dark"]) body.skin-glass .action-col-scad .ds-val,
+:root:not([data-theme="dark"]) body.skin-glass .action-col-scad .ds-date {
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  color: #14304f !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-age {
+  font-weight: 700 !important;
+  font-size: 11.5px !important;
+}
+/* Sollecita: pillola blu in evidenza, le altre azioni restano secondarie */
+:root:not([data-theme="dark"]) body.skin-glass .action-btns .btn-sm {
+  border-radius: 999px !important;
+  font-weight: 650;
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-btns .btn-sm:first-child {
+  background: linear-gradient(180deg, #2f80ff, #1553d8) !important;
+  border: none !important;
+  color: #fff !important;
+  padding: 7px 16px !important;
+  box-shadow: 0 6px 14px -6px rgba(21,83,216,.85);
+}
+:root:not([data-theme="dark"]) body.skin-glass .action-btns .btn-sm:first-child:hover {
+  filter: brightness(1.06);
+}
+
+/* Email: 4 colonne che si adattano alla scheda (prima erano tarate su 100vw:
+   dentro il pannello la colonna di lettura si schiacciava a zero e il Copilot
+   veniva tagliato). Sotto i 1180px cartelle e Copilot cedono, sotto i 980 le
+   cartelle si ritirano; la fascia scorre in orizzontale come ultima risorsa. */
+.paix-shell .paix-body { overflow-x: auto; }
+@media (max-width: 1180px) {
+  .paix-shell .paix-col1 { flex-basis: 186px !important; }
+  .paix-shell .paix-col4 { flex-basis: 286px !important; }
+}
+@media (max-width: 980px) {
+  .paix-shell .paix-col1 { display: none !important; }
+}
+
 body:not(.skin-glass) .g4-hello,
 body:not(.skin-glass) .g4-row,
 body:not(.skin-glass) .g4-rail { display: none !important; }
@@ -13039,7 +13173,7 @@ function renderEmailPage(){
   const notConnected = !connectedBroad ? '<div style="font-size:11.5px;color:#b8860b;background:#fbf3e0;border-bottom:1px solid #f0e6c8;padding:8px 16px;line-height:1.4;">Triage limitato alle email in attesa — collega il workflow "Recent Emails Sync" in n8n per vedere tutta la posta.</div>' : "";
 
   document.getElementById("view-root").innerHTML =
-  '<div style="margin:-24px calc(50% - 50vw) -80px;width:100vw;height:calc(100vh - var(--header-h) - var(--switcher-h));display:flex;flex-direction:column;font-family:\'Inter\',system-ui,sans-serif;color:#14181f;background:#eef1f5;overflow:hidden;">'
+  '<div class="paix-shell" style="width:100%;height:calc(100vh - var(--header-h) - var(--switcher-h) - 170px);min-height:560px;display:flex;flex-direction:column;font-family:\'Inter\',system-ui,sans-serif;color:#14181f;background:#eef1f5;border:1px solid var(--border);border-radius:16px;overflow:hidden;">'
     // topbar
     +'<div style="display:flex;align-items:center;gap:16px;padding:10px 18px;background:linear-gradient(90deg,#0a3f93,#0e54c1);color:#fff;flex-shrink:0;">'
       +'<div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></div><div style="font-weight:700;font-size:15px;letter-spacing:-.2px;">Posta <span style="font-weight:500;opacity:.85;">+ AI</span></div></div>'
@@ -13048,21 +13182,21 @@ function renderEmailPage(){
       +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">MD</div>'
     +'</div>'
     // body
-    +'<div style="flex:1;display:flex;min-height:0;">'
+    +'<div class="paix-body" style="flex:1;display:flex;min-height:0;">'
       // col1
-      +'<div style="width:236px;flex-shrink:0;background:#f7f9fb;border-right:1px solid #dde3ea;display:flex;flex-direction:column;overflow-y:auto;padding:14px 10px;">'
+      +'<div class="paix-col1" style="flex:0 1 236px;min-width:0;background:#f7f9fb;border-right:1px solid #dde3ea;display:flex;flex-direction:column;overflow-y:auto;padding:14px 10px;">'
         +'<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7a6fb0;padding:4px 8px 6px;">Assistente AI</div>'+smartHTML
         +'<div style="height:1px;background:#e5e9ee;margin:12px 6px;"></div>'+treeRows.join("")
       +'</div>'
       // col2
-      +'<div style="width:392px;flex-shrink:0;background:#fff;border-right:1px solid #dde3ea;display:flex;flex-direction:column;min-height:0;">'
+      +'<div class="paix-col2" style="flex:0 1 392px;min-width:0;background:#fff;border-right:1px solid #dde3ea;display:flex;flex-direction:column;min-height:0;">'
         +'<div style="padding:12px 16px 10px;border-bottom:1px solid #eef1f5;"><div style="font-weight:700;font-size:15px;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(listTitle)+'</div><div style="font-size:11.5px;color:#8a93a0;">'+list.length+' messaggi</div></div>'
         +notConnected
         +(hints[P.folder]?'<div style="font-size:11.5px;color:#6b6488;background:#f6f4fd;border-bottom:1px solid #ece8f7;padding:9px 16px;line-height:1.45;">'+hints[P.folder]+'</div>':"")
         +'<div style="flex:1;overflow-y:auto;">'+listHTML+'</div>'
       +'</div>'
       // col3
-      +'<div style="flex:1;min-width:0;background:#fbfcfd;display:flex;flex-direction:column;min-height:0;">'+readHTML+'</div>'
+      +'<div class="paix-col3" style="flex:1 1 300px;min-width:260px;background:#fbfcfd;display:flex;flex-direction:column;min-height:0;">'+readHTML+'</div>'
       // col4
       +copilotHTML
     +'</div>'
@@ -13313,7 +13447,7 @@ function paixCopilotHTML(sel){
   const quick=PAIX_QUICK.map((q,i)=>'<button onclick="window.paixQuick('+i+')" style="font-family:inherit;font-size:11.5px;font-weight:500;color:#3a3452;background:#f4f2fc;border:1px solid #e4e1f2;border-radius:20px;padding:6px 12px;cursor:pointer;">'+escapeHTML(q.label)+'</button>').join("");
   const tones=[["formale","Formale"],["informale","Informale"],["persuasivo","Persuasivo"]].map(([k,l])=>'<button onclick="window.paixTone(\''+k+'\')" style="font-family:inherit;font-size:10.5px;font-weight:600;color:'+(c.tone===k?"#fff":"#6b6488")+';background:'+(c.tone===k?"#6a4bff":"#f4f2fc")+';border:1px solid '+(c.tone===k?"#6a4bff":"#e4e1f2")+';border-radius:20px;padding:4px 10px;cursor:pointer;">'+l+'</button>').join("");
   const draft=paixDraftFor(sel);
-  return '<div style="width:356px;flex-shrink:0;background:#fbfaff;border-left:1px solid #e4e1f2;display:flex;flex-direction:column;min-height:0;">'
+  return '<div class="paix-col4" style="flex:0 1 356px;min-width:0;background:#fbfaff;border-left:1px solid #e4e1f2;display:flex;flex-direction:column;min-height:0;">'
     +'<div style="display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid #e9e6f5;"><div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#6a4bff,#4b3fb0);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></div><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;color:#3a3167;">Copilot</div><div style="font-size:10.5px;color:#8a83a8;">Leggi, decidi e chiudi una volta sola</div></div></div>'
     +'<div style="flex:1;overflow-y:auto;padding:16px 16px 24px;">'
       +'<div style="background:#fff;border:1px solid #e4e1f2;border-radius:12px;padding:14px;margin-bottom:14px;"><div style="font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a83a8;margin-bottom:6px;">Cosa fare</div><div style="font-size:14px;font-weight:700;color:#2b2452;line-height:1.35;margin-bottom:4px;">'+escapeHTML(aTitle)+'</div><div style="font-size:12px;color:#6b6488;line-height:1.5;">'+escapeHTML(aWhy)+'</div>'+pending+'</div>'
@@ -18610,15 +18744,31 @@ window.voyageMsgMail = function(){
 
 // === Email arrivo in porto: lista merce in consegna a quello scalo (PO/descrizione/ditta) ===
 // Raccoglie gli item con consegna pianificata su quello scalo (voyage leg) o con porto manuale combaciante.
+// v0.90 — Il porto da solo non basta: un piano manuale congelato su "Valencia"
+// tre mesi fa combacia con OGNI scalo successivo a Valencia, così le email ad
+// agenzia e Comandante accumulavano consegne già fatte alla volta precedente.
+// Ora il match per porto vale solo se la DATA del piano appartiene alla
+// finestra di questo scalo, e la merce già ricevuta a bordo è esclusa.
+function legWindowISO(leg){
+  var ref = (leg && (leg.etb || leg.eta)) ? String(leg.etb || leg.eta).slice(0,10) : "";
+  if (!ref) return null;
+  var d = new Date(ref + "T00:00:00");
+  if (isNaN(d)) return null;
+  var from = new Date(d); from.setDate(from.getDate() - 21);   // ordini in arrivo per questo scalo
+  var to = new Date(d); to.setDate(to.getDate() + 14);          // ritardi e sbarchi successivi
+  return { from: from.toISOString().slice(0,10), to: to.toISOString().slice(0,10), ref: ref };
+}
 function itemsForLeg(vesselId, which){
   const v = (state.data && state.data.vessels.find(x=>x.vesselId===vesselId));
   if(!v || !v.items) return [];
   const voy = getVoyage(vesselId);
   const leg = which==='next' ? (voy.next||{}) : (voy.current||{});
   const legPort = (leg.to||"").trim().toLowerCase();
+  const win = legWindowISO(leg);
   const out = [];
   for(const it of v.items){
     if(!it.poNumber) continue;  // solo ordini con PO (merce ordinata)
+    if(it.dnStatus === "DN Received on Board") continue;   // già a bordo: fuori dall'elenco
     const plan = getDeliveryPlan(it.id);
     if(!plan) continue;
     let match = false;
@@ -18627,7 +18777,13 @@ function itemsForLeg(vesselId, which){
       if(plan.voyageLegId && leg.id) match = plan.voyageLegId === leg.id;
       else match = plan.leg===(which==='next'?'next':'current');
     }
-    else if(plan.mode==="manual" && legPort && (plan.port||"").trim().toLowerCase()===legPort) match = true;
+    else if(plan.mode==="manual" && legPort && (plan.port||"").trim().toLowerCase()===legPort){
+      const pd = (plan.date||"").slice(0,10);
+      if(!win) match = true;                    // scalo senza date: non posso discriminare
+      else if(!pd) match = true;                // piano senza data: lo tengo, è ancora aperto
+      else match = (pd >= win.from && pd <= win.to);
+      if(plan.voyageLegId && leg.id && plan.voyageLegId !== leg.id && pd && win && pd < win.from) match = false;
+    }
     if(match) out.push(it);
   }
   return out;
@@ -25643,8 +25799,9 @@ function importBackup(e) {
       try { list = window.getStaleRFQs(v.vid, 0) || []; } catch(e){ list = []; }
       list.forEach(function(it){
         var d = it.rfqDays || 0;
-        rows.push({ d: d, v: v.name, vid: v.vid, doc: docOf(it), sup: it.supplier || "" });
-        if (!oldest || d > oldest.d) oldest = { d: d, v: v.name, vid: v.vid, doc: docOf(it), sup: it.supplier || "" };
+        var row = { d: d, v: v.name, vid: v.vid, doc: docOf(it), sup: it.supplier || "", it: it };
+        rows.push(row);
+        if (!oldest || d > oldest.d) oldest = row;
       });
     });
     if (!rows.length) return null;
@@ -25668,7 +25825,7 @@ function importBackup(e) {
         '<span><i style="background:#00c2ff"></i>oltre 14 gg</span></div></div>' +
       '<div class="g4-bars">' + counts.map(function(c, i){
         return '<button class="g4-bar' + (c === peak ? " peak" : "") + '" data-i="' + i + '"' +
-          (c.waiting ? ' title="' + c.waiting + " RFQ " + c.lab + (c.top ? " · apri " + c.top.v : "") + '"' : " disabled") +
+          (c.waiting ? ' title="' + c.waiting + " RFQ " + c.lab + ' · apri le Azioni flotta"' : " disabled") +
           '><div class="g4-cols">' +
           '<span style="height:' + Math.max(2, Math.round(c.waiting / max * 96)) + 'px"></span>' +
           '<span class="b2" style="height:' + Math.max(2, Math.round(c.chased / max * 96)) + 'px"></span>' +
@@ -25677,44 +25834,88 @@ function importBackup(e) {
       '<div class="g4-foot">' + (oldest
         ? "Più vecchia: <b>" + (oldest.doc || "—") + "</b> · " + oldest.v +
           (oldest.sup ? " · " + oldest.sup : "") + " · " + oldest.d + " giorni" +
-          '<span class="g4-link" data-open="' + oldest.vid + '">Apri la nave →</span>'
+          '<span class="g4-link" data-chase="1">Apri il sollecito →</span>'
         : "") + "</div>";
+    // v0.90 — il grafico porta all'AZIONE, non alla panoramica nave: la barra apre le
+    // Azioni flotta filtrate sulle RFQ da sollecitare, il link apre il registro
+    // solleciti della RFQ più vecchia.
     el.addEventListener("click", function(e){
-      var bar = e.target.closest(".g4-bar"), link = e.target.closest("[data-open]");
-      var vid = link ? link.dataset.open
-        : (bar && counts[+bar.dataset.i] && counts[+bar.dataset.i].top ? counts[+bar.dataset.i].top.vid : "");
-      if (vid && typeof window.goVessel === "function") window.goVessel(vid);
+      if (e.target.closest("[data-chase]") && oldest) {
+        var it = oldest.it || {};
+        var nums = (it.rfqNumbers && it.rfqNumbers.length) ? it.rfqNumbers : (oldest.doc ? [oldest.doc] : []);
+        if (nums.length && typeof window.openRfqChasePanel === "function") {
+          window.openRfqChasePanel(encodeURIComponent(JSON.stringify({
+            rows: nums.map(function(n){ return { n: n, description: it.description || "", days: oldest.d }; }),
+            description: it.description || "", supplier: oldest.sup,
+            vesselName: oldest.v, vesselId: oldest.vid, days: oldest.d
+          })));
+          return;
+        }
+      }
+      if (e.target.closest(".g4-bar") && typeof window.goFleetActions === "function") window.goFleetActions("rfq");
     });
     return el;
   }
 
   /* --- prossimo scalo: prima nave realmente in arrivo -------------------- */
+  // v0.90 — letto dai DATI di viaggio, non più dal testo della card.
+  // Prima si affidava a "arrivo tra N g" scritto nella card e scartava tutto
+  // ciò che contenesse "fa": con gli ETA non aggiornati il riquadro non
+  // compariva mai. Ora legge state.voyages: se l'ETA è futura mostra il
+  // conto alla rovescia, se è passata lo dice apertamente invece di sparire.
   function nextCall(){
+    if (typeof window.getVoyage !== "function") return null;
+    var today = new Date(); today.setHours(0,0,0,0);
     var best = null;
     vessels().forEach(function(v){
-      var txt = (v.eta + " " + v.route).replace(/\s+/g, " ");
-      if (/\bfa\b|\bago\b/i.test(v.eta)) return;            // dato di viaggio scaduto: si salta
-      var days = null;
-      if (/arrivo oggi/i.test(txt)) days = 0;
-      else if (/arrivo domani/i.test(txt)) days = 1;
-      else { var m = txt.match(/arrivo tra\s*(\d+)\s*g/i); if (m) days = parseInt(m[1], 10); }
-      if (days == null) return;
-      var pm = v.route.match(/prossimo:\s*([A-Za-zÀ-ü' .,-]{3,}?)(?=\s*(?:ETA|ETB|ETD|arrivo|\d|$))/i);
-      var port = pm ? pm[1].trim().replace(/[·|,]+$/, "").trim() : "";
-      if (!port) return;
-      if (!best || days < best.days) best = { port: port, ship: v.name, vid: v.vid, days: days };
+      if (!v.vid) return;
+      var voy = window.getVoyage(v.vid) || {};
+      [voy.current, voy.next].forEach(function(leg){
+        if (!leg || !leg.to) return;
+        var ref = (leg.etb || leg.eta || "").slice(0, 10);
+        if (!ref) return;
+        var d = new Date(ref + "T00:00:00");
+        if (isNaN(d)) return;
+        var days = Math.round((d - today) / 86400000);
+        var cand = { port: leg.to, ship: v.name, vid: v.vid, days: days,
+                     eta: (leg.eta || "").slice(0,10), etb: (leg.etb || "").slice(0,10) };
+        // preferisco sempre un arrivo futuro; tra due futuri il più vicino,
+        // tra due passati il più recente (è lo scalo in corso)
+        if (!best) { best = cand; return; }
+        var bFut = best.days >= 0, cFut = days >= 0;
+        if (cFut && !bFut) best = cand;
+        else if (cFut && bFut && days < best.days) best = cand;
+        else if (!cFut && !bFut && days > best.days) best = cand;
+      });
     });
-    if (!best) return null;                                   // nessun arrivo previsto: niente card
-    var when = best.days === 0 ? "Oggi" : (best.days === 1 ? "Domani" : "Tra " + best.days + " giorni");
+    if (!best) return null;                                 // nessuno scalo noto: niente riquadro
+    var when = best.days === 0 ? "Oggi"
+      : best.days === 1 ? "Domani"
+      : best.days > 1 ? "Tra " + best.days + " giorni"
+      : best.days === -1 ? "Ieri" : Math.abs(best.days) + " giorni fa";
+    var note = best.days >= 0 ? "prima nave della flotta ad arrivare"
+      : "ETA non aggiornata — verifica il viaggio";
+    var fmt = function(s){ if (!s) return ""; var p = s.split("-"); return p[2] + "." + p[1]; };
+    var dates = [best.eta ? "ETA " + fmt(best.eta) : "", best.etb ? "ETB " + fmt(best.etb) : ""]
+      .filter(Boolean).join(" · ");
+    var deliv = 0, dn = 0;
+    try {
+      var items = (typeof window.itemsForLeg === "function") ? (window.itemsForLeg(best.vid, "current") || []) : [];
+      deliv = items.length;
+      dn = items.filter(function(it){ return it.dnStatus !== "DN Received on Board"; }).length;
+    } catch(e){}
+    var foot = deliv
+      ? deliv + " consegne pianificate · " + dn + " DN da chiudere"
+      : "Consegne e RFQ da chiudere prima dello scalo";
     var el = document.createElement("div");
     el.className = "g4-next";
     el.innerHTML =
-      '<div class="g4-eyebrow">PROSSIMO ARRIVO IN PORTO</div>' +
+      '<div class="g4-eyebrow">PROSSIMO SCALO</div>' +
       '<div class="g4-port">' + best.port.replace(/\b(\w)(\w*)/g, function(_,a,b){ return a + b.toLowerCase(); }) + "</div>" +
       '<div class="g4-ship">' + best.ship + "</div>" +
-      '<div class="g4-eta"><b>' + when + "</b><span>prima nave della flotta ad arrivare</span></div>" +
-      '<div class="g4-line"><span style="opacity:.85;white-space:nowrap">Consegne e RFQ da chiudere prima dello scalo</span>' +
-      '<span style="font-weight:700;white-space:nowrap">Apri →</span></div>';
+      '<div class="g4-eta"><b>' + when + "</b><span>" + [dates, best.days < 0 ? note : ""].filter(Boolean).join(" · ") + "</span></div>" +
+      '<div class="g4-line"><span style="opacity:.85">' + foot + "</span>" +
+      '<span style="font-weight:700;white-space:nowrap">Dettagli →</span></div>';
     el.addEventListener("click", function(){
       if (best.vid && typeof window.goVessel === "function") window.goVessel(best.vid);
     });
