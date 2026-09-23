@@ -5833,6 +5833,21 @@ a:hover { text-decoration: underline; }
 .rc-ev .rc-x:hover{ color:#b02020; }
 .rc-hint{ font-size:11px; color:var(--text-muted); line-height:1.5; margin-top:6px; }
 .rc-step{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-faint); }
+/* v0.92 — fornitore PER SINGOLA RFQ */
+.rc-req{ font-family:var(--font-mono); font-size:11px; font-weight:600; color:#44576b; background:#eef2f7; border-radius:4px; padding:1px 6px; }
+.rc-vendor{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin-top:8px; padding:7px 9px; border-radius:7px; background:#f4f7fb; border:1px solid rgba(10,27,46,.08); }
+.rc-vendor.unknown{ background:#fdf3e2; border-color:#e8b35a; }
+.rc-vendor label{ font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#44576b; }
+.rc-vendor input{ font:inherit; font-size:12px; padding:4px 7px; border:1px solid rgba(10,27,46,.18); border-radius:6px; background:#fff; color:#0a1b2e; min-width:0; }
+.rc-vendor input.rc-sup{ flex:1 1 200px; font-weight:700; }
+.rc-vendor input.rc-mail{ flex:1 1 180px; font-family:var(--font-mono); font-size:11.5px; }
+.rc-vendor .rc-warn{ flex-basis:100%; font-size:11px; color:#8a4b00; font-weight:600; }
+.rc-row.answered{ opacity:.6; }
+.rc-row.answered .rc-num{ text-decoration:line-through; }
+.rc-partial{ font-size:12px; line-height:1.5; color:#0a1b2e; background:#fdf3e2; border:1px solid #e8b35a; border-left:4px solid #c07800; border-radius:7px; padding:8px 11px; margin-bottom:10px; }
+.ab-req{ font-family:var(--font-mono); font-size:11px; color:#44576b; }
+.ab-req b{ font-family:var(--font); font-size:9.5px; letter-spacing:.05em; color:#6a7d90; margin-right:3px; }
+.ab-sup.unknown{ color:#8a4b00; font-weight:700; }
 
 /* ==== v0.79 — RFQ da sollecitare: flusso, raggruppamento per nave, ricerca ==== */
 .flow-mini{ display:inline-flex; gap:2px; vertical-align:1px; margin-left:4px; }
@@ -6223,6 +6238,8 @@ details.cert-import-collapsible > summary:hover .cert-chev{ color:var(--text-mut
 .fusi-item.fusi-utc{ background:#111827; border-color:#111827; color:#fff; box-shadow:0 0 0 2px rgba(17,24,39,.15); font-weight:700; }
 .fusi-item.fusi-utc .fusi-code{ color:#ffd166; opacity:1; letter-spacing:.08em; }
 .fusi-item.fusi-utc .fusi-time{ color:#fff; }
+.fusi-item.fusi-home{ background:#1553d8; border-color:#1553d8; color:#fff; font-weight:700; box-shadow:0 0 0 2px rgba(21,83,216,.18); }
+.fusi-item.fusi-home .fusi-code, .fusi-item.fusi-home .fusi-time, .fusi-item.fusi-home .fusi-ph-ic{ color:#fff; opacity:1; }
 .fusi-item.ph-dawn .fusi-work{ background:#1f7a1f; box-shadow:0 0 0 2px rgba(255,255,255,.35); }
 .fusi-edit{ flex:none; width:28px; height:28px; border:1px solid var(--border); background:#fff; border-radius:7px; color:#9aa3af; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
 .fusi-edit:hover{ background:#f7f9fb; color:#475569; }
@@ -7769,12 +7786,19 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 :root:not([data-theme="dark"]) body.skin-glass .fusi-code { color: #51657a !important; opacity: 1 !important; }
 :root:not([data-theme="dark"]) body.skin-glass .fusi-time { color: #0c1d33 !important; font-weight: 700 !important; opacity: 1 !important; }
 :root:not([data-theme="dark"]) body.skin-glass .fusi-item.ph-night { background: rgba(12,29,51,.08) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-utc,
 :root:not([data-theme="dark"]) body.skin-glass .fusi-item.is-utc,
-:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc { background: #0c1d33 !important; border-color: #0c1d33 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc { background: #0a1b2e !important; border-color: #0a1b2e !important; box-shadow: 0 2px 8px rgba(10,27,46,.25) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-utc .fusi-code,
 :root:not([data-theme="dark"]) body.skin-glass .fusi-item.is-utc .fusi-code,
-:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc .fusi-code { color: #9fb0cc !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc .fusi-code { color: #ffd166 !important; font-weight: 800 !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-utc .fusi-time,
 :root:not([data-theme="dark"]) body.skin-glass .fusi-item.is-utc .fusi-time,
 :root:not([data-theme="dark"]) body.skin-glass .fusi-item.utc .fusi-time { color: #fff !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-home { background: #1553d8 !important; border-color: #1553d8 !important; box-shadow: 0 2px 8px rgba(21,83,216,.35) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-home .fusi-code,
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-home .fusi-time,
+:root:not([data-theme="dark"]) body.skin-glass .fusi-item.fusi-home .fusi-ph-ic { color: #fff !important; opacity: 1 !important; font-weight: 800 !important; }
 :root:not([data-theme="dark"]) body.skin-glass .fx-rate { color: #0c1d33 !important; }
 :root:not([data-theme="dark"]) body.skin-glass .fx-sub,
 :root:not([data-theme="dark"]) body.skin-glass .fx-inv { color: #5c6c80 !important; }
@@ -9587,16 +9611,29 @@ const priorityRules = [
     // la RFQ è superata, la riga esce dalla lista (richiesta utente: "non vorrei sollecitare una
     // RFQ dove ho già fatto un ordine").
     if (itemAlreadyOrdered(item)) return null;
-    if (item.rfqDays && item.rfqDays > threshold &&
-        item.rfqStatus && item.rfqStatus !== "RFQ Offer Acknowledged" &&
-        item.rfqStatus !== "RFQ Refused") {
-      // v0.10.2: i template sono ora costruiti dinamicamente in base alla lingua
-      // del fornitore (action.type === "mailto-bilingual" → handler resolve lingua)
-      const rfqsOv = Array.isArray(item.rfqNumbers) ? item.rfqNumbers : [];
+    // v0.92 — Infoship aggrega le RFQ per item: lo stato è il MIGLIORE ricevuto. Se 1 fornitore su 2
+    // ha quotato, l'item risulta "Offer Acknowledged" e l'altra RFQ spariva dai solleciti.
+    // Ora: RFQ multiple con risposte < inviate e almeno una ancora "Sent to Vendor" = parziale → sollecitabile.
+    const rfqsAllOv = Array.isArray(item.rfqNumbers) ? item.rfqNumbers.filter(Boolean) : [];
+    const summOv = Array.isArray(item.rfqStatusSummary) ? item.rfqStatusSummary : [];
+    const issuedOv = item.rfqIssued || rfqsAllOv.length;
+    const closedOv = item.rfqClosed || 0;
+    const partialOv = issuedOv > 1 && closedOv < issuedOv && summOv.includes("RFQ Sent to Vendor");
+    const waitingOv = item.rfqStatus && item.rfqStatus !== "RFQ Offer Acknowledged" && item.rfqStatus !== "RFQ Refused";
+    const rfqsOv = rfqsAllOv.filter(n => !rfqIsAnswered(n));   // escluse quelle segnate "offerta ricevuta"
+    if (rfqsAllOv.length && !rfqsOv.length) return null;
+    if (item.rfqDays && item.rfqDays > threshold && (waitingOv || partialOv)) {
+      // Fornitore della riga = quello delle RFQ ANCORA APERTE (non quello aggregato dell'item)
+      const vends = [...new Set(rfqsOv.map(n => rfqVendorOf(n, item).supplier || ""))];
+      const supOv = !rfqsOv.length ? item.supplier
+        : (vends.length === 1 && vends[0]) ? vends[0]
+        : vends.includes("") ? RFQ_VENDOR_UNKNOWN : RFQ_VENDOR_MULTI;
       return {
         key: "overdue:" + item.id,
         level: "warning",
-        label: `In attesa · ${item.rfqDays}g`,
+        label: partialOv ? `${closedOv}/${issuedOv} offerte · ${item.rfqDays}g` : `In attesa · ${item.rfqDays}g`,
+        supplier: supOv,
+        reqNumber: item.reqNumber || "",
         ageDays: item.rfqDays,
         docNumber: rfqsOv[0] || item.reqNumber || "",
         docLabel: rfqsOv.length > 0 ? "RFQ" : "REQ",
@@ -9611,7 +9648,9 @@ const priorityRules = [
             description: item.description || "",
             days: item.rfqDays,
             rfqDate: item.rfqDate || "",       // v0.79 — data di emissione: nell'email va la DATA, non i giorni
-            supplier: item.supplier,
+            supplier: supOv,
+            reqNumber: item.reqNumber || "",
+            itemId: item.id,
             vesselName: vessel.displayName || vessel.vesselName || "",
             rfqNumber: rfqsOv[0] || "",        // v0.10.4 — incluso nel template
             rfqAllNumbers: rfqsOv              // tutti i numeri (per template avanzati)
@@ -9717,7 +9756,8 @@ function generateActionsForVessel(vessel) {
           vesselId: vessel.vesselId,
           vesselName: vessel.displayName || vessel.vesselName,
           description: item.description,
-          supplier: item.supplier,
+          supplier: (r.supplier !== undefined) ? r.supplier : item.supplier,
+          reqNumber: r.reqNumber || item.reqNumber || "",
           itemId: item.id
         });
       }
@@ -15328,8 +15368,9 @@ function renderWorldClock() {
         return `<span class="fusi-item fusi-utc" title="Tempo Coordinato Universale — riferimento shipping"><span class="fusi-code">UTC</span><span class="fusi-time">${escapeHTML(t)}</span></span>`;
       }
       const workDot = isWork ? `<span class="fusi-work" title="orario lavorativo"></span>` : "";
-      const tip = `${c.label} — ${PHASE_LABEL[phase]} · ${fmtOff(off)}${isWork ? " · orario lavorativo" : ""}`;
-      return `<span class="fusi-item ph-${phase}" title="${escapeAttr(tip)}"><span class="fusi-ph-ic">${ICONS[phase]}</span><span class="fusi-code">${escapeHTML(code)}</span><span class="fusi-time">${escapeHTML(t)}</span>${workDot}</span>`;
+      const isHome = /napoli|naples/i.test(c.label || "") || c.code === "NAP";
+      const tip = `${c.label}${isHome ? " (sei qui)" : ""} — ${PHASE_LABEL[phase]} · ${fmtOff(off)}${isWork ? " · orario lavorativo" : ""}`;
+      return `<span class="fusi-item ph-${phase}${isHome ? " fusi-home" : ""}" title="${escapeAttr(tip)}"><span class="fusi-ph-ic">${ICONS[phase]}</span><span class="fusi-code">${escapeHTML(code)}</span><span class="fusi-time">${escapeHTML(t)}</span>${workDot}</span>`;
     } catch (e) {
       return `<span class="fusi-item ph-day" title="${escapeAttr(c.tz)}"><span class="fusi-code">${escapeHTML(c.code||c.label||'?')}</span><span class="fusi-time">--:--</span></span>`;
     }
@@ -16900,14 +16941,39 @@ function rfqAllNums(o){
   if (all.length) return all;
   return (o && o.rfqNumber) ? [o.rfqNumber] : [];
 }
+// v0.92 — formato richiesto: "- **RFQ 2026-MDT-HQRQ-00194** – descrizione." (numero in grassetto, niente data)
 function rfqBullet(o, lang){
   const nums = rfqAllNums(o);
   const num = nums.length ? `RFQ ${nums.join(" / ")}` : "RFQ";
   const desc = (o.description || "").trim();
-  const dt = rfqIssueDate(o);
-  const sentIT = dt ? `, inviata il ${dt}` : "";
-  const sentEN = dt ? `, sent on ${dt}` : "";
-  return `- ${num}${desc ? " – " + desc : ""}${lang === "it" ? sentIT : sentEN}.`;
+  return `- **${num}**${desc ? " – " + desc : ""}.`;
+}
+// Nome nave con prefisso M/V (se non c'è già)
+function mvName(n){ n = String(n || "").trim(); if(!n) return ""; return /^(m\/v|m\/t|mv|mt)\b/i.test(n) ? n : "M/V " + n; }
+// Saluto col nome del referente (Rubrica → campo contatto), altrimenti generico
+function mailGreet(ctx, lang){
+  const c = String((ctx && ctx.contactName) || "").trim().split(/[\s,;]+/)[0] || "";
+  return (lang === "it" ? "Buongiorno" : "Good morning") + (c ? " " + c : "") + ",";
+}
+// **testo** → <b>, a capo → <br> (versione formattata per gli appunti)
+function mailMdToHtml(s){
+  const esc = String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return esc.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>");
+}
+function mailMdStrip(s){ return String(s || "").replace(/\*\*(.+?)\*\*/g, "$1"); }
+// Copia negli appunti la versione formattata (grassetti) — Outlook la mantiene incollandola
+async function copyRichMail(md){
+  try{
+    if(navigator.clipboard && window.ClipboardItem){
+      const html = `<div style="font-family:Calibri,Arial,sans-serif;font-size:11pt">${mailMdToHtml(md)}</div>`;
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([mailMdStrip(md)], { type: "text/plain" })
+      })]);
+      return true;
+    }
+  }catch(e){}
+  return false;
 }
 // Oggetto email: fino a 3 numeri per esteso, oltre "N RFQ"
 function rfqSubjRef(o, lang){
@@ -16978,6 +17044,38 @@ function recordRfqChase(num, info){
   all[k]=rec; saveRfqChases(all);
   return entry.id;
 }
+// === v0.92 — FORNITORE PER SINGOLA RFQ ======================================
+// Infoship esporta UN fornitore per item anche quando le RFQ sono andate a più fornitori:
+// quel nome è uno a caso tra i destinatari. Qui si memorizza, RFQ per RFQ, a chi è andata
+// (una volta sola) e se l'offerta è arrivata. localStorage mpd.rfqVendors, sincronizzato.
+const RFQ_VENDOR_UNKNOWN = "(fornitore da indicare)";
+const RFQ_VENDOR_MULTI = "(più fornitori)";
+function loadRfqVendors(){ try{ const o=JSON.parse(localStorage.getItem("mpd.rfqVendors")||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function saveRfqVendors(o){ try{ localStorage.setItem("mpd.rfqVendors", JSON.stringify(o));
+  if(typeof driveSchedulePush==="function") driveSchedulePush();
+  if(typeof ghSetDirty==="function") ghSetDirty(); }catch(e){} }
+function getRfqVendor(n){ return loadRfqVendors()[rfqChaseKey(n)] || null; }
+function setRfqVendor(n, patch){
+  const k = rfqChaseKey(n); if(!k) return;
+  const all = loadRfqVendors();
+  all[k] = Object.assign({}, all[k] || {}, patch, { updatedAt: new Date().toISOString() });
+  saveRfqVendors(all);
+}
+function rfqIsAnswered(n){ const v = getRfqVendor(n); return !!(v && v.answered); }
+function rfqVendorOf(n, item){
+  const v = getRfqVendor(n) || {};
+  if(v.supplier) return { supplier: v.supplier, email: v.email || rfqSupplierEmail(v.supplier), known: true };
+  const nums = (item && Array.isArray(item.rfqNumbers)) ? item.rfqNumbers.filter(Boolean) : [];
+  const issued = (item && item.rfqIssued) || nums.length;
+  if(item && item.supplier && issued <= 1) return { supplier: item.supplier, email: v.email || rfqSupplierEmail(item.supplier), known: true };
+  return { supplier: "", email: v.email || "", known: false, hint: (item && item.supplier) || "" };
+}
+function rfqFindItemByNum(n){
+  const k = rfqChaseKey(n);
+  const vs = (state.data && state.data.vessels) || [];
+  for(const v of vs){ for(const it of (v.items || [])){ if((it.rfqNumbers || []).some(x => rfqChaseKey(x) === k)) return it; } }
+  return null;
+}
 function removeRfqChase(num, entryId){
   const all=loadRfqChases(); const k=rfqChaseKey(num); const rec=all[k];
   if(!rec||!Array.isArray(rec.entries)) return;
@@ -17010,14 +17108,16 @@ const EMAIL_TEMPLATES = {
         ? (hist.length === 1 ? `del ${hist[0]}` : `del ${hist.slice(0, -1).join(", ")} e del ${hist[hist.length - 1]}`)
         : "";
       const elenco = `${rfqBullet(ctx, "it")}`;
-      const capo = `${ctx.vesselName ? " per la " + ctx.vesselName : ""}`;
+      const vN = mvName(ctx.vesselName);
+      const capo = `${vN ? " per la **" + vN + "**" : ""}`;
+      const hi = mailGreet(ctx, "it");
       const subjHead = L === 1 ? `Sollecito offert${pl ? "e" : "a"}`
         : L === 2 ? `2° sollecito offert${pl ? "e" : "a"}`
         : L === 3 ? `3° e ultimo sollecito offert${pl ? "e" : "a"}`
         : `Chiusura richiest${pl ? "e" : "a"} di offerta`;
       let body;
       if (L === 1) {
-        body = `Buongiorno,\n\nrestiamo in attesa d${pl ? "elle vostre cortesi offerte relative alle seguenti RFQ" : "ella vostra cortese offerta relativa alla seguente RFQ"} (Request for Quotation)${capo}:\n\n${elenco}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio ${pl ? "delle offerte" : "dell'offerta"}.\n\nGrazie per il cortese riscontro.`;
+        body = `Buongiorno,\n\nrestiamo in attesa d${pl ? "elle vostre cortesi offerte relative alle seguenti **RFQ**" : "ella vostra cortese offerta relativa alla seguente **RFQ**"}${capo}:\n\n${elenco}\n\nVi chiediamo gentilmente di confermarci se siete in condizione di quotare il materiale richiesto e di indicarci la tempistica prevista per l'invio ${pl ? "delle offerte" : "dell'offerta"}.\n\nGrazie per il cortese riscontro.`;
       } else if (L === 2) {
         body = `Buongiorno,\n\nfacciamo seguito al nostro sollecito ${prev || "precedente"}, ad oggi senza riscontro, relativo a${pl ? "lle seguenti RFQ" : "lla seguente RFQ"}${capo}:\n\n${elenco}\n\nLa nave ha una finestra di consegna da rispettare: Vi chiediamo cortesemente un riscontro entro 48 ore, anche solo per confermare se siete in grado di quotare. In caso contrario Vi saremo grati di comunicarcelo, così da poter interpellare per tempo un fornitore alternativo.\n\nRestiamo in attesa di un Vostro cortese riscontro.`;
       } else if (L === 3) {
@@ -17025,7 +17125,8 @@ const EMAIL_TEMPLATES = {
       } else {
         body = `Buongiorno,\n\nnon avendo ricevuto riscontro ai nostri solleciti ${prev || "precedenti"}, comunichiamo che ${pl ? "le seguenti richieste di offerta vengono chiuse" : "la seguente richiesta di offerta viene chiusa"} da parte nostra e affidat${pl ? "e" : "a"} ad altro fornitore${capo}:\n\n${elenco}\n\nRestiamo naturalmente a disposizione per le prossime richieste, auspicando tempi di riscontro più rapidi.\n\nCordiali saluti.`;
       }
-      return { subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}${subjHead} – ${rfqSubjRef(ctx, "it")}`.trim(), body };
+      body = body.replace(/^Buongiorno,/, hi).replace(/seguent([ei]) RFQ\b/g, "seguent$1 **RFQ**").replace(/\*\*\*\*RFQ\*\*\*\*/g, "**RFQ**");
+      return { subject: `${vN ? vN + " - " : ""}${subjHead} – ${rfqSubjRef(ctx, "it")}`.trim(), body };
     },
     en: (ctx) => {
       const pl = rfqAllNums(ctx).length > 1;
@@ -17035,14 +17136,16 @@ const EMAIL_TEMPLATES = {
         ? (hist.length === 1 ? `dated ${hist[0]}` : `dated ${hist.slice(0, -1).join(", ")} and ${hist[hist.length - 1]}`)
         : "";
       const elenco = `${rfqBullet(ctx, "en")}`;
-      const forV = `${ctx.vesselName ? " for " + ctx.vesselName : ""}`;
+      const vN = mvName(ctx.vesselName);
+      const forV = `${vN ? " for **" + vN + "**" : ""}`;
+      const hi = mailGreet(ctx, "en");
       const subjHead = L === 1 ? "Quotation reminder"
         : L === 2 ? "2nd reminder – quotation"
         : L === 3 ? "Final reminder – quotation"
         : "RFQ closure";
       let body;
       if (L === 1) {
-        body = `Good morning,\n\nwe are still awaiting your kind quotation${pl ? "s" : ""} for the following RFQ${pl ? "s" : ""} (Request for Quotation)${forV}:\n\n${elenco}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer${pl ? "s" : ""}.\n\nThank you for your kind reply.`;
+        body = `Good morning,\n\nwe are still awaiting your kind quotation${pl ? "s" : ""} for the following **RFQ${pl ? "s" : ""}**${forV}:\n\n${elenco}\n\nWe kindly ask you to confirm whether you are in a position to quote the requested material and to advise the expected time for your offer${pl ? "s" : ""}.\n\nThank you for your kind reply.`;
       } else if (L === 2) {
         body = `Good morning,\n\nwe refer to our reminder ${prev || "already sent"}, still unanswered, concerning the following RFQ${pl ? "s" : ""}${forV}:\n\n${elenco}\n\nThe vessel has a delivery window to meet: we kindly ask for your feedback within 48 hours, even only to confirm whether you are able to quote. Should you not be in a position to do so, please advise, so that we may approach an alternative supplier in due time.\n\nAwaiting your kind reply.`;
       } else if (L === 3) {
@@ -17050,7 +17153,8 @@ const EMAIL_TEMPLATES = {
       } else {
         body = `Good morning,\n\nhaving received no feedback to our reminders ${prev || "already sent"}, we hereby inform you that the following enquir${pl ? "ies are" : "y is"} closed on our side and placed with an alternative supplier${forV}:\n\n${elenco}\n\nWe remain of course available for future enquiries, trusting in faster feedback.\n\nBest regards.`;
       }
-      return { subject: `${ctx.vesselName ? ctx.vesselName + " - " : ""}${subjHead} – ${rfqSubjRef(ctx, "en")}`.trim(), body };
+      body = body.replace(/^Good morning,/, hi).replace(/following RFQ(s?)\b(?!\*)/g, "following **RFQ$1**");
+      return { subject: `${vN ? vN + " - " : ""}${subjHead} – ${rfqSubjRef(ctx, "en")}`.trim(), body };
     }
   },
   "rfq-batch": {
@@ -17118,7 +17222,10 @@ function resolveEmailTemplate(templateKey, context, lang) {
     return null;
   }
   const fn = tpl[lang] || tpl.en;  // fallback inglese se lingua sconosciuta
-  const result = fn(context);
+  const raw = fn(context);
+  // v0.92 — i template possono marcare il grassetto con **…**: corpo semplice per l'URL,
+  // versione formattata (md) per gli appunti.
+  const result = { ...raw, md: raw.body, body: mailMdStrip(raw.body) };
   const mailtoHref = buildComposeHref(result.subject, result.body, result.to || "");
   return { ...result, mailtoHref };
 }
@@ -17254,7 +17361,7 @@ window.openRfqChasePanel = function(ctxJson){
     <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width:640px;">
       <div class="item-detail-header">
         <div class="item-detail-title">
-          <h2>Solleciti offerta · ${escapeHTML(ctx.supplier || "fornitore")}</h2>
+          <h2>Solleciti offerta${ctx.supplier && !/^\(/.test(ctx.supplier) ? " · " + escapeHTML(ctx.supplier) : ""}</h2>
           <div class="item-detail-meta">
             <span class="muted">${escapeHTML(ctx.vesselName || "")}${ctx.rows.length>1 ? " · "+ctx.rows.length+" RFQ, un sollecito ciascuna" : ""}</span>
           </div>
@@ -17280,13 +17387,31 @@ window.rfqChaseSetLang = function(l){
   if(sup && sup!=="—" && state.supplierLanguages){ state.supplierLanguages[sup]=st.lang; saveSupplierLanguages(); }
   renderRfqChaseBody();
 };
+function rfqPanelRowCtx(r){
+  const it = (r.itemId && typeof faFindItem==="function" && faFindItem(r.itemId)) || rfqFindItemByNum(r.n) || null;
+  return { it, vend: rfqVendorOf(r.n, it) };
+}
 function renderRfqChaseBody(){
   const st = window._rfqPanel; if(!st) return;
   const host = document.getElementById("rfq-chase-body"); if(!host) return;
   const ctx = st.ctx;
-  const mail = rfqSupplierEmail(ctx.supplier);
+  // Elenco fornitori per il campo (Rubrica + fornitori degli item)
+  const supSet = new Set(Object.keys(loadEntityProfiles("supplier")||{}));
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items||[]).forEach(it => { if(it.supplier) supSet.add(it.supplier); }));
+  const dl = `<datalist id="rc-sup-list">${[...supSet].sort().map(s => `<option value="${escapeAttr(s)}"></option>`).join("")}</datalist>`;
+  // Avviso RFQ parziali: Infoship dice "1 su 2 arrivata" ma non QUALE
+  const partials = [];
+  const seenIt = new Set();
+  ctx.rows.forEach(r => { const { it } = rfqPanelRowCtx(r); if(!it || seenIt.has(it.id)) return; seenIt.add(it.id);
+    const nums=(it.rfqNumbers||[]).filter(Boolean); const issued=it.rfqIssued||nums.length; const closed=it.rfqClosed||0;
+    const marked=nums.filter(n=>rfqIsAnswered(n)).length;
+    if(issued>1 && closed>marked) partials.push({ it, issued, closed, marked }); });
+  const partialHTML = partials.map(p => `<div class="rc-partial"><b>${escapeHTML(p.it.reqNumber || p.it.description || "")}</b>: Infoship segna <b>${p.closed} offert${p.closed===1?"a":"e"} su ${p.issued}</b> gi\u00e0 ricevut${p.closed===1?"a":"e"}, ma non dice quale. Premi <b>\u2713 Offerta ricevuta</b> sulla RFQ arrivata: resta solo quella da sollecitare.</div>`).join("");
   const rows = ctx.rows.map(r => {
     const num = r.n;
+    const { it, vend } = rfqPanelRowCtx(r);
+    const answered = rfqIsAnswered(num);
+    const reqN = r.reqNumber || (it && it.reqNumber) || "";
     const entries = rfqChaseEntries(num);
     const next = rfqNextLevel(num);
     const lad = rfqLadder(next);
@@ -17296,66 +17421,109 @@ function renderRfqChaseBody(){
         <div class="rc-ev">
           <b>${escapeHTML(rfqLadder(e.level).it)}</b>
           <span>${escapeHTML(rfqChaseDateFull(e.ts))}</span>
-          <span>· ${e.channel==="manual" ? "registrato a mano" : (e.lang||"en").toUpperCase()}</span>
-          <button class="rc-x" onclick="window.rfqChaseUndo('${escapeAttr(num)}','${escapeAttr(e.id)}')" title="Rimuovi dal registro">✕</button>
-        </div>`).join("")}</div>` : `<div class="rc-hint">Mai sollecitata${r.rfqDate ? " — RFQ inviata il "+escapeHTML(r.rfqDate) : ""}${r.days ? ", "+r.days+" giorni fa" : ""}.</div>`;
+          <span>\u00b7 ${e.channel==="manual" ? "registrato a mano" : (e.lang||"en").toUpperCase()}${e.to ? " \u00b7 " + escapeHTML(e.to) : ""}</span>
+          <button class="rc-x" onclick="window.rfqChaseUndo('${escapeAttr(num)}','${escapeAttr(e.id)}')" title="Rimuovi dal registro">\u2715</button>
+        </div>`).join("")}</div>` : (answered ? "" : `<div class="rc-hint">Mai sollecitata${r.rfqDate ? " \u2014 RFQ inviata il "+escapeHTML(r.rfqDate) : ""}${r.days ? ", "+r.days+" giorni fa" : ""}.</div>`);
     const sendLabel = doneAll ? "Catena completata" : `Invia ${lad.it}`;
-    const sendBtn = doneAll
-      ? `<button class="btn btn-sm" disabled>${sendLabel}</button>`
-      : `<button class="btn btn-sm ${wait===0 ? "btn-primary" : ""}" onclick="window.rfqChaseSend('${escapeAttr(num)}')">${sendLabel} →</button>`;
-    return `<div class="rc-row ${doneAll ? "done" : ""}">
+    const sendBtn = (answered || doneAll)
+      ? `<button class="btn btn-sm" disabled>${answered ? "Offerta ricevuta" : sendLabel}</button>`
+      : `<button class="btn btn-sm ${wait===0 ? "btn-primary" : ""}" onclick="window.rfqChaseSend('${escapeAttr(num)}')">${sendLabel} \u2192</button>`;
+    const ansBtn = answered
+      ? `<button class="btn btn-sm" onclick="window.rfqChaseAnswered('${escapeAttr(num)}', false)" title="Riporta la RFQ tra quelle da sollecitare">\u21a9 Annulla</button>`
+      : `<button class="btn btn-sm" onclick="window.rfqChaseAnswered('${escapeAttr(num)}', true)" title="L'offerta per questa RFQ \u00e8 arrivata: esce dai solleciti">\u2713 Offerta ricevuta</button>`;
+    const vendHTML = `<div class="rc-vendor ${vend.known ? "" : "unknown"}">
+        <label>Fornitore</label>
+        <input class="rc-sup" list="rc-sup-list" value="${escapeAttr(vend.supplier)}" placeholder="A chi \u00e8 andata questa RFQ?" onchange="window.rfqChaseSetVendor('${escapeAttr(num)}', this.value)">
+        <label>Email</label>
+        <input class="rc-mail" type="email" value="${escapeAttr(vend.email)}" placeholder="indirizzo del fornitore" onchange="window.rfqChaseSetEmail('${escapeAttr(num)}', this.value)">
+        ${vend.known ? "" : `<span class="rc-warn">Infoship indica un solo fornitore per pi\u00f9 RFQ${vend.hint ? " (" + escapeHTML(vend.hint) + ")" : ""}: scegli a chi \u00e8 andata QUESTA RFQ \u2014 resta memorizzato.</span>`}
+      </div>`;
+    return `<div class="rc-row ${doneAll ? "done" : ""} ${answered ? "answered" : ""}">
       <div class="rc-top">
         <span class="rc-num">${escapeHTML(num)}</span>
+        ${reqN ? `<span class="rc-req" title="Richiesta di riferimento">${escapeHTML(reqN)}</span>` : ""}
         <span class="rc-desc">${escapeHTML(truncate(r.description || ctx.description || "", 70))}</span>
         <span class="rc-acts">
           ${sendBtn}
-          <button class="btn btn-sm" onclick="window.rfqChaseMark('${escapeAttr(num)}')" title="Registra un sollecito già inviato (telefono, email fuori dashboard)">✓ Già fatto</button>
+          ${answered ? "" : `<button class="btn btn-sm" onclick="window.rfqChaseMark('${escapeAttr(num)}')" title="Registra un sollecito gi\u00e0 inviato (telefono, email fuori dashboard)">\u2713 Gi\u00e0 fatto</button>`}
+          ${ansBtn}
         </span>
       </div>
+      ${answered ? "" : vendHTML}
       ${tl}
-      ${doneAll ? "" : `<div class="rc-hint"><span class="rc-step">Prossimo passo</span> · ${escapeHTML(lad.hint)}${wait>0 ? ` <b>Da procedura mancano ancora ${wait} g</b> dall'ultimo sollecito — puoi comunque inviarlo.` : ""}</div>`}
+      ${(doneAll || answered) ? "" : `<div class="rc-hint"><span class="rc-step">Prossimo passo</span> \u00b7 ${escapeHTML(lad.hint)}${wait>0 ? ` <b>Da procedura mancano ancora ${wait} g</b> dall'ultimo sollecito \u2014 puoi comunque inviarlo.` : ""}</div>`}
     </div>`;
   }).join("");
   host.innerHTML = `
+    ${dl}
     <div class="rc-head">
-      <span class="muted" style="font-size:11.5px;">Destinatario: ${mail ? escapeHTML(mail) : "<b>nessuna email in rubrica</b> — la aggiungi nella scheda fornitore"}</span>
+      <span class="muted" style="font-size:11.5px;">Ogni RFQ parte verso il <b>suo</b> fornitore. Dopo l'apertura, il testo con i grassetti \u00e8 negli appunti.</span>
       <span class="rc-lang">
         <button class="${st.lang==="it"?"on":""}" onclick="window.rfqChaseSetLang('it')">IT</button>
         <button class="${st.lang==="en"?"on":""}" onclick="window.rfqChaseSetLang('en')">EN</button>
       </span>
     </div>
+    ${partialHTML}
     ${rows || '<div class="muted">Nessun numero RFQ su questa riga.</div>'}
     <div class="rc-hint" style="margin-top:12px;">
-      Procedura: 1° sollecito dopo 7 giorni · 2° dopo altri 5 · 3° e ultimo dopo altri 3 · poi chiusura e fornitore alternativo.
-      Ogni RFQ viaggia con la sua email: il fornitore risponde richiesta per richiesta e resta traccia delle date.
+      Procedura: 1\u00b0 sollecito dopo 7 giorni \u00b7 2\u00b0 dopo altri 5 \u00b7 3\u00b0 e ultimo dopo altri 3 \u00b7 poi chiusura e fornitore alternativo.
     </div>`;
 }
+window.rfqChaseSetVendor = function(num, val){
+  const sup = String(val||"").trim();
+  const cur = getRfqVendor(num) || {};
+  const patch = { supplier: sup };
+  const m = sup ? rfqSupplierEmail(sup) : "";
+  if (m && (!cur.email || cur.supplier !== sup)) patch.email = m;
+  setRfqVendor(num, patch);
+  if(window._rfqPanel) window._rfqPanel.dirty = true;
+  renderRfqChaseBody();
+};
+window.rfqChaseSetEmail = function(num, val){
+  setRfqVendor(num, { email: String(val||"").trim() });
+  if(window._rfqPanel) window._rfqPanel.dirty = true;
+};
+window.rfqChaseAnswered = function(num, yes){
+  setRfqVendor(num, { answered: !!yes, answeredAt: yes ? new Date().toISOString() : "" });
+  if(window._rfqPanel) window._rfqPanel.dirty = true;
+  renderRfqChaseBody();
+  if(typeof showToast==="function") showToast(yes ? `${num}: offerta ricevuta \u2014 esce dai solleciti` : `${num}: di nuovo da sollecitare`);
+};
 window.rfqChaseSend = function(num){
   const st = window._rfqPanel; if(!st) return;
   const ctx = st.ctx;
   const row = (ctx.rows||[]).find(r => String(r.n)===String(num)) || {};
+  const { vend } = rfqPanelRowCtx(row.n ? row : { n: num });
+  if (!vend.supplier && !vend.email) {
+    if (!confirm("Non \u00e8 indicato a quale fornitore \u00e8 andata " + num + ".\nApro comunque l'email senza destinatario?")) return;
+  }
   const level = rfqNextLevel(num);
   const hist = rfqChaseEntries(num).map(e => rfqChaseDateFull(e.ts)).filter(Boolean);
+  const prof = vend.supplier ? (getEntityProfile("supplier", vend.supplier) || {}) : {};
+  const lang = (vend.supplier && state.supplierLanguages && (state.supplierLanguages[vend.supplier]==="it"||state.supplierLanguages[vend.supplier]==="en"))
+    ? state.supplierLanguages[vend.supplier] : st.lang;
   const tctx = {
     description: row.description || ctx.description || "",
     days: row.days != null ? row.days : ctx.days,
     rfqDate: row.rfqDate || "",
-    supplier: ctx.supplier || "",
+    supplier: vend.supplier || "",
+    contactName: prof.contact || "",
     vesselName: ctx.vesselName || "",
     rfqNumber: num,
     rfqAllNumbers: [num],
     chaseLevel: level,
     chaseHistory: hist
   };
-  const r = resolveEmailTemplate("rfq-overdue", tctx, st.lang);
+  const r = resolveEmailTemplate("rfq-overdue", tctx, lang);
   if(!r) return;
-  const to = rfqSupplierEmail(ctx.supplier);
+  const to = vend.email || "";
+  copyRichMail(r.md).then(ok => { if(ok && typeof showToast==="function") showToast("Testo con grassetti negli appunti: nella bozza Ctrl+A \u2192 Ctrl+V per applicarli"); });
   openComposeMail(buildComposeHref(r.subject, r.body, to));
-  const id = recordRfqChase(num, { level, lang:st.lang, to, subject:r.subject,
-    vesselId:ctx.vesselId||"", supplier:ctx.supplier||"", description:tctx.description });
+  const id = recordRfqChase(num, { level, lang, to, subject:r.subject,
+    vesselId:ctx.vesselId||"", supplier:vend.supplier||"", description:tctx.description });
   st.dirty = true;
   renderRfqChaseBody();
-  if(typeof showToast==="function" && id) showToast(`${rfqLadder(level).it} registrato per ${num} \u2014 puoi rimuoverlo dal registro con \u2715`);
+  if(typeof showToast==="function" && id) setTimeout(() => showToast(`${rfqLadder(level).it} registrato per ${num} \u2192 ${vend.supplier || to || "senza destinatario"}`), 2600);
 };
 window.rfqChaseMark = function(num){
   const st = window._rfqPanel; if(!st) return;
@@ -21901,8 +22069,9 @@ function faFlowHTML(itemId){
 function faActionMatches(a, q){
   if(!q) return true;
   const it = faFindItem(a.itemId);
-  const parts = [a.label, a.description, a.body, a.supplier, a.vesselName, a.docNumber,
+  const parts = [a.label, a.description, a.body, a.supplier, a.vesselName, a.docNumber, a.reqNumber,
     ...(Array.isArray(a.docAllNumbers) ? a.docAllNumbers : [])];
+  (Array.isArray(a.docAllNumbers) ? a.docAllNumbers : []).forEach(n => { const v = getRfqVendor(n); if(v && v.supplier) parts.push(v.supplier); });
   if(it) parts.push(it.description, it.reqNumber, it.poNumber, it.dnNumber, it.supplier,
     ...(Array.isArray(it.rfqNumbers) ? it.rfqNumbers : []));
   return parts.filter(Boolean).join(" ").toLowerCase().includes(q);
@@ -21976,7 +22145,7 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
 
   // Blocco di un fornitore (header + registro solleciti del fornitore + righe)
   function supplierBlockHTML(sup, supItems){
-    const canBatch = sup !== "(senza fornitore)" && supItems.length >= 2;
+    const canBatch = !/^\(/.test(sup) && supItems.length >= 2;
     let batchBtn = "";
     if (canBatch) {
       // v0.88 — niente più email cumulativa: si apre il REGISTRO con tutte le RFQ del
@@ -21988,7 +22157,7 @@ function renderHomogeneousGroup(parentGroup, ruleType, items) {
           : (Array.isArray(i.docAllNumbers) && i.docAllNumbers.length ? i.docAllNumbers
           : (i.docNumber ? [i.docNumber] : []));
         const dt = (typeof rfqIssueDate === "function") ? rfqIssueDate(src) : "";
-        nums.forEach(n => rows.push({ n, description: src.description || i.description || "", rfqDate: dt, days: src.days != null ? src.days : i.ageDays }));
+        nums.forEach(n => rows.push({ n, description: src.description || i.description || "", rfqDate: dt, days: src.days != null ? src.days : i.ageDays, itemId: i.itemId || "", reqNumber: i.reqNumber || src.reqNumber || "" }));
       });
       const pctx = { rows, supplier: sup, vesselName: supItems[0].vesselName || "", vesselId: supItems[0].vesselId || "" };
       const pj = encodeURIComponent(JSON.stringify(pctx));
@@ -22151,7 +22320,7 @@ function actionRowHTMLv2(a, isInGroup) {
         const nums = (Array.isArray(a.docAllNumbers) && a.docAllNumbers.length)
           ? a.docAllNumbers : (c.rfqNumber ? [c.rfqNumber] : []);
         const pctx = {
-          rows: nums.map(n => ({ n, description: c.description || "", rfqDate: (typeof rfqIssueDate === "function" ? rfqIssueDate(c) : ""), days: c.days })),
+          rows: nums.map(n => ({ n, description: c.description || "", rfqDate: (typeof rfqIssueDate === "function" ? rfqIssueDate(c) : ""), days: c.days, itemId: a.itemId || c.itemId || "", reqNumber: a.reqNumber || c.reqNumber || "" })),
           description: c.description || "", supplier: a.supplier || c.supplier || "",
           vesselName: a.vesselName || c.vesselName || "", vesselId: a.vesselId || "", days: c.days
         };
@@ -22238,9 +22407,14 @@ function actionRowHTMLv2(a, isInGroup) {
     ? `<span class="vessel-tag-colored" data-vid="${escapeAttr(a.vesselId || '')}">${escapeHTML(a.vesselName)}</span>`
     : `<span class="faint" style="font-size:11px;">${a._kind === "todo" ? "Ufficio" : "—"}</span>`;
 
+  // v0.92 — riferimento REQ (SHPR) accanto a RFQ/PO/DN
+  const _reqN = a.reqNumber || ((faFindItem(a.itemId) || {}).reqNumber) || "";
+  if (_reqN && a.docLabel !== "REQ" && _reqN !== a.docNumber) {
+    docHTML += ` <span class="ab-req" title="Richiesta di riferimento"><b>REQ</b><span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(_reqN)}', this); event.stopPropagation();" title="Click per copiare">${escapeHTML(_reqN)}</span></span>`;
+  }
   // Fornitore: solo FUORI dai blocchi fornitore (dentro sarebbe ripetuto su ogni riga)
   const supMeta = (!isInGroup && a.supplier)
-    ? `<span class="ab-sup">${escapeHTML(a.supplier)}${langBadge}</span>`
+    ? `<span class="ab-sup ${/^\(/.test(a.supplier) ? "unknown" : ""}">${escapeHTML(a.supplier)}${langBadge}</span>`
     : (!isInGroup && a._kind === "todo" ? `<span class="ab-sup faint">personale</span>` : "");
 
   // v0.88 — stato della catena di solleciti sulla riga (livello raggiunto + data)
@@ -23749,6 +23923,7 @@ function buildStatePayload() {
     repliesDismissed: (typeof loadDismissedReplies === "function" ? loadDismissedReplies() : []),
     shipments: (typeof loadShipments === "function" ? loadShipments() : {}),
     rfqChases: (typeof loadRfqChases === "function" ? loadRfqChases() : {}),
+    rfqVendors: (typeof loadRfqVendors === "function" ? loadRfqVendors() : {}),
     todoTombs: (typeof loadTodoTombs === "function" ? loadTodoTombs() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
@@ -24226,7 +24401,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","todoTombs"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -24260,6 +24435,7 @@ function collSnapshot(){
     repliesDismissed: f(typeof loadDismissedReplies==="function"?loadDismissedReplies():[]),
     shipments: f(typeof loadShipments==="function"?loadShipments():{}),
     rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{}),
+    rfqVendors: f(typeof loadRfqVendors==="function"?loadRfqVendors():{}),
     todoTombs: f(typeof loadTodoTombs==="function"?loadTodoTombs():{})
   };
 }
@@ -24400,6 +24576,20 @@ function mpdMergeRemote(remote, force){
       if (touched) {
         try{ localStorage.setItem("mpd.rfqChases", JSON.stringify(local)); }catch{}
         lMeta["rfqChases"] = force ? (rMeta["rfqChases"]||lMeta["rfqChases"]) : (rMeta["rfqChases"]||new Date().toISOString());
+        changed = true;
+      }
+    }
+    // v0.92 — fornitore per RFQ: unione per numero, vince la voce aggiornata più di recente
+    if (remote.rfqVendors && typeof remote.rfqVendors==="object" && typeof loadRfqVendors==="function") {
+      const local = loadRfqVendors(); let touched=false;
+      for (const k of Object.keys(remote.rfqVendors)) {
+        const rv = remote.rfqVendors[k]; if(!rv||typeof rv!=="object") continue;
+        const lv = local[k];
+        if (!lv || force || String(rv.updatedAt||"") > String(lv.updatedAt||"")) { if(JSON.stringify(lv)!==JSON.stringify(rv)){ local[k]=rv; touched=true; } }
+      }
+      if (touched) {
+        try{ localStorage.setItem("mpd.rfqVendors", JSON.stringify(local)); }catch{}
+        lMeta["rfqVendors"] = rMeta["rfqVendors"] || new Date().toISOString();
         changed = true;
       }
     }
@@ -25962,7 +26152,7 @@ function importBackup(e) {
         var nums = (it.rfqNumbers && it.rfqNumbers.length) ? it.rfqNumbers : (oldest.doc ? [oldest.doc] : []);
         if (nums.length && typeof window.openRfqChasePanel === "function") {
           window.openRfqChasePanel(encodeURIComponent(JSON.stringify({
-            rows: nums.map(function(n){ return { n: n, description: it.description || "", days: oldest.d }; }),
+            rows: nums.map(function(n){ return { n: n, description: it.description || "", days: oldest.d, itemId: it.id || "", reqNumber: it.reqNumber || "" }; }),
             description: it.description || "", supplier: oldest.sup,
             vesselName: oldest.v, vesselId: oldest.vid, days: oldest.d
           })));
