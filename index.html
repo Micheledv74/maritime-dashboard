@@ -5833,6 +5833,70 @@ a:hover { text-decoration: underline; }
 .rc-ev .rc-x:hover{ color:#b02020; }
 .rc-hint{ font-size:11px; color:var(--text-muted); line-height:1.5; margin-top:6px; }
 .rc-step{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-faint); }
+/* v0.94 — SCHEDA ARTICOLO smart */
+.idx-pop{ max-width:860px; }
+.idx-eyebrow{ font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#44576b; margin-bottom:2px; }
+.idx-next{ display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; padding:12px 14px; border-radius:10px; border:1px solid; border-left-width:4px; margin-bottom:14px; }
+.idx-next > div:first-child{ flex:1 1 280px; min-width:0; }
+.idx-next-t{ font-size:15px; font-weight:800; color:#0a1b2e; }
+.idx-next-d{ font-size:12.5px; line-height:1.5; color:#0a1b2e; margin-top:2px; text-wrap:pretty; }
+.idx-next-a{ display:flex; flex-wrap:wrap; gap:6px; }
+.idx-next.tone-blue{ background:#eaf1ff; border-color:rgba(21,83,216,.3); border-left-color:#1553d8; }
+.idx-next.tone-amber{ background:#fdf3e2; border-color:rgba(192,120,0,.35); border-left-color:#c07800; }
+.idx-next.tone-red{ background:#fde3e0; border-color:rgba(192,38,28,.3); border-left-color:#c0261c; }
+.idx-next.tone-green{ background:#e6f4ec; border-color:rgba(20,121,78,.3); border-left-color:#14794e; }
+.idx-next.tone-slate{ background:#f1f4f7; border-color:rgba(10,27,46,.12); border-left-color:#6a7d90; }
+.idx-flow{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-bottom:16px; }
+.idx-step{ background:#fff; border:1px solid rgba(10,27,46,.12); border-top-width:3px; border-radius:9px; padding:8px 10px; min-width:0; }
+.idx-step.done{ border-top-color:#14794e; }
+.idx-step.cur{ border-top-color:#1553d8; box-shadow:0 0 0 2px rgba(21,83,216,.12); }
+.idx-step.todo{ border-top-color:rgba(10,27,46,.15); background:#f7f9fb; }
+.idx-step.cancel{ border-top-color:#c0261c; }
+.idx-sk{ font-size:10px; font-weight:800; letter-spacing:.09em; color:#6a7d90; }
+.idx-step.cur .idx-sk{ color:#1553d8; } .idx-step.done .idx-sk{ color:#14794e; } .idx-step.cancel .idx-sk{ color:#c0261c; }
+.idx-sn{ font-family:var(--font-mono); font-size:11.5px; font-weight:700; color:#0a1b2e; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.idx-ss{ font-size:11.5px; font-weight:650; color:#0a1b2e; margin-top:2px; }
+.idx-sd{ font-size:11px; color:#44576b; }
+.idx-h{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.idx-h h4{ margin:0 auto 0 0; }
+.idx-tblwrap{ overflow-x:auto; margin-top:8px; }
+.idx-tbl{ width:100%; border-collapse:collapse; font-size:12px; }
+.idx-tbl th{ text-align:left; font-size:9.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:#6a7d90; padding:5px 8px; border-bottom:1px solid rgba(10,27,46,.14); }
+.idx-tbl td{ padding:8px; border-bottom:1px solid rgba(10,27,46,.07); vertical-align:top; color:#0a1b2e; }
+.idx-tbl tr.is-ok td{ background:#f3faf6; }
+.idx-tbl a{ color:#1553d8; }
+.idx-sup{ font-weight:700; } .idx-sup.unknown{ color:#8a4b00; }
+.idx-sub{ font-size:11px; color:#44576b; margin-top:2px; }
+.idx-st{ display:inline-block; font-size:11px; font-weight:750; padding:2px 8px; border-radius:999px; border:1px solid; white-space:nowrap; }
+.idx-st.ok{ background:#dff1e6; color:#0f5c3a; border-color:rgba(20,121,78,.4); }
+.idx-st.wait{ background:#fdeed0; color:#8a4b00; border-color:rgba(192,120,0,.42); }
+.idx-st.no{ background:#fde3e0; color:#96150c; border-color:rgba(192,38,28,.4); }
+.idx-st.off, .idx-st.unk{ background:#eef2f6; color:#44576b; border-color:rgba(10,27,46,.15); }
+.idx-req{ font-size:11.5px; color:#44576b; font-weight:700; }
+.idx-grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:0 18px; }
+.idx-more{ margin-top:6px; border-top:1px solid rgba(10,27,46,.1); }
+.idx-more summary{ cursor:pointer; font-size:12px; font-weight:700; color:#44576b; padding:10px 0; }
+@media (max-width:640px){ .idx-flow{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+/* v0.94 — coda solleciti (Overview) */
+.g4-shiptime{ margin-top:8px; font-size:12.5px; opacity:.95; }
+.g4-shiptime b{ font-size:15px; font-family:var(--font-mono); }
+.g4-shiptime span{ opacity:.8; font-size:11px; }
+.g4q-sub{ font-size:12px; color:#44576b; margin-top:3px; }
+.g4q-sub b{ color:#0a1b2e; }
+.g4q-list{ display:flex; flex-direction:column; margin-top:10px; }
+.g4q-row{ display:flex; align-items:center; gap:12px; padding:9px 4px; border-top:1px solid rgba(10,27,46,.08); }
+.g4q-lv{ flex:none; min-width:92px; text-align:center; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:999px; border:1px solid; }
+.g4q-lv.l1{ background:#dce8ff; color:#0b3ea8; border-color:rgba(21,83,216,.38); }
+.g4q-lv.l2{ background:#fdeed0; color:#8a4b00; border-color:rgba(192,120,0,.42); }
+.g4q-lv.l3, .g4q-lv.l4{ background:#c0261c; color:#fff; border-color:#9d1d14; }
+.g4q-lv.wait{ background:#eef2f6; color:#44576b; border-color:rgba(10,27,46,.15); }
+.g4q-main{ flex:1; min-width:0; }
+.g4q-main b{ display:block; font-size:13px; color:#0a1b2e; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.g4q-main b.unknown{ color:#8a4b00; }
+.g4q-main span{ font-size:11.5px; color:#44576b; }
+.g4q-go{ flex:none; border:1px solid #1553d8; background:#1553d8; color:#fff; font:inherit; font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
+.g4q-go.soft{ background:#fff; color:#1553d8; }
+.g4q-empty{ font-size:13px; color:#14794e; font-weight:700; padding:14px 0 4px; }
 /* v0.92 — fornitore PER SINGOLA RFQ */
 .rc-req{ font-family:var(--font-mono); font-size:11px; font-weight:600; color:#44576b; background:#eef2f7; border-radius:4px; padding:1px 6px; }
 .rc-vendor{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin-top:8px; padding:7px 9px; border-radius:7px; background:#f4f7fb; border:1px solid rgba(10,27,46,.08); }
@@ -7743,6 +7807,28 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
   border-color: rgba(12,29,51,.12) !important;
 }
 
+/* v0.94 — stati ATTIVI/cliccati: il fondo chiaro !important sopra sovrascriveva quello pieno
+   lasciando il testo bianco su bianco. Fondo pieno blu azione, testo bianco, per tutti. */
+:root:not([data-theme="dark"]) body.skin-glass .filter-chip.active,
+:root:not([data-theme="dark"]) body.skin-glass .time-chip.active,
+:root:not([data-theme="dark"]) body.skin-glass .todo-toolbar .filter-chip.active,
+:root:not([data-theme="dark"]) body.skin-glass .cert-filter-chip.active,
+:root:not([data-theme="dark"]) body.skin-glass .pp-period-chip.active,
+:root:not([data-theme="dark"]) body.skin-glass .crr-rcp-vessel.active,
+:root:not([data-theme="dark"]) body.skin-glass .vm-seg.on,
+:root:not([data-theme="dark"]) body.skin-glass .pr-chip.on,
+:root:not([data-theme="dark"]) body.skin-glass .dlt-btn.on,
+:root:not([data-theme="dark"]) body.skin-glass .rc-lang button.on,
+:root:not([data-theme="dark"]) body.skin-glass .pipeline-col.active {
+  background: #1553d8 !important; border-color: #1553d8 !important; color: #fff !important;
+}
+:root:not([data-theme="dark"]) body.skin-glass .filter-chip.active *,
+:root:not([data-theme="dark"]) body.skin-glass .time-chip.active *,
+:root:not([data-theme="dark"]) body.skin-glass .cert-filter-chip.active *,
+:root:not([data-theme="dark"]) body.skin-glass .pipeline-col.active * { color: #fff !important; }
+:root:not([data-theme="dark"]) body.skin-glass .action-filter-chip.active { background:#dce8ff !important; color:#0b3ea8 !important; border-color:rgba(21,83,216,.4) !important; }
+:root:not([data-theme="dark"]) body.skin-glass .docnum-copy:active { background:#1553d8 !important; color:#fff !important; }
+
 /* Strisce fusi orari, FX, orologi */
 :root:not([data-theme="dark"]) body.skin-glass .wc-tile,
 :root:not([data-theme="dark"]) body.skin-glass .fusi-item {
@@ -9612,6 +9698,9 @@ const priorityRules = [
     // la RFQ è superata, la riga esce dalla lista (richiesta utente: "non vorrei sollecitare una
     // RFQ dove ho già fatto un ordine").
     if (itemAlreadyOrdered(item)) return null;
+    // v0.94 — REQ annullata o già ordinata/chiusa: le sue HQRQ non si sollecitano più
+    if (reqIsClosed(item)) return null;
+    if (item.rfqStatus === "RFQ Cancelled") return null;
     // v0.92 — Infoship aggrega le RFQ per item: lo stato è il MIGLIORE ricevuto. Se 1 fornitore su 2
     // ha quotato, l'item risulta "Offer Acknowledged" e l'altra RFQ spariva dai solleciti.
     // Ora: RFQ multiple con risposte < inviate e almeno una ancora "Sent to Vendor" = parziale → sollecitabile.
@@ -9672,7 +9761,7 @@ const priorityRules = [
   function ruleReadyForPO(item, vessel) {
     if (item.rfqStatus !== "RFQ Offer Acknowledged") return null;
     if (item.poStatus && item.poStatus !== "") return null;
-    if (!item.reqStatus || item.reqStatus === "REQ Cancelled") return null;
+    if (!item.reqStatus || reqIsClosed(item)) return null;
     const days = item.rfqDays || 0;
     if (days > (state.settings.readyForPOTTL || 60)) return null;
     // v0.10.4 — Per ready-for-PO il PO ancora non c'è, mostro REQ N° o RFQ accettato
@@ -9682,14 +9771,19 @@ const priorityRules = [
       level: "info",
       label: "Pronto per PO",
       ageDays: days,
+      supplier: (() => { const q = rfqsRdy.filter(n => rfqIsAnswered(n, item)).map(n => rfqVendorOf(n, item).supplier).filter(Boolean); const u = [...new Set(q)]; return u.length === 1 ? u[0] : (u.length > 1 ? u.join(" / ") : item.supplier); })(),
       docNumber: item.reqNumber || rfqsRdy[0] || "",
       docLabel: item.reqNumber ? "REQ" : "RFQ",
       itemId: item.id,
-      action: { label: "Vai all'azione", type: "link-internal", payload: { view: "vessel", vesselId: vessel.vesselId, tab: "procurement", itemId: item.id } }
+      // v0.94 — "Vai all'azione" portava alla lista Procurement senza dire cosa fare: ora apre la
+      // scheda dell'articolo, che in cima dice il prossimo passo (emetti PO sull'offerta di X).
+      action: { label: "Emetti PO", type: "item-detail", payload: { itemId: item.id } }
     };
   }
 ];
 
+// v0.94 — REQ chiusa lato Infoship (annullata, ordinata, completata): niente più solleciti né "pronto per PO"
+function reqIsClosed(it){ return !!(it && /cancel|ordered|closed|complete|rejected/i.test(String(it.reqStatus||""))); }
 // v0.79 — Già ordinato? (PO o DN attivi). Un PO annullato NON conta: la riga torna sollecitabile.
 function itemAlreadyOrdered(it){
   if (!it) return false;
@@ -15640,6 +15734,19 @@ window.showParkedItems = function(){
 };
 window.closeParkedItems = function(){ const b = document.getElementById("parked-backdrop"); if (b) b.classList.remove("open"); };
 
+// v0.94 — stato leggibile di una singola RFQ (dettaglio Infoship, spunta manuale o stato dell'item se unica)
+function idxRfqStatus(n, it){
+  const d = rfqDetailOf(n, it);
+  const v = getRfqVendor(n) || {};
+  let st = d && d.status ? d.status : ((it.rfqNumbers || []).length <= 1 ? (it.rfqStatus || "") : "");
+  if (v.answered) st = "RFQ Offer Acknowledged";
+  if (/acknowledged|quoted|awarded/i.test(st)) return { k: "ok", t: "Offerta ricevuta" };
+  if (/refused/i.test(st)) return { k: "no", t: "Rifiutata" };
+  if (/cancel/i.test(st)) return { k: "off", t: "Annullata" };
+  if (/sent/i.test(st)) return { k: "wait", t: "In attesa" };
+  if (/created/i.test(st)) return { k: "off", t: "Da inviare" };
+  return { k: "unk", t: st ? st.replace(/^RFQ /, "") : "Non indicato" };
+}
 function buildItemDetailHTML(it, vessel, vesselCfg) {
   // Helper per riga "label / valore copiabile"
   function infoRow(label, value, copyable = false) {
@@ -15856,49 +15963,133 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
     </div>
   `;
 
+  // ===== v0.94 — SCHEDA SMART: prossimo passo · flusso · fornitori e offerte =====
+  const fmtD = s => { const f = formatDate(s); return f === "—" ? "" : f; };
+  const vName = (vesselCfg && vesselCfg.displayName) || (vessel && (vessel.displayName || vessel.vesselName)) || "";
+  const vId = (vessel && vessel.vesselId) || (vesselCfg && vesselCfg.vesselId) || "";
+  const cp = n => n ? `<span class="docnum-copy" onclick="window.copyDocNum('${escapeAttr(n)}', this); event.stopPropagation();" title="Click per copiare">${escapeHTML(n)}</span>` : "";
+  const short = s => String(s || "").replace(/^(REQ|RFQ|PO|DN) /, "");
+  // Fornitori e offerte: una riga per RFQ
+  const rfqRows = rfqs.map(n => {
+    const vend = rfqVendorOf(n, it);
+    const si = idxRfqStatus(n, it);
+    const prof = vend.supplier ? (getEntityProfile("supplier", vend.supplier) || {}) : {};
+    return { n, vend, si, prof, lvl: rfqChaseLevel(n), last: rfqChaseLast(n), wait: rfqChaseWaitLeft(n) };
+  });
+  const okRows = rfqRows.filter(r => r.si.k === "ok");
+  const openRows = rfqRows.filter(r => r.si.k === "wait" || r.si.k === "unk");
+  const chaseCtx = rows => encodeURIComponent(JSON.stringify({
+    rows: rows.map(r => ({ n: r.n, description: it.description || "", days: it.rfqDays, rfqDate: (typeof rfqIssueDate === "function" ? rfqIssueDate({ rfqDate: it.rfqDate, days: it.rfqDays }) : ""), itemId: it.id, reqNumber: it.reqNumber || "" })),
+    description: it.description || "", vesselName: vName, vesselId: vId, days: it.rfqDays }));
+  const chaseBtn = (rows, lbl, primary) => rows.length ? `<button class="btn btn-sm ${primary ? "btn-primary" : ""}" onclick="window.openRfqChasePanel('${chaseCtx(rows)}')">${lbl} →</button>` : "";
+  const threshold = (state.settings && state.settings.overdueDays) || 7;
+
+  // --- Prossimo passo ---
+  let nx;
+  const allRef = rfqRows.length && rfqRows.every(r => r.si.k === "no" || r.si.k === "off");
+  if (/cancel/i.test(it.reqStatus || "")) nx = { tone: "slate", t: "Richiesta annullata", d: "La REQ è cancellata in Infoship: nessuna azione, le sue RFQ non vengono sollecitate." };
+  else if (it.dnStatus === "DN Received on Board") nx = { tone: "green", t: "Consegnato a bordo", d: `DN ${it.dnNumber || ""}${fmtD(it.dnDeliveryDate || it.dnDate) ? " · " + fmtD(it.dnDeliveryDate || it.dnDate) : ""}. Pratica chiusa.` };
+  else if (it.dnStatus) nx = { tone: "blue", t: "In consegna", d: `${short(it.dnStatus)}${fmtD(it.dnDeliveryDate) ? " · consegna prevista " + fmtD(it.dnDeliveryDate) : ""}. Verifica spedizione e pianificazione qui sotto.` };
+  else if (itemAlreadyOrdered(it)) nx = { tone: "blue", t: "Ordine emesso — attendi la DN", d: `PO ${it.poNumber || ""} · ${short(it.poStatus) || "emesso"}${fmtD(it.poDeliveryDate) ? " · pronto previsto " + fmtD(it.poDeliveryDate) : ""}. Pianifica la consegna sullo scalo giusto.` };
+  else if (okRows.length) {
+    const sups = [...new Set(okRows.map(r => r.vend.supplier).filter(Boolean))];
+    nx = { tone: "blue", t: "Emetti il PO in Infoship",
+      d: `Offert${okRows.length > 1 ? "e ricevute" : "a ricevuta"} da <b>${escapeHTML(sups.join(", ") || "fornitore")}</b>${okRows.length === 1 ? " (" + escapeHTML(okRows[0].n) + ")" : ""}. Confronta, scegli e crea il PO sulla REQ.${openRows.length ? ` <br>${openRows.length} RFQ ancora senza risposta: puoi procedere o sollecitarle.` : ""}`,
+      a: (it.reqNumber ? `<button class="btn btn-sm btn-primary" onclick="window.copyDocNum('${escapeAttr(it.reqNumber)}', this)">Copia REQ ${escapeHTML(it.reqNumber.replace(/^\d{4}-/, ""))}</button>` : "") + chaseBtn(openRows, "Sollecita le altre", false) };
+  }
+  else if (allRef) nx = { tone: "red", t: "Nessun fornitore disponibile", d: "Tutte le RFQ sono state rifiutate o annullate: serve un fornitore alternativo." };
+  else if (openRows.length && (it.rfqDays || 0) > threshold) {
+    const lv = Math.max(0, ...openRows.map(r => r.lvl));
+    nx = { tone: "amber", t: lv ? `Invia il ${rfqLadder(Math.min(lv + 1, 4)).it}` : "Sollecita le offerte",
+      d: `${openRows.length} RFQ senza risposta da ${it.rfqDays} giorni${lv ? " · ultimo sollecito " + rfqChaseDateLabel(openRows.map(r => r.last).filter(Boolean).sort((x, y) => String(y.ts).localeCompare(String(x.ts)))[0].ts) : ""}.`,
+      a: chaseBtn(openRows, "Apri solleciti", true) };
+  }
+  else if (openRows.length) {
+    const due = it.rfqDate ? new Date(new Date(it.rfqDate).getTime() + threshold * 86400000) : null;
+    nx = { tone: "blue", t: "In attesa delle offerte", d: `${openRows.length} RFQ inviat${openRows.length > 1 ? "e" : "a"}${fmtD(it.rfqDate) ? " il " + fmtD(it.rfqDate) : ""}${due && !isNaN(due) ? " · primo sollecito dal " + fmtD(due.toISOString()) : ""}.` };
+  }
+  else nx = { tone: "slate", t: "Da mettere in quotazione", d: `REQ ${short(it.reqStatus) || "aperta"}: nessuna RFQ ancora inviata.` };
+  const nextHTML = `<div class="idx-next tone-${nx.tone}">
+      <div><div class="idx-eyebrow">Prossimo passo</div><div class="idx-next-t">${escapeHTML(nx.t)}</div><div class="idx-next-d">${nx.d}</div></div>
+      ${nx.a ? `<div class="idx-next-a">${nx.a}</div>` : ""}
+    </div>`;
+
+  // --- Flusso REQ → RFQ → PO → DN ---
+  const curIdx = it.dnStatus ? 3 : itemAlreadyOrdered(it) ? 2 : rfqs.length ? 1 : 0;
+  const steps = [
+    { k: "REQ", n: it.reqNumber, s: it.reqStatus, d: it.reqDate },
+    { k: "RFQ", n: rfqs.length > 1 ? `${rfqClosed}/${rfqIssued} offerte` : rfqs[0], s: it.rfqStatus, d: it.rfqDate, multi: rfqs.length > 1 },
+    { k: "PO", n: it.poNumber, s: it.poStatus, d: it.poDate, x: it.poDeliveryDate ? "pronto " + fmtD(it.poDeliveryDate) : "" },
+    { k: "DN", n: it.dnNumber, s: it.dnStatus, d: it.dnDate, x: it.dnDeliveryDate ? "consegna " + fmtD(it.dnDeliveryDate) : "" }
+  ];
+  const flowHTML = `<div class="idx-flow">${steps.map((st, i) => {
+    const cancel = /cancel/i.test(st.s || "");
+    const cls = cancel ? "cancel" : (i < curIdx || (i === 3 && it.dnStatus === "DN Received on Board")) ? "done" : i === curIdx ? "cur" : "todo";
+    return `<div class="idx-step ${cls}">
+      <div class="idx-sk">${st.k}</div>
+      <div class="idx-sn">${st.n ? (st.multi ? escapeHTML(st.n) : cp(st.n)) : '<span class="idx-sd">—</span>'}</div>
+      <div class="idx-ss">${escapeHTML(short(st.s) || (i > curIdx ? "da fare" : ""))}</div>
+      <div class="idx-sd">${escapeHTML([fmtD(st.d), st.x].filter(Boolean).join(" · "))}</div>
+    </div>`; }).join("")}</div>`;
+
+  // --- Fornitori e offerte ---
+  const offersHTML = rfqRows.length ? `
+    <div class="detail-section">
+      <div class="idx-h"><h4>Fornitori e offerte · ${rfqRows.length} RFQ</h4>
+        ${openRows.length ? chaseBtn(openRows, "Registro solleciti", false) : ""}</div>
+      <div class="idx-tblwrap"><table class="idx-tbl">
+        <thead><tr><th>RFQ</th><th>Fornitore</th><th>Stato</th><th>Solleciti</th></tr></thead>
+        <tbody>${rfqRows.map(r => {
+          const mail = r.vend.email || "";
+          const contact = [r.prof.contact, r.prof.phone, r.prof.country].filter(Boolean).map(x => escapeHTML(x)).join(" · ");
+          const lang = r.vend.supplier && state.supplierLanguages ? state.supplierLanguages[r.vend.supplier] : "";
+          const chase = r.lvl ? `<b>${escapeHTML(rfqLadder(r.lvl).it)}</b><div class="idx-sub">${escapeHTML(rfqChaseDateFull(r.last.ts))}${r.si.k === "wait" && r.wait > 0 ? " · prossimo tra " + r.wait + " g" : ""}</div>`
+            : (r.si.k === "wait" || r.si.k === "unk") ? '<span class="idx-sub">mai sollecitata</span>' : '<span class="idx-sub">—</span>';
+          return `<tr class="${r.si.k === "ok" ? "is-ok" : ""}">
+            <td>${cp(r.n)}</td>
+            <td>${r.vend.supplier ? `<div class="idx-sup">${escapeHTML(r.vend.supplier)}${lang ? ` <span class="lang-badge lang-${lang}">${lang.toUpperCase()}</span>` : ""}</div>` : '<div class="idx-sup unknown">Fornitore da indicare</div>'}
+              <div class="idx-sub">${mail ? `<a href="mailto:${escapeAttr(mail)}">${escapeHTML(mail)}</a>` : "email non in rubrica"}${contact ? " · " + contact : ""}</div></td>
+            <td><span class="idx-st ${r.si.k}">${escapeHTML(r.si.t)}</span>${r.vend.fromInfoship ? '<div class="idx-sub">da Infoship</div>' : ""}</td>
+            <td>${chase}</td>
+          </tr>`; }).join("")}</tbody>
+      </table></div>
+    </div>` : "";
+
   return `
-    <div class="item-detail-popover" role="dialog" aria-modal="true">
+    <div class="item-detail-popover idx-pop" role="dialog" aria-modal="true">
       <div class="item-detail-header">
         <div class="item-detail-title">
           <h2>${escapeHTML(it.description || "(senza descrizione)")}</h2>
           <div class="item-detail-meta">
             ${vesselCfg ? `<span class="detail-vessel">⚓ ${escapeHTML(vesselCfg.displayName)}</span>` : ""}
             ${deptTag}
-            ${it.supplier && it.supplier !== "—" ? `<span class="muted">${escapeHTML(it.supplier)} ${it.supplierCode ? "(" + escapeHTML(it.supplierCode) + ")" : ""}</span>` : ""}
+            ${it.reqNumber ? `<span class="idx-req">REQ ${cp(it.reqNumber)}</span>` : ""}
           </div>
         </div>
         <button class="item-detail-close" onclick="window.closeItemDetailPopover()" title="Chiudi (Esc)">✕</button>
       </div>
 
       <div class="item-detail-body">
-        <div class="detail-section">
-          <h4>Pipeline</h4>
-          <div class="detail-pipeline">
-            ${reqSection}
-            ${rfqSection}
-            ${poSection}
-            ${dnSection}
-          </div>
-        </div>
-
-        ${leadTimeSection}
-
+        ${nextHTML}
+        ${flowHTML}
+        ${offersHTML}
         ${shipmentSection(it, vessel)}
-
-        ${logisticsSection}
-
-        ${exclusionSection}
-
         ${deliveryPlannerHTML(it, vessel && vessel.vesselId)}
-
-        ${todosSection}
-
-        ${noteSection}
-
-        <div class="detail-section">
-          <h4>Identificativi tecnici</h4>
-          ${infoRow("Tracker ID", it.id, true)}
+        <div class="idx-grid2">
+          ${leadTimeSection}
+          ${logisticsSection}
         </div>
+        ${todosSection}
+        ${noteSection}
+        <details class="idx-more">
+          <summary>Altro · conteggio performance e identificativi</summary>
+          ${exclusionSection}
+          <div class="detail-section">
+            <h4>Identificativi tecnici</h4>
+            ${infoRow("Tracker ID", it.id, true)}
+            ${it.dnInfoshipId ? infoRow("DN Infoship ID", it.dnInfoshipId, true) : ""}
+          </div>
+        </details>
       </div>
 
       <div class="item-detail-footer">
@@ -17423,8 +17614,8 @@ window.openRfqChasePanel = function(ctxJson){
     bd.id = "rfq-chase-backdrop";
     bd.className = "item-detail-backdrop";
     bd.addEventListener("click", ev => { if(ev.target===bd) window.closeRfqChasePanel(); });
-    document.body.appendChild(bd);
   }
+  document.body.appendChild(bd);   // v0.94 — sempre in cima, anche aperto dalla scheda articolo
   bd.innerHTML = `
     <div class="item-detail-popover" role="dialog" aria-modal="true" style="max-width:640px;">
       <div class="item-detail-header">
@@ -22404,6 +22595,9 @@ function actionRowHTMLv2(a, isInGroup) {
         const ctxJson = encodeURIComponent(JSON.stringify(a.action.context || {}));
         actionBtn = `<button class="btn btn-sm" onclick="window.handleMailtoBilingualClick('${escapeAttr(a.key)}', '${escapeAttr(a.supplier || "")}', '${escapeAttr(a.action.template)}', '${ctxJson}')">${escapeHTML(a.action.label)} →</button>${langBadge}`;
       }
+    } else if (a.action.type === "item-detail") {
+      const iid = (a.action.payload && a.action.payload.itemId) || a.itemId || "";
+      actionBtn = `<button class="btn btn-sm" onclick="window.openItemDetailPopover('${escapeAttr(iid)}')" title="Apri la scheda: offerte ricevute, fornitore e numeri da copiare in Infoship">${escapeHTML(a.action.label)} →</button>`;
     } else if (a.action.type === "todo-edit") {
       actionBtn = `<button class="btn btn-sm" onclick="openTodoModal('${escapeAttr(a.action.payload)}')">Apri →</button>`;
     } else if (a.action.type === "link-internal") {
@@ -26234,6 +26428,77 @@ function importBackup(e) {
     return el;
   }
 
+  /* --- v0.94 coda solleciti: COSA sollecitare oggi, a CHI, a che livello ---------------
+     Sostituisce l'istogramma "anzianità": non dice quante RFQ sono vecchie ma quali
+     solleciti partono oggi, raggruppati per fornitore e nave, con il livello della scala
+     (1°/2°/3°/chiusura) e il pulsante che apre direttamente il registro solleciti. */
+  function chaseQueue(){
+    if (typeof generateActionsForVessel !== "function" || !state.data || !state.data.vessels) return null;
+    var groups = {}, rfqTot = 0, dueN = 0, waitN = 0;
+    state.data.vessels.forEach(function(v){
+      var cfg = (typeof VESSELS !== "undefined" ? VESSELS.find(function(c){ return c.vesselId === v.vesselId; }) : null) || {};
+      var vn = cfg.displayName || v.displayName || v.vesselName || v.vesselId;
+      var acts = [];
+      try { acts = generateActionsForVessel(Object.assign({}, v, cfg)) || []; } catch(e){ acts = []; }
+      acts.forEach(function(a){
+        if (!/^overdue:/.test(a.key || "")) return;
+        var it = (typeof faFindItem === "function" && faFindItem(a.itemId)) || null;
+        var nums = (a.docAllNumbers && a.docAllNumbers.length) ? a.docAllNumbers : (a.docNumber ? [a.docNumber] : []);
+        var ctx = (a.action && a.action.context) || {};
+        nums.forEach(function(n){
+          var vend = rfqVendorOf(n, it);
+          var sup = vend.supplier || "";
+          var k = v.vesselId + "|" + (sup || "?");
+          var g = groups[k] || (groups[k] = { sup: sup, v: vn, vid: v.vesselId, rows: [], lvl: 0, days: 0, due: false, wait: 99 });
+          var w = rfqChaseWaitLeft(n), l = rfqChaseLevel(n);
+          g.rows.push({ n: n, description: (it && it.description) || a.description || "", days: a.ageDays, rfqDate: (typeof rfqIssueDate === "function" ? rfqIssueDate(ctx) : ""), itemId: a.itemId || "", reqNumber: a.reqNumber || "" });
+          g.lvl = Math.max(g.lvl, l); g.days = Math.max(g.days, a.ageDays || 0);
+          if (w === 0) { g.due = true; dueN++; } else { waitN++; }
+          g.wait = Math.min(g.wait, w);
+          rfqTot++;
+        });
+      });
+    });
+    var list = Object.keys(groups).map(function(k){ return groups[k]; })
+      .sort(function(a, b){ return (b.due - a.due) || (b.lvl - a.lvl) || (b.days - a.days); });
+    var el = document.createElement("div");
+    el.className = "g4-card";
+    var noSup = list.filter(function(g){ return !g.sup; }).length;
+    if (!list.length) {
+      el.innerHTML = "<h3>Solleciti di oggi</h3><div class=\"g4q-empty\">Nessuna RFQ da sollecitare: tutte le richieste sono nei tempi.</div>";
+      return el;
+    }
+    var shown = list.slice(0, 5);
+    el.innerHTML =
+      "<h3>Solleciti di oggi</h3>" +
+      '<div class="g4q-sub"><b>' + dueN + " RFQ</b> da sollecitare oggi" +
+        (waitN ? " · " + waitN + " in attesa dopo un sollecito" : "") +
+        (noSup ? " · <b>" + noSup + "</b> senza fornitore indicato" : "") + "</div>" +
+      '<div class="g4q-list">' + shown.map(function(g, i){
+        var next = Math.min(g.lvl + 1, 4);
+        var lvCls = g.due ? "l" + next : "wait";
+        var lvTxt = g.due ? rfqLadder(next).it : "attendi " + g.wait + " g";
+        return '<div class="g4q-row">' +
+          '<span class="g4q-lv ' + lvCls + '">' + lvTxt + "</span>" +
+          '<div class="g4q-main"><b class="' + (g.sup ? "" : "unknown") + '">' + escapeHTML(g.sup || "Fornitore da indicare") + "</b>" +
+          "<span>" + escapeHTML(g.v) + " · " + g.rows.length + " RFQ · la più vecchia " + g.days + " gg</span></div>" +
+          '<button class="g4q-go' + (g.due ? "" : " soft") + '" data-q="' + i + '">' + (g.due ? "Sollecita" : "Apri") + " →</button></div>";
+      }).join("") + "</div>" +
+      '<div class="g4-foot">' + (list.length > shown.length ? "Altri " + (list.length - shown.length) + " fornitori in coda" : "Ordinati per urgenza: livello della scala, poi anzianità") +
+      '<span class="g4-link" data-all="1">Tutte in Azioni flotta →</span></div>';
+    el.addEventListener("click", function(e){
+      var b = e.target.closest("[data-q]");
+      if (b) {
+        var g = shown[+b.dataset.q];
+        if (g && typeof window.openRfqChasePanel === "function")
+          window.openRfqChasePanel(encodeURIComponent(JSON.stringify({ rows: g.rows, supplier: g.sup, vesselName: g.v, vesselId: g.vid })));
+        return;
+      }
+      if (e.target.closest("[data-all]") && typeof window.goFleetActions === "function") window.goFleetActions("rfq");
+    });
+    return el;
+  }
+
   /* --- prossimo scalo: prima nave realmente in arrivo -------------------- */
   // v0.90 — letto dai DATI di viaggio, non più dal testo della card.
   // Prima si affidava a "arrivo tra N g" scritto nella card e scartava tutto
@@ -26255,7 +26520,7 @@ function importBackup(e) {
         if (isNaN(d)) return;
         var days = Math.round((d - today) / 86400000);
         var cand = { port: leg.to, ship: v.name, vid: v.vid, days: days,
-                     eta: (leg.eta || "").slice(0,10), etb: (leg.etb || "").slice(0,10) };
+                     eta: leg.eta || "", etb: leg.etb || "" };
         // preferisco sempre un arrivo futuro; tra due futuri il più vicino,
         // tra due passati il più recente (è lo scalo in corso)
         if (!best) { best = cand; return; }
@@ -26272,7 +26537,19 @@ function importBackup(e) {
       : best.days === -1 ? "Ieri" : Math.abs(best.days) + " giorni fa";
     var note = best.days >= 0 ? "prima nave della flotta ad arrivare"
       : "ETA non aggiornata — verifica il viaggio";
-    var fmt = function(s){ if (!s) return ""; var p = s.split("-"); return p[2] + "." + p[1]; };
+    // v0.94 — data E ora (i dati di viaggio portano l'ora: "2026-09-25T08:00")
+    var fmt = function(s){ if (!s) return ""; var d = s.slice(0,10).split("-"); var t = (s.split("T")[1] || "").slice(0,5);
+      return d[2] + "." + d[1] + (t && t !== "00:00" ? " " + t : ""); };
+    var shipT = null;
+    try {
+      var lkp = (typeof getLastKnownPosition === "function") ? getLastKnownPosition(best.vid) : null;
+      if (lkp && lkp.coords && typeof shipLocalTimeFromLon === "function") shipT = shipLocalTimeFromLon(lkp.coords.lon);
+      if (!shipT && typeof shipLocalTime === "function" && state.data) {
+        var dv = (state.data.vessels || []).find(function(x){ return x.vesselId === best.vid; }) || {};
+        var lng = dv.lng != null ? dv.lng : (dv.tracking && dv.tracking.lng);
+        var st2 = shipLocalTime(lng); if (st2) shipT = { text: st2.time, off: "UTC" + (st2.offset >= 0 ? "+" : "") + st2.offset };
+      }
+    } catch(e){ shipT = null; }
     var dates = [best.eta ? "ETA " + fmt(best.eta) : "", best.etb ? "ETB " + fmt(best.etb) : ""]
       .filter(Boolean).join(" · ");
     var deliv = 0, dn = 0;
@@ -26291,6 +26568,7 @@ function importBackup(e) {
       '<div class="g4-port">' + best.port.replace(/\b(\w)(\w*)/g, function(_,a,b){ return a + b.toLowerCase(); }) + "</div>" +
       '<div class="g4-ship">' + best.ship + "</div>" +
       '<div class="g4-eta"><b>' + when + "</b><span>" + [dates, best.days < 0 ? note : ""].filter(Boolean).join(" · ") + "</span></div>" +
+      (shipT ? '<div class="g4-shiptime">Ora a bordo <b>' + shipT.text + "</b> <span>" + shipT.off + " · stimata</span></div>" : "") +
       '<div class="g4-line"><span style="opacity:.85">' + foot + "</span>" +
       '<span style="font-weight:700;white-space:nowrap">Dettagli →</span></div>';
     el.addEventListener("click", function(){
@@ -26347,7 +26625,7 @@ function importBackup(e) {
 
     host.insertBefore(hello(), host.firstChild);
 
-    var chart = aging(), next = nextCall();
+    var chart = chaseQueue(), next = nextCall();   // v0.94 — coda solleciti al posto dell'anzianità
     if (chart || next) {
       var row = document.createElement("div");
       row.className = "g4-row";
