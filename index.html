@@ -5841,6 +5841,7 @@ a:hover { text-decoration: underline; }
 .rc-vendor input{ font:inherit; font-size:12px; padding:4px 7px; border:1px solid rgba(10,27,46,.18); border-radius:6px; background:#fff; color:#0a1b2e; min-width:0; }
 .rc-vendor input.rc-sup{ flex:1 1 200px; font-weight:700; }
 .rc-vendor input.rc-mail{ flex:1 1 180px; font-family:var(--font-mono); font-size:11.5px; }
+.rc-vendor .rc-src{ font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#14794e; background:#e3f3ea; border:1px solid #9fd3b6; border-radius:999px; padding:2px 8px; }
 .rc-vendor .rc-warn{ flex-basis:100%; font-size:11px; color:#8a4b00; font-weight:600; }
 .rc-row.answered{ opacity:.6; }
 .rc-row.answered .rc-num{ text-decoration:line-through; }
@@ -9618,9 +9619,13 @@ const priorityRules = [
     const summOv = Array.isArray(item.rfqStatusSummary) ? item.rfqStatusSummary : [];
     const issuedOv = item.rfqIssued || rfqsAllOv.length;
     const closedOv = item.rfqClosed || 0;
-    const partialOv = issuedOv > 1 && closedOv < issuedOv && summOv.includes("RFQ Sent to Vendor");
+    const partialOv = issuedOv > 1 && closedOv < issuedOv && summOv.includes("RFQ Sent to Vendor")
+      || (rfqsAllOv.length > 1 && rfqsAllOv.some(n => rfqDetailOf(n, item)) && rfqsAllOv.some(n => rfqIsAnswered(n, item)) && rfqsAllOv.some(n => !rfqIsAnswered(n, item)));
     const waitingOv = item.rfqStatus && item.rfqStatus !== "RFQ Offer Acknowledged" && item.rfqStatus !== "RFQ Refused";
-    const rfqsOv = rfqsAllOv.filter(n => !rfqIsAnswered(n));   // escluse quelle segnate "offerta ricevuta"
+    const rfqsOv = rfqsAllOv.filter(n => !rfqIsAnswered(n, item));   // escluse quelle quotate/chiuse (Infoship o a mano)
+    // Con il dettaglio per RFQ lo stato vero è quello della singola RFQ, non l'aggregato
+    const hasDet = rfqsAllOv.some(n => rfqDetailOf(n, item));
+    if (hasDet && rfqsOv.length && rfqsOv.length < rfqsAllOv.length) { /* parziale certo */ }
     if (rfqsAllOv.length && !rfqsOv.length) return null;
     if (item.rfqDays && item.rfqDays > threshold && (waitingOv || partialOv)) {
       // Fornitore della riga = quello delle RFQ ANCORA APERTE (non quello aggregato dell'item)
@@ -16758,6 +16763,7 @@ function renderTodosPage() {
       </div>
       <div class="fleet-search-row">
         <input type="search" class="search-input" id="fleet-action-search" placeholder="Cerca RFQ: numero, fornitore, articolo, nave, marca o modello…" value="${escapeAttr(state._fleetActionQ||"")}">
+        <label class="btn btn-sm" title="Carica l'Excel esportato da Infoship: ogni RFQ prende il suo fornitore e il suo stato" style="cursor:pointer;white-space:nowrap;">⇧ Excel Infoship<input type="file" accept=".xlsx,.xls" style="display:none" onchange="window.importInfoshipRfqExcel(this.files[0]); this.value='';"></label>
         ${(state._fleetActionQ||"").trim() ? `<button class="fleet-search-clear" onclick="window.clearFleetActionQuery()">✕ Azzera ricerca</button>` : `<span class="fleet-search-hint">Le righe già diventate PO o DN non compaiono: non si sollecita ciò che è già ordinato.</span>`}
       </div>
       <span class="section-meta" id="actions-today-meta" style="display:none;"></span>
@@ -17061,9 +17067,29 @@ function setRfqVendor(n, patch){
   all[k] = Object.assign({}, all[k] || {}, patch, { updatedAt: new Date().toISOString() });
   saveRfqVendors(all);
 }
-function rfqIsAnswered(n){ const v = getRfqVendor(n); return !!(v && v.answered); }
+// v0.93 — dettaglio Infoship per singola RFQ: dal JSON (item.rfqDetails, quando n8n lo porta)
+// oppure dall'import diretto dell'Excel Infoship (registro con source:"infoship").
+const RFQ_CLOSED_RE = /acknowledged|refused|cancel/i;
+function rfqDetailOf(n, item){
+  const k = rfqChaseKey(n);
+  const arr = item && Array.isArray(item.rfqDetails) ? item.rfqDetails : [];
+  const d = arr.find(x => x && rfqChaseKey(x.number || x.rfqNumber) === k);
+  if(d) return { supplier: d.supplier || d.holder || "", code: d.code || d.supplierCode || "", status: d.status || "" };
+  const v = getRfqVendor(n);
+  if(v && v.source === "infoship") return { supplier: v.infoshipSupplier || v.supplier || "", code: v.code || "", status: v.status || "" };
+  return null;
+}
+function rfqIsAnswered(n, item){
+  const v = getRfqVendor(n);
+  if(v && v.answered) return true;
+  const d = rfqDetailOf(n, item);
+  return !!(d && RFQ_CLOSED_RE.test(d.status));
+}
 function rfqVendorOf(n, item){
   const v = getRfqVendor(n) || {};
+  const d = rfqDetailOf(n, item);
+  if(v.supplier && v.source === "manual") return { supplier: v.supplier, email: v.email || rfqSupplierEmail(v.supplier, v.code), known: true };
+  if(d && d.supplier) return { supplier: d.supplier, email: v.email || rfqSupplierEmail(d.supplier, d.code), known: true, fromInfoship: true, status: d.status };
   if(v.supplier) return { supplier: v.supplier, email: v.email || rfqSupplierEmail(v.supplier), known: true };
   const nums = (item && Array.isArray(item.rfqNumbers)) ? item.rfqNumbers.filter(Boolean) : [];
   const issued = (item && item.rfqIssued) || nums.length;
@@ -17338,10 +17364,52 @@ window.changeSupplierLanguage = function(supplier) {
 // Una riga per ogni RFQ: stato della catena, storico datato, invio del sollecito
 // successivo. L'email si apre già scritta al livello giusto e l'invio viene
 // registrato (con annulla) così resta traccia di quando è partito ogni sollecito.
-function rfqSupplierEmail(sup){
-  try{ if(sup && typeof getEntityProfile==="function"){ const p=getEntityProfile("supplier", sup)||{}; return p.email||""; } }catch(e){}
+function rfqSupplierEmail(sup, code){
+  try{
+    const all = loadEntityProfiles("supplier") || {};
+    if(sup && all[sup] && all[sup].email) return all[sup].email;
+    if(code){ const k = Object.keys(all).find(x => all[x] && String(all[x].code||"").toUpperCase() === String(code).toUpperCase()); if(k && all[k].email) return all[k].email; }
+    if(sup){ const s = String(sup).toUpperCase().replace(/[^A-Z0-9]/g,""); const k = Object.keys(all).find(x => x.toUpperCase().replace(/[^A-Z0-9]/g,"") === s); if(k && all[k].email) return all[k].email; }
+  }catch(e){}
   return "";
 }
+// v0.93 — Import diretto dell'Excel Infoship (lista documenti): ogni riga HQRQ porta
+// il SUO fornitore (Holder/Code) e il SUO stato. Riempie il registro RFQ→fornitore.
+window.importInfoshipRfqExcel = async function(file){
+  if(!file) return;
+  try{
+    await loadSheetJS();
+    const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+    const xd = v => { if(typeof v === "number"){ const d = new Date(Date.UTC(1899,11,30) + v*86400000); return d.toISOString().slice(0,10); } return String(v||"").slice(0,10); };
+    const all = loadRfqVendors(); let n = 0, closed = 0;
+    const now = new Date().toISOString();
+    rows.forEach(r => {
+      const num = String(r.Number || "").trim();
+      if(!/HQRQ/i.test(num) && !/quotation/i.test(String(r["Document Type"]||""))) return;
+      const k = rfqChaseKey(num); if(!k) return;
+      const cur = all[k] || {};
+      const status = String(r.Status || "").trim();
+      const holder = String(r.Holder || "").trim();
+      const rec = Object.assign({}, cur, {
+        source: cur.source === "manual" ? "manual" : "infoship",
+        infoshipSupplier: holder, code: String(r.Code || "").trim(), status,
+        issuedAt: xd(r.Dates), deadline: xd(r.LD), importedAt: now, updatedAt: now
+      });
+      if(cur.source !== "manual") rec.supplier = holder || cur.supplier || "";
+      if(!rec.email && holder) rec.email = rfqSupplierEmail(holder, rec.code) || "";
+      if(RFQ_CLOSED_RE.test(status)) closed++;
+      all[k] = rec; n++;
+    });
+    saveRfqVendors(all);
+    if(typeof showToast === "function") showToast(n ? `Infoship: ${n} RFQ con fornitore e stato (${closed} già chiuse/quotate)` : "Nessuna RFQ (HQRQ) trovata nel file");
+    if(window._rfqPanel) renderRfqChaseBody();
+    if(typeof render === "function") render();
+  }catch(e){
+    console.error("[Infoship RFQ] import", e);
+    if(typeof showToast === "function") showToast("Import non riuscito: " + (e.message || e));
+  }
+};
 window.openRfqChasePanel = function(ctxJson){
   let ctx;
   try{ ctx = JSON.parse(decodeURIComponent(ctxJson)); }
@@ -17404,13 +17472,13 @@ function renderRfqChaseBody(){
   const seenIt = new Set();
   ctx.rows.forEach(r => { const { it } = rfqPanelRowCtx(r); if(!it || seenIt.has(it.id)) return; seenIt.add(it.id);
     const nums=(it.rfqNumbers||[]).filter(Boolean); const issued=it.rfqIssued||nums.length; const closed=it.rfqClosed||0;
-    const marked=nums.filter(n=>rfqIsAnswered(n)).length;
-    if(issued>1 && closed>marked) partials.push({ it, issued, closed, marked }); });
-  const partialHTML = partials.map(p => `<div class="rc-partial"><b>${escapeHTML(p.it.reqNumber || p.it.description || "")}</b>: Infoship segna <b>${p.closed} offert${p.closed===1?"a":"e"} su ${p.issued}</b> gi\u00e0 ricevut${p.closed===1?"a":"e"}, ma non dice quale. Premi <b>\u2713 Offerta ricevuta</b> sulla RFQ arrivata: resta solo quella da sollecitare.</div>`).join("");
+    const marked=nums.filter(n=>rfqIsAnswered(n, it)).length;
+    if(issued>1 && closed>marked && !nums.some(n=>rfqDetailOf(n, it))) partials.push({ it, issued, closed, marked }); });
+  const partialHTML = partials.map(p => `<div class="rc-partial"><b>${escapeHTML(p.it.reqNumber || p.it.description || "")}</b>: Infoship segna <b>${p.closed} offert${p.closed===1?"a":"e"} su ${p.issued}</b> gi\u00e0 ricevut${p.closed===1?"a":"e"}, ma non dice quale. Premi <b>\u2713 Offerta ricevuta</b> sulla RFQ arrivata, oppure carica l'Excel Infoship qui sopra: lo sa da solo.</div>`).join("");
   const rows = ctx.rows.map(r => {
     const num = r.n;
     const { it, vend } = rfqPanelRowCtx(r);
-    const answered = rfqIsAnswered(num);
+    const answered = rfqIsAnswered(num, it);
     const reqN = r.reqNumber || (it && it.reqNumber) || "";
     const entries = rfqChaseEntries(num);
     const next = rfqNextLevel(num);
@@ -17436,6 +17504,7 @@ function renderRfqChaseBody(){
         <input class="rc-sup" list="rc-sup-list" value="${escapeAttr(vend.supplier)}" placeholder="A chi \u00e8 andata questa RFQ?" onchange="window.rfqChaseSetVendor('${escapeAttr(num)}', this.value)">
         <label>Email</label>
         <input class="rc-mail" type="email" value="${escapeAttr(vend.email)}" placeholder="indirizzo del fornitore" onchange="window.rfqChaseSetEmail('${escapeAttr(num)}', this.value)">
+        ${vend.fromInfoship ? `<span class="rc-src" title="Dato letto da Infoship">Infoship${vend.status ? " · " + escapeHTML(vend.status.replace(/^RFQ /,"")) : ""}</span>` : ""}
         ${vend.known ? "" : `<span class="rc-warn">Infoship indica un solo fornitore per pi\u00f9 RFQ${vend.hint ? " (" + escapeHTML(vend.hint) + ")" : ""}: scegli a chi \u00e8 andata QUESTA RFQ \u2014 resta memorizzato.</span>`}
       </div>`;
     return `<div class="rc-row ${doneAll ? "done" : ""} ${answered ? "answered" : ""}">
@@ -17458,6 +17527,7 @@ function renderRfqChaseBody(){
     ${dl}
     <div class="rc-head">
       <span class="muted" style="font-size:11.5px;">Ogni RFQ parte verso il <b>suo</b> fornitore. Dopo l'apertura, il testo con i grassetti \u00e8 negli appunti.</span>
+      <label class="btn btn-sm" style="cursor:pointer;white-space:nowrap;" title="Excel esportato da Infoship: fornitore e stato di ogni RFQ">\u21e7 Excel Infoship<input type="file" accept=".xlsx,.xls" style="display:none" onchange="window.importInfoshipRfqExcel(this.files[0]); this.value='';"></label>
       <span class="rc-lang">
         <button class="${st.lang==="it"?"on":""}" onclick="window.rfqChaseSetLang('it')">IT</button>
         <button class="${st.lang==="en"?"on":""}" onclick="window.rfqChaseSetLang('en')">EN</button>
@@ -17472,7 +17542,7 @@ function renderRfqChaseBody(){
 window.rfqChaseSetVendor = function(num, val){
   const sup = String(val||"").trim();
   const cur = getRfqVendor(num) || {};
-  const patch = { supplier: sup };
+  const patch = { supplier: sup, source: sup ? "manual" : (cur.infoshipSupplier ? "infoship" : "") };
   const m = sup ? rfqSupplierEmail(sup) : "";
   if (m && (!cur.email || cur.supplier !== sup)) patch.email = m;
   setRfqVendor(num, patch);
