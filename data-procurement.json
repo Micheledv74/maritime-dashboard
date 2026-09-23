@@ -1,16 +1,16 @@
 {
-  "lastSync": "2026-09-23T09:05:49.259Z",
+  "lastSync": "2026-09-23T09:10:51.562Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
-      "totalReq": 244,
-      "rfqOpen": 11,
-      "rfqOverdue7": 5,
-      "rfqOverdue15": 5,
-      "readyForPO": 7,
-      "orders": 9,
+      "totalReq": 245,
+      "rfqOpen": 8,
+      "rfqOverdue7": 4,
+      "rfqOverdue15": 4,
+      "readyForPO": 8,
+      "orders": 10,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 27,
@@ -28,6 +28,35 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med toscana::log book med toscana",
+          "description": "Log Book - Med Toscana",
+          "supplier": "CAIM",
+          "department": "DECK Department",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-MDT-HQPO-00110",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "reqDate": "",
+          "poDate": "2026-09-21",
+          "dnDate": "",
+          "poDeliveryDate": "2026-10-06",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-10-06"
+        },
         {
           "id": "med toscana::uhf radio for isps",
           "description": "UHF RADIO FOR ISPS",
@@ -47,6 +76,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-09-11",
           "poDate": "",
           "dnDate": "",
@@ -59,22 +89,36 @@
         {
           "id": "med toscana::talk back box preamplifier ordering according service",
           "description": "TALK BACK BOX PREAMPLIFIER, ORDERING ACCORDING SERVICE",
-          "supplier": "—",
+          "supplier": "TEFIN SCRL",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00103",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00217"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 1,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00217",
+              "supplier": "TEFIN SCRL",
+              "code": "SSS0033",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "reqDate": "2026-09-14",
           "poDate": "",
           "dnDate": "",
@@ -109,6 +153,24 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00215",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-09-15",
+              "deadline": "2026-09-30"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00214",
+              "supplier": "MacGregor Pte Ltd",
+              "code": "SSS0034",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-15",
+              "deadline": "2026-09-30"
+            }
+          ],
           "reqDate": "2026-09-06",
           "poDate": "",
           "dnDate": "",
@@ -121,22 +183,36 @@
         {
           "id": "med toscana::new type power connection for cargo grabs catalog \"oduheavy duty connectors\"",
           "description": "New type power connection for cargo Grabs, Catalog \"ODU-Heavy Duty Connectors\".",
-          "supplier": "—",
+          "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00104",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00216"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 1,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00216",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "reqDate": "2026-09-15",
           "poDate": "",
           "dnDate": "",
@@ -165,6 +241,7 @@
           "dnStatus": "",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-09-16",
           "dnDate": "",
@@ -193,6 +270,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-07-20",
           "poDate": "",
           "dnDate": "",
@@ -221,6 +299,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-08-24",
           "poDate": "",
           "dnDate": "",
@@ -249,6 +328,7 @@
           "dnStatus": "",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-09-07",
           "dnDate": "",
@@ -281,6 +361,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-21",
           "poDate": "2026-09-02",
           "dnDate": "",
@@ -313,6 +394,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-15",
           "poDate": "2026-09-07",
           "dnDate": "2026-09-07",
@@ -341,6 +423,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-08-20",
           "dnDate": "2026-08-28",
@@ -374,6 +457,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-15",
           "poDate": "2026-08-24",
           "dnDate": "2026-08-28",
@@ -406,6 +490,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-14",
           "poDate": "2026-08-21",
           "dnDate": "2026-08-28",
@@ -441,6 +526,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-14",
           "poDate": "2026-08-25",
           "dnDate": "",
@@ -474,6 +560,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-13",
           "poDate": "2026-08-21",
           "dnDate": "2026-08-28",
@@ -506,6 +593,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-13",
           "poDate": "2026-08-21",
           "dnDate": "2026-08-28",
@@ -538,6 +626,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-12",
           "poDate": "2026-08-21",
           "dnDate": "2026-08-28",
@@ -550,10 +639,12 @@
         {
           "id": "med toscana::ows 15 ppm low level sensor",
           "description": "OWS 15 ppm Low Level Sensor",
-          "supplier": "O&Bis",
+          "supplier": "Dongjin Intec Co., Ltd.",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00098",
           "rfqNumbers": [
+            "2026-MDT-HQRQ-00219",
+            "2026-MDT-HQRQ-00218",
             "2026-MDT-HQRQ-00196",
             "2026-MDT-HQRQ-00195",
             "2026-MDT-HQRQ-00194"
@@ -561,16 +652,61 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 3,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 5,
+          "rfqClosed": 1,
+          "rfqPct": 20,
           "rfqDays": 36,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Created",
+            "RFQ Cancelled",
+            "RFQ Refused",
+            "RFQ Offer Acknowledged"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00219",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00218",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Cancelled",
+              "date": "2026-09-22",
+              "deadline": ""
+            },
+            {
+              "number": "2026-MDT-HQRQ-00196",
+              "supplier": "O&Bis",
+              "code": "SSS0057",
+              "status": "RFQ Refused",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00195",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Refused",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00194",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            }
           ],
           "reqDate": "2026-08-17",
           "poDate": "",
@@ -606,6 +742,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-21",
           "poDate": "2026-09-03",
           "dnDate": "",
@@ -638,6 +775,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "",
           "dnDate": "",
@@ -675,6 +813,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-11",
           "poDate": "",
           "dnDate": "",
@@ -707,6 +846,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-04",
           "poDate": "2026-08-25",
           "dnDate": "",
@@ -739,6 +879,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-05",
           "poDate": "2026-08-19",
           "dnDate": "2026-08-28",
@@ -767,6 +908,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-06-09",
           "poDate": "",
           "dnDate": "",
@@ -795,6 +937,7 @@
           "dnStatus": "",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-07-27",
           "dnDate": "",
@@ -828,6 +971,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-08-25",
           "dnDate": "",
@@ -861,6 +1005,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-25",
           "poDate": "2026-08-21",
           "dnDate": "2026-08-28",
@@ -895,6 +1040,7 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-25",
           "poDate": "2026-08-26",
           "dnDate": "2026-08-28",
@@ -929,6 +1075,7 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-26",
           "poDate": "2026-08-19",
           "dnDate": "2026-08-28",
@@ -962,6 +1109,7 @@
           "rfqStatusSummary": [
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-27",
           "poDate": "",
           "dnDate": "",
@@ -999,6 +1147,7 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-18",
           "poDate": "",
           "dnDate": "",
@@ -1032,6 +1181,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "2026-08-24",
           "dnDate": "",
@@ -1065,6 +1215,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "",
           "dnDate": "",
@@ -1101,6 +1252,7 @@
             "RFQ Refused",
             "RFQ Cancelled"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "2026-08-19",
           "dnDate": "",
@@ -1138,6 +1290,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-16",
           "poDate": "2026-08-07",
           "dnDate": "",
@@ -1176,6 +1329,7 @@
             "RFQ Refused",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-16",
           "poDate": "",
           "dnDate": "",
@@ -1213,6 +1367,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-06",
           "poDate": "2026-07-28",
           "dnDate": "2026-08-19",
@@ -1245,6 +1400,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-14",
           "poDate": "2026-08-19",
           "dnDate": "2026-08-28",
@@ -1277,6 +1433,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-14",
           "poDate": "",
           "dnDate": "",
@@ -1315,6 +1472,7 @@
             "RFQ Refused",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-14",
           "poDate": "",
           "dnDate": "",
@@ -1351,6 +1509,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-14",
           "poDate": "",
           "dnDate": "",
@@ -1388,6 +1547,7 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-17",
           "poDate": "2026-08-24",
           "dnDate": "2026-08-28",
@@ -1422,6 +1582,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "2026-08-24",
           "dnDate": "2026-08-28",
@@ -1454,6 +1615,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "2026-07-07",
           "dnDate": "",
@@ -1491,6 +1653,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-05",
           "poDate": "2026-07-28",
           "dnDate": "2026-08-19",
@@ -1526,6 +1689,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-05",
           "poDate": "2026-07-13",
           "dnDate": "2026-08-19",
@@ -1558,6 +1722,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-26",
           "poDate": "2026-06-30",
           "dnDate": "2026-07-03",
@@ -1586,6 +1751,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-06-26",
           "poDate": "",
           "dnDate": "",
@@ -1620,6 +1786,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Cancelled"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-26",
           "poDate": "2026-06-30",
           "dnDate": "2026-07-03",
@@ -1652,6 +1819,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-26",
           "poDate": "2026-06-30",
           "dnDate": "2026-07-03",
@@ -1680,6 +1848,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-06-25",
           "dnDate": "2026-06-25",
@@ -1713,6 +1882,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-17",
           "poDate": "2026-07-02",
           "dnDate": "2026-08-19",
@@ -1745,6 +1915,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-17",
           "poDate": "2026-07-02",
           "dnDate": "2026-08-19",
@@ -1780,6 +1951,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-16",
           "poDate": "2026-06-19",
           "dnDate": "2026-08-19",
@@ -1808,6 +1980,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-03",
           "poDate": "",
           "dnDate": "",
@@ -1840,6 +2013,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "",
           "dnDate": "",
@@ -1868,6 +2042,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-08",
           "poDate": "",
           "dnDate": "",
@@ -1896,6 +2071,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-17",
           "poDate": "",
           "dnDate": "",
@@ -1924,6 +2100,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-19",
           "poDate": "",
           "dnDate": "",
@@ -1958,6 +2135,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "",
           "dnDate": "",
@@ -1986,6 +2164,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-21",
           "poDate": "",
           "dnDate": "",
@@ -2014,6 +2193,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-21",
           "poDate": "",
           "dnDate": "",
@@ -2048,6 +2228,7 @@
             "RFQ Cancelled",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-06",
           "poDate": "2025-07-22",
           "dnDate": "2025-07-22",
@@ -2076,6 +2257,7 @@
           "dnStatus": "",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "",
           "dnDate": "",
@@ -2108,6 +2290,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-07-23",
           "dnDate": "2025-07-23",
@@ -2141,6 +2324,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-07-23",
           "dnDate": "2025-07-23",
@@ -2169,6 +2353,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-29",
           "poDate": "",
           "dnDate": "",
@@ -2197,6 +2382,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-29",
           "poDate": "",
           "dnDate": "",
@@ -2229,6 +2415,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-01",
           "dnDate": "2025-08-01",
@@ -2257,6 +2444,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-05",
           "poDate": "",
           "dnDate": "",
@@ -2290,6 +2478,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-06",
           "poDate": "",
           "dnDate": "",
@@ -2318,6 +2507,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-12",
           "poDate": "",
           "dnDate": "",
@@ -2352,6 +2542,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-05",
           "poDate": "2025-08-12",
           "dnDate": "2025-08-20",
@@ -2387,6 +2578,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-05",
           "poDate": "2025-08-12",
           "dnDate": "2025-08-20",
@@ -2415,6 +2607,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-20",
           "poDate": "",
           "dnDate": "",
@@ -2443,6 +2636,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-22",
           "poDate": "",
           "dnDate": "",
@@ -2471,6 +2665,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-22",
           "poDate": "",
           "dnDate": "",
@@ -2499,6 +2694,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-22",
           "poDate": "",
           "dnDate": "",
@@ -2527,6 +2723,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-22",
           "poDate": "",
           "dnDate": "",
@@ -2555,6 +2752,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-22",
           "poDate": "",
           "dnDate": "",
@@ -2583,6 +2781,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-25",
           "poDate": "",
           "dnDate": "",
@@ -2611,6 +2810,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-26",
           "poDate": "",
           "dnDate": "",
@@ -2639,6 +2839,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-26",
           "poDate": "",
           "dnDate": "",
@@ -2667,6 +2868,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-08-26",
           "poDate": "",
           "dnDate": "",
@@ -2695,6 +2897,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-09-05",
           "poDate": "",
           "dnDate": "",
@@ -2723,6 +2926,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-09-05",
           "poDate": "",
           "dnDate": "",
@@ -2751,6 +2955,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-09-05",
           "poDate": "",
           "dnDate": "",
@@ -2784,6 +2989,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-07-30",
           "dnDate": "2025-09-11",
@@ -2818,6 +3024,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-07-30",
           "dnDate": "2025-09-16",
@@ -2853,6 +3060,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-07-25",
           "poDate": "2025-08-07",
           "dnDate": "2025-09-16",
@@ -2883,6 +3091,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-07-17",
           "poDate": "2025-08-19",
           "dnDate": "2025-09-16",
@@ -2915,6 +3124,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-20",
           "dnDate": "2025-09-16",
@@ -2947,6 +3157,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-13",
           "poDate": "2025-08-21",
           "dnDate": "2025-09-16",
@@ -2981,6 +3192,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-13",
           "poDate": "2025-08-26",
           "dnDate": "2025-09-16",
@@ -3009,6 +3221,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-09-19",
           "poDate": "",
           "dnDate": "",
@@ -3043,6 +3256,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-07-15",
           "poDate": "2025-07-29",
           "dnDate": "2025-10-08",
@@ -3077,6 +3291,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-04",
           "poDate": "2025-08-05",
           "dnDate": "2025-10-08",
@@ -3109,6 +3324,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-06",
           "poDate": "2025-08-07",
           "dnDate": "2025-10-08",
@@ -3141,6 +3357,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-16",
           "poDate": "2025-08-07",
           "dnDate": "2025-10-08",
@@ -3175,6 +3392,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-05",
           "poDate": "2025-08-14",
           "dnDate": "2025-10-08",
@@ -3207,6 +3425,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-17",
           "dnDate": "2025-10-08",
@@ -3239,6 +3458,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-19",
           "dnDate": "2025-10-08",
@@ -3271,6 +3491,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-19",
           "dnDate": "2025-10-08",
@@ -3307,6 +3528,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-09-16",
           "dnDate": "2025-10-08",
@@ -3339,6 +3561,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-23",
           "poDate": "2025-09-16",
           "dnDate": "2025-10-08",
@@ -3378,6 +3601,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-03",
           "poDate": "2025-09-16",
           "dnDate": "2025-10-08",
@@ -3412,6 +3636,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-02",
           "poDate": "2025-09-15",
           "dnDate": "2025-10-08",
@@ -3444,6 +3669,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-21",
           "poDate": "2025-09-10",
           "dnDate": "2025-10-08",
@@ -3476,6 +3702,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-24",
           "poDate": "2025-09-10",
           "dnDate": "2025-10-08",
@@ -3508,6 +3735,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-09-09",
           "dnDate": "2025-10-08",
@@ -3541,6 +3769,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-14",
           "poDate": "2025-08-28",
           "dnDate": "2025-10-08",
@@ -3576,6 +3805,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-28",
           "dnDate": "2025-10-08",
@@ -3612,6 +3842,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-28",
           "dnDate": "2025-10-08",
@@ -3648,6 +3879,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-28",
           "dnDate": "2025-10-08",
@@ -3684,6 +3916,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-26",
           "dnDate": "2025-10-08",
@@ -3716,6 +3949,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-05",
           "poDate": "2025-08-07",
           "dnDate": "2025-10-08",
@@ -3748,6 +3982,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-18",
           "poDate": "2025-08-19",
           "dnDate": "2025-10-08",
@@ -3780,6 +4015,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-26",
           "poDate": "2025-09-23",
           "dnDate": "2025-10-08",
@@ -3812,6 +4048,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-25",
           "poDate": "2025-09-23",
           "dnDate": "2025-10-08",
@@ -3844,6 +4081,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-14",
           "poDate": "2025-08-21",
           "dnDate": "2025-10-08",
@@ -3872,6 +4110,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-09-11",
           "dnDate": "2025-10-08",
@@ -3904,6 +4143,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-08",
           "dnDate": "2025-10-08",
@@ -3939,6 +4179,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-19",
           "dnDate": "2025-10-13",
@@ -3967,6 +4208,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-10-13",
           "dnDate": "2025-10-13",
@@ -3999,6 +4241,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-06",
           "poDate": "2025-10-14",
           "dnDate": "2025-10-14",
@@ -4031,6 +4274,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-07",
           "poDate": "",
           "dnDate": "",
@@ -4063,6 +4307,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-22",
           "poDate": "2025-10-20",
           "dnDate": "2025-10-23",
@@ -4097,6 +4342,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-07-11",
           "dnDate": "2025-10-23",
@@ -4132,6 +4378,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-07",
           "dnDate": "2025-10-27",
@@ -4164,6 +4411,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-10-14",
           "dnDate": "2025-10-27",
@@ -4196,6 +4444,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-25",
           "poDate": "2025-10-20",
           "dnDate": "2025-11-03",
@@ -4228,6 +4477,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-21",
           "poDate": "2025-10-20",
           "dnDate": "2025-11-03",
@@ -4260,6 +4510,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-01",
           "poDate": "2025-11-03",
           "dnDate": "2025-11-03",
@@ -4292,6 +4543,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-19",
           "poDate": "2025-10-30",
           "dnDate": "2025-11-10",
@@ -4324,6 +4576,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-26",
           "poDate": "2025-09-16",
           "dnDate": "2025-11-10",
@@ -4358,6 +4611,7 @@
             "RFQ Cancelled",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-19",
           "poDate": "2025-10-20",
           "dnDate": "2025-11-10",
@@ -4390,6 +4644,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-19",
           "poDate": "2025-08-22",
           "dnDate": "2025-11-10",
@@ -4418,6 +4673,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-11-10",
           "poDate": "",
           "dnDate": "",
@@ -4450,6 +4706,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-13",
           "poDate": "2025-08-21",
           "dnDate": "2025-11-11",
@@ -4482,6 +4739,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-03",
           "poDate": "2025-11-10",
           "dnDate": "2025-11-11",
@@ -4514,6 +4772,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-04",
           "poDate": "2025-11-10",
           "dnDate": "2025-11-11",
@@ -4546,6 +4805,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-04",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-11",
@@ -4578,6 +4838,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-08",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-11",
@@ -4610,6 +4871,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-11",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-11",
@@ -4642,6 +4904,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-11",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-11",
@@ -4674,6 +4937,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-08",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-11",
@@ -4706,6 +4970,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-11",
           "poDate": "2025-11-13",
           "dnDate": "2025-11-17",
@@ -4738,6 +5003,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-05",
           "poDate": "2025-11-17",
           "dnDate": "2025-11-17",
@@ -4772,6 +5038,7 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-21",
           "poDate": "",
           "dnDate": "",
@@ -4804,6 +5071,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-25",
           "poDate": "",
           "dnDate": "",
@@ -4838,6 +5106,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-21",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-11",
@@ -4870,6 +5139,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-14",
           "poDate": "",
           "dnDate": "",
@@ -4902,6 +5172,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-10",
           "poDate": "2026-06-23",
           "dnDate": "2026-08-19",
@@ -4930,6 +5201,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-06-08",
           "dnDate": "2026-07-03",
@@ -4963,6 +5235,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-08",
           "poDate": "2026-06-26",
           "dnDate": "2026-07-03",
@@ -4991,6 +5264,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-25",
           "dnDate": "2026-06-12",
@@ -5019,6 +5293,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-27",
           "dnDate": "2026-06-26",
@@ -5047,6 +5322,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-04",
           "dnDate": "2026-08-19",
@@ -5079,6 +5355,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-28",
           "poDate": "2026-04-28",
           "dnDate": "2026-05-19",
@@ -5111,6 +5388,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-28",
           "poDate": "2026-04-28",
           "dnDate": "2026-05-19",
@@ -5143,6 +5421,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-19",
           "poDate": "2026-04-28",
           "dnDate": "2026-05-19",
@@ -5175,6 +5454,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-23",
           "poDate": "2026-04-28",
           "dnDate": "2026-05-19",
@@ -5207,6 +5487,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-24",
           "poDate": "2026-05-19",
           "dnDate": "2026-06-12",
@@ -5235,6 +5516,7 @@
           "dnStatus": "DN Delivery Tracking Open",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-04-23",
           "dnDate": "2026-04-28",
@@ -5267,6 +5549,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-23",
           "poDate": "2026-04-28",
           "dnDate": "2026-05-19",
@@ -5300,6 +5583,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-21",
           "poDate": "2026-04-22",
           "dnDate": "2026-04-28",
@@ -5332,6 +5616,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-21",
           "poDate": "2026-04-21",
           "dnDate": "2026-04-28",
@@ -5364,6 +5649,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-16",
           "poDate": "2026-04-16",
           "dnDate": "2026-04-28",
@@ -5392,6 +5678,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-04-15",
           "dnDate": "2026-04-15",
@@ -5424,6 +5711,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-14",
           "poDate": "2026-04-15",
           "dnDate": "2026-04-16",
@@ -5458,6 +5746,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-15",
           "poDate": "2026-04-16",
           "dnDate": "2026-04-28",
@@ -5491,6 +5780,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-15",
           "poDate": "2026-05-12",
           "dnDate": "2026-08-19",
@@ -5523,6 +5813,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5555,6 +5846,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5587,6 +5879,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5619,6 +5912,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5651,6 +5945,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5683,6 +5978,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5715,6 +6011,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5747,6 +6044,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5779,6 +6077,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -5807,6 +6106,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -5835,6 +6135,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -5867,6 +6168,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -5899,6 +6201,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -5931,6 +6234,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -5963,6 +6267,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -5995,6 +6300,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -6033,6 +6339,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-09",
           "dnDate": "2025-12-09",
@@ -6061,6 +6368,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-19",
           "dnDate": "2025-12-22",
@@ -6089,6 +6397,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-19",
           "dnDate": "2025-12-22",
@@ -6117,6 +6426,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2025-12-29",
@@ -6145,6 +6455,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-10",
           "dnDate": "2025-12-10",
@@ -6173,6 +6484,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6201,6 +6513,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6229,6 +6542,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6257,6 +6571,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6285,6 +6600,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6313,6 +6629,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6341,6 +6658,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6369,6 +6687,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6397,6 +6716,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6425,6 +6745,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6453,6 +6774,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-08",
@@ -6481,6 +6803,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6509,6 +6832,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6537,6 +6861,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6565,6 +6890,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6593,6 +6919,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6621,6 +6948,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6649,6 +6977,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6677,6 +7006,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6705,6 +7035,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6733,6 +7064,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6761,6 +7093,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6789,6 +7122,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6817,6 +7151,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6845,6 +7180,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6873,6 +7209,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6901,6 +7238,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6929,6 +7267,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6957,6 +7296,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -6985,6 +7325,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7013,6 +7354,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7041,6 +7383,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7069,6 +7412,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7097,6 +7441,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7125,6 +7470,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7153,6 +7499,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7181,6 +7528,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7209,6 +7557,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7237,6 +7586,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7265,6 +7615,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7293,6 +7644,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-29",
           "dnDate": "2026-01-09",
@@ -7321,6 +7673,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-19",
           "dnDate": "2026-04-28",
@@ -7349,6 +7702,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-27",
           "dnDate": "2026-04-20",
@@ -7377,6 +7731,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-02-10",
           "poDate": "",
           "dnDate": "",
@@ -7405,6 +7760,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-02-11",
           "dnDate": "2026-04-21",
@@ -7433,6 +7789,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-02-15",
           "poDate": "",
           "dnDate": "",
@@ -7461,6 +7818,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-02-15",
           "poDate": "",
           "dnDate": "",
@@ -7489,6 +7847,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-17",
           "dnDate": "2026-04-28",
@@ -7517,6 +7876,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-03-23",
           "poDate": "",
           "dnDate": "",
@@ -7545,6 +7905,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-03-23",
           "poDate": "",
           "dnDate": "",
@@ -7573,6 +7934,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-06",
           "dnDate": "2026-03-30",
@@ -7601,6 +7963,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-06-10",
           "dnDate": "2026-07-24",
@@ -7629,6 +7992,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-13",
           "dnDate": "2026-03-30",
@@ -7657,6 +8021,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-03-31",
           "poDate": "",
           "dnDate": "",
@@ -7689,6 +8054,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-02",
           "dnDate": "2026-04-10",
@@ -7717,6 +8083,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-14",
           "dnDate": "2026-04-10",
@@ -7749,6 +8116,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-13",
           "poDate": "2026-04-15",
           "dnDate": "2026-04-16",
@@ -7781,6 +8149,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-04",
           "poDate": "2025-11-18",
           "dnDate": "",
@@ -7813,6 +8182,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-07",
           "poDate": "2025-11-18",
           "dnDate": "",
@@ -7845,6 +8215,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-02",
           "poDate": "",
           "dnDate": "",
@@ -7878,6 +8249,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-13",
           "poDate": "2025-12-22",
           "dnDate": "2026-03-30",
@@ -7911,6 +8283,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-24",
           "poDate": "2025-12-01",
           "dnDate": "2026-03-30",
@@ -7944,6 +8317,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-14",
           "poDate": "2025-12-03",
           "dnDate": "2026-04-09",
@@ -7976,6 +8350,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-05",
           "poDate": "2025-12-04",
           "dnDate": "2026-03-30",
@@ -8008,6 +8383,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-06",
           "poDate": "2026-01-15",
           "dnDate": "2026-04-28",
@@ -8041,6 +8417,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-10",
           "poDate": "2026-01-15",
           "dnDate": "2026-04-16",
@@ -8076,6 +8453,7 @@
             "RFQ Cancelled",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-10",
           "poDate": "2026-01-16",
           "dnDate": "2026-04-09",
@@ -8108,6 +8486,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-10",
           "poDate": "2026-01-20",
           "dnDate": "2026-04-09",
@@ -8143,6 +8522,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-02",
           "poDate": "2026-03-04",
           "dnDate": "2026-06-12",
@@ -8175,6 +8555,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-04",
           "poDate": "2026-03-04",
           "dnDate": "2026-04-28",
@@ -8208,6 +8589,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-03",
           "poDate": "2026-03-23",
           "dnDate": "2026-04-09",
@@ -8240,6 +8622,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-13",
           "poDate": "2026-03-23",
           "dnDate": "2026-03-30",
@@ -8272,6 +8655,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-19",
           "poDate": "2026-03-23",
           "dnDate": "2026-03-30",
@@ -8304,6 +8688,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-17",
           "poDate": "2026-03-24",
           "dnDate": "2026-03-30",
@@ -8337,6 +8722,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-25",
           "poDate": "2026-03-24",
           "dnDate": "2026-04-09",
@@ -8369,6 +8755,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-06",
           "poDate": "2026-03-24",
           "dnDate": "2026-04-09",
@@ -8401,6 +8788,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-13",
           "poDate": "2026-03-24",
           "dnDate": "2026-04-27",
@@ -8433,6 +8821,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-03",
           "poDate": "2026-03-24",
           "dnDate": "2026-04-09",
@@ -8465,6 +8854,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-05",
           "poDate": "2026-03-24",
           "dnDate": "2026-04-09",
@@ -8497,6 +8887,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-19",
           "poDate": "2026-03-25",
           "dnDate": "2026-04-09",
@@ -8529,6 +8920,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-26",
           "poDate": "2026-06-30",
           "dnDate": "2026-07-03",
@@ -8563,6 +8955,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-21",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-09",
@@ -8595,6 +8988,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-13",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-09",
@@ -8631,6 +9025,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-12",
           "poDate": "2026-03-27",
           "dnDate": "2026-08-19",
@@ -8663,6 +9058,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-19",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-09",
@@ -8695,6 +9091,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-22",
           "poDate": "2026-03-30",
           "dnDate": "2026-04-09",
@@ -8727,6 +9124,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-26",
           "poDate": "2026-03-30",
           "dnDate": "2026-04-09",
@@ -8760,6 +9158,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-27",
           "poDate": "2026-03-30",
           "dnDate": "2026-04-09",
@@ -8796,6 +9195,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-26",
           "poDate": "2025-09-15",
           "dnDate": "2025-10-23",
@@ -8828,6 +9228,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-30",
           "poDate": "2026-03-31",
           "dnDate": "2026-04-09",
@@ -8860,6 +9261,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-16",
           "poDate": "2026-04-01",
           "dnDate": "2026-04-07",
@@ -8892,6 +9294,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-31",
           "poDate": "2026-04-01",
           "dnDate": "2026-04-09",
@@ -8924,6 +9327,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-03",
           "poDate": "2026-04-07",
           "dnDate": "2026-04-09",
@@ -8957,6 +9361,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-19",
           "poDate": "2026-04-07",
           "dnDate": "2026-04-09",
@@ -8989,6 +9394,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-23",
           "poDate": "2026-04-08",
           "dnDate": "2026-04-16",
@@ -9021,6 +9427,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-08",
           "poDate": "2026-08-21",
           "dnDate": "2026-08-28",
@@ -9057,6 +9464,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-05",
           "poDate": "2026-02-10",
           "dnDate": "2026-04-16",
@@ -9089,6 +9497,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-01",
           "poDate": "2026-04-09",
           "dnDate": "2026-04-09",
@@ -9103,18 +9512,18 @@
     {
       "vesselId": "medliguria",
       "vesselName": "MED LIGURIA",
-      "totalReq": 72,
-      "rfqOpen": 2,
+      "totalReq": 77,
+      "rfqOpen": 4,
       "rfqOverdue7": 0,
       "rfqOverdue15": 0,
       "readyForPO": 0,
       "orders": 4,
       "poReadyForDN": 0,
       "dn": 0,
-      "dnPending": 51,
+      "dnPending": 52,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 97,
+      "pctReqToPO": 92,
       "pctPOToDN": 94,
       "lat": null,
       "lng": null,
@@ -9127,11 +9536,11 @@
       "aisLastSeen": null,
       "items": [
         {
-          "id": "med liguria::cooking range spares",
-          "description": "Cooking Range Spares",
+          "id": "med liguria::testtesttest testtesttest testtesttest",
+          "description": "TestTestTest TestTestTest TestTestTest",
           "supplier": "—",
           "department": "ENGINE Department",
-          "reqNumber": "2026-MLG-SHPR-00084",
+          "reqNumber": "2026-MLG-SHPR-00089",
           "rfqNumbers": [],
           "poNumber": "",
           "dnNumber": "",
@@ -9145,6 +9554,256 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "reqDate": "2026-09-18",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "med liguria::grinding machine starter box spares kerger catalogue urgent",
+          "description": "Grinding machine starter box spares. Kerger catalogue. URGENT.",
+          "supplier": "—",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MLG-SHPR-00090",
+          "rfqNumbers": [],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Endorsed",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "reqDate": "2026-09-18",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "med liguria::electrical consumable kerger catalogue",
+          "description": "Electrical consumable. Kerger catalogue",
+          "supplier": "—",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MLG-SHPR-00091",
+          "rfqNumbers": [],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Endorsed",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "reqDate": "2026-09-18",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "med liguria::log book med liguria",
+          "description": "Log Book - Med Liguria",
+          "supplier": "CAIM",
+          "department": "DECK Department",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-MLG-HQPO-00086",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "reqDate": "",
+          "poDate": "2026-09-21",
+          "dnDate": "",
+          "poDeliveryDate": "2026-10-06",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-10-06"
+        },
+        {
+          "id": "med liguria::mitsui zosen machinery; engine type: td914l06m; emergency diesel generator spares",
+          "description": "Mitsui Zosen Machinery; Engine type: TD914L06M; Emergency Diesel Generator Spares",
+          "supplier": "G&P TECH CO.",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MLG-SHPR-00087",
+          "rfqNumbers": [
+            "2026-MLG-HQRQ-00158",
+            "2026-MLG-HQRQ-00157",
+            "2026-MLG-HQRQ-00156"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 3,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00158",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00157",
+              "supplier": "FUJI ELECTRIC Co.; Ltd",
+              "code": "SSS0004",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00156",
+              "supplier": "LG Marine Services(HK) Co.,Limited",
+              "code": "SSS0007",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
+          "reqDate": "2026-09-16",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "med liguria::auxiliary engine critical spare part maker: daihatsu; type: 5dc17a",
+          "description": "Auxiliary Engine Critical spare part. Maker: DAIHATSU; Type: 5DC17A",
+          "supplier": "FUJI ELECTRIC Co.; Ltd",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MLG-SHPR-00088",
+          "rfqNumbers": [
+            "2026-MLG-HQRQ-00161",
+            "2026-MLG-HQRQ-00160",
+            "2026-MLG-HQRQ-00159"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 3,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00161",
+              "supplier": "FUJI ELECTRIC Co.; Ltd",
+              "code": "SSS0004",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00160",
+              "supplier": "LG Marine Services(HK) Co.,Limited",
+              "code": "SSS0007",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00159",
+              "supplier": "Zephyr Trading srl",
+              "code": "SSS0005",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
+          "reqDate": "2026-09-18",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "med liguria::cooking range spares",
+          "description": "Cooking range spares",
+          "supplier": "YH MARINE TRADE CO.,LTD",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MLG-SHPR-00084",
+          "rfqNumbers": [
+            "2026-MLG-HQRQ-00155"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 1,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Cancelled",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00155",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "reqDate": "2026-09-15",
           "poDate": "",
           "dnDate": "",
@@ -9164,24 +9823,34 @@
             "2026-MLG-HQRQ-00154"
           ],
           "poNumber": "2026-MLG-HQPO-00085",
-          "dnNumber": "",
-          "dnInfoshipId": "",
+          "dnNumber": "2026-MLG-HQDN-00078",
+          "dnInfoshipId": "HQS000000007636",
           "rfqIssued": 1,
           "rfqClosed": 1,
           "rfqPct": 100,
           "rfqDays": 8,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "PO Published",
-          "dnStatus": "",
+          "poStatus": "PO Finalized",
+          "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00154",
+              "supplier": "PPG PROTECTIVE & MARINE COATINS",
+              "code": "SSS0058",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-15",
+              "deadline": "2026-09-30"
+            }
+          ],
           "reqDate": "2026-09-15",
           "poDate": "2026-09-16",
-          "dnDate": "",
+          "dnDate": "2026-09-22",
           "poDeliveryDate": "2026-09-30",
-          "dnDeliveryDate": "",
+          "dnDeliveryDate": "2026-10-07",
           "origin": "",
           "transportMode": "",
           "deliveryDate": "2026-09-30"
@@ -9209,6 +9878,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-25",
           "poDate": "2026-09-02",
           "dnDate": "2026-09-07",
@@ -9241,6 +9911,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-19",
           "poDate": "2026-09-02",
           "dnDate": "2026-09-07",
@@ -9269,6 +9940,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-08-15",
           "poDate": "",
           "dnDate": "",
@@ -9297,6 +9969,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-08-13",
           "dnDate": "2026-09-07",
@@ -9329,6 +10002,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-08",
           "poDate": "2026-08-14",
           "dnDate": "2026-08-31",
@@ -9361,6 +10035,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-08-14",
           "dnDate": "2026-08-23",
@@ -9393,6 +10068,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-28",
           "poDate": "2026-08-11",
           "dnDate": "2026-08-23",
@@ -9425,6 +10101,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-28",
           "poDate": "2026-08-11",
           "dnDate": "2026-08-23",
@@ -9458,6 +10135,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-08-13",
           "dnDate": "2026-08-23",
@@ -9490,6 +10168,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9522,6 +10201,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9554,6 +10234,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9586,6 +10267,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-22",
           "poDate": "2026-07-27",
           "dnDate": "2026-09-07",
@@ -9619,6 +10301,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-23",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9651,6 +10334,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-21",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9679,6 +10363,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-07-21",
           "poDate": "",
           "dnDate": "",
@@ -9711,6 +10396,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9743,6 +10429,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-16",
           "poDate": "2026-07-27",
           "dnDate": "2026-08-12",
@@ -9775,6 +10462,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-20",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9803,6 +10491,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-07-17",
           "dnDate": "2026-08-20",
@@ -9835,6 +10524,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -9863,6 +10553,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "",
           "dnDate": "",
@@ -9901,6 +10592,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-13",
           "poDate": "2026-08-13",
           "dnDate": "",
@@ -9929,6 +10621,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-06-26",
           "dnDate": "2026-08-19",
@@ -9962,6 +10655,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-17",
           "poDate": "2026-07-02",
           "dnDate": "2026-08-23",
@@ -9994,6 +10688,7 @@
           "rfqStatusSummary": [
             "RFQ Created"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-01",
           "poDate": "2026-06-23",
           "dnDate": "2026-08-23",
@@ -10027,6 +10722,32 @@
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00144",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-08-03",
+              "deadline": "2026-08-18"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00137",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00120",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            }
           ],
           "reqDate": "2026-07-24",
           "poDate": "2026-07-31",
@@ -10062,6 +10783,7 @@
             "RFQ Cancelled",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-15",
           "poDate": "2026-07-27",
           "dnDate": "2026-08-12",
@@ -10094,6 +10816,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-21",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -10130,6 +10853,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-20",
           "poDate": "2026-07-01",
           "dnDate": "2026-08-23",
@@ -10162,6 +10886,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-20",
           "poDate": "2026-06-23",
           "dnDate": "2026-09-07",
@@ -10199,6 +10924,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-20",
           "poDate": "2026-06-05",
           "dnDate": "2026-09-07",
@@ -10227,6 +10953,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-21",
           "dnDate": "2026-06-02",
@@ -10259,6 +10986,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-12",
           "poDate": "2026-06-03",
           "dnDate": "",
@@ -10294,6 +11022,7 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-05",
           "poDate": "2026-08-13",
           "dnDate": "",
@@ -10326,6 +11055,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-11",
           "poDate": "2026-05-19",
           "dnDate": "2026-06-02",
@@ -10358,6 +11088,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-12",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -10392,6 +11123,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-05",
           "poDate": "2026-05-14",
           "dnDate": "2026-05-29",
@@ -10420,6 +11152,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-07",
           "dnDate": "2026-05-29",
@@ -10452,6 +11185,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-08-04",
           "dnDate": "2026-08-12",
@@ -10484,6 +11218,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-29",
           "poDate": "2026-04-30",
           "dnDate": "2026-05-29",
@@ -10520,6 +11255,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-20",
           "poDate": "2026-06-03",
           "dnDate": "2026-09-07",
@@ -10548,6 +11284,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-04-18",
           "poDate": "",
           "dnDate": "",
@@ -10580,6 +11317,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-18",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -10612,6 +11350,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-15",
           "poDate": "2026-05-05",
           "dnDate": "2026-05-29",
@@ -10640,6 +11379,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2025-12-31",
           "poDate": "",
           "dnDate": "",
@@ -10672,6 +11412,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-22",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-12",
@@ -10704,6 +11445,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-06",
           "poDate": "2026-08-14",
           "dnDate": "2026-08-23",
@@ -10732,6 +11474,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-02-25",
           "poDate": "",
           "dnDate": "",
@@ -10760,6 +11503,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-02",
           "dnDate": "2026-04-24",
@@ -10788,6 +11532,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-02-24",
           "dnDate": "2026-03-10",
@@ -10816,6 +11561,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-09",
           "dnDate": "2026-03-10",
@@ -10844,6 +11590,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-19",
           "dnDate": "2026-04-24",
@@ -10872,6 +11619,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-19",
           "dnDate": "2026-04-24",
@@ -10907,6 +11655,7 @@
             "RFQ Created",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-16",
           "poDate": "",
           "dnDate": "",
@@ -10935,6 +11684,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-23",
           "dnDate": "2026-03-30",
@@ -10963,6 +11713,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-04-05",
           "poDate": "",
           "dnDate": "",
@@ -10995,6 +11746,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-16",
           "poDate": "2026-05-12",
           "dnDate": "2026-06-02",
@@ -11027,6 +11779,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-31",
           "poDate": "2026-05-12",
           "dnDate": "2026-08-23",
@@ -11061,6 +11814,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-30",
           "poDate": "2026-05-12",
           "dnDate": "2026-09-07",
@@ -11093,6 +11847,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-03",
           "poDate": "2026-05-12",
           "dnDate": "2026-05-12",
@@ -11125,6 +11880,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-06",
           "poDate": "2026-02-09",
           "dnDate": "2026-03-10",
@@ -11157,6 +11913,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-31",
           "poDate": "2026-02-10",
           "dnDate": "2026-03-10",
@@ -11189,6 +11946,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-07",
           "poDate": "2026-02-11",
           "dnDate": "2026-06-02",
@@ -11221,6 +11979,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-13",
           "poDate": "2026-07-31",
           "dnDate": "2026-08-23",
@@ -11254,6 +12013,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-20",
           "poDate": "2026-03-02",
           "dnDate": "2026-07-13",
@@ -11286,6 +12046,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-10",
           "poDate": "2026-03-04",
           "dnDate": "2026-03-10",
@@ -11319,6 +12080,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-08",
           "poDate": "2026-03-09",
           "dnDate": "",
@@ -11352,6 +12114,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-25",
           "poDate": "2026-03-09",
           "dnDate": "2026-03-10",
@@ -11389,6 +12152,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-02",
           "poDate": "2026-03-23",
           "dnDate": "2026-09-07",
@@ -11421,6 +12185,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-22",
           "poDate": "2026-03-23",
           "dnDate": "2026-03-30",
@@ -11453,6 +12218,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-12",
           "poDate": "2026-03-23",
           "dnDate": "2026-06-02",
@@ -11493,6 +12259,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-02",
           "poDate": "2026-03-13",
           "dnDate": "2026-03-30",
@@ -11525,6 +12292,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-20",
           "poDate": "2026-03-23",
           "dnDate": "2026-04-08",
@@ -11557,6 +12325,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-09",
           "poDate": "2026-03-25",
           "dnDate": "2026-03-30",
@@ -11589,6 +12358,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-18",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-24",
@@ -11621,6 +12391,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-10",
           "poDate": "2026-03-27",
           "dnDate": "2026-09-07",
@@ -11653,6 +12424,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-18",
           "poDate": "2026-03-27",
           "dnDate": "2026-06-02",
@@ -11685,6 +12457,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-28",
           "poDate": "2026-03-31",
           "dnDate": "2026-04-07",
@@ -11717,6 +12490,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-28",
           "poDate": "2026-04-09",
           "dnDate": "2026-04-09",
@@ -11758,19 +12532,19 @@
     {
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
-      "totalReq": 160,
-      "rfqOpen": 11,
+      "totalReq": 161,
+      "rfqOpen": 9,
       "rfqOverdue7": 4,
       "rfqOverdue15": 4,
       "readyForPO": 3,
-      "orders": 9,
+      "orders": 10,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 14,
       "delivery": "delayed",
       "deliveryColor": "red",
       "pctReqToPO": 91,
-      "pctPOToDN": 94,
+      "pctPOToDN": 93,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -11781,6 +12555,35 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "peppino::log book peppino",
+          "description": "Log Book - Peppino",
+          "supplier": "CAIM",
+          "department": "DECK Department",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-PEP-HQPO-00154",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "reqDate": "",
+          "poDate": "2026-09-21",
+          "dnDate": "",
+          "poDeliveryDate": "2026-10-06",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-10-06"
+        },
         {
           "id": "peppino::chemical",
           "description": "CHEMICAL",
@@ -11800,6 +12603,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-09-03",
           "poDate": "",
           "dnDate": "",
@@ -11828,6 +12632,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-09-08",
           "poDate": "",
           "dnDate": "",
@@ -11856,6 +12661,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-09-15",
           "dnDate": "2026-09-15",
@@ -11884,6 +12690,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-09-15",
           "dnDate": "2026-09-15",
@@ -11896,22 +12703,72 @@
         {
           "id": "peppino::aux generator",
           "description": "Aux. Generator",
-          "supplier": "—",
+          "supplier": "G&P TECH CO.",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00119",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-PEP-HQRQ-00255",
+            "2026-PEP-HQRQ-00254",
+            "2026-PEP-HQRQ-00253",
+            "2026-PEP-HQRQ-00252",
+            "2026-PEP-HQRQ-00251"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 5,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00255",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00254",
+              "supplier": "Proinelca Korea Co., Ltd.",
+              "code": "SSS0026",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00253",
+              "supplier": "MAS MARINE SHIPPING SUPPLIES",
+              "code": "SSS0002",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00252",
+              "supplier": "Zephyr Trading srl",
+              "code": "SSS0005",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00251",
+              "supplier": "Everllence Italia S.r.l.",
+              "code": "SSS0023",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "reqDate": "2026-08-05",
           "poDate": "",
           "dnDate": "",
@@ -11924,22 +12781,72 @@
         {
           "id": "peppino::fw hydrophore pump",
           "description": "FW HYDROPHORE PUMP",
-          "supplier": "—",
+          "supplier": "SUNJIN ENTECH Co.,Ltd.",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00134",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-PEP-HQRQ-00250",
+            "2026-PEP-HQRQ-00249",
+            "2026-PEP-HQRQ-00248",
+            "2026-PEP-HQRQ-00247",
+            "2026-PEP-HQRQ-00246"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 5,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 1,
+          "rfqStatus": "RFQ Created",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Created"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00250",
+              "supplier": "SUNJIN ENTECH Co.,Ltd.",
+              "code": "SSS0011",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00249",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00248",
+              "supplier": "FUJI TRADING JAPAN",
+              "code": "",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00247",
+              "supplier": "DUBHE CO., LTD.",
+              "code": "SSS0006",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00246",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "reqDate": "2026-09-03",
           "poDate": "",
           "dnDate": "",
@@ -11968,6 +12875,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-09-05",
           "poDate": "",
           "dnDate": "",
@@ -11996,6 +12904,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-08-16",
           "poDate": "",
           "dnDate": "",
@@ -12028,6 +12937,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-26",
           "poDate": "2026-09-02",
           "dnDate": "",
@@ -12060,6 +12970,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-18",
           "poDate": "",
           "dnDate": "",
@@ -12094,6 +13005,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-20",
           "poDate": "",
           "dnDate": "",
@@ -12122,6 +13034,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-08-20",
           "poDate": "",
           "dnDate": "",
@@ -12160,6 +13073,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-07",
           "poDate": "",
           "dnDate": "",
@@ -12192,6 +13106,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-10",
           "poDate": "2026-09-02",
           "dnDate": "",
@@ -12204,10 +13119,11 @@
         {
           "id": "peppino::spa req e/r alarm lighting column imcos",
           "description": "SPA Req. E/R Alarm Lighting Column - IMCOS",
-          "supplier": "YH MARINE TRADE CO.,LTD",
+          "supplier": "TEFIN SCRL",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00123",
           "rfqNumbers": [
+            "2026-PEP-HQRQ-00256",
             "2026-PEP-HQRQ-00235",
             "2026-PEP-HQRQ-00234",
             "2026-PEP-HQRQ-00233",
@@ -12217,18 +13133,69 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 5,
+          "rfqIssued": 6,
           "rfqClosed": 2,
-          "rfqPct": 40,
+          "rfqPct": 33,
           "rfqDays": 36,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Created",
             "RFQ Offer Acknowledged",
             "RFQ Refused",
             "RFQ Sent to Vendor"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00256",
+              "supplier": "TEFIN SCRL",
+              "code": "SSS0033",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00235",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-08-18",
+              "deadline": "2026-08-25"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00234",
+              "supplier": "SUNJIN ENTECH Co.,Ltd.",
+              "code": "SSS0011",
+              "status": "RFQ Refused",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00233",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00232",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "RFQ Refused",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00231",
+              "supplier": "DUBHE CO., LTD.",
+              "code": "SSS0006",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-08-18",
+              "deadline": "2026-09-02"
+            }
           ],
           "reqDate": "2026-08-10",
           "poDate": "",
@@ -12267,6 +13234,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-12",
           "poDate": "",
           "dnDate": "",
@@ -12302,6 +13270,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-10",
           "poDate": "",
           "dnDate": "",
@@ -12337,6 +13306,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-10",
           "poDate": "2026-08-13",
           "dnDate": "",
@@ -12365,6 +13335,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-08-11",
           "poDate": "",
           "dnDate": "",
@@ -12399,6 +13370,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-21",
           "poDate": "2026-08-18",
           "dnDate": "",
@@ -12431,6 +13403,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-03",
           "poDate": "2026-09-02",
           "dnDate": "",
@@ -12468,6 +13441,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-03",
           "poDate": "2026-08-07",
           "dnDate": "2026-08-27",
@@ -12504,6 +13478,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-08-03",
           "poDate": "",
           "dnDate": "",
@@ -12532,6 +13507,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-07-27",
           "dnDate": "2026-08-27",
@@ -12560,6 +13536,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-07-22",
           "poDate": "",
           "dnDate": "",
@@ -12598,6 +13575,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-24",
           "poDate": "2026-08-27",
           "dnDate": "",
@@ -12630,6 +13608,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-16",
           "poDate": "2026-07-19",
           "dnDate": "2026-07-19",
@@ -12665,6 +13644,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-13",
           "poDate": "2026-08-05",
           "dnDate": "",
@@ -12698,6 +13678,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-12",
           "poDate": "",
           "dnDate": "",
@@ -12730,6 +13711,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-12",
           "poDate": "2026-07-13",
           "dnDate": "2026-07-16",
@@ -12762,6 +13744,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-09",
           "poDate": "2026-07-15",
           "dnDate": "2026-07-16",
@@ -12795,6 +13778,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-10",
           "poDate": "2026-08-05",
           "dnDate": "",
@@ -12827,6 +13811,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-09",
           "poDate": "2026-07-13",
           "dnDate": "2026-07-16",
@@ -12859,6 +13844,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-09",
           "poDate": "2026-07-13",
           "dnDate": "2026-07-16",
@@ -12891,6 +13877,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-12",
           "poDate": "2026-07-13",
           "dnDate": "2026-07-16",
@@ -12919,6 +13906,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-05-07",
           "poDate": "",
           "dnDate": "",
@@ -12947,6 +13935,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-05-11",
           "poDate": "",
           "dnDate": "",
@@ -12975,6 +13964,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-05-11",
           "poDate": "",
           "dnDate": "",
@@ -13007,6 +13997,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-06",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-16",
@@ -13035,6 +14026,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "",
           "dnDate": "",
@@ -13068,6 +14060,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-01",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-09",
@@ -13100,6 +14093,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-09",
@@ -13132,6 +14126,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-09",
@@ -13164,6 +14159,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-09",
@@ -13196,6 +14192,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-05",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-09",
@@ -13228,6 +14225,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-06",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-16",
@@ -13256,6 +14254,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-06-02",
           "poDate": "",
           "dnDate": "",
@@ -13288,6 +14287,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-02",
           "poDate": "2026-06-18",
           "dnDate": "2026-06-21",
@@ -13316,6 +14316,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-06-15",
           "dnDate": "2026-07-16",
@@ -13349,6 +14350,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-15",
           "poDate": "2026-06-18",
           "dnDate": "2026-06-21",
@@ -13384,6 +14386,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Cancelled"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-02",
           "poDate": "2026-06-15",
           "dnDate": "2026-07-16",
@@ -13418,6 +14421,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-05",
           "poDate": "2026-07-27",
           "dnDate": "2026-07-16",
@@ -13450,6 +14454,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-09",
           "poDate": "2026-06-18",
           "dnDate": "2026-06-21",
@@ -13478,6 +14483,7 @@
           "dnStatus": "",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "2026-06-11",
           "poDate": "",
           "dnDate": "",
@@ -13510,6 +14516,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-11",
           "poDate": "2026-06-18",
           "dnDate": "2026-06-21",
@@ -13542,6 +14549,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-11",
           "poDate": "2026-06-18",
           "dnDate": "2026-06-21",
@@ -13574,6 +14582,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-27",
           "poDate": "2026-06-15",
           "dnDate": "2026-06-21",
@@ -13602,6 +14611,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-06-13",
           "dnDate": "2026-06-21",
@@ -13634,6 +14644,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-06-19",
           "dnDate": "2025-07-24",
@@ -13670,6 +14681,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-05",
           "poDate": "2025-06-25",
           "dnDate": "2025-08-20",
@@ -13707,6 +14719,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-05",
           "poDate": "2025-06-25",
           "dnDate": "2025-08-20",
@@ -13741,6 +14754,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-07",
           "dnDate": "2025-08-20",
@@ -13773,6 +14787,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-06",
           "dnDate": "2025-08-20",
@@ -13809,6 +14824,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Cancelled"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-06",
           "dnDate": "2025-08-20",
@@ -13841,6 +14857,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-08",
           "poDate": "2025-08-20",
           "dnDate": "2025-09-16",
@@ -13873,6 +14890,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-26",
           "dnDate": "2025-09-16",
@@ -13908,6 +14926,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-06-17",
           "poDate": "2025-08-22",
           "dnDate": "2025-09-16",
@@ -13940,6 +14959,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-20",
           "dnDate": "2025-09-16",
@@ -13968,6 +14988,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-10-13",
           "dnDate": "2025-10-17",
@@ -14000,6 +15021,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-08-20",
           "dnDate": "2025-10-17",
@@ -14034,6 +15056,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Cancelled"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-09-16",
           "dnDate": "2025-10-20",
@@ -14066,6 +15089,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-04",
           "poDate": "2025-09-25",
           "dnDate": "2025-10-20",
@@ -14101,6 +15125,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-23",
           "poDate": "2025-09-30",
           "dnDate": "2025-10-20",
@@ -14133,6 +15158,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-10-14",
           "dnDate": "2025-10-27",
@@ -14168,6 +15194,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-15",
           "poDate": "2025-11-10",
           "dnDate": "2025-11-11",
@@ -14201,6 +15228,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-04",
           "poDate": "2025-11-12",
           "dnDate": "2025-11-13",
@@ -14233,6 +15261,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-13",
@@ -14265,6 +15294,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-07",
           "poDate": "2025-11-17",
           "dnDate": "2025-11-17",
@@ -14297,6 +15327,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-11",
           "poDate": "2026-06-11",
           "dnDate": "2026-07-16",
@@ -14329,6 +15360,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-11",
           "poDate": "2026-06-11",
           "dnDate": "2026-06-21",
@@ -14361,6 +15393,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-06",
           "poDate": "2026-06-09",
           "dnDate": "2026-06-21",
@@ -14393,6 +15426,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-22",
           "poDate": "2026-06-08",
           "dnDate": "2026-06-21",
@@ -14425,6 +15459,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-27",
           "poDate": "2026-06-09",
           "dnDate": "2026-06-21",
@@ -14457,6 +15492,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-27",
           "poDate": "2026-06-08",
           "dnDate": "2026-06-21",
@@ -14489,6 +15525,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-30",
           "poDate": "2026-06-08",
           "dnDate": "2026-06-21",
@@ -14521,6 +15558,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-06-02",
           "poDate": "2026-06-12",
           "dnDate": "2026-07-16",
@@ -14554,6 +15592,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-30",
           "poDate": "2026-06-10",
           "dnDate": "2026-06-21",
@@ -14586,6 +15625,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-27",
           "poDate": "2026-06-08",
           "dnDate": "2026-06-21",
@@ -14618,6 +15658,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-27",
           "poDate": "2026-06-08",
           "dnDate": "2026-06-25",
@@ -14650,6 +15691,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-17",
           "poDate": "2026-06-09",
           "dnDate": "2026-06-21",
@@ -14678,6 +15720,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-27",
           "dnDate": "2026-05-31",
@@ -14710,6 +15753,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-07-04",
           "poDate": "2026-07-06",
           "dnDate": "2026-07-16",
@@ -14743,6 +15787,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-13",
           "poDate": "2026-05-21",
           "dnDate": "2026-05-31",
@@ -14771,6 +15816,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-05-15",
           "dnDate": "2026-05-31",
@@ -14803,6 +15849,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-12",
           "poDate": "2026-05-20",
           "dnDate": "",
@@ -14836,6 +15883,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-12",
           "poDate": "2026-05-21",
           "dnDate": "2026-05-31",
@@ -14873,6 +15921,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-04",
           "poDate": "2026-06-03",
           "dnDate": "2026-07-16",
@@ -14905,6 +15954,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-04",
           "poDate": "2026-06-08",
           "dnDate": "2026-06-21",
@@ -14941,6 +15991,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-04",
           "poDate": "2026-06-08",
           "dnDate": "",
@@ -14973,6 +16024,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-05-04",
           "poDate": "2026-05-19",
           "dnDate": "2026-05-31",
@@ -15005,6 +16057,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-19",
           "poDate": "2026-04-21",
           "dnDate": "2026-05-31",
@@ -15037,6 +16090,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-19",
           "poDate": "2026-04-21",
           "dnDate": "2026-05-31",
@@ -15069,6 +16123,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-15",
           "poDate": "2026-04-16",
           "dnDate": "2026-04-20",
@@ -15101,6 +16156,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-15",
           "poDate": "2026-04-16",
           "dnDate": "2026-04-20",
@@ -15129,6 +16185,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-16",
           "dnDate": "2026-04-20",
@@ -15157,6 +16214,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-07",
           "dnDate": "2026-01-29",
@@ -15185,6 +16243,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-13",
           "dnDate": "2026-01-29",
@@ -15221,6 +16280,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-18",
           "poDate": "2026-01-15",
           "dnDate": "2026-01-29",
@@ -15256,6 +16316,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-18",
           "poDate": "2026-01-16",
           "dnDate": "2026-01-29",
@@ -15290,6 +16351,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-06",
           "poDate": "2026-01-20",
           "dnDate": "2026-01-29",
@@ -15322,6 +16384,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-15",
           "poDate": "2026-01-20",
           "dnDate": "2026-01-29",
@@ -15354,6 +16417,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-19",
           "poDate": "2026-01-21",
           "dnDate": "2026-01-29",
@@ -15386,6 +16450,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-15",
           "poDate": "2026-01-15",
           "dnDate": "2026-01-29",
@@ -15423,6 +16488,7 @@
             "RFQ Sent to Vendor",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-15",
           "poDate": "2026-01-19",
           "dnDate": "2026-01-29",
@@ -15451,6 +16517,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-19",
           "dnDate": "2026-01-29",
@@ -15488,6 +16555,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-19",
           "poDate": "2026-01-19",
           "dnDate": "2026-01-29",
@@ -15525,6 +16593,7 @@
             "RFQ Refused",
             "RFQ Cancelled"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-11-05",
           "poDate": "2026-01-20",
           "dnDate": "2026-01-29",
@@ -15557,6 +16626,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-06",
           "poDate": "2026-01-19",
           "dnDate": "2026-01-29",
@@ -15585,6 +16655,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-02-02",
           "dnDate": "2026-05-13",
@@ -15613,6 +16684,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-13",
           "dnDate": "2026-02-10",
@@ -15651,6 +16723,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-13",
           "poDate": "2026-01-19",
           "dnDate": "2026-02-10",
@@ -15679,6 +16752,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-27",
           "dnDate": "2026-02-10",
@@ -15713,6 +16787,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-26",
           "poDate": "2026-01-21",
           "dnDate": "2026-02-23",
@@ -15745,6 +16820,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-12-31",
           "poDate": "2026-01-07",
           "dnDate": "2026-02-23",
@@ -15773,6 +16849,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-02-05",
           "dnDate": "2026-02-23",
@@ -15810,6 +16887,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-07",
           "poDate": "2026-01-22",
           "dnDate": "2026-02-23",
@@ -15844,6 +16922,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-07",
           "poDate": "2026-01-21",
           "dnDate": "2026-02-23",
@@ -15872,6 +16951,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-02-04",
           "dnDate": "2026-02-23",
@@ -15907,6 +16987,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-15",
           "poDate": "2026-01-14",
           "dnDate": "2026-02-23",
@@ -15935,6 +17016,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-16",
           "dnDate": "2026-02-23",
@@ -15963,6 +17045,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-27",
           "dnDate": "2026-02-25",
@@ -15991,6 +17074,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-02-12",
           "dnDate": "2026-03-11",
@@ -16025,6 +17109,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-08-15",
           "poDate": "2026-04-07",
           "dnDate": "2026-04-10",
@@ -16053,6 +17138,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-20",
           "dnDate": "2026-04-10",
@@ -16091,6 +17177,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-08",
           "poDate": "2026-01-16",
           "dnDate": "2026-01-29",
@@ -16123,6 +17210,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-18",
           "poDate": "2026-01-15",
           "dnDate": "2026-01-29",
@@ -16155,6 +17243,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2025-12-02",
           "dnDate": "2026-04-10",
@@ -16183,6 +17272,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-01-14",
           "dnDate": "2026-04-10",
@@ -16211,6 +17301,7 @@
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-31",
           "dnDate": "2026-04-10",
@@ -16239,6 +17330,7 @@
           "dnStatus": "DN Received on Board",
           "reqStatus": "",
           "rfqStatusSummary": [],
+          "rfqDetails": [],
           "reqDate": "",
           "poDate": "2026-03-31",
           "dnDate": "2026-04-10",
@@ -16271,6 +17363,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-14",
           "poDate": "2026-04-15",
           "dnDate": "2026-04-16",
@@ -16305,6 +17398,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-14",
           "poDate": "2026-04-21",
           "dnDate": "2026-04-21",
@@ -16337,6 +17431,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-14",
           "poDate": "2026-04-15",
           "dnDate": "2026-04-16",
@@ -16369,6 +17464,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-14",
           "poDate": "2026-04-15",
           "dnDate": "2026-04-16",
@@ -16401,6 +17497,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-15",
           "poDate": "2025-11-11",
           "dnDate": "2025-11-13",
@@ -16439,6 +17536,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-26",
           "poDate": "2026-04-16",
           "dnDate": "2026-07-16",
@@ -16472,6 +17570,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-04",
           "poDate": "2026-05-04",
           "dnDate": "2026-05-31",
@@ -16507,6 +17606,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-20",
           "poDate": "2026-04-13",
           "dnDate": "2026-05-31",
@@ -16539,6 +17639,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-05",
           "poDate": "2025-12-03",
           "dnDate": "2026-04-10",
@@ -16572,6 +17673,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-13",
           "poDate": "2026-01-20",
           "dnDate": "2026-04-10",
@@ -16608,6 +17710,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-10-15",
           "poDate": "2026-01-29",
           "dnDate": "2026-04-10",
@@ -16640,6 +17743,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2025-09-09",
           "poDate": "2025-09-12",
           "dnDate": "2025-09-16",
@@ -16674,6 +17778,7 @@
             "RFQ Cancelled",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-28",
           "poDate": "2026-02-02",
           "dnDate": "2026-02-03",
@@ -16708,6 +17813,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-19",
           "poDate": "2026-02-04",
           "dnDate": "2026-02-23",
@@ -16740,6 +17846,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-15",
           "poDate": "2026-02-18",
           "dnDate": "2026-05-29",
@@ -16772,6 +17879,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-17",
           "poDate": "2026-02-20",
           "dnDate": "2026-06-21",
@@ -16804,6 +17912,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-17",
           "poDate": "2026-02-24",
           "dnDate": "2026-06-21",
@@ -16836,6 +17945,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-26",
           "poDate": "2026-03-09",
           "dnDate": "2026-04-20",
@@ -16869,6 +17979,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-17",
           "poDate": "2026-03-10",
           "dnDate": "2026-06-21",
@@ -16901,6 +18012,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-25",
           "poDate": "2026-03-19",
           "dnDate": "2026-04-28",
@@ -16934,6 +18046,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-13",
           "poDate": "2026-03-25",
           "dnDate": "2026-04-10",
@@ -16967,6 +18080,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-25",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-16",
@@ -16999,6 +18113,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-02-25",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-10",
@@ -17031,6 +18146,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-01",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-10",
@@ -17063,6 +18179,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-20",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-10",
@@ -17095,6 +18212,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-20",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-10",
@@ -17127,6 +18245,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-22",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-10",
@@ -17159,6 +18278,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-25",
           "poDate": "2026-03-27",
           "dnDate": "2026-04-16",
@@ -17191,6 +18311,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-27",
           "poDate": "2026-03-31",
           "dnDate": "2026-04-10",
@@ -17223,6 +18344,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-30",
           "poDate": "2026-03-31",
           "dnDate": "2026-04-10",
@@ -17255,6 +18377,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-31",
           "poDate": "2026-04-01",
           "dnDate": "2026-04-16",
@@ -17287,6 +18410,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-01",
           "poDate": "2026-04-01",
           "dnDate": "2026-04-10",
@@ -17319,6 +18443,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-27",
           "poDate": "2026-04-02",
           "dnDate": "2026-04-10",
@@ -17351,6 +18476,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-30",
           "poDate": "2026-04-03",
           "dnDate": "2026-04-10",
@@ -17383,6 +18509,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-01-30",
           "poDate": "2026-04-03",
           "dnDate": "2026-04-10",
@@ -17415,6 +18542,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-30",
           "poDate": "2026-04-07",
           "dnDate": "2026-05-31",
@@ -17447,6 +18575,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-04-06",
           "poDate": "2026-04-07",
           "dnDate": "2026-04-28",
@@ -17481,6 +18610,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-19",
           "poDate": "2026-04-07",
           "dnDate": "2026-04-16",
@@ -17518,6 +18648,7 @@
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-22",
           "poDate": "2026-04-07",
           "dnDate": "2026-04-10",
@@ -17550,6 +18681,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-27",
           "poDate": "2026-04-09",
           "dnDate": "2026-06-22",
@@ -17586,6 +18718,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-26",
           "poDate": "2026-04-09",
           "dnDate": "2026-05-31",
@@ -17618,6 +18751,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
+          "rfqDetails": [],
           "reqDate": "2026-03-25",
           "poDate": "2026-04-09",
           "dnDate": "2026-05-31",
