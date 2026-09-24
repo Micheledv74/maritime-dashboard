@@ -6057,6 +6057,57 @@ a:hover { text-decoration: underline; }
 .vc2-leg b{ color:#0a1b2e; }
 .vc2-leg span{ display:inline-flex; align-items:center; gap:4px; }
 .vc2-leg i{ width:7px; height:7px; border-radius:2px; display:inline-block; }
+/* v0.97 scheda nave 1a + posizioni materiale */
+.mp-card{ gap:12px; }
+.mp-h{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.mp-n{ font-size:15px; font-weight:800; letter-spacing:.01em; color:#0a1b2e; }
+.mp-m, .mp-eb{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6a7d90; white-space:nowrap; }
+.mp-v{ display:flex; flex-direction:column; gap:3px; }
+.mp-v b{ font-size:14.5px; font-weight:700; color:#0a1b2e; line-height:1.3; text-wrap:pretty; }
+.mp-v b.red{ color:#c0261c; } .mp-v b.amber{ color:#b06a00; }
+.mp-v span{ font-size:12.5px; color:#44576b; } .mp-v span.amber{ color:#b06a00; font-weight:600; }
+.mp-route{ display:flex; flex-direction:column; gap:5px; }
+.mp-track{ position:relative; height:14px; }
+.mp-track::before{ content:""; position:absolute; left:0; right:0; top:6px; height:2px; background:rgba(10,27,46,.12); border-radius:2px; }
+.mp-done{ position:absolute; left:0; top:6px; height:2px; background:#1553d8; border-radius:2px; }
+.mp-ship{ position:absolute; top:1px; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:#1553d8; box-shadow:0 0 0 3px #dbe6fd; }
+.mp-port{ position:absolute; right:0; top:2px; width:10px; height:10px; border-radius:50%; border:2px solid #0a1b2e; background:#fff; box-sizing:border-box; }
+.mp-port.dash{ border-style:dashed; border-color:#1553d8; }
+.mp-rl{ display:flex; justify-content:space-between; gap:8px; font-family:var(--font-mono); font-size:11px; color:#44576b; flex-wrap:wrap; }
+.mp-rl b{ color:#0a1b2e; font-weight:600; }
+.mp-prop{ display:flex; align-items:center; justify-content:space-between; gap:10px; background:#eef3fe; border:1px solid #c9d8fb; border-radius:10px; padding:9px 10px 9px 12px; font-size:12.5px; line-height:1.4; flex-wrap:wrap; }
+.mp-prop.soft{ background:#f5f7fa; border-color:rgba(10,27,46,.10); color:#44576b; }
+.mp-prop > span:first-child{ flex:1 1 200px; min-width:0; }
+.mp-prop-a{ display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.mp-b{ font:inherit; font-size:12px; font-weight:600; padding:5px 11px; border-radius:999px; border:1px solid rgba(10,27,46,.16); background:#fff; color:#0a1b2e; cursor:pointer; white-space:nowrap; }
+.mp-b.pri{ background:#1553d8; border-color:#1553d8; color:#fff; font-weight:700; }
+.mp-x{ font:inherit; font-size:12px; background:none; border:none; color:#6a7d90; cursor:pointer; padding:4px; }
+.mp-mat{ display:flex; flex-direction:column; gap:7px; }
+.mp-dots{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+.mp-dot{ width:9px; height:9px; border-radius:50%; } .mp-dot.crit{ border-radius:1px; transform:rotate(45deg); width:9px; height:9px; margin:0 1px; }
+.mp-ms{ font-size:12.5px; color:#44576b; }
+.mp-pr{ display:flex; flex-wrap:wrap; gap:4px 12px; }
+.mp-pc{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:#44576b; white-space:nowrap; }
+.mp-pc i{ width:8px; height:8px; border-radius:50%; display:inline-block; } .mp-pc b{ color:#0a1b2e; font-family:var(--font-mono); }
+.mp-link{ align-self:flex-start; white-space:nowrap; font:inherit; font-size:12.5px; font-weight:600; color:#1553d8; background:none; border:none; padding:0; cursor:pointer; }
+.mp-link:hover{ text-decoration:underline; }
+.mp-bk{ display:flex; flex-wrap:wrap; gap:4px 14px; font-family:var(--font-mono); font-size:11px; color:#44576b; margin-top:auto; padding-top:2px; }
+.mp-bk span{ white-space:nowrap; } .mp-bk em{ font-style:normal; color:#b06a00; }
+.mp-idle{ display:flex; align-items:center; gap:8px 22px; flex-wrap:wrap; margin-top:14px; padding:10px 16px; background:#fff; border:1px solid rgba(10,27,46,.10); border-radius:14px; }
+.mp-idle-v{ display:flex; align-items:baseline; gap:8px; font:inherit; font-size:13px; background:none; border:none; padding:2px 0; cursor:pointer; color:#0a1b2e; }
+.mp-idle-v span{ color:#44576b; } .mp-idle-v i{ font-style:normal; color:#1553d8; }
+.mp-sec .idx-h{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.mp-src{ font-size:12px; color:#44576b; flex:1; }
+.mp-opts{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.mp-opt{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; width:auto; min-width:0; flex:none; font:inherit; font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:999px; border:1px solid rgba(10,27,46,.16); background:#fff; color:#0a1b2e; cursor:pointer; }
+.mp-opt i{ width:8px; height:8px; border-radius:50%; background:var(--mp); }
+.mp-opt.auto{ border:1.5px dashed var(--mp); }
+.mp-opt.on{ background:var(--mp); border-color:var(--mp); color:#fff; } .mp-opt.on i{ background:#fff; }
+.mp-row{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:flex-end; margin-top:10px; }
+.mp-row label{ display:flex; flex-direction:column; gap:3px; font-size:11px; font-weight:600; color:#6a7d90; }
+.mp-row label.mp-wide{ flex:1; min-width:200px; }
+.mp-row select, .mp-row input{ font:inherit; font-size:13px; padding:5px 8px; border:1px solid rgba(10,27,46,.18); border-radius:8px; background:#fff; color:#0a1b2e; }
+.mp-note{ font-size:12.5px; color:#44576b; line-height:1.4; }
 /* v0.94 — coda solleciti (Overview) */
 .g4-shiptime{ margin-top:8px; font-size:12.5px; opacity:.95; }
 .g4-shiptime b{ font-size:15px; font-family:var(--font-mono); }
@@ -9956,6 +10007,7 @@ const priorityRules = [
     if (item.rfqStatus !== "RFQ Offer Acknowledged") return null;
     if (item.poStatus && item.poStatus !== "") return null;
     if (!item.reqStatus || reqIsClosed(item)) return null;
+    if (typeof mpIntentional === "function" && mpIntentional(item)) return null;
     const days = item.rfqDays || 0;
     if (days > (state.settings.readyForPOTTL || 60)) return null;
     // v0.10.4 — Per ready-for-PO il PO ancora non c'è, mostro REQ N° o RFQ accettato
@@ -12615,8 +12667,12 @@ function renderOverview() {
   const actionsHTML = renderActionsTodayV2();
 
   let cardsHTML = "";
+  const _mpM = (() => { try { return rdModel(); } catch(e) { return null; } })();
+  const _idle = [];
   for (const cfg of VESSELS) {
     const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
+    if (!v && cfg.manual) { _idle.push({ cfg, sub: "gestione manuale · " + manualOrdersOpen(cfg.vesselId) + " ordini aperti", todo: todosForVessel(cfg.vesselId, false).length }); continue; }
+    if (v && !(v.items || []).length) { _idle.push({ cfg, sub: "nessun ordine in corso", todo: todosForVessel(cfg.vesselId, false).length }); continue; }
     if (!v) {
       // v0.26 — Nave a gestione manuale (es. VEGA UNO): card dedicata con cert + to-do
       if (cfg.manual) {
@@ -12682,9 +12738,9 @@ function renderOverview() {
     const nPo = vActs.filter(a => /^(readyPO|batch):/.test(a.key || "")).length;
     const pipe = computePipeline(v);
     const todayS = new Date().toISOString().slice(0, 10);
-    const lateOrd = pipe.PO.items.filter(it => { const d = String(it.poDeliveryDate || "").slice(0, 10); return d && d < todayS; }).length;
+    const lateOrd = pipe.PO.items.filter(it => { const d = String(it.poDeliveryDate || "").slice(0, 10); return d && d < todayS && !(typeof mpIntentional === "function" && mpIntentional(it)); }).length;
     const unplanned = getUnplannedPOs(cfg.vesselId).length;
-    const inTransit = pipe.DN.items.filter(it => it.dnStatus === "DN Shipped to Vessel").length;
+    const inTransit = pipe.DN.items.filter(it => it.dnStatus === "DN Shipped to Vessel" && !(typeof rdStaleDN === "function" && rdStaleDN(it, Date.now()))).length;
     const certBad = (cStats.expired || 0), certSoon = (cStats.urgent || 0);
     const tasks = [];
     if (certBad) tasks.push({ t: "red", n: certBad, l: certBad === 1 ? "certificato scaduto" : "certificati scaduti", attr: `data-vessel-certs="${cfg.vesselId}"` });
@@ -12694,9 +12750,10 @@ function renderOverview() {
     if (unplanned) tasks.push({ t: "amber", n: unplanned, l: unplanned === 1 ? "PO senza consegna pianificata" : "PO senza consegna pianificata", attr: `data-proc-jump="po" data-proc-vid="${cfg.vesselId}"` });
     if (inTransit) tasks.push({ t: "blue", n: inTransit, l: inTransit === 1 ? "consegna in viaggio verso la nave" : "consegne in viaggio verso la nave", attr: `data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"` });
     if (certSoon) tasks.push({ t: "amber", n: certSoon, l: certSoon === 1 ? "certificato scade entro 30 gg" : "certificati scadono entro 30 gg", attr: `data-vessel-certs="${cfg.vesselId}"` });
-    if (vesselTodos.length) tasks.push({ t: "slate", n: vesselTodos.length, l: vesselTodos.length === 1 ? "to-do aperta" : "to-do aperte", attr: `data-vessel-todos="${cfg.vesselId}"` });
     const order = { red: 0, amber: 1, blue: 2, slate: 3 };
     tasks.sort((x, y) => order[x.t] - order[y.t]);
+    if (typeof mpCardHTML === "function") { try { cardsHTML += mpCardHTML(cfg, v, _mpM, tasks); continue; } catch(e) { console.error("[mpCard]", e); } }
+    if (vesselTodos.length) tasks.push({ t: "slate", n: vesselTodos.length, l: vesselTodos.length === 1 ? "to-do aperta" : "to-do aperte", attr: `data-vessel-todos="${cfg.vesselId}"` });
     const shownT = tasks.slice(0, 4);
     const tasksHTML = shownT.length
       ? `<div class="vc2-tasks">${shownT.map(k => `<button class="vc2-task t-${k.t}" ${k.attr}><b>${k.n}</b><span>${k.l}</span><i>→</i></button>`).join("")}${tasks.length > 4 ? `<div class="vc2-more">+ altre ${tasks.length - 4} voci nella scheda nave</div>` : ""}</div>`
@@ -12834,6 +12891,7 @@ function renderOverview() {
         })()}</span>
       </div>
       <div class="vessel-grid">${cardsHTML}</div>
+      ${_idle.length ? `<div class="mp-idle"><span class="mp-eb">SENZA ORDINI IN CORSO</span>${_idle.map(x => `<button class="mp-idle-v" onclick="window.goVessel('${x.cfg.vesselId}')"><b>${escapeHTML(x.cfg.displayName)}</b><span>${escapeHTML(x.sub)}${x.todo ? " · " + x.todo + " to-do" : ""}</span><i>→</i></button>`).join("")}</div>` : ""}
     </section>
 
     <section>
@@ -16261,6 +16319,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       <div class="item-detail-body">
         ${nextHTML}
         ${flowHTML}
+        ${typeof mpDetailHTML === "function" ? mpDetailHTML(it) : ""}
         ${offersHTML}
         ${ordersHTML}
         ${shipmentSection(it, vessel)}
@@ -24380,6 +24439,7 @@ function buildStatePayload() {
     rfqVendors: (typeof loadRfqVendors === "function" ? loadRfqVendors() : {}),
     portProfiles: (typeof loadPortProfiles === "function" ? loadPortProfiles() : {}),
     critFlags: (typeof loadCritFlags === "function" ? loadCritFlags() : {}),
+    matPos: (typeof loadMatPos === "function" ? loadMatPos() : {}),
     todoTombs: (typeof loadTodoTombs === "function" ? loadTodoTombs() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
@@ -24857,7 +24917,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags","matPos"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -24894,6 +24954,7 @@ function collSnapshot(){
     rfqVendors: f(typeof loadRfqVendors==="function"?loadRfqVendors():{}),
     portProfiles: f(typeof loadPortProfiles==="function"?loadPortProfiles():{}),
     critFlags: f(typeof loadCritFlags==="function"?loadCritFlags():{}),
+    matPos: f(typeof loadMatPos==="function"?loadMatPos():{}),
     todoTombs: f(typeof loadTodoTombs==="function"?loadTodoTombs():{})
   };
 }
@@ -25038,9 +25099,9 @@ function mpdMergeRemote(remote, force){
       }
     }
     // v0.96 — profili porto e flag critico: unione per voce, vince updatedAt più recente
-    ["portProfiles", "critFlags"].forEach(cn => {
+    ["portProfiles", "critFlags", "matPos"].forEach(cn => {
       const rv = remote[cn]; if (!rv || typeof rv !== "object") return;
-      const lk = cn === "portProfiles" ? "mpd.portProfiles" : "mpd.critFlags";
+      const lk = "mpd." + cn;
       let local = {}; try { local = JSON.parse(localStorage.getItem(lk) || "{}") || {}; } catch {}
       let touched = false;
       for (const k of Object.keys(rv)) {
@@ -26464,6 +26525,18 @@ function rdCalc(it, c, now, basis){
   } else if(it.dnStatus){
     st = "attesa"; segs.push({ k: "f", a: 0, lo: 0.2, hi: 1 }); lo = 0.2; hi = 1; chain.push("DN pronta, da spedire");
     push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl);
+  } else if(typeof mpManual === "function" && mpManual(it.id) && ["supplier","hub","repair"].includes(mpManual(it.id).pos)){
+    const m = mpManual(it.id);
+    if(m.pos === "repair"){
+      const b = rdDD(m.back, now);
+      if(b == null){ unknown = true; st = "nodate"; chain.push("in riparazione, rientro senza data"); }
+      else { st = "attesa"; const b0 = Math.max(0, b); segs.push({ k: "f", a: 0, lo: b0, hi: b0 + 1 }); lo = b0; hi = b0 + 1; chain.push("in riparazione · rientro " + rdFD(b0, now)); push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl); }
+    } else {
+      st = "attesa"; segs.push({ k: "f", a: 0, lo: 0.5, hi: 1.5 }); lo = 0.5; hi = 1.5;
+      const hb = m.pos === "hub" ? mpHub(m.hub) : null;
+      chain.push(m.pos === "hub" ? "all'hub " + (hb ? hb.name : "TML") + (mpDaysSince(m.since) != null ? " da " + mpDaysSince(m.since) + " gg" : "") : "fermo apposta dal fornitore, pronto");
+      push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl);
+    }
   } else {
     const rs = String(it.poDeliveryDate||"").slice(0,10) || (typeof itemReadyDate === "function" ? (itemReadyDate(it)||"") : "");
     const r = rdDD(rs, now);
@@ -26600,8 +26673,9 @@ function radarPaint(){
   // briefing
   let headline, subline;
   if(!M.calls.length){
-    headline = "Nessuno scalo con date aggiornate nei prossimi " + H + " giorni.";
-    subline = staleLanes.length ? "Il radar si accende quando i viaggi hanno ETA/ETB future: " + staleLanes.map(l => l.name + " (ultimo scalo " + l.stale.port + ")").join(", ") + " da aggiornare." : "Imposta i viaggi delle navi e pianifica le consegne sugli scali.";
+    const _np = M.lanes.filter(l => typeof mpProposal === "function" && mpProposal(l.vid)).length;
+    headline = _np ? "Nessuno scalo impostato, ma i noon di oggi ne indicano " + _np + "." : "Nessuno scalo con date aggiornate nei prossimi " + H + " giorni.";
+    subline = _np ? "Confermali in \"Le mosse di oggi\" o nella scheda nave: il radar si accende subito, e l'ETD la aggiungi quando la sai." : staleLanes.length ? "Il radar si accende quando i viaggi hanno ETA/ETB future: " + staleLanes.map(l => l.name + " (ultimo scalo " + l.stale.port + ")").join(", ") + " da aggiornare." : "Imposta i viaggi delle navi e pianifica le consegne sugli scali.";
   } else if(risky.length){
     const f = risky.slice().sort((a, b) => a.etd - b.etd)[0];
     const fc = f.etd - rdProfile(f.port).notice / 24;
@@ -26615,7 +26689,11 @@ function radarPaint(){
 
   // mosse
   const moves = [];
-  staleLanes.forEach(l => moves.push({ where: l.name + " · viaggio da aggiornare", c: "#c07800", title: "Aggiorna il viaggio di " + l.name,
+  M.lanes.filter(l => !l.calls.length && typeof mpProposal === "function" && mpProposal(l.vid)).forEach(l => { const p = mpProposal(l.vid);
+    moves.push({ where: l.name + " · scalo dal noon del " + mpFD(p.date), c: "#1553d8", title: (p.guess ? "Conferma lo scalo di " : "Imposta lo scalo di ") + l.name + ": " + p.port,
+      why: (p.guess ? "La nave è a " + Math.round(p.mtg) + " nm da " + p.port + " (dedotto dalla posizione: il noon non indica il porto)." : "Il noon indica " + p.port + (p.eta ? ", ETA " + mpFD(p.eta) : "") + ".") + (l.un ? " " + l.un + " PO aspettano uno scalo." : ""),
+      cta: p.guess ? "Conferma" : "Imposta", go: "window.mpApplyNoon('" + ea(l.vid) + "')" }); });
+  staleLanes.filter(l => !(typeof mpProposal === "function" && mpProposal(l.vid))).forEach(l => moves.push({ where: l.name + " · viaggio da aggiornare", c: "#c07800", title: "Aggiorna il viaggio di " + l.name,
     why: "Ultimo scalo impostato: " + l.stale.port + ", ETA " + rdFD(l.stale.eta, now) + " (passata)." + (l.stale.n ? " " + l.stale.n + " consegne sono legate a quello scalo." : "") + " Senza date future i suoi PO non entrano nel radar.",
     cta: "Apri viaggio", go: "window.goVessel('" + ea(l.vid) + "')" }));
   const bad = all.filter(x => x.k !== "ok").sort((a, b) => (b.crit - a.crit) || (ORD[a.k] - ORD[b.k]) || (a.c.etd - b.c.etd));
@@ -26750,6 +26828,263 @@ function radarPaint(){
     '<a onclick="window.goFleetActions && window.goFleetActions(\'dn\')">Rivedi le consegne →</a></div></div>';
 }
 window.radarPaint = radarPaint;
+
+
+// ============================================================================
+// === v0.97 POSIZIONI DEL MATERIALE + SCALO PROPOSTO DAL NOON ===============
+// Modus operandi: il PO spesso NON si emette finché la rotta non è nota; i PO
+// restano apposta dal fornitore o all'hub TML; pezzi in riparazione tornano a
+// bordo. Posizione manuale in chiave NUOVA mpd.matPos {itemId:{pos,hub,since,
+// back,legAt,updatedAt}} (sync per voce). Le attese VOLUTE escono dal rosso.
+// ============================================================================
+const TML_HUBS = [
+  { id:"nl-ams", name:"TML Rotterdam", city:"Schiphol-Rijk", lat:52.28, lon:4.76, email:"rotterdam@tailormadelogistic.com" },
+  { id:"de-ham", name:"TML Germany", city:"Amburgo", lat:53.55, lon:10.02, email:"g.timmermann@wendland-sped.de" },
+  { id:"uk-lhr", name:"TML UK", city:"Colnbrook (Heathrow)", lat:51.48, lon:-0.52, email:"neil@wysiwyglogistics.com" },
+  { id:"sg-tuas", name:"TML Singapore · locali", city:"Singapore Tuas", lat:1.32, lon:103.64, email:"forwarder@national.sg" },
+  { id:"sg-air", name:"TML Singapore · non locali", city:"Singapore Changi", lat:1.36, lon:103.99, email:"forwarder@national.sg" },
+  { id:"cn-sha", name:"TML Cina", city:"Shanghai", lat:31.2, lon:121.6, email:"warehouse@unionmsc.com" },
+  { id:"kr-inc", name:"TML South Korea", city:"Incheon", lat:37.46, lon:126.44, email:"sp-all@aalogis.com" },
+  { id:"jp-osa", name:"TML Japan", city:"Osaka", lat:34.61, lon:135.47, email:"osaka@kbtrans.co.jp" },
+  { id:"us-hou", name:"TML Houston", city:"Houston", lat:29.93, lon:-95.43, email:"logistics@galenelogistics.com" },
+  { id:"us-bos", name:"TML New York", city:"Revere (Boston)", lat:42.41, lon:-71.01, email:"jpack@firstclasscargo.com" },
+  { id:"us-mia", name:"TML Miami", city:"Miami", lat:25.85, lon:-80.38, email:"RodriguezL@sbaglobal.com" }
+];
+const MP_POS = {
+  route:    { l:"In attesa di rotta",  s:"in attesa di rotta",  c:"#1553d8" },
+  supplier: { l:"Fermo dal fornitore", s:"presso il fornitore", c:"#c07800" },
+  hub:      { l:"All'hub TML",         s:"all'hub TML",         c:"#b06a00" },
+  repair:   { l:"In riparazione",      s:"in riparazione",      c:"#6b4fc4" },
+  transit:  { l:"In viaggio",          s:"in viaggio",          c:"#14794e" },
+  onboard:  { l:"A bordo",             s:"a bordo",             c:"#6a7d90" }
+};
+const MP_ORDER = ["route","supplier","hub","repair","transit","onboard"];
+function loadMatPos(){ return rdLoadJSON("mpd.matPos"); }
+function mpManual(id){ const p = loadMatPos()[id]; return p && p.pos ? p : null; }
+function mpHub(id){ return TML_HUBS.find(h => h.id === id) || null; }
+function mpToday(){ return new Date().toISOString().slice(0,10); }
+function mpDaysSince(d){ if(!d) return null; const t = new Date(String(d).slice(0,10)+"T12:00:00").getTime(); return isNaN(t) ? null : Math.max(0, Math.round((Date.now()-t)/864e5)); }
+function mpFD(d){ if(!d) return ""; const s = String(d).slice(0,10).split("-"); return s.length === 3 ? s[2]+"."+s[1] : d; }
+function mpVidOf(itemId){ const v = ((state.data && state.data.vessels) || []).find(v => (v.items||[]).some(i => i.id === itemId)); return v ? v.vesselId : ""; }
+function mpSet(id, patch){
+  const all = loadMatPos(); const cur = all[id] || {};
+  const nx = Object.assign({}, cur, patch, { updatedAt: new Date().toISOString() });
+  if(patch.pos !== undefined && patch.pos !== cur.pos){ nx.since = mpToday(); if(patch.pos === "route"){ const voy = getVoyage(mpVidOf(id)) || {}; nx.legAt = (voy.current && (voy.current.id || voy.current.to)) || ""; } }
+  all[id] = nx; rdSaveJSON("mpd.matPos", all);
+}
+// Rotta nota = il viaggio ha uno scalo con data futura diverso da quello che c'era quando hai segnato l'attesa
+function mpRouteKnown(it, vid){
+  const m = mpManual(it.id); const voy = getVoyage(vid || mpVidOf(it.id)) || {};
+  return ["current","next"].some(w => { const l = voy[w]; if(!l || !l.to) return false; const d = rdDD(l.etd || l.etb || l.eta, Date.now()); return d != null && d > 0 && (!m || !m.legAt || (l.id || l.to) !== m.legAt); });
+}
+function mpOf(it, now){
+  now = now || Date.now();
+  if(rdCancelled(it)) return null;
+  const m = mpManual(it.id);
+  if(it.dnStatus === "DN Received on Board") return { pos:"onboard" };
+  if(m && (m.pos === "onboard" || m.pos === "repair")) return Object.assign({ manual:true }, m);
+  if(rdStaleDN(it, now)) return { pos:"transit", stale:true };
+  const moving = getItemShipments(it.id).some(s => s.status !== "delivered");
+  if(moving || it.dnStatus === "DN Shipped to Vessel") return { pos:"transit" };
+  if(m) return Object.assign({ manual:true }, m);
+  if(it.poNumber || it.dnStatus) return { pos:"supplier", derived:true };
+  if(typeof reqIsClosed === "function" && reqIsClosed(it)) return null;
+  return { pos:"route", derived:true };
+}
+// Attesa VOLUTA (segnata da te): niente rosso "oltre pronto senza DN" / "pronta a PO"
+function mpIntentional(it){
+  const m = mpManual(it.id); if(!m) return false;
+  if(m.pos === "route") return !mpRouteKnown(it);
+  return m.pos === "supplier" || m.pos === "hub" || m.pos === "repair";
+}
+window.mpIntentional = mpIntentional;
+function mpRefresh(id){
+  const open = !!document.querySelector(".item-detail-body");
+  const bd = document.querySelector(".item-detail-body"); const st = bd ? bd.scrollTop : 0;
+  if(state.view === "overview") renderOverview();
+  else if(state.view === "vessel"){ const v = state.data.vessels.find(x => x.vesselId === state.selectedVesselId); if(v && typeof renderItemsTable === "function") renderItemsTable(v); }
+  if(id && open && typeof window.openItemDetailPopover === "function"){ window.openItemDetailPopover(id); setTimeout(() => { const b = document.querySelector(".item-detail-body"); if(b) b.scrollTop = st; }, 30); }
+}
+window.mpSetPos = function(id, pos){
+  if(pos === "auto"){ mpSet(id, { pos:"" }); if(typeof showToast === "function") showToast("Posizione: torna automatica"); }
+  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "nl-ams"; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
+  mpRefresh(id);
+};
+window.mpSetField = function(id, k, v){ const p = {}; p[k] = v; mpSet(id, p); mpRefresh(id); };
+
+function mpDetailHTML(it){
+  const p = mpOf(it); if(!p) return "";
+  const ea = s => escapeAttr(String(s)).replace(/'/g, "\\'");
+  const id = ea(it.id);
+  const hasPO = !!(it.poNumber || it.dnStatus);
+  const opts = hasPO ? ["supplier","hub","repair","transit","onboard"] : ["route"];
+  const btn = k => '<button class="mp-opt' + (p.pos === k ? (p.manual ? " on" : " auto") : "") + '" style="--mp:' + MP_POS[k].c + '" onclick="window.mpSetPos(\'' + id + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>';
+  let extra = "";
+  if(p.pos === "hub" && p.manual){
+    const d = mpDaysSince(p.since);
+    extra = '<div class="mp-row"><label>Hub<select onchange="window.mpSetField(\'' + id + '\',\'hub\',this.value)">' + TML_HUBS.map(hb => '<option value="' + hb.id + '"' + (hb.id === p.hub ? " selected" : "") + '>' + escapeHTML(hb.name + " · " + hb.city) + '</option>').join("") + '</select></label>' +
+      '<label>Arrivato il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
+      '<span class="mp-note">' + (d != null ? "all'hub da " + d + " gg" : "") + (mpHub(p.hub) ? ' · <a href="mailto:' + escapeAttr(mpHub(p.hub).email) + '">' + escapeHTML(mpHub(p.hub).email) + '</a>' : "") + '</span></div>';
+  } else if(p.pos === "repair" && p.manual){
+    extra = '<div class="mp-row"><label>Sbarcato il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
+      '<label>Rientro previsto<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="window.mpSetField(\'' + id + '\',\'back\',this.value)"></label>' +
+      '<label class="mp-wide">Riparatore / note<input value="' + escapeAttr(p.note || "") + '" placeholder="es. officina Singapore, rientro via agenzia" onchange="window.mpSetField(\'' + id + '\',\'note\',this.value)"></label></div>';
+  } else if(p.pos === "route" && p.manual){
+    extra = '<div class="mp-row"><span class="mp-note">' + (mpRouteKnown(it) ? "La rotta ora è nota: scegli il fornitore più vicino allo scalo ed emetti il PO." : "Non compare più tra le \"pronte a PO\" finché il viaggio non ha un nuovo scalo.") + '</span></div>';
+  } else if(p.pos === "supplier" && p.manual){
+    extra = '<div class="mp-row"><span class="mp-note">Fermo apposta dal ' + mpFD(p.since) + ': non compare più tra gli ordini "oltre la data di pronto".</span></div>';
+  }
+  const state_ = p.derived && p.pos === "supplier" ? "dedotta: PO emesso, nessuna DN. Se lo tieni lì apposta, conferma" : p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo" : p.derived ? "dedotta da Infoship, non ancora confermata" : p.manual ? "segnata da te il " + mpFD(p.updatedAt) : "da Infoship / tracking";
+  return '<div class="detail-section mp-sec"><div class="idx-h"><h4>Dove si trova il materiale</h4><span class="mp-src">' + escapeHTML(MP_POS[p.pos].l) + ' · ' + escapeHTML(state_) + '</span>' +
+    (p.manual ? '<button class="btn btn-sm" onclick="window.mpSetPos(\'' + id + '\',\'auto\')">Automatico</button>' : "") + '</div>' +
+    '<div class="mp-opts">' + opts.map(btn).join("") + '</div>' + extra + '</div>';
+}
+
+// --- Scalo dal noon ---------------------------------------------------------
+const MP_PORTS = [["MOMBASA",-4.06,39.67],["TANGA",-5.07,39.10],["DAR ES SALAAM",-6.82,39.29],["ZANZIBAR",-6.16,39.19],["TEMA",5.63,0.01],["TAKORADI",4.88,-1.75],["LOMÉ",6.13,1.28],["COTONOU",6.35,2.43],["LAGOS",6.43,3.40],["ABIDJAN",5.29,-4.01],["DAKAR",14.68,-17.43],["DURBAN",-29.87,31.03],["MAPUTO",-25.97,32.57],["BEIRA",-19.83,34.84],["DJIBOUTI",11.6,43.14],["PORT SUDAN",19.6,37.22],["JEDDAH",21.48,39.17],["AQABA",29.5,35.0],["SUEZ",29.95,32.55],["PORT SAID",31.26,32.3],["ALEXANDRIA",31.2,29.88],["SINGAPORE",1.26,103.84],["PORT KLANG",3.0,101.39],["COLOMBO",6.95,79.85],["CHITTAGONG",22.3,91.8],["MUMBAI",18.95,72.84],["KARACHI",24.84,66.98],["JEBEL ALI",25.01,55.06],["FUJAIRAH",25.17,56.36],["SOHAR",24.5,56.63],["SALALAH",16.95,54.0],["GENOVA",44.4,8.92],["LA SPEZIA",44.1,9.83],["LIVORNO",43.55,10.3],["NAPOLI",40.84,14.26],["GIOIA TAURO",38.44,15.9],["AUGUSTA",37.2,15.22],["MALTA",35.82,14.54],["PIRAEUS",37.94,23.63],["ALGECIRAS",36.13,-5.43],["VALENCIA",39.45,-0.32],["BARCELONA",41.35,2.16],["MARSEILLE",43.33,5.33],["ROTTERDAM",51.95,4.13],["ANTWERP",51.28,4.33],["HAMBURG",53.54,9.97],["LULEÅ",65.58,22.15],["OXELÖSUND",58.66,17.12],["GDANSK",54.4,18.67],["ISTANBUL",41.0,28.97],["CONSTANTA",44.17,28.65],["HOUSTON",29.73,-95.27],["NEW ORLEANS",29.93,-90.06],["SANTOS",-23.96,-46.3],["SHANGHAI",31.23,121.5],["BUSAN",35.1,129.04],["QINGDAO",36.07,120.32]];
+function mpLL(s){ const m = String(s||"").trim().match(/^(\d{1,3})[-\s°]+(\d{1,2}(?:[.,]\d+)?)['\s]*([NSEW])/i); if(!m) return null; const mi = parseFloat(m[2].replace(",", ".")); if(mi >= 60) return null; let v = +m[1] + mi/60; if(v > (/[NS]/i.test(m[3]) ? 90 : 180)) return null; if(/[SW]/i.test(m[3])) v = -v; return v; }
+function mpNm(a, b, c, d){ const r = x => x*Math.PI/180; const dl = r(c-a), dn = r(d-b); const q = Math.sin(dl/2)**2 + Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2; return 3440*2*Math.atan2(Math.sqrt(q), Math.sqrt(1-q)); }
+function mpNoon(vid){
+  const n = (typeof getNoonMerged === "function") ? getNoonMerged(vid) : null; if(!n) return null;
+  const age = mpDaysSince(n.date || n.__baseDate); if(age == null || age > 4) return null;
+  const pt = String(n.positionText || "").split("/");
+  const lat = mpLL(n.lat) ?? mpLL(pt[0]), lon = mpLL(n.lon) ?? mpLL(pt[1]), mtg = parseFloat(n.milesToGo), spd = parseFloat(n.speed);
+  let port = String(n.to || "").trim().toUpperCase(), guess = false, eta = n.etaISO || "";
+  if((!port || /^N\/?A$/i.test(port)) && lat != null && lon != null){
+    const best = MP_PORTS.map(p => ({ p: p[0], d: mpNm(lat, lon, p[1], p[2]) })).sort((a, b) => a.d - b.d)[0];
+    port = best && best.d <= Math.max(60, (mtg || 0) + 30) ? best.p : ""; guess = !!port;
+  }
+  if(!port) return null;
+  if(!eta && mtg >= 0 && mtg < 80){ const t = new Date(Date.now() + (spd > 0 ? mtg/spd : 1)*36e5); eta = t.toISOString().slice(0,10) + "T" + String(t.getHours()).padStart(2,"0") + ":00"; }
+  return { port, guess, eta, mtg: isNaN(mtg) ? null : mtg, spd: isNaN(spd) ? null : spd, from: String(n.from || "").trim().toUpperCase(), date: n.date, voy: n.voyageNo || "", n };
+}
+function mpVoyFuture(vid){ const voy = getVoyage(vid) || {}; return ["current","next"].map(w => voy[w]).find(l => l && l.to && (d => d != null && d > -0.5)(rdDD(l.etd || l.etb || l.eta, Date.now()))) || null; }
+// Posizione FUSA: noon (posizione, velocità, miglia) + Viaggio inserito a mano (porto, date, stato).
+// Il viaggio manuale vince su porto/date se ha uno scalo futuro o è stato aggiornato dal giorno del noon in poi.
+function mpVoyNewer(vid, nc){
+  const voy = getVoyage(vid) || {}; const up = voy.updatedAt ? Date.parse(voy.updatedAt) : 0;
+  if(!up) return false; if(!nc) return true;
+  return up >= Date.parse(String(nc.date).slice(0,10) + "T00:00:00");
+}
+function mpWhere(vid){
+  const nc = mpNoon(vid), voy = getVoyage(vid) || {}, cur = voy.current || {};
+  const fut = mpVoyFuture(vid), newer = mpVoyNewer(vid, nc);
+  const leg = fut || (newer && nc && cur.to ? cur : null);
+  const mp = !nc && typeof getVesselManualPos === "function" ? getVesselManualPos(vid) : null;
+  const W = { nc, status: voy.status || "", voyAt: voy.updatedAt || "", manualCity: mp && mp.city || "" };
+  if(leg){ Object.assign(W, { src: nc ? "mix" : "voyage", port: String(leg.to).toUpperCase(), from: String(leg.from || (nc && nc.from) || "").toUpperCase(), eta: leg.eta || (nc && rdKey(nc.port) === rdKey(leg.to) ? nc.eta : ""), etb: leg.etb || "", etd: leg.etd || "", guess: false, leg }); }
+  else if(nc){ Object.assign(W, { src: "noon", port: nc.port, from: nc.from, eta: nc.eta, etb: "", etd: "", guess: nc.guess }); }
+  else if(cur.to){ Object.assign(W, { src: "voyage", port: String(cur.to).toUpperCase(), from: String(cur.from || "").toUpperCase(), eta: cur.eta || "", etb: cur.etb || "", etd: cur.etd || "", guess: false, old: true, leg: cur }); }
+  else return W.manualCity ? Object.assign(W, { src: "manualpos" }) : null;
+  return W;
+}
+window.mpWhere = mpWhere;
+function mpProposal(vid){
+  const nc = mpNoon(vid); if(!nc) return null;
+  if(mpVoyNewer(vid, nc)) return null;
+  const f = mpVoyFuture(vid);
+  if(f && rdKey(f.to) === rdKey(nc.port)) return null;
+  const dis = rdLoadJSON("mpd.noonDismiss")[vid];
+  if(dis && dis === nc.port + "|" + nc.date) return null;
+  return nc;
+}
+window.mpApplyNoon = function(vid){
+  const nc = mpNoon(vid); if(!nc) return;
+  const voy = JSON.parse(JSON.stringify(getVoyage(vid) || {}));
+  const old = voy.current || {};
+  if(old.to && rdKey(old.to) === rdKey(nc.port)){
+    voy.current = Object.assign({}, old, { eta: old.eta || nc.eta || "", from: old.from || nc.from || "" });
+    state.voyages = state.voyages || {}; state.voyages[vid] = Object.assign(voy, { updatedAt: new Date().toISOString(), noonSource: nc.date });
+    saveVoyages(); if(typeof ghSetDirty === "function") ghSetDirty();
+    if(typeof showToast === "function") showToast("Scalo " + nc.port + " completato dal noon: le tue date restano."); render(); return;
+  }
+  const cur = { id: genVoyageId(), from: nc.from || old.to || "", to: nc.port, eta: nc.eta || "", etb: "", etd: "", agency: null, status: nc.mtg != null && nc.mtg < 20 ? "at_anchor" : "at_sea" };
+  const nxt = voy.next && voy.next.to && rdKey(voy.next.to) !== rdKey(nc.port) && (d => d != null && d > 0)(rdDD(voy.next.eta || voy.next.etb, Date.now())) ? voy.next : {};
+  state.voyages = state.voyages || {};
+  state.voyages[vid] = Object.assign({}, voy, { current: cur, next: nxt, updatedAt: new Date().toISOString(), noonSource: nc.date });
+  saveVoyages();
+  if(typeof ghSetDirty === "function") ghSetDirty();
+  if(typeof showToast === "function") showToast("Scalo impostato: " + nc.port + (nc.eta ? " · ETA " + mpFD(nc.eta) : "") + ". Aggiungi l'ETD quando la sai.");
+  render();
+};
+window.mpDismissNoon = function(vid){ const nc = mpNoon(vid); if(!nc) return; const all = rdLoadJSON("mpd.noonDismiss"); all[vid] = nc.port + "|" + nc.date; try{ localStorage.setItem("mpd.noonDismiss", JSON.stringify(all)); }catch(e){} render(); };
+
+// --- Scheda nave 1a ------------------------------------------------------------
+function mpCardHTML(cfg, v, M, tasks){
+  const esc = escapeHTML, ea = s => escapeAttr(String(s)).replace(/'/g, "\\'"), vid = ea(cfg.vesselId), now = Date.now();
+  const lane = (M && M.lanes || []).find(l => l.vid === cfg.vesselId) || { calls: [] };
+  const call = lane.calls.slice().sort((a, b) => a.eta - b.eta)[0] || null;
+  const nc = mpNoon(cfg.vesselId), prop = mpProposal(cfg.vesselId), W = mpWhere(cfg.vesselId);
+  const voy = getVoyage(cfg.vesselId) || {}, cur = voy.current || {};
+  const cap = s => s ? s.charAt(0) + s.slice(1).toLowerCase() : "";
+  const ST = { in_port:"in porto", at_anchor:"alla fonda", drydock:"in cantiere", loading:"in carico", discharging:"in scarico" };
+  const curD = rdDD(cur.etd || cur.etb || cur.eta, now);
+  // verdetto
+  let vt = "", vc = "", sub = "", subC = "";
+  if(call){
+    const cut = call.etd - rdProfile(call.port).notice/24;
+    const crit = call.its.filter(x => x.crit && x.k !== "ok").length;
+    if(call.n.late){ vt = (crit ? crit + " PO critic" + (crit > 1 ? "i" : "o") + " e " : "") + call.n.late + " PO non arriv" + (call.n.late > 1 ? "ano" : "a") + " a " + call.port + "."; vc = "red"; }
+    else if(call.n.risk){ vt = call.n.risk + " PO a rischio per " + call.port + "."; vc = "amber"; }
+    else vt = call.its.length ? call.port + ": " + call.its.length + " PO in tempo." : "Rotta per " + call.port + ", nessun PO ancora legato allo scalo.";
+    sub = "Limite di consegna " + rdFDT(cut, now) + " · " + (cut > 0 ? "mancano " + Math.floor(cut) + " gg" : "superato");
+  } else if(W && W.port && !W.old){
+    const st = ST[W.status];
+    vt = W.guess ? "In arrivo: " + Math.round(nc.mtg) + " nm, al largo di " + cap(W.port) + "."
+      : st && W.src !== "noon" ? cap(W.port) + ": nave " + st + (W.etd ? ", partenza " + mpFD(W.etd) : "") + "."
+      : "In rotta per " + cap(W.port) + (W.eta ? ", arrivo " + mpFD(W.eta) : "") + ".";
+  } else if(W && W.src === "manualpos") vt = "Posizione indicata da te: " + W.manualCity + ".";
+  else vt = cur.to ? "Ultimo scalo impostato: " + cur.to + "." : "Nessuna posizione recente.";
+  if(!call){
+    if(cur.to && curD != null && curD < 0) { sub = "Il viaggio in dashboard è fermo a " + cur.to + " (" + mpFD(cur.eta || cur.etb) + ")."; subC = "amber"; }
+    else if(!cur.to){ sub = "Nessun viaggio impostato."; subC = "amber"; }
+  }
+  // rotta
+  let route = "";
+  if(nc){
+    const ll = nc.n.positionText ? nc.n.positionText.replace(/\s*\/\s*/, " ") : "";
+    const L = nc.guess && !(W && W.src === "mix") ? ll + (nc.spd ? " · " + String(nc.spd).replace(".", ",") + " kn" : "") : (nc.from || ll);
+    const Mid = nc.guess ? "" : [nc.mtg != null ? Math.round(nc.mtg).toLocaleString("it-IT") + " nm" : "", nc.spd ? String(nc.spd).replace(".", ",") + " kn" : ""].filter(Boolean).join(" · ");
+    const P = W && W.port && !W.old ? W : { port: nc.port, eta: nc.eta, guess: nc.guess };
+    const R = P.port + (P.guess ? "? · " + Math.round(nc.mtg) + " nm" : (P.eta ? " " + mpFD(P.eta) + " " + (String(P.eta).split("T")[1] || "").slice(0,5) : ""));
+    const pct = nc.guess ? 97 : (nc.mtg != null && nc.spd ? Math.max(4, Math.min(94, 100 - nc.mtg/ Math.max(nc.mtg, 3000) * 90)) : 10);
+    route = '<div class="mp-route"><div class="mp-track"><i class="mp-done" style="width:' + pct + '%"></i><i class="mp-ship" style="left:' + pct + '%"></i><i class="mp-port' + (prop ? " dash" : "") + '"></i></div>' +
+      '<div class="mp-rl"><span>' + esc(L) + '</span>' + (Mid ? '<span>' + esc(Mid) + '</span>' : "") + '<b>' + esc(R) + '</b></div></div>';
+  }
+  const propHTML = prop ? '<div class="mp-prop"><span>' + (prop.guess ? "Posizione compatibile con <b>" + esc(prop.port) + "</b>. Confermi lo scalo?" : "Dal noon: <b>" + esc(prop.port) + "</b>" + (prop.eta ? ", ETA " + mpFD(prop.eta) + " " + (String(prop.eta).split("T")[1] || "").slice(0,5) : "") + ". Manca l'ETD.") + '</span>' +
+    '<span class="mp-prop-a"><button class="mp-b pri" onclick="event.stopPropagation();window.mpApplyNoon(\'' + vid + '\')">' + (prop.guess ? "Conferma" : "Imposta scalo") + '</button><button class="mp-b" onclick="event.stopPropagation();window.openVoyageEditor(\'' + vid + '\')">' + (prop.guess ? "Altro porto" : "Correggi") + '</button><button class="mp-x" title="Ignora questa proposta" onclick="event.stopPropagation();window.mpDismissNoon(\'' + vid + '\')">✕</button></span></div>'
+    : (call && !call.etdS ? '<div class="mp-prop soft"><span>ETD di ' + esc(call.port) + ' non indicata: uso ETB + 1 g.</span><span class="mp-prop-a"><button class="mp-b" onclick="event.stopPropagation();window.openVoyageEditor(\'' + vid + '\')">Aggiungi ETD</button></span></div>' : "");
+  // materiale
+  const cnt = {}; MP_ORDER.forEach(k => cnt[k] = 0);
+  (v.items || []).forEach(it => { const p = mpOf(it, now); if(!p || p.stale || p.pos === "onboard" || (p.pos === "route" && p.derived)) return; cnt[p.pos]++; });
+  const dots = call && call.its.length ? call.its.slice().sort((a, b) => ({late:0,risk:1,ok:2})[a.k] - ({late:0,risk:1,ok:2})[b.k]).map(x => '<i class="mp-dot' + (x.crit ? " crit" : "") + '" style="background:' + ({ok:"#14794e",risk:"#c07800",late:"#c0261c"})[x.k] + '"></i>').join("") : "";
+  const posRow = MP_ORDER.filter(k => k !== "onboard" && cnt[k]).map(k => '<span class="mp-pc"><i style="background:' + MP_POS[k].c + '"></i><b>' + cnt[k] + '</b> ' + MP_POS[k].s + '</span>').join("");
+  const matHTML = '<div class="mp-mat"><div class="mp-eb">' + (call ? "MATERIALE PER " + esc(call.port) + (call.its.length ? " · " + call.its.length + " PO" : "") : "DOVE SI TROVA IL MATERIALE") + '</div>' +
+    (dots ? '<div class="mp-dots">' + dots + '</div><div class="mp-ms">' + [call.n.late ? call.n.late + " non arriva" + (call.n.late > 1 ? "no" : "") : "", call.n.risk ? call.n.risk + " a rischio" : "", call.n.ok ? call.n.ok + " in tempo" : ""].filter(Boolean).join(" · ") + '</div>' : "") +
+    (posRow ? '<div class="mp-pr">' + posRow + '</div>' : "") +
+    (lane.un ? '<button class="mp-link" data-proc-jump="po" data-proc-vid="' + vid + '">' + lane.un + ' PO senza scalo' + (call || prop ? " · assegna a " + esc((call && call.port) || prop.port) : "") + ' →</button>' : "") + '</div>';
+  // azioni (max 3)
+  const shown = tasks.slice(0, 3);
+  const tHTML = shown.length ? '<div class="vc2-tasks">' + shown.map(k => '<button class="vc2-task t-' + k.t + '" ' + k.attr + '><b>' + k.n + '</b><span>' + k.l + '</span><i>→</i></button>').join("") + (tasks.length > 3 ? '<div class="vc2-more">+ altre ' + (tasks.length - 3) + ' voci nella scheda nave</div>' : "") + '</div>' : "";
+  // bunker
+  let bunk = "";
+  if(nc && nc.n.bunkers){
+    const b = nc.n.bunkers, f = x => (+x).toLocaleString("it-IT", { maximumFractionDigits: 0 });
+    const cons = parseFloat(nc.n.consumption && nc.n.consumption.lsfo);
+    const parts = [];
+    if(b.lsfo) parts.push("LSFO " + f(b.lsfo) + " t" + (cons >= 8 ? " · ~" + Math.floor(b.lsfo / cons) + " gg" : ""));
+    if(b.lsmgo) parts.push("LSMGO " + f(b.lsmgo) + " t");
+    if(b.fw) parts.push("FW " + f(b.fw) + " t");
+    if(nc.n.__stale && nc.n.__stale.bunkers) parts.push('<em>bunker: dato precedente</em>');
+    bunk = parts.length ? '<div class="mp-bk">' + parts.map(p => '<span>' + p + '</span>').join("") + '</div>' : "";
+  }
+  const meta = [nc ? "NOON " + mpFD(nc.date) : "", W && W.src !== "noon" && W.voyAt ? "VIAGGIO " + mpFD(W.voyAt) : "", nc && nc.voy ? "VOY " + esc(nc.voy) : ""].filter(Boolean).join(" · ");
+  return '<div class="vessel-card vc2 mp-card" data-vid="' + vid + '" data-status="' + (vc === "red" ? "crit" : vc === "amber" ? "warn" : "ok") + '">' +
+    '<div class="mp-h"><span class="mp-n">' + esc(cfg.displayName) + '</span><span class="mp-m">' + meta + '</span></div>' +
+    '<div class="mp-v"><b class="' + vc + '">' + esc(vt) + '</b>' + (sub ? '<span class="' + subC + '">' + esc(sub) + '</span>' : "") + '</div>' +
+    route + propHTML + matHTML + tHTML + bunk + '</div>';
+}
+window.mpCardHTML = mpCardHTML;
 
 // === v0.96 BACKUP COMPLETO ==================================================
 // Scarica TUTTE le chiavi salvate da questa app nel browser (to-do, note, registri,
@@ -27117,7 +27452,7 @@ function importBackup(e) {
         var eff = {}; try { eff = getEffectiveDelivery(it, v.vesselId) || {}; } catch(e){}
         var planned = (typeof getDeliveryPlan === "function" && getDeliveryPlan(it.id)) || null;
         var base = { it: it, v: vn, vid: v.vesselId, sup: it.supplier && it.supplier !== "—" ? it.supplier : "", doc: it.poNumber || "", ready: ready, port: eff.port || "", date: eff.date || "" };
-        if (ready && ready < today) { base.days = Math.round((new Date(today) - new Date(ready)) / dayMs); rows.late.push(base); }
+        if (ready && ready < today && !(typeof window.mpIntentional === "function" && window.mpIntentional(it))) { base.days = Math.round((new Date(today) - new Date(ready)) / dayMs); rows.late.push(base); }
         if (!planned) rows.plan.push(base);
       });
       p.DN.items.forEach(function(it){
