@@ -5877,6 +5877,51 @@ a:hover { text-decoration: underline; }
 .idx-more{ margin-top:6px; border-top:1px solid rgba(10,27,46,.1); }
 .idx-more summary{ cursor:pointer; font-size:12px; font-weight:700; color:#44576b; padding:10px 0; }
 @media (max-width:640px){ .idx-flow{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+/* v0.95 — ordini in corsa (Overview) */
+.g4o-tabs{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px; }
+.g4o-tab{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; font:inherit; padding:9px 11px; border-radius:10px; border:1px solid rgba(10,27,46,.12); background:#fff; color:#0a1b2e; cursor:pointer; }
+.g4o-tab b{ font-size:22px; font-weight:800; line-height:1; font-family:var(--font-mono); }
+.g4o-tab span{ font-size:11.5px; color:#44576b; line-height:1.3; }
+.g4o-tab.c-red b{ color:#c0261c; } .g4o-tab.c-amber b{ color:#b06a00; } .g4o-tab.c-blue b{ color:#1553d8; }
+.g4o-tab.on.c-red{ background:#fde3e0; border-color:#c0261c; box-shadow:inset 0 -3px 0 #c0261c; }
+.g4o-tab.on.c-amber{ background:#fdf3e2; border-color:#c07800; box-shadow:inset 0 -3px 0 #c07800; }
+.g4o-tab.on.c-blue{ background:#eaf1ff; border-color:#1553d8; box-shadow:inset 0 -3px 0 #1553d8; }
+.g4o-tab:disabled{ opacity:.5; cursor:default; }
+.g4o-tab.on span{ color:#0a1b2e; }
+.g4q-main .g4o-sub{ display:block; font-size:11.5px; color:#0a1b2e; font-weight:600; margin-top:1px; }
+/* v0.95 — card nave "cosa c'è da fare" */
+.vc2{ display:flex; flex-direction:column; gap:10px; }
+.vc2 .vessel-name{ display:flex; align-items:center; gap:8px; }
+.vc2-dot{ width:10px; height:10px; border-radius:50%; flex:none; background:#14794e; }
+.vc2-dot.s-warn{ background:#c07800; } .vc2-dot.s-crit{ background:#c0261c; } .vc2-dot.s-drydock{ background:#6a7d90; }
+.vc2-voy{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; font-size:12.5px; color:#44576b; }
+.vc2-route b{ color:#0a1b2e; font-size:13.5px; }
+.vc2-route em{ font-style:normal; font-size:10.5px; color:#6a7d90; }
+.vc2-eta{ font-family:var(--font-mono); font-size:11.5px; color:#0a1b2e; }
+.vc2-eta.soon{ color:#1553d8; font-weight:700; } .vc2-eta.stale{ color:#8a4b00; }
+.vc2-st{ font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#6a7d90; }
+.vc2-tasks{ display:flex; flex-direction:column; border-top:1px solid rgba(10,27,46,.08); }
+.vc2-task{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; font:inherit; background:none; border:none; border-bottom:1px solid rgba(10,27,46,.06); padding:7px 2px; cursor:pointer; color:#0a1b2e; }
+.vc2-task:hover{ background:rgba(21,83,216,.05); }
+.vc2-task b{ min-width:30px; text-align:center; font-family:var(--font-mono); font-size:13px; font-weight:800; padding:2px 6px; border-radius:6px; }
+.vc2-task span{ flex:1; font-size:12.5px; }
+.vc2-task i{ font-style:normal; color:#6a7d90; }
+.vc2-task.t-red b{ background:#c0261c; color:#fff; }
+.vc2-task.t-amber b{ background:#fdeed0; color:#8a4b00; }
+.vc2-task.t-blue b{ background:#dce8ff; color:#0b3ea8; }
+.vc2-task.t-slate b{ background:#eef2f6; color:#44576b; }
+.vc2-more{ font-size:11px; color:#6a7d90; padding:5px 2px 0; }
+.vc2-clear{ font-size:12.5px; font-weight:700; color:#14794e; padding:8px 0; border-top:1px solid rgba(10,27,46,.08); }
+.vc2-pipe{ margin-top:auto; cursor:pointer; }
+.vc2-bar{ display:flex; gap:2px; height:6px; border-radius:999px; overflow:hidden; background:#eef2f6; }
+.vc2-bar span.p-REQ, .vc2-leg i.p-REQ{ background:#9fb0c4; }
+.vc2-bar span.p-RFQ, .vc2-leg i.p-RFQ{ background:#c07800; }
+.vc2-bar span.p-PO, .vc2-leg i.p-PO{ background:#1553d8; }
+.vc2-bar span.p-DN, .vc2-leg i.p-DN{ background:#14794e; }
+.vc2-leg{ display:flex; flex-wrap:wrap; gap:2px 10px; margin-top:5px; font-size:11px; color:#44576b; }
+.vc2-leg b{ color:#0a1b2e; }
+.vc2-leg span{ display:inline-flex; align-items:center; gap:4px; }
+.vc2-leg i{ width:7px; height:7px; border-radius:2px; display:inline-block; }
 /* v0.94 — coda solleciti (Overview) */
 .g4-shiptime{ margin-top:8px; font-size:12.5px; opacity:.95; }
 .g4-shiptime b{ font-size:15px; font-family:var(--font-mono); }
@@ -12480,114 +12525,73 @@ function renderOverview() {
     const certBadgesHTML = certBadges.length > 0 ?
       `<span class="vessel-cert-badges" data-vessel-certs="${cfg.vesselId}" title="Click per aprire i certificati di questa nave">${certBadges.join("")}</span>` : "";
 
-    // v0.23 — NUMERO-EROE: RFQ ferme con doppia soglia (8-14gg ambra, 15+ rosso)
-    const staleAll = getStaleRFQs(cfg.vesselId, 8);      // tutte ≥8gg
-    const stale15 = getStaleRFQs(cfg.vesselId, 15);       // critiche ≥15gg
-    const stale8 = staleAll.length - stale15.length;      // ambra 8-14gg
-    const heroTier = stale15.length > 0 ? "red" : staleAll.length > 0 ? "amber" : "calm";
-    const heroBreakdown = (stale15.length > 0 && stale8 > 0)
-      ? `${stale15.length} oltre 15g · ${stale8} oltre 8g`
-      : stale15.length > 0 ? `ferme da oltre 15 giorni`
-      : staleAll.length > 0 ? `ferme da oltre 8 giorni`
-      : `nessuna RFQ ferma`;
-    const heroHTML = `<div class="vessel-hero tier-${heroTier}" data-proc-jump="rfq" data-proc-vid="${cfg.vesselId}" title="RFQ ferme — click per aprire Procurement filtrato su RFQ">
-        <div class="vh-left">
-          <div class="vh-num">${staleAll.length}</div>
-        </div>
-        <div class="vh-body">
-          <div class="vh-label">${staleAll.length === 0 ? "RFQ sotto controllo" : "RFQ da sollecitare"}</div>
-          <div class="vh-sub">${heroBreakdown}</div>
-        </div>
-        <div class="vh-arrow">${staleAll.length > 0 ? '<svg class="icon icon-sm"><use href="#i-arrow-right"/></svg>' : '<svg class="icon icon-sm"><use href="#i-check"/></svg>'}</div>
-      </div>`;
+    // v0.95 — CARD NAVE "cosa c'è da fare": al posto di numero-eroe + 4 KPI + badge sparsi,
+    // una rotta leggibile, un elenco di frasi (solo ciò che non è zero, in ordine di urgenza,
+    // ognuna cliccabile) e una sola barra di avanzamento REQ→RFQ→PO→DN.
+    const vActs = (() => { try { return generateActionsForVessel(merged) || []; } catch(_) { return []; } })();
+    const nRfq = vActs.filter(a => /^(overdue|refused):/.test(a.key || "")).length;
+    const nPo = vActs.filter(a => /^(readyPO|batch):/.test(a.key || "")).length;
+    const pipe = computePipeline(v);
+    const todayS = new Date().toISOString().slice(0, 10);
+    const lateOrd = pipe.PO.items.filter(it => { const d = String(it.poDeliveryDate || "").slice(0, 10); return d && d < todayS; }).length;
+    const unplanned = getUnplannedPOs(cfg.vesselId).length;
+    const inTransit = pipe.DN.items.filter(it => it.dnStatus === "DN Shipped to Vessel").length;
+    const certBad = (cStats.expired || 0), certSoon = (cStats.urgent || 0);
+    const tasks = [];
+    if (certBad) tasks.push({ t: "red", n: certBad, l: certBad === 1 ? "certificato scaduto" : "certificati scaduti", attr: `data-vessel-certs="${cfg.vesselId}"` });
+    if (nRfq) tasks.push({ t: "amber", n: nRfq, l: nRfq === 1 ? "RFQ da sollecitare" : "RFQ da sollecitare", attr: `data-proc-jump="rfq" data-proc-vid="${cfg.vesselId}"` });
+    if (lateOrd) tasks.push({ t: "red", n: lateOrd, l: lateOrd === 1 ? "ordine oltre la data di pronto, senza DN" : "ordini oltre la data di pronto, senza DN", attr: `data-proc-jump="po" data-proc-vid="${cfg.vesselId}"` });
+    if (nPo) tasks.push({ t: "blue", n: nPo, l: nPo === 1 ? "offerta pronta per il PO" : "offerte pronte per il PO", attr: `data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"` });
+    if (unplanned) tasks.push({ t: "amber", n: unplanned, l: unplanned === 1 ? "PO senza consegna pianificata" : "PO senza consegna pianificata", attr: `data-proc-jump="po" data-proc-vid="${cfg.vesselId}"` });
+    if (inTransit) tasks.push({ t: "blue", n: inTransit, l: inTransit === 1 ? "consegna in viaggio verso la nave" : "consegne in viaggio verso la nave", attr: `data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"` });
+    if (certSoon) tasks.push({ t: "amber", n: certSoon, l: certSoon === 1 ? "certificato scade entro 30 gg" : "certificati scadono entro 30 gg", attr: `data-vessel-certs="${cfg.vesselId}"` });
+    if (vesselTodos.length) tasks.push({ t: "slate", n: vesselTodos.length, l: vesselTodos.length === 1 ? "to-do aperta" : "to-do aperte", attr: `data-vessel-todos="${cfg.vesselId}"` });
+    const order = { red: 0, amber: 1, blue: 2, slate: 3 };
+    tasks.sort((x, y) => order[x.t] - order[y.t]);
+    const shownT = tasks.slice(0, 4);
+    const tasksHTML = shownT.length
+      ? `<div class="vc2-tasks">${shownT.map(k => `<button class="vc2-task t-${k.t}" ${k.attr}><b>${k.n}</b><span>${k.l}</span><i>→</i></button>`).join("")}${tasks.length > 4 ? `<div class="vc2-more">+ altre ${tasks.length - 4} voci nella scheda nave</div>` : ""}</div>`
+      : `<div class="vc2-clear">✓ Nessuna azione aperta</div>`;
 
-    // Badge secondario: PO senza consegna pianificata (resta utile, non duplica l'eroe)
-    const unplanned = getUnplannedPOs(cfg.vesselId);
-    const unplannedHTML = unplanned.length > 0
-      ? `<button class="vessel-mini-flag" data-proc-jump="po" data-proc-vid="${cfg.vesselId}" title="${unplanned.length} PO senza consegna pianificata"><svg class="icon icon-sm"><use href="#i-truck"/></svg> ${unplanned.length} da pianificare</button>`
-      : "";
-
-    // v0.23 — Anticipazione viaggio: rotta + ETA/ETB/ETD dal voyage
-    const voyPrev = (() => {
+    const voyLine = (() => {
       const voy = (typeof getVoyage === "function") ? getVoyage(cfg.vesselId) : null;
       const cur = voy && voy.current ? voy.current : null;
-      if (!cur || (!cur.from && !cur.to && !cur.eta && !cur.etb)) return "";
-      const route = (cur.from || cur.to)
-        ? `<span class="vp-route"><span class="vp-port">${escapeHTML(cur.from || "—")}</span><span class="vp-arr">→</span><span class="vp-port vp-dest">${escapeHTML(cur.to || "—")}</span></span>`
-        : "";
-      const dchip = (lbl, val) => {
-        if (!val) return "";
-        const d = String(val).length <= 10 ? val : String(val).slice(0,10);
-        return `<span class="vp-chip"><span class="vp-chip-l">${lbl}</span>${escapeHTML(formatDate(d))}</span>`;
-      };
-      const chips = [dchip("ETA", cur.eta), dchip("ETB", cur.etb), dchip("ETD", cur.etd)].filter(Boolean).join("");
-      if (!route && !chips) return "";
-      return `<div class="vessel-voypreview">${route}${chips ? `<span class="vp-chips">${chips}</span>` : ""}</div>`;
+      const vs = getVoyageSummaryForCard(cfg.vesselId);
+      const stLbl = vs && vs.status ? (VOYAGE_STATUS_LABELS[vs.status] || "") : "";
+      if (!cur || !(cur.to || cur.eta)) {
+        const ais = (v.tracking && v.tracking.nextPort) ? `${escapeHTML(v.tracking.nextPort)}${v.tracking.eta ? " · ETA " + escapeHTML(formatDate(v.tracking.eta)) : ""} <em>da AIS</em>` : "Viaggio non impostato";
+        return `<div class="vc2-voy"><span class="vc2-route">${ais}</span></div>`;
+      }
+      const ref = cur.etb || cur.eta || "";
+      const hm = (String(ref).split("T")[1] || "").slice(0, 5);
+      const dd = getDaysToArrival(cfg.vesselId);
+      const rel = dd == null ? "" : dd === 0 ? "oggi" : dd === 1 ? "domani" : dd > 1 ? "tra " + dd + " g" : Math.abs(dd) + " g fa";
+      const stale = dd != null && dd < 0;
+      return `<div class="vc2-voy">
+          <span class="vc2-route">${cur.from ? escapeHTML(cur.from) + " → " : ""}<b>${escapeHTML(cur.to || "—")}</b></span>
+          ${ref ? `<span class="vc2-eta ${stale ? "stale" : dd != null && dd <= 2 ? "soon" : ""}">${cur.etb ? "ETB" : "ETA"} ${escapeHTML(formatDate(String(ref).slice(0, 10)))}${hm && hm !== "00:00" ? " " + hm : ""}${rel ? " · " + rel : ""}${stale ? " · da aggiornare" : ""}</span>` : ""}
+          ${stLbl ? `<span class="vc2-st">${escapeHTML(stLbl)}</span>` : ""}
+        </div>`;
     })();
 
-    cardsHTML += `<div class="vessel-card" data-vid="${cfg.vesselId}" data-status="${(() => {
-      // v0.15: drydock se voyage status è drydock, altrimenti vesselStatus
-      const voySumm = getVoyageSummaryForCard(cfg.vesselId);
-      if (voySumm && voySumm.status === "drydock") return "drydock";
-      return status === "crit" ? "crit" : status === "warn" ? "warn" : "ok";
-    })()}">
+    const pc = { REQ: pipe.REQ.items.length, RFQ: pipe.RFQ.items.length, PO: pipe.PO.items.length, DN: pipe.DN.items.length };
+    const pTot = pc.REQ + pc.RFQ + pc.PO + pc.DN;
+    const pipeHTML = pTot ? `<div class="vc2-pipe" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}" title="Richieste in corso per fase">
+        <div class="vc2-bar">${["REQ", "RFQ", "PO", "DN"].map(k => pc[k] ? `<span class="p-${k}" style="flex:${pc[k]}"></span>` : "").join("")}</div>
+        <div class="vc2-leg"><b>${pTot}</b> in corso · ${["REQ", "RFQ", "PO", "DN"].filter(k => pc[k]).map(k => `<span><i class="p-${k}"></i>${pc[k]} ${k}</span>`).join("")}</div>
+      </div>` : "";
+
+    const stKey = (() => { const vs = getVoyageSummaryForCard(cfg.vesselId); if (vs && vs.status === "drydock") return "drydock"; return status === "crit" ? "crit" : status === "warn" ? "warn" : "ok"; })();
+    cardsHTML += `<div class="vessel-card vc2" data-vid="${cfg.vesselId}" data-status="${stKey}">
       <div class="vessel-card-head">
-        <div class="vessel-status-icon">
-          ${(() => {
-            const voySumm = getVoyageSummaryForCard(cfg.vesselId);
-            if (voySumm && voySumm.status === "drydock") return '<svg class="icon icon-md"><use href="#i-wrench"/></svg>';
-            if (status === "crit") return '<svg class="icon icon-md"><use href="#i-alert"/></svg>';
-            if (voySumm && voySumm.status === "at_anchor") return '<svg class="icon icon-md"><use href="#i-anchor"/></svg>';
-            if (voySumm && voySumm.status === "at_sea") return '<svg class="icon icon-md"><use href="#i-waves"/></svg>';
-            return '<svg class="icon icon-md"><use href="#i-ship"/></svg>';
-          })()}
-        </div>
         <div class="vessel-name">
-          <span class="vessel-name-text">${cfg.displayName}</span>
+          <span class="vc2-dot s-${stKey}"></span><span class="vessel-name-text">${cfg.displayName}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-          ${todoBadge}
-          ${certBadgesHTML}
-          <span class="vessel-state-pill">${(() => {
-            const voySumm = getVoyageSummaryForCard(cfg.vesselId);
-            if (voySumm && voySumm.status === "drydock") return "Drydock";
-            return status === "crit" ? "Critica" : status === "warn" ? "Attenzione" : "OK";
-          })()}</span>
-        </div>
+        <span class="vessel-state-pill">${stKey === "drydock" ? "Drydock" : stKey === "crit" ? "Critica" : stKey === "warn" ? "Attenzione" : "OK"}</span>
       </div>
-      ${heroHTML}
-      <div class="kpi-strip">
-        <button class="kpis clickable" data-kpi-filter="rfqOpen" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.rfqOpen || 0}</span><span class="kpis-l">RFQ</span></button>
-        <button class="kpis clickable ${(v.readyForPO || 0) > 0 ? "accent" : ""}" data-kpi-filter="readyForPO" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.readyForPO || 0}</span><span class="kpis-l">Ready PO</span></button>
-        <button class="kpis clickable" data-kpi-filter="orders" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.orders || 0}</span><span class="kpis-l">Orders</span></button>
-        <button class="kpis clickable ${(v.dnPending || 0) > 0 ? "warnmute" : ""}" data-kpi-filter="dnPending" data-kpi-vid="${cfg.vesselId}"><span class="kpis-v">${v.dnPending || 0}</span><span class="kpis-l">DN pend.</span></button>
-      </div>
-      ${unplannedHTML}
-      ${voyPrev}
-      ${(() => {
-        // v0.12 — Se c'è un voyage manuale, lo mostro al posto del prossimo porto da AIS
-        const voySumm = getVoyageSummaryForCard(cfg.vesselId);
-        if (voySumm && voySumm.nextPort) {
-          const statusLabel = voySumm.status ? VOYAGE_STATUS_LABELS[voySumm.status] || "" : "";
-          // v0.15 — classe eta in base a stato: past (giorno passato), urgent (≤2gg), ok (normale)
-          let etaClass = "ok";
-          if (voySumm.daysLabel && voySumm.daysLabel.includes("fa")) etaClass = "past";
-          else if (voySumm.urgent) etaClass = "urgent";
-          const daysToArr = getDaysToArrival(cfg.vesselId);
-          const arrChip = (daysToArr != null && daysToArr >= 0 && daysToArr <= 5)
-            ? `<span class="arr-chip ${daysToArr<=2?"soon":""}" title="Arrivo previsto tra ${daysToArr} giorni">⚓ arrivo ${daysToArr===0?"oggi":daysToArr===1?"domani":"tra "+daysToArr+"g"}</span>`
-            : "";
-          return `<div class="vessel-foot vessel-foot-voyage">
-            <span class="route-info"><svg class="icon icon-sm"><use href="#i-mappin"/></svg>${statusLabel ? statusLabel + " · " : ""}prossimo: <strong>${escapeHTML(voySumm.nextPort)}</strong></span>
-            ${arrChip || `<span class="eta-badge ${etaClass}"><svg class="icon icon-sm"><use href="#i-clock"/></svg>${voySumm.daysLabel ? "ETA " + voySumm.daysLabel : "ETA —"}</span>`}
-          </div>`;
-        }
-        // Fallback: prossimo porto da AIS come prima
-        return `<div class="vessel-foot">
-          <span class="route-info"><svg class="icon icon-sm"><use href="#i-mappin"/></svg>Prossimo porto</span>
-          <span class="eta-badge">${eta}</span>
-        </div>`;
-      })()}
+      ${voyLine}
+      ${tasksHTML}
+      ${pipeHTML}
     </div>`;
   }
 
@@ -12600,8 +12604,11 @@ function renderOverview() {
     let rfqOverdue = 0, readyPO = 0, dnPending = 0, certExpired = 0;
     // v0.33bis — conteggi dalla STESSA fonte del drill (computePipeline) così numero === righe al click
     try {
-      rfqOverdue = fleetItemsByCat("rfq").length;
-      readyPO = fleetItemsByCat("po").length;
+      // v0.95 — RFQ e PO contati dalle STESSE azioni di Azioni flotta (prima: pipeline grezza,
+      // che non escludeva REQ chiuse, RFQ già quotate, rinvii e archiviate → numeri diversi)
+      const acts = generateAllActions();
+      rfqOverdue = acts.filter(a => /^(overdue|refused):/.test(a.key || "")).length;
+      readyPO = acts.filter(a => /^(readyPO|batch):/.test(a.key || "")).length;
       dnPending = fleetItemsByCat("dn").length;
     } catch(_) {}
     try { const cg = getCertStatsGlobal(); certExpired = cg ? (cg.expired || 0) : 0; } catch(_) {}
@@ -12627,13 +12634,13 @@ function renderOverview() {
           <div class="cn-sub">${crStats.certExpired>0?'richiedono rinnovo':'tutti validi'}</div>
           <div class="cn-go">Apri certificati →</div>
         </button>
-        <button class="cn-tile ${crStats.rfqOverdue>0?'tier-amber':'tier-calm'}" onclick="window.openFleetDrill('rfq')">
+        <button class="cn-tile ${crStats.rfqOverdue>0?'tier-amber':'tier-calm'}" onclick="window.goFleetActions('rfq')">
           <div class="cn-num">${crStats.rfqOverdue}</div>
           <div class="cn-lbl">RFQ da sollecitare</div>
           <div class="cn-sub">${crStats.rfqOverdue>0?'in attesa risposta':'nessun sollecito'}</div>
           <div class="cn-go">Azioni flotta →</div>
         </button>
-        <button class="cn-tile ${crStats.readyPO>0?'tier-blue':'tier-calm'}" onclick="window.openFleetDrill('po')">
+        <button class="cn-tile ${crStats.readyPO>0?'tier-blue':'tier-calm'}" onclick="window.goFleetActions('po')">
           <div class="cn-num">${crStats.readyPO}</div>
           <div class="cn-lbl">Pronte a PO</div>
           <div class="cn-sub">${crStats.readyPO>0?'offerte da chiudere':'niente in coda'}</div>
@@ -12763,6 +12770,9 @@ function renderOverview() {
       }
       // se il click è su un KPI cliccabile, non navigare
       if (e.target.closest(".kpi.clickable") || e.target.closest(".kpis.clickable")) return;
+      // v0.95 — voci della card nuova (vc2) con filtro Procurement
+      const vcK = e.target.closest(".vc2 [data-kpi-filter]");
+      if (vcK) { e.stopPropagation(); goVesselWithFilter(vcK.dataset.kpiVid, vcK.dataset.kpiFilter); return; }
       goVessel(card.dataset.vid);
     });
   });
@@ -16019,7 +16029,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
   const steps = [
     { k: "REQ", n: it.reqNumber, s: it.reqStatus, d: it.reqDate },
     { k: "RFQ", n: rfqs.length > 1 ? `${rfqClosed}/${rfqIssued} offerte` : rfqs[0], s: it.rfqStatus, d: it.rfqDate, multi: rfqs.length > 1 },
-    { k: "PO", n: it.poNumber, s: it.poStatus, d: it.poDate, x: it.poDeliveryDate ? "pronto " + fmtD(it.poDeliveryDate) : "" },
+    { k: it.poSplit ? `PO ${it.poSplit.i}/${it.poSplit.of}` : "PO", n: it.poNumber, s: it.poStatus, d: it.poDate, x: it.poDeliveryDate ? "pronto " + fmtD(it.poDeliveryDate) : "" },
     { k: "DN", n: it.dnNumber, s: it.dnStatus, d: it.dnDate, x: it.dnDeliveryDate ? "consegna " + fmtD(it.dnDeliveryDate) : "" }
   ];
   const flowHTML = `<div class="idx-flow">${steps.map((st, i) => {
@@ -16055,6 +16065,33 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       </table></div>
     </div>` : "";
 
+  // --- v0.95 Ordini del flusso: più PO sullo stesso REQ (fornitori diversi o annullati e rifatti) ---
+  const poList = Array.isArray(it.poDetails) ? it.poDetails : [];
+  const dnList = Array.isArray(it.dnDetails) ? it.dnDetails : [];
+  const normS = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const ordersHTML = poList.length > 1 ? `
+    <div class="detail-section">
+      <div class="idx-h"><h4>Ordini del flusso · ${poList.length} PO</h4>
+        ${it.poSplit ? `<span class="idx-sub">questa scheda: ordine ${it.poSplit.i} di ${it.poSplit.of}</span>` : ""}</div>
+      <div class="idx-tblwrap"><table class="idx-tbl">
+        <thead><tr><th>PO</th><th>Fornitore</th><th>Stato</th><th>Pronto</th><th>DN</th><th></th></tr></thead>
+        <tbody>${poList.map(p => {
+          const cancel = /cancel/i.test(p.status || "");
+          const mine = p.number === it.poNumber;
+          const dn = dnList.filter(d => (p.code && d.code === p.code) || normS(d.supplier) === normS(p.supplier)).pop();
+          const sib = !mine && !cancel ? ((vessel && vessel.items) || []).find(x => x.poNumber === p.number && x.id !== it.id) : null;
+          return `<tr class="${mine ? "is-ok" : ""}">
+            <td>${cp(p.number)}</td>
+            <td><div class="idx-sup">${escapeHTML(p.supplier || "—")}</div></td>
+            <td><span class="idx-st ${cancel ? "no" : /published|finalized|confirmed/i.test(p.status) ? "ok" : "unk"}">${escapeHTML(short(p.status) || "—")}</span></td>
+            <td>${escapeHTML(fmtD(p.deadline) || "—")}</td>
+            <td>${dn ? cp(dn.number) + `<div class="idx-sub">${escapeHTML(short(dn.status))}</div>` : '<span class="idx-sub">—</span>'}</td>
+            <td>${mine ? '<span class="idx-sub"><b>questa scheda</b></span>' : sib ? `<button class="btn btn-sm" onclick="window.openItemDetailPopover('${escapeAttr(sib.id)}')">Apri →</button>` : cancel ? '<span class="idx-sub">storico</span>' : ""}</td>
+          </tr>`; }).join("")}</tbody>
+      </table></div>
+      ${it.poSplit ? '<div class="idx-sub" style="margin-top:6px">Ogni ordine attivo ha la sua scheda: spedizione, tracking, lead time e consegna qui sotto valgono solo per <b>' + escapeHTML(it.poNumber || "") + '</b>.</div>' : ""}
+    </div>` : "";
+
   return `
     <div class="item-detail-popover idx-pop" role="dialog" aria-modal="true">
       <div class="item-detail-header">
@@ -16064,6 +16101,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
             ${vesselCfg ? `<span class="detail-vessel">⚓ ${escapeHTML(vesselCfg.displayName)}</span>` : ""}
             ${deptTag}
             ${it.reqNumber ? `<span class="idx-req">REQ ${cp(it.reqNumber)}</span>` : ""}
+            ${it.poSplit ? `<span class="idx-req">· ordine ${it.poSplit.i}/${it.poSplit.of} · ${escapeHTML(it.supplier || "")}</span>` : ""}
           </div>
         </div>
         <button class="item-detail-close" onclick="window.closeItemDetailPopover()" title="Chiudi (Esc)">✕</button>
@@ -16073,6 +16111,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
         ${nextHTML}
         ${flowHTML}
         ${offersHTML}
+        ${ordersHTML}
         ${shipmentSection(it, vessel)}
         ${deliveryPlannerHTML(it, vessel && vessel.vesselId)}
         <div class="idx-grid2">
@@ -26499,6 +26538,83 @@ function importBackup(e) {
     return el;
   }
 
+  /* --- v0.95 ORDINI IN CORSA: la fase DOPO il PO, che le tessere non coprono ------------
+     RFQ e offerte hanno già tessere e Azioni flotta; qui c'è ciò che mancava:
+     ordini oltre la data di pronto senza DN (fornitore da sentire), PO senza consegna
+     pianificata, consegne in viaggio verso la nave. Filtri a chip, riga → scheda articolo. */
+  var _ordTab = "late";
+  function ordersBoard(){
+    if (!state.data || !state.data.vessels || typeof computePipeline !== "function") return null;
+    var today = new Date().toISOString().slice(0, 10);
+    var dayMs = 86400000;
+    var rows = { late: [], plan: [], ship: [] };
+    state.data.vessels.forEach(function(v){
+      var cfg = (typeof VESSELS !== "undefined" ? VESSELS.find(function(c){ return c.vesselId === v.vesselId; }) : null) || {};
+      var vn = cfg.displayName || v.displayName || v.vesselName || v.vesselId;
+      var p; try { p = computePipeline(v); } catch(e){ return; }
+      p.PO.items.forEach(function(it){
+        var ready = String(it.poDeliveryDate || "").slice(0, 10) || (typeof itemReadyDate === "function" ? (itemReadyDate(it) || "") : "");
+        var eff = {}; try { eff = getEffectiveDelivery(it, v.vesselId) || {}; } catch(e){}
+        var planned = (typeof getDeliveryPlan === "function" && getDeliveryPlan(it.id)) || null;
+        var base = { it: it, v: vn, vid: v.vesselId, sup: it.supplier && it.supplier !== "—" ? it.supplier : "", doc: it.poNumber || "", ready: ready, port: eff.port || "", date: eff.date || "" };
+        if (ready && ready < today) { base.days = Math.round((new Date(today) - new Date(ready)) / dayMs); rows.late.push(base); }
+        if (!planned) rows.plan.push(base);
+      });
+      p.DN.items.forEach(function(it){
+        if (it.dnStatus !== "DN Shipped to Vessel" && it.dnStatus !== "DN Ready for Shipment") return;
+        var eff = {}; try { eff = getEffectiveDelivery(it, v.vesselId) || {}; } catch(e){}
+        rows.ship.push({ it: it, v: vn, vid: v.vesselId, sup: it.supplier && it.supplier !== "—" ? it.supplier : "", doc: it.dnNumber || it.poNumber || "",
+          st: it.dnStatus === "DN Shipped to Vessel" ? "in viaggio" : "pronta a partire", port: eff.port || "", date: eff.date || String(it.dnDeliveryDate || "").slice(0, 10) });
+      });
+    });
+    rows.late.sort(function(a, b){ return b.days - a.days; });
+    rows.plan.sort(function(a, b){ return String(a.ready || "9").localeCompare(String(b.ready || "9")); });
+    rows.ship.sort(function(a, b){ return String(a.date || "9").localeCompare(String(b.date || "9")); });
+    var tot = rows.late.length + rows.plan.length + rows.ship.length;
+    var el = document.createElement("div");
+    el.className = "g4-card";
+    if (!tot) { el.innerHTML = '<h3>Ordini in corsa</h3><div class="g4q-empty">Nessun ordine aperto da seguire.</div>'; return el; }
+    if (!rows[_ordTab].length) _ordTab = rows.late.length ? "late" : rows.plan.length ? "plan" : "ship";
+    var fd = function(s){ if (!s) return ""; var d = String(s).slice(0, 10).split("-"); return d[2] + "." + d[1]; };
+    var short = function(s){ return String(s || "").replace(/^\d{4}-/, ""); };
+    function paint(){
+      var list = rows[_ordTab].slice(0, 5);
+      var tabs = [
+        { k: "late", n: rows.late.length, l: "oltre la data di pronto, senza DN", c: "red" },
+        { k: "plan", n: rows.plan.length, l: "senza consegna pianificata", c: "amber" },
+        { k: "ship", n: rows.ship.length, l: "consegne verso la nave", c: "blue" }
+      ];
+      el.innerHTML =
+        '<h3>Ordini in corsa</h3>' +
+        '<div class="g4o-tabs">' + tabs.map(function(t){
+          return '<button class="g4o-tab c-' + t.c + (t.k === _ordTab ? " on" : "") + '" data-tab="' + t.k + '"' + (t.n ? "" : " disabled") + '><b>' + t.n + "</b><span>" + t.l + "</span></button>";
+        }).join("") + "</div>" +
+        '<div class="g4q-list">' + list.map(function(r, i){
+          var pill, sub;
+          if (_ordTab === "late") { pill = '<span class="g4q-lv l3">+' + r.days + " gg</span>"; sub = "pronto previsto " + fd(r.ready) + " · nessuna DN"; }
+          else if (_ordTab === "plan") { pill = '<span class="g4q-lv l2">da pianificare</span>'; sub = r.ready ? "pronto " + fd(r.ready) : "data di pronto non indicata"; }
+          else { pill = '<span class="g4q-lv l1">' + r.st + "</span>"; sub = (r.port ? r.port + " · " : "") + (r.date ? "consegna " + fd(r.date) : "consegna da definire"); }
+          return '<div class="g4q-row">' + pill +
+            '<div class="g4q-main"><b class="' + (r.sup ? "" : "unknown") + '">' + escapeHTML(r.sup || "Fornitore non indicato") + "</b>" +
+            "<span>" + escapeHTML(r.v) + " · " + escapeHTML(short(r.doc)) + " · " + escapeHTML(String(r.it.description || "").slice(0, 48)) + "</span>" +
+            '<span class="g4o-sub">' + escapeHTML(sub) + "</span></div>" +
+            '<button class="g4q-go soft" data-o="' + i + '">Scheda →</button></div>';
+        }).join("") + "</div>" +
+        '<div class="g4-foot">' + (rows[_ordTab].length > 5 ? "Altri " + (rows[_ordTab].length - 5) + " in questa lista" : "Ordinati per urgenza") +
+        '<span class="g4-link" data-vid="' + ((list[0] || {}).vid || "") + '">Procurement della nave →</span></div>';
+    }
+    paint();
+    el.addEventListener("click", function(e){
+      var t = e.target.closest("[data-tab]");
+      if (t && !t.disabled) { _ordTab = t.dataset.tab; paint(); return; }
+      var o = e.target.closest("[data-o]");
+      if (o) { var r = rows[_ordTab][+o.dataset.o]; if (r && typeof window.openItemDetailPopover === "function") window.openItemDetailPopover(r.it.id); return; }
+      var l = e.target.closest(".g4-link[data-vid]");
+      if (l && l.dataset.vid) { state.view = "vessel"; state.selectedVesselId = l.dataset.vid; state.detailTab = "procurement"; state.pipelineFilter = null; state._procFocus = "po"; render(); }
+    });
+    return el;
+  }
+
   /* --- prossimo scalo: prima nave realmente in arrivo -------------------- */
   // v0.90 — letto dai DATI di viaggio, non più dal testo della card.
   // Prima si affidava a "arrivo tra N g" scritto nella card e scartava tutto
@@ -26625,7 +26741,7 @@ function importBackup(e) {
 
     host.insertBefore(hello(), host.firstChild);
 
-    var chart = chaseQueue(), next = nextCall();   // v0.94 — coda solleciti al posto dell'anzianità
+    var chart = ordersBoard(), next = nextCall();   // v0.95 — ordini in corsa (i solleciti restano in Azioni flotta)
     if (chart || next) {
       var row = document.createElement("div");
       row.className = "g4-row";
