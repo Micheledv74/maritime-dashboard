@@ -5877,6 +5877,141 @@ a:hover { text-decoration: underline; }
 .idx-more{ margin-top:6px; border-top:1px solid rgba(10,27,46,.1); }
 .idx-more summary{ cursor:pointer; font-size:12px; font-weight:700; color:#44576b; padding:10px 0; }
 @media (max-width:640px){ .idx-flow{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+/* ==== v0.96 — RADAR SCALI ==== */
+.rd-root{ display:flex; flex-direction:column; gap:14px; margin-bottom:24px; }
+.rd-card{ background:#fff; border:1px solid rgba(10,27,46,.10); border-radius:18px; padding:16px 18px; color:#0a1b2e; }
+.rd-eyebrow{ font-size:10.5px; font-weight:800; letter-spacing:.14em; color:#44576b; }
+.rd-ch{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 14px; margin-bottom:8px; }
+.rd-ch b{ font-size:16px; font-weight:800; }
+.rd-ch span{ font-size:12px; color:#44576b; }
+.rd-sub{ font-size:12px; color:#44576b; line-height:1.45; }
+.rd-mono{ font-family:var(--font-mono); font-size:11.5px; color:#0a1b2e; }
+.rd-ok{ font-size:13.5px; font-weight:700; color:#14794e; padding:10px 0; }
+.rd-top{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; }
+.rd-sw{ display:inline-flex; background:#eef2f6; border-radius:999px; padding:3px; gap:2px; }
+.rd-sw button{ border:none; background:none; font:inherit; font-size:12px; font-weight:700; color:#44576b; padding:5px 11px; border-radius:999px; cursor:pointer; white-space:nowrap; }
+.rd-sw button.on{ background:#1553d8; color:#fff; }
+.rd-legs{ display:flex; flex-wrap:wrap; gap:12px; font-size:11.5px; color:#44576b; }
+.rd-legs span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.rd-legs i{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+.rd-legs i.crit{ border-radius:1px; background:#0a1b2e; transform:rotate(45deg); width:8px; height:8px; }
+.rd-topa{ margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; }
+.rd-hero-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:14px; }
+.rd-hero{ border-radius:18px; padding:18px 20px; color:#fff; background:linear-gradient(140deg,#1553d8 0%,#2b7cff 48%,#00c2ff 100%); box-shadow:0 14px 30px -10px rgba(21,83,216,.7); display:flex; flex-direction:column; gap:12px; }
+.rd-hero .rd-eyebrow{ color:#fff; opacity:.9; }
+.rd-hl{ font-size:23px; line-height:1.22; font-weight:800; letter-spacing:-.01em; text-wrap:pretty; }
+.rd-sl{ font-size:13.5px; line-height:1.5; text-wrap:pretty; }
+.rd-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(105px,1fr)); gap:8px; margin-top:auto; }
+.rd-stats > div{ background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3); border-radius:12px; padding:8px 11px; }
+.rd-stats b{ display:block; font-family:var(--font-mono); font-size:22px; }
+.rd-stats span{ font-size:11.5px; }
+.rd-stats .w{ background:#fff; color:#0a1b2e; } .rd-stats .w b{ color:#c0261c; } .rd-stats .w span{ color:#44576b; }
+.rd-move{ display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-top:1px solid rgba(10,27,46,.08); }
+.rd-move > em{ flex:none; width:26px; height:26px; border-radius:8px; background:#0a1b2e; color:#fff; font-style:normal; font-family:var(--font-mono); font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; }
+.rd-move > div{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.rd-move small{ font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; }
+.rd-move b{ font-size:14px; } .rd-move span{ font-size:12.5px; color:#44576b; line-height:1.45; text-wrap:pretty; }
+.rd-move .btn{ flex:none; align-self:center; white-space:nowrap; }
+.rd-scroll{ overflow-x:auto; }
+.rd-radar{ min-width:720px; }
+.rd-lane{ display:grid; grid-template-columns:180px minmax(0,1fr); border-bottom:1px solid rgba(10,27,46,.07); }
+.rd-axis{ border-bottom:1px solid rgba(10,27,46,.14); }
+.rd-axis .rd-lt{ height:22px; }
+.rd-tick{ position:absolute; top:3px; transform:translateX(-50%); font-family:var(--font-mono); font-size:10.5px; color:#6a7d90; white-space:nowrap; }
+.rd-tick.now{ color:#1553d8; font-weight:700; transform:none; } .rd-tick.m{ font-weight:700; }
+.rd-lh{ padding:10px 10px 10px 0; display:flex; flex-direction:column; gap:3px; justify-content:center; min-width:0; }
+.rd-ln{ font-size:13px; font-weight:800; display:flex; align-items:center; gap:7px; }
+.rd-ln i{ width:9px; height:9px; border-radius:50%; flex:none; }
+.rd-ls{ font-size:11px; color:#44576b; }
+.rd-un{ align-self:flex-start; font-size:10.5px; font-weight:700; color:#0b3ea8; background:#dce8ff; border-radius:999px; padding:2px 8px; white-space:nowrap; cursor:pointer; }
+.rd-lt{ position:relative; height:88px; }
+.rd-grid{ position:absolute; top:0; bottom:0; width:1px; background:rgba(10,27,46,.035); } .rd-grid.wk{ background:rgba(10,27,46,.10); }
+.rd-nowline{ position:absolute; top:0; bottom:0; width:2px; background:#1553d8; }
+.rd-call{ position:absolute; top:8px; min-width:104px; height:70px; box-sizing:border-box; text-align:left; font:inherit; cursor:pointer; border-radius:10px; padding:6px 8px; border:1.5px solid; display:flex; flex-direction:column; gap:2px; overflow:hidden; z-index:1; }
+.rd-call.on{ box-shadow:0 0 0 3px #1553d8, 0 6px 16px rgba(21,83,216,.25); }
+.rd-call b{ font-size:12.5px; line-height:1.2; color:#0a1b2e; white-space:nowrap; }
+.rd-call > span{ font-family:var(--font-mono); font-size:10px; color:#44576b; white-space:nowrap; }
+.rd-call em{ font-style:normal; } .rd-call strong{ font-size:10.5px; }
+.rd-dots{ display:flex; flex-wrap:wrap; gap:4px; padding:2px 1px; font-family:var(--font-sans); }
+.rd-dots small{ font-size:10px; color:#6a7d90; }
+.rd-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; } .rd-dot.crit{ border-radius:1px; transform:rotate(45deg); }
+.rd-empty{ position:absolute; left:6px; right:6px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:10px; padding:8px 12px; border:1.5px dashed rgba(10,27,46,.2); border-radius:10px; font-size:12px; color:#44576b; white-space:nowrap; overflow:hidden; background:rgba(255,255,255,.7); }
+.rd-empty span{ overflow:hidden; text-overflow:ellipsis; } .rd-empty b{ color:#1553d8; margin-left:auto; cursor:pointer; }
+.rd-selh{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:14px 22px; align-items:start; }
+.rd-selm{ display:flex; flex-direction:column; gap:6px; }
+.rd-selp{ font-size:24px; font-weight:800; letter-spacing:-.01em; } .rd-selp span{ font-size:15px; font-weight:600; color:#44576b; }
+.rd-cutrow{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.rd-cutp{ font-size:11.5px; font-weight:800; color:#fff; background:#c0261c; border-radius:999px; padding:3px 10px; white-space:nowrap; }
+.rd-mix{ display:flex; height:8px; border-radius:999px; overflow:hidden; gap:2px; background:#eef2f6; margin-top:6px; }
+.rd-sum{ font-size:12.5px; }
+.rd-prof{ border:1px solid rgba(10,27,46,.12); border-radius:14px; padding:12px 14px; background:#f7f9fb; display:flex; flex-direction:column; gap:8px; }
+.rd-prof-h{ display:flex; align-items:center; gap:8px; } .rd-prof-h b{ font-size:13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rd-src{ margin-left:auto; flex:none; font-size:10px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#44576b; background:#eef2f6; border-radius:999px; padding:2px 8px; white-space:nowrap; }
+.rd-src.set{ color:#0f5c3a; background:#dff1e6; }
+.rd-prof-g{ display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:8px; }
+.rd-prof-g em, .rd-prof em{ display:block; font-style:normal; font-size:9.5px; font-weight:800; letter-spacing:.07em; color:#6a7d90; text-transform:uppercase; }
+.rd-prof .rd-sub em{ display:inline; }
+.rd-prof-g b{ font-family:var(--font-mono); font-size:13px; }
+.rd-note{ font-size:12px; line-height:1.45; }
+.rd-tblw{ overflow-x:auto; margin-top:14px; }
+.rd-tbl{ min-width:700px; }
+.rd-rg{ display:grid; grid-template-columns:minmax(200px,1.1fr) minmax(280px,2.4fr) 150px; gap:12px; align-items:center; padding:10px 6px; cursor:pointer; }
+.rd-head{ cursor:default; align-items:end; padding-bottom:6px; border-bottom:1px solid rgba(10,27,46,.14); font-size:9.5px; font-weight:800; letter-spacing:.08em; color:#6a7d90; text-transform:uppercase; }
+.rd-head .rd-gantt{ height:30px; }
+.rd-bandl{ position:absolute; top:1px; font-size:9.5px; font-weight:800; letter-spacing:.06em; color:#14794e; padding-left:4px; white-space:nowrap; }
+.rd-gt{ position:absolute; bottom:1px; transform:translateX(-50%); font-family:var(--font-mono); font-size:10px; font-weight:500; color:#6a7d90; letter-spacing:0; text-transform:none; white-space:nowrap; }
+.rd-gt.now{ color:#1553d8; font-weight:700; transform:none; }
+.rd-row{ border-bottom:1px solid rgba(10,27,46,.07); }
+.rd-row.late{ background:rgba(192,38,28,.035); } .rd-row.open{ background:#fafcff; }
+.rd-po{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+.rd-tags{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 5px; }
+.rd-pon{ font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:#44576b; white-space:nowrap; }
+.rd-crit{ font-size:9.5px; font-weight:800; letter-spacing:.06em; color:#fff; background:#0a1b2e; border-radius:4px; padding:1px 6px; white-space:nowrap; line-height:1.5; }
+.rd-eu{ font-size:9.5px; font-weight:800; color:#0b3ea8; background:#dce8ff; border-radius:4px; padding:1px 6px; line-height:1.5; }
+.rd-po b{ font-size:13px; line-height:1.3; } .rd-po > span{ font-size:11.5px; color:#44576b; }
+.rd-gantt{ position:relative; height:30px; }
+.rd-band{ position:absolute; top:-10px; bottom:-10px; background:rgba(20,121,78,.08); }
+.rd-head .rd-band{ top:0; bottom:0; border-radius:4px; }
+.rd-cut{ position:absolute; top:-10px; bottom:-10px; border-left:2px dashed #c0261c; }
+.rd-track{ position:absolute; left:0; right:0; top:14px; height:2px; background:#eef2f6; }
+.rd-seg{ position:absolute; top:8px; height:14px; border-radius:4px 0 0 4px; } .rd-seg.h{ border-radius:0 4px 4px 0; }
+.rd-gnote{ position:absolute; top:7px; left:0; padding-left:6px; font-size:11px; font-weight:700; white-space:nowrap; background:rgba(255,255,255,.85); }
+.rd-gnote.bad{ color:#96150c; } .rd-gnote.ok{ color:#14794e; }
+.rd-v b{ display:block; font-size:12.5px; font-weight:800; line-height:1.3; } .rd-v span{ font-size:11px; color:#44576b; }
+.rd-alt{ margin:0 6px 12px; border:1px solid rgba(21,83,216,.25); border-radius:12px; background:#f5f8ff; padding:12px 14px; display:flex; flex-direction:column; gap:8px; cursor:default; }
+.rd-alt-h{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; } .rd-alt-h b{ font-size:13px; } .rd-alt-h > span{ font-size:11.5px; color:#44576b; }
+.rd-alt-a{ margin-left:auto; display:flex; flex-wrap:wrap; gap:6px; } .rd-alt-a .btn{ white-space:nowrap; }
+.rd-chain{ font-size:11.5px; color:#44576b; line-height:1.45; } .rd-chain b{ color:#0a1b2e; }
+.rd-alt-r{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.6); border:1px solid rgba(10,27,46,.08); }
+.rd-alt-r.cur{ background:#fff; border-color:rgba(10,27,46,.25); }
+.rd-alt-p{ flex:1 1 180px; min-width:0; } .rd-alt-p b{ display:block; font-size:13px; } .rd-alt-p em, .rd-alt-r em{ font-style:normal; font-family:var(--font-mono); font-size:10.5px; color:#44576b; display:block; }
+.rd-pill{ font-size:11px; font-weight:800; border:1px solid; border-radius:999px; padding:2px 9px; white-space:nowrap; }
+.rd-rel{ font-size:12px; letter-spacing:1px; white-space:nowrap; }
+.rd-alt-n{ flex:1 1 200px; min-width:0; font-size:11.5px; line-height:1.4; }
+.rd-alt-b{ flex:0 0 auto; margin-left:auto; } .rd-alt-b span{ font-size:11px; font-weight:700; color:#44576b; }
+.rd-legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:#44576b; padding:10px 6px 0; }
+.rd-legend span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.rd-legend i{ width:14px; height:8px; border-radius:2px; display:inline-block; }
+.rd-legend i.cut{ width:0; height:12px; border-left:2px dashed #c0261c; border-radius:0; }
+.rd-bottom{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:14px; align-items:start; }
+.rd-sup{ display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid rgba(10,27,46,.08); }
+.rd-sup > div{ flex:1; min-width:0; } .rd-sup b{ display:block; font-size:13.5px; } .rd-sup span{ font-size:12px; color:#44576b; line-height:1.4; }
+.rd-sup em{ flex:none; font-style:normal; font-size:10.5px; font-weight:800; color:#fff; border-radius:999px; padding:3px 9px; white-space:nowrap; }
+.rd-txt{ font-size:12.5px; line-height:1.5; text-wrap:pretty; margin-bottom:6px; } .rd-txt.muted{ color:#44576b; }
+.rd-dq{ background:#0a1b2e; border-color:#0a1b2e; color:#c9d8e6; display:flex; flex-direction:column; gap:4px; }
+.rd-dq .rd-eyebrow{ color:#9cc2ff; } .rd-dq b{ color:#fff; font-size:14.5px; margin-top:6px; } .rd-dq span{ font-size:12.5px; line-height:1.45; }
+.rd-dq a{ color:#9cc2ff; font-weight:700; font-size:12.5px; cursor:pointer; margin-top:6px; }
+.rd-modal-bd{ position:fixed; inset:0; background:rgba(8,20,34,.5); z-index:9000; display:flex; align-items:center; justify-content:center; padding:16px; }
+.rd-modal{ background:#fff; color:#0a1b2e; border-radius:16px; width:min(560px,100%); max-height:90vh; overflow:auto; box-shadow:0 24px 60px rgba(0,0,0,.35); }
+.rd-modal-h{ display:flex; align-items:flex-start; justify-content:space-between; padding:16px 18px 6px; } .rd-modal-h h3{ margin:2px 0 0; font-size:20px; }
+.rd-x{ border:none; background:none; font-size:18px; cursor:pointer; color:#44576b; }
+.rd-form{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; padding:8px 18px; }
+.rd-form label{ display:flex; flex-direction:column; gap:4px; font-size:11px; font-weight:700; color:#44576b; letter-spacing:.03em; }
+.rd-form input, .rd-form select, .rd-form textarea{ font:inherit; font-size:13px; font-weight:500; color:#0a1b2e; padding:7px 9px; border:1px solid rgba(10,27,46,.2); border-radius:8px; background:#fff; letter-spacing:0; }
+.rd-form .rd-wide{ grid-column:1/-1; }
+.rd-form .rd-check{ grid-column:1/-1; flex-direction:row; align-items:center; gap:8px; font-size:12.5px; color:#0a1b2e; }
+.rd-modal-f{ display:flex; align-items:center; gap:12px; padding:12px 18px 16px; border-top:1px solid rgba(10,27,46,.08); } .rd-modal-f .rd-sub{ flex:1; }
+[data-theme="dark"] .rd-card, [data-theme="dark"] .rd-modal{ background:#fff; color:#0a1b2e; }
 /* v0.95 — ordini in corsa (Overview) */
 .g4o-tabs{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px; }
 .g4o-tab{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; font:inherit; padding:9px 11px; border-radius:10px; border:1px solid rgba(10,27,46,.12); background:#fff; color:#0a1b2e; cursor:pointer; }
@@ -8719,6 +8854,20 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       <div class="setting-row">
         <label>Esporta backup impostazioni</label>
         <button class="btn btn-sm" id="export-backup">Scarica JSON</button>
+      </div>
+      <div class="setting-row">
+        <label>Backup COMPLETO (tutti i dati: to-do, note, solleciti, spedizioni, consegne, profili porto…)</label>
+        <span style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-sm" onclick="window.mpdExportAll()">Scarica</button>
+          <label class="btn btn-sm" style="cursor:pointer;">Ripristina<input type="file" accept=".json" style="display:none" onchange="window.mpdImportAll(this.files[0]); this.value='';"></label>
+        </span>
+      </div>
+      <div class="setting-row">
+        <label>Overview</label>
+        <span style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="window.setOverviewMode('radar')">Radar scali</button>
+          <button class="btn btn-sm" onclick="window.setOverviewMode('classic')">Classica</button>
+        </span>
       </div>
       <div class="setting-row">
         <label>Importa backup</label>
@@ -12656,11 +12805,13 @@ function renderOverview() {
     </section>
   `;
 
+  const _ovRadar = overviewMode() === "radar";
+  if (_ovRadar) setTimeout(() => { try { radarPaint(); } catch(e) { console.error("[radar]", e); } }, 0);
   root.innerHTML = `
     ${lastVisitHTML}
     ${whatsNewHTML}
 
-    ${crStripHTML}
+    ${_ovRadar ? '<section id="radar-root" class="rd-root"></section>' : crStripHTML.replace('<span class="section-meta">', '<span class="section-meta"><button class="btn btn-sm" style="margin-right:8px" onclick="window.setOverviewMode(\'radar\')">Radar scali →</button>')}
 
     <section>
       <div class="section-title">
@@ -24227,6 +24378,8 @@ function buildStatePayload() {
     shipments: (typeof loadShipments === "function" ? loadShipments() : {}),
     rfqChases: (typeof loadRfqChases === "function" ? loadRfqChases() : {}),
     rfqVendors: (typeof loadRfqVendors === "function" ? loadRfqVendors() : {}),
+    portProfiles: (typeof loadPortProfiles === "function" ? loadPortProfiles() : {}),
+    critFlags: (typeof loadCritFlags === "function" ? loadCritFlags() : {}),
     todoTombs: (typeof loadTodoTombs === "function" ? loadTodoTombs() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
@@ -24704,7 +24857,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -24739,6 +24892,8 @@ function collSnapshot(){
     shipments: f(typeof loadShipments==="function"?loadShipments():{}),
     rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{}),
     rfqVendors: f(typeof loadRfqVendors==="function"?loadRfqVendors():{}),
+    portProfiles: f(typeof loadPortProfiles==="function"?loadPortProfiles():{}),
+    critFlags: f(typeof loadCritFlags==="function"?loadCritFlags():{}),
     todoTombs: f(typeof loadTodoTombs==="function"?loadTodoTombs():{})
   };
 }
@@ -24882,6 +25037,18 @@ function mpdMergeRemote(remote, force){
         changed = true;
       }
     }
+    // v0.96 — profili porto e flag critico: unione per voce, vince updatedAt più recente
+    ["portProfiles", "critFlags"].forEach(cn => {
+      const rv = remote[cn]; if (!rv || typeof rv !== "object") return;
+      const lk = cn === "portProfiles" ? "mpd.portProfiles" : "mpd.critFlags";
+      let local = {}; try { local = JSON.parse(localStorage.getItem(lk) || "{}") || {}; } catch {}
+      let touched = false;
+      for (const k of Object.keys(rv)) {
+        const r = rv[k], l = local[k]; if (!r || typeof r !== "object") continue;
+        if (!l || force || String(r.updatedAt || "") > String(l.updatedAt || "")) { if (JSON.stringify(l) !== JSON.stringify(r)) { local[k] = r; touched = true; } }
+      }
+      if (touched) { try { localStorage.setItem(lk, JSON.stringify(local)); } catch {} lMeta[cn] = rMeta[cn] || new Date().toISOString(); changed = true; }
+    });
     // v0.92 — fornitore per RFQ: unione per numero, vince la voce aggiornata più di recente
     if (remote.rfqVendors && typeof remote.rfqVendors==="object" && typeof loadRfqVendors==="function") {
       const local = loadRfqVendors(); let touched=false;
@@ -26224,6 +26391,399 @@ function saveTodoFromModal() {
 // submitQuickCapture rimosso: sostituito dalla modale to-do nativa
 
 // ============================================================================
+// ============================================================================
+// === v0.96 RADAR SCALI ======================================================
+// Overview per scalo: ogni PO è un pallino che deve essere a bordo prima del
+// LIMITE DI CONSEGNA (ETD − preavviso agente). Arrivo stimato come catena
+// pronto → trasporto → dogana → sottobordo, ogni tappa con [min,max].
+// Dati NUOVI solo in chiavi nuove: mpd.portProfiles, mpd.critFlags,
+// mpd.overviewMode, mpd.radarPrefs. Nessuna chiave esistente viene riscritta,
+// tranne mpd.deliveries quando l'utente preme "Sposta" (stesso effetto di
+// "Pianifica consegna" nella scheda). Vista classica sempre disponibile.
+// ============================================================================
+const RD_EU_PORTS = /genova|genoa|livorno|la spezia|spezia|napoli|naples|salerno|venezia|trieste|ravenna|civitavecchia|cagliari|palermo|catania|augusta|taranto|ancona|bari|marsiglia|marseille|\bfos\b|le havre|rotterdam|antwerp|anversa|amburgo|hamburg|bremerhaven|algeciras|valencia|barcellona|barcelona|pireo|piraeus|malta|marsaxlokk|koper|rijeka|gdansk|danzica|lisbona|lisbon|sines|dunkirk|dunkerque|gothenburg|goteborg|göteborg|aarhus|copenhagen|lulea|luleå|oxelösund|oxelosund|zeebrugge|amsterdam|gijon|bilbao|thessaloniki|constanta/i;
+const RD_EU_ORIGIN = /\b(it|ita|italy|italia|de|germany|germania|fr|france|francia|es|spain|spagna|nl|netherlands|olanda|be|belgium|belgio|dk|denmark|danimarca|se|sweden|svezia|fi|finland|finlandia|pl|poland|polonia|pt|portugal|portogallo|gr|greece|grecia|at|austria|ie|ireland|mt|malta|hr|croatia|croazia|si|slovenia|cz|ro|romania|bg|hu|sk|lt|lv|ee|lu|cy|eu|ue)\b/i;
+const RD_EU_FORM = /\b(s\.?r\.?l|s\.?p\.?a|s\.?n\.?c|s\.?a\.?s|gmbh|b\.?v|sarl|s\.?a\.?r\.?l|a\/s|aps|oy|ab|s\.?l\.?u?)\b\.?/i;
+function rdKey(p){ return String(p||"").trim().toUpperCase().replace(/\s+/g," "); }
+function rdLoadJSON(k){ try{ const o=JSON.parse(localStorage.getItem(k)||"{}"); return (o&&typeof o==="object")?o:{}; }catch(e){ return {}; } }
+function rdSaveJSON(k,o){ try{ localStorage.setItem(k, JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); if(typeof ghSetDirty==="function") ghSetDirty(); }catch(e){} }
+function loadPortProfiles(){ return rdLoadJSON("mpd.portProfiles"); }
+function loadCritFlags(){ return rdLoadJSON("mpd.critFlags"); }
+function rdProfile(port){
+  const eu = RD_EU_PORTS.test(port||"");
+  const p = loadPortProfiles()[rdKey(port)];
+  const base = { customs: eu ? [0.5,1] : [1,3], notice: 24, rel: 0, agent: "", note: "", eu, set: false };
+  if(!p) return base;
+  return Object.assign(base, p, { set: true, customs: Array.isArray(p.customs) ? p.customs : base.customs, eu: p.eu != null ? !!p.eu : eu });
+}
+function rdCrit(id){ const f = loadCritFlags()[id]; return !!(f && f.v); }
+function rdSetCrit(id, v){ const all = loadCritFlags(); all[id] = { v: !!v, updatedAt: new Date().toISOString() }; rdSaveJSON("mpd.critFlags", all); }
+function rdPrefs(){ const p = rdLoadJSON("mpd.radarPrefs"); return { H: [14,21,30].includes(+p.H) ? +p.H : 21, basis: p.basis === "media" ? "media" : "pessimistica" }; }
+function rdSetPref(k, v){ const p = rdLoadJSON("mpd.radarPrefs"); p[k] = v; try{ localStorage.setItem("mpd.radarPrefs", JSON.stringify(p)); }catch(e){} }
+function overviewMode(){ try{ return localStorage.getItem("mpd.overviewMode") === "classic" ? "classic" : "radar"; }catch(e){ return "radar"; } }
+window.setOverviewMode = function(m){ try{ localStorage.setItem("mpd.overviewMode", m === "classic" ? "classic" : "radar"); }catch(e){} render(); };
+function rdCancelled(it){ return /cancel/i.test(it.poStatus||"") || /cancel/i.test(it.reqStatus||""); }
+function rdStaleDN(it, now){
+  if(!/Shipped to Vessel|Ready for Shipment/.test(it.dnStatus||"")) return false;
+  const d = new Date(String(it.dnDate||"").slice(0,10)+"T12:00:00").getTime();
+  return !isNaN(d) && (now - d) > 30*864e5 && !getItemShipments(it.id).some(s => s.status !== "delivered");
+}
+function rdDD(s, now){ if(!s) return null; const t = new Date(String(s).length <= 10 ? s + "T12:00:00" : s).getTime(); return isNaN(t) ? null : (t - now) / 864e5; }
+function rdFD(off, now){ const d = new Date(now + off*864e5); return String(d.getDate()).padStart(2,"0") + "." + String(d.getMonth()+1).padStart(2,"0"); }
+function rdFDT(off, now){ const d = new Date(now + off*864e5); return rdFD(off, now) + " " + String(d.getHours()).padStart(2,"0") + ":" + String(Math.floor(d.getMinutes()/15)*15).padStart(2,"0"); }
+function rdF1(x){ return Math.abs(x).toFixed(1).replace(".", ","); }
+
+function rdCalc(it, c, now, basis){
+  const pr = rdProfile(c.port);
+  const euItem = RD_EU_ORIGIN.test(it.origin||"") || RD_EU_FORM.test(it.supplier||"");
+  const noCust = pr.eu && euItem;
+  const cust = noCust ? [0, 0.25] : pr.customs;
+  const tm = String(it.transportMode||"").toLowerCase();
+  const TR = /air|aere/.test(tm) ? [2,3] : /road|strad|truck|camion/.test(tm) ? [1,2] : /sea|mare|vessel|nave/.test(tm) ? [7,14] : [3,5];
+  const trLbl = (/air|aere/.test(tm) ? "aereo" : /road|strad|truck|camion/.test(tm) ? "strada" : /sea|mare/.test(tm) ? "mare" : "corriere") + " " + TR[0] + "–" + TR[1] + " gg";
+  const custLbl = noCust ? "nessuna dogana (UE)" : "dogana " + rdF1(cust[0]) + "–" + rdF1(cust[1]) + " gg";
+  const segs = [], chain = []; let lo = 0, hi = 0, unknown = false, st = "";
+  const push = (k, a, b, label) => { segs.push({ k, a: lo, lo: lo + a, hi: hi + b }); lo += a; hi += b; chain.push(label); };
+  const ships = getItemShipments(it.id);
+  const moving = ships.filter(s => s.status !== "delivered" && s.eta).sort((a, b) => String(b.eta).localeCompare(String(a.eta)))[0];
+  const delivered = ships.length && ships.every(s => s.status === "delivered");
+  if(delivered){
+    st = "agente"; lo = 0; hi = Math.max(0.2, cust[1]); segs.push({ k: "d", a: 0, lo: Math.min(cust[0], hi), hi });
+    chain.push("consegnato all'agente (tracking)"); chain.push(custLbl);
+  } else if(moving && rdDD(moving.eta, now) != null){
+    const e = Math.max(0, rdDD(moving.eta, now)); st = "viaggio";
+    segs.push({ k: "t", a: 0, lo: e, hi: e + 1 }); lo = e; hi = e + 1;
+    chain.push("in arrivo " + rdFD(e, now) + " (tracking" + (moving.carrier ? " " + moving.carrier : "") + ")");
+    push("d", cust[0], cust[1], custLbl);
+  } else if(it.dnStatus === "DN Shipped to Vessel"){
+    st = "viaggio"; const e = rdDD(it.dnDeliveryDate, now);
+    if(e != null && e >= 0){ lo = e; hi = e + 1; chain.push("DN spedita · consegna " + rdFD(e, now)); }
+    else { lo = 1; hi = TR[1] + 1; chain.push("DN spedita, senza tracking"); }
+    segs.push({ k: "t", a: 0, lo, hi });
+    push("d", cust[0], cust[1], custLbl);
+  } else if(it.dnStatus){
+    st = "attesa"; segs.push({ k: "f", a: 0, lo: 0.2, hi: 1 }); lo = 0.2; hi = 1; chain.push("DN pronta, da spedire");
+    push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl);
+  } else {
+    const rs = String(it.poDeliveryDate||"").slice(0,10) || (typeof itemReadyDate === "function" ? (itemReadyDate(it)||"") : "");
+    const r = rdDD(rs, now);
+    if(r == null){ unknown = true; st = "nodate"; chain.push("PO senza data di pronto"); }
+    else if(r < -0.5){ unknown = true; st = "nodn"; chain.push("pronto dal " + rdFD(r, now) + ", nessuna DN"); }
+    else { st = "attesa"; const r0 = Math.max(0, r); segs.push({ k: "f", a: 0, lo: r0, hi: r0 + 1 }); lo = r0; hi = r0 + 1;
+      chain.push("pronto " + rdFD(r0, now)); push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl); }
+  }
+  chain.push("sottobordo · preavviso " + pr.notice + " h");
+  const cut = c.etd - pr.notice / 24;
+  const H2 = basis === "media" ? (lo + hi) / 2 : hi;
+  const k = (unknown || lo > cut) ? "late" : H2 > cut - 1 ? "risk" : "ok";
+  const margin = unknown ? "senza data" : k === "late" ? "−" + rdF1(lo - cut) + " gg" : (H2 > cut ? "−" : "+") + rdF1(cut - H2) + " gg";
+  return { it, c, pr, cut, lo, hi, H2, k, segs, unknown, st, chain: chain.join(" → "), crit: rdCrit(it.id), margin, noCust };
+}
+
+function rdModel(){
+  const { H, basis } = rdPrefs();
+  const now = Date.now();
+  const lanes = [], calls = []; let staleDN = 0, unTot = 0;
+  for(const cfg of VESSELS){
+    const v = (state.data && state.data.vessels || []).find(x => x.vesselId === cfg.vesselId);
+    const lane = { vid: cfg.vesselId, name: cfg.displayName, calls: [], un: 0, stale: null, state: "" };
+    lanes.push(lane);
+    if(!v || !v.items){ lane.state = cfg.manual ? "Gestione manuale" : "Nessun dato"; continue; }
+    const voy = getVoyage(cfg.vesselId) || {};
+    const vs = (typeof getVoyageSummaryForCard === "function") ? getVoyageSummaryForCard(cfg.vesselId) : null;
+    lane.state = vs && vs.status && typeof VOYAGE_STATUS_LABELS !== "undefined" ? (VOYAGE_STATUS_LABELS[vs.status] || "") : "";
+    const assigned = new Set();
+    ["current", "next"].forEach(w => {
+      const leg = voy[w]; if(!leg || !leg.to) return;
+      const eta0 = rdDD(leg.eta, now), etb0 = rdDD(leg.etb, now);
+      const eta = eta0 != null ? eta0 : etb0; if(eta == null) return;
+      const etb = etb0 != null ? etb0 : eta;
+      const etdR = rdDD(leg.etd, now); const etd = etdR != null ? etdR : etb + 1;
+      const its = itemsForLeg(cfg.vesselId, w).filter(it => !rdCancelled(it));
+      its.forEach(it => assigned.add(it.id));
+      if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length }; return; }
+      const c = { id: cfg.vesselId + ":" + w, vid: cfg.vesselId, vname: cfg.displayName, which: w, legId: leg.id || "", port: leg.to, eta, etb, etd, etaS: leg.eta || "", etbS: leg.etb || "", etdS: leg.etd || "", its: [] };
+      c.its = its.filter(it => !rdStaleDN(it, now)).map(it => rdCalc(it, c, now, basis));
+      c.n = { ok: 0, risk: 0, late: 0 }; c.its.forEach(x => c.n[x.k]++);
+      c.worst = c.n.late ? "late" : c.n.risk ? "risk" : "ok";
+      calls.push(c); lane.calls.push(c);
+    });
+    v.items.forEach(it => {
+      if(!it.poNumber || rdCancelled(it) || it.dnStatus === "DN Received on Board") return;
+      if(rdStaleDN(it, now)){ staleDN++; return; }
+      if(!assigned.has(it.id)) lane.un++;
+    });
+    unTot += lane.un;
+  }
+  const inH = calls.filter(c => c.eta < H);
+  return { H, basis, now, lanes, calls: inH, allCalls: calls, staleDN, unTot };
+}
+
+window._rd = window._rd || { sel: null, open: null, undo: null };
+function rdAlts(x, M){
+  return M.allCalls.filter(c => c.vid === x.c.vid).map(c => ({ c, r: rdCalc(x.it, c, M.now, M.basis), cur: c.id === x.c.id, pr: rdProfile(c.port) }));
+}
+window.rdMove = function(itemId, callId){
+  const M = rdModel();
+  const c = M.allCalls.find(k => k.id === callId); if(!c) return;
+  const prev = getDeliveryPlan(itemId);
+  const plan = Object.assign({}, prev || {}, { mode: "voyage", leg: c.which, voyageLegId: c.legId || undefined, updatedAt: new Date().toISOString() });
+  setDeliveryPlan(itemId, plan);
+  const it = faFindItem(itemId) || {};
+  window._rd.undo = { itemId, prev: prev ? JSON.parse(JSON.stringify(prev)) : null, label: (it.description || "") + " → " + c.port };
+  window._rd.sel = callId; window._rd.open = itemId;
+  if(typeof showToast === "function") showToast("Consegna spostata a " + c.port + " (" + c.vname + ")");
+  radarPaint();
+};
+window.rdUndo = function(){
+  const u = window._rd.undo; if(!u) return;
+  setDeliveryPlan(u.itemId, u.prev || null);
+  window._rd.undo = null;
+  if(typeof showToast === "function") showToast("Spostamento annullato");
+  radarPaint();
+};
+window.rdToggleCrit = function(id){ rdSetCrit(id, !rdCrit(id)); radarPaint(); };
+window.rdPick = function(id){ window._rd.sel = id; window._rd.open = null; radarPaint(); };
+window.rdOpen = function(id){ window._rd.open = window._rd.open === id ? null : id; radarPaint(); };
+window.rdPref = function(k, v){ rdSetPref(k, v); radarPaint(); };
+
+window.rdEditProfile = function(port){
+  const p = rdProfile(port);
+  const agencies = Object.keys(loadEntityProfiles("agency") || {}).sort();
+  const closed = ((state.data && state.data.vessels) || []).reduce((n, v) => n + (v.items || []).filter(it => {
+    if(it.dnStatus !== "DN Received on Board") return false;
+    const e = getEffectiveDelivery(it, v.vesselId) || {}; return rdKey(e.port) === rdKey(port);
+  }).length, 0);
+  let host = document.getElementById("rd-prof-host");
+  if(!host){ host = document.createElement("div"); host.id = "rd-prof-host"; document.body.appendChild(host); }
+  host.innerHTML = '<div class="rd-modal-bd" onclick="if(event.target===this)this.parentNode.innerHTML=\'\'">' +
+    '<div class="rd-modal" role="dialog" aria-modal="true">' +
+    '<div class="rd-modal-h"><div><div class="rd-eyebrow">PROFILO PORTO</div><h3>' + escapeHTML(port) + '</h3></div><button class="rd-x" onclick="document.getElementById(\'rd-prof-host\').innerHTML=\'\'">✕</button></div>' +
+    '<div class="rd-form">' +
+    '<label>Dogana min (gg)<input id="rdp-c0" type="number" step="0.5" min="0" value="' + p.customs[0] + '"></label>' +
+    '<label>Dogana max (gg)<input id="rdp-c1" type="number" step="0.5" min="0" value="' + p.customs[1] + '"></label>' +
+    '<label>Preavviso agente (ore)<input id="rdp-n" type="number" step="1" min="0" value="' + p.notice + '"></label>' +
+    '<label>Affidabilità (1-5)<select id="rdp-r">' + [0,1,2,3,4,5].map(n => '<option value="' + n + '"' + (n === (p.rel||0) ? " selected" : "") + '>' + (n ? "●".repeat(n) + "○".repeat(5-n) : "non valutato") + '</option>').join("") + '</select></label>' +
+    '<label class="rd-wide">Agenzia<input id="rdp-a" list="rdp-al" value="' + escapeAttr(p.agent || "") + '" placeholder="dalla Rubrica"><datalist id="rdp-al">' + agencies.map(a => '<option value="' + escapeAttr(a) + '"></option>').join("") + '</datalist></label>' +
+    '<label class="rd-check"><input id="rdp-eu" type="checkbox"' + (p.eu ? " checked" : "") + '> Porto UE (merce UE senza dogana)</label>' +
+    '<label class="rd-wide">Note (la tua esperienza)<textarea id="rdp-t" rows="3" placeholder="es. dogana chiusa il venerdì pomeriggio, lancia solo con 24 h…">' + escapeHTML(p.note || "") + '</textarea></label>' +
+    '</div>' +
+    '<div class="rd-modal-f"><span class="rd-sub">' + (closed ? closed + " consegne chiuse in questo porto: i tempi reali entreranno nel profilo quando le DN riportano le date." : "Nessuna consegna chiusa in questo porto: il profilo parte dai tuoi valori.") + '</span>' +
+    '<button class="btn btn-primary btn-sm" onclick="window.rdSaveProfile(\'' + escapeAttr(port).replace(/'/g, "\\'") + '\')">Salva profilo</button></div>' +
+    '</div></div>';
+};
+window.rdSaveProfile = function(port){
+  const g = id => document.getElementById(id);
+  const c0 = Math.max(0, parseFloat(g("rdp-c0").value) || 0), c1 = Math.max(c0, parseFloat(g("rdp-c1").value) || c0);
+  const all = loadPortProfiles();
+  all[rdKey(port)] = { port, customs: [c0, c1], notice: Math.max(0, parseInt(g("rdp-n").value, 10) || 0), rel: parseInt(g("rdp-r").value, 10) || 0,
+    agent: g("rdp-a").value.trim(), eu: g("rdp-eu").checked, note: g("rdp-t").value.trim(), updatedAt: new Date().toISOString() };
+  rdSaveJSON("mpd.portProfiles", all);
+  document.getElementById("rd-prof-host").innerHTML = "";
+  if(typeof showToast === "function") showToast("Profilo " + port + " salvato");
+  radarPaint();
+};
+
+function radarPaint(){
+  const root = document.getElementById("radar-root"); if(!root) return;
+  const M = rdModel(), now = M.now, H = M.H;
+  const COL = { ok: "#14794e", risk: "#c07800", late: "#c0261c" };
+  const ORD = { late: 0, risk: 1, ok: 2 };
+  const all = [].concat(...M.calls.map(c => c.its));
+  const risky = M.calls.filter(c => c.n.late);
+  const critBad = all.filter(x => x.crit && x.k !== "ok");
+  const staleLanes = M.lanes.filter(l => l.stale && !l.calls.length);
+  const sel = M.calls.find(c => c.id === window._rd.sel) || risky.slice().sort((a, b) => a.etd - b.etd)[0] || M.calls[0] || null;
+  if(sel) window._rd.sel = sel.id;
+  const esc = escapeHTML, ea = s => escapeAttr(String(s)).replace(/'/g, "\\'");
+
+  // briefing
+  let headline, subline;
+  if(!M.calls.length){
+    headline = "Nessuno scalo con date aggiornate nei prossimi " + H + " giorni.";
+    subline = staleLanes.length ? "Il radar si accende quando i viaggi hanno ETA/ETB future: " + staleLanes.map(l => l.name + " (ultimo scalo " + l.stale.port + ")").join(", ") + " da aggiornare." : "Imposta i viaggi delle navi e pianifica le consegne sugli scali.";
+  } else if(risky.length){
+    const f = risky.slice().sort((a, b) => a.etd - b.etd)[0];
+    const fc = f.etd - rdProfile(f.port).notice / 24;
+    headline = risky.length + " scal" + (risky.length > 1 ? "i" : "o") + " su " + M.calls.length + " " + (risky.length > 1 ? "hanno" : "ha") + " materiale che non arriverà in tempo" + (critBad.length ? ": " + critBad.length + " PO critic" + (critBad.length > 1 ? "i" : "o") + " scopert" + (critBad.length > 1 ? "i" : "o") + "." : ".");
+    subline = "Il primo è " + f.vname + " a " + f.port + ", limite di consegna " + rdFDT(fc, now) + ": " + f.n.late + (f.n.late === 1 ? " PO non ci sarà" : " PO non ci saranno") + (f.n.risk ? ", " + f.n.risk + (f.n.risk === 1 ? " dipende" : " dipendono") + " da trasporto e dogana." : ".");
+  } else {
+    const nr = all.filter(x => x.k === "risk").length;
+    headline = "Tutti i " + M.calls.length + " scali dei prossimi " + H + " giorni sono coperti.";
+    subline = nr ? nr + " PO arrivano con meno di un giorno di margine: tienili d'occhio." : "Nessun PO arriva dopo il limite di consegna del suo scalo.";
+  }
+
+  // mosse
+  const moves = [];
+  staleLanes.forEach(l => moves.push({ where: l.name + " · viaggio da aggiornare", c: "#c07800", title: "Aggiorna il viaggio di " + l.name,
+    why: "Ultimo scalo impostato: " + l.stale.port + ", ETA " + rdFD(l.stale.eta, now) + " (passata)." + (l.stale.n ? " " + l.stale.n + " consegne sono legate a quello scalo." : "") + " Senza date future i suoi PO non entrano nel radar.",
+    cta: "Apri viaggio", go: "window.goVessel('" + ea(l.vid) + "')" }));
+  const bad = all.filter(x => x.k !== "ok").sort((a, b) => (b.crit - a.crit) || (ORD[a.k] - ORD[b.k]) || (a.c.etd - b.c.etd));
+  bad.forEach(x => {
+    const where = x.c.vname + " · " + x.c.port + (x.crit ? " · critico" : "") + " · limite " + rdFDT(x.cut, now);
+    const short = String(x.it.description || "").split(" —")[0].slice(0, 60);
+    const openIt = "window.openItemDetailPopover('" + ea(x.it.id) + "')";
+    if(x.unknown){ moves.push({ where, c: COL[x.k], title: "Chiedi la data di spedizione a " + (x.it.supplier || "fornitore"),
+      why: short + " (" + (x.it.poNumber || "") + ") " + (x.st === "nodn" ? "è " + x.chain.split(" → ")[0] : "non ha data di pronto") + ". Senza una data non si può legare allo scalo.", cta: "Apri", go: openIt }); return; }
+    const alt = rdAlts(x, M).filter(a => !a.cur && a.r.k === "ok" && a.c.etd > x.c.etd).sort((a, b) => (b.pr.rel||0) - (a.pr.rel||0) || a.c.etd - b.c.etd)[0];
+    if(alt) moves.push({ where, c: COL[x.k], title: "Sposta " + short + " a " + alt.c.port,
+      why: "A " + x.c.port + " arriva tra il " + rdFD(x.lo, now) + " e il " + rdFD(x.hi, now) + ". A " + alt.c.port + " arriva con " + alt.r.margin + " di margine" + (alt.pr.rel ? " · affidabilità " + alt.pr.rel + "/5" : "") + ".",
+      cta: "Sposta", go: "window.rdMove('" + ea(x.it.id) + "','" + ea(alt.c.id) + "')" });
+    else moves.push({ where, c: COL[x.k], title: "Anticipa con " + (x.it.supplier || "il fornitore") + ": " + short,
+      why: "Arrivo stimato " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now) + " e nessuno scalo successivo impostato lo copre. Valuta aereo o consegna parziale, oppure aggiungi il prossimo scalo nel viaggio.", cta: "Apri", go: openIt });
+  });
+  const mv = moves.slice(0, 4);
+
+  // radar lanes
+  const pct = d => Math.max(0, Math.min(100, d / H * 100));
+  let ticks = "", grid = "";
+  const step = H > 21 ? 3 : 2;
+  for(let d = 0; d <= H; d++){
+    const x = new Date(now + d*864e5), first = x.getDate() === 1, pre = new Date(now + (d+1)*864e5).getDate() === 1;
+    const MES = ["GEN","FEB","MAR","APR","MAG","GIU","LUG","AGO","SET","OTT","NOV","DIC"];
+    const lab = d === 0 ? "OGGI" : first ? "1 " + MES[x.getMonth()] : (d % step === 0 && !pre && d > 1 ? String(x.getDate()) : "");
+    if(lab) ticks += '<span class="rd-tick' + (d === 0 ? " now" : first ? " m" : "") + '" style="left:' + pct(d) + '%">' + lab + '</span>';
+    grid += '<i class="rd-grid' + (x.getDay() === 1 ? " wk" : "") + '" style="left:' + pct(d) + '%"></i>';
+  }
+  const TINT = { ok: ["#e6f4ec", "#14794e"], risk: ["#fdf3e2", "#c07800"], late: ["#fde3e0", "#c0261c"] };
+  const lanesHTML = M.lanes.map(l => {
+    const dotC = l.calls.some(c => c.worst === "late") ? "#c0261c" : l.calls.some(c => c.worst === "risk") ? "#c07800" : l.calls.length ? "#14794e" : "#9fb0c4";
+    const blocks = l.calls.filter(c => c.eta < H).map(c => {
+      const dots = c.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || (b.crit - a.crit)).map(x => '<i class="rd-dot' + (x.crit ? " crit" : "") + '" style="background:' + COL[x.k] + '"></i>').join("");
+      return '<button class="rd-call' + (sel && c.id === sel.id ? " on" : "") + '" onclick="window.rdPick(\'' + ea(c.id) + '\')" style="left:' + pct(c.eta) + '%;width:' + Math.max(0, pct(Math.min(c.etd, H)) - pct(c.eta)) + '%;background:' + TINT[c.worst][0] + ';border-color:' + TINT[c.worst][1] + '">' +
+        '<b>' + esc(c.port) + '</b><span><em>' + rdFD(c.eta, now) + '</em> <strong style="color:' + TINT[c.worst][1] + '">' + c.n.ok + "/" + c.its.length + '</strong></span><span class="rd-dots">' + (dots || '<small>nessun PO pianificato</small>') + '</span></button>';
+    }).join("");
+    const empty = !blocks ? '<div class="rd-empty"><span>' + (l.stale ? "ETA " + esc(l.stale.port) + " " + rdFD(l.stale.eta, now) + " passata: viaggio da aggiornare" : "Viaggio non impostato: PO non legabili a uno scalo") + '</span><b onclick="window.goVessel(\'' + ea(l.vid) + '\')">Apri viaggio →</b></div>' : "";
+    return '<div class="rd-lane"><div class="rd-lh"><div class="rd-ln"><i style="background:' + dotC + '"></i>' + esc(l.name) + '</div>' + (l.state ? '<div class="rd-ls">' + esc(l.state) + '</div>' : "") +
+      (l.un ? '<span class="rd-un" onclick="window.goVesselWithFilter && window.goVesselWithFilter(\'' + ea(l.vid) + '\',\'orders\')">' + l.un + ' PO senza scalo</span>' : "") + '</div>' +
+      '<div class="rd-lt">' + grid + '<i class="rd-nowline" style="left:0"></i>' + blocks + empty + '</div></div>';
+  }).join("");
+
+  // scalo selezionato
+  let selHTML = "";
+  if(sel){
+    const pr = rdProfile(sel.port);
+    const cut = sel.etd - pr.notice / 24;
+    const known = sel.its.filter(x => !x.unknown).map(x => x.hi);
+    const ax1 = Math.ceil(Math.max(sel.etd + 1.5, Math.min(Math.max(sel.etd, ...known) + 0.6, sel.etd + 8)));
+    const gp = d => Math.max(0, Math.min(100, d / ax1 * 100));
+    let gT = ""; const gs = ax1 > 12 ? 2 : 1;
+    for(let d = 0; d <= ax1; d += gs) gT += '<span class="rd-gt' + (d === 0 ? " now" : "") + '" style="left:' + gp(d) + '%">' + (d === 0 ? "OGGI" : rdFD(d, now)) + '</span>';
+    const band = 'left:' + gp(Math.max(0, sel.etb)) + '%;width:' + Math.max(0, gp(sel.etd) - gp(Math.max(0, sel.etb))) + '%';
+    const SEG = { f: "#8fa1b5", t: "#2b6de0", d: "#1d3a5c", s: "#2b6de0" }, HATCH = { f: "#e7ecf2", t: "#dfe8fb", d: "#d3dbe6", s: "#dfe8fb" };
+    const rows = sel.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || (b.crit - a.crit) || ((a.cut - a.H2) - (b.cut - b.H2))).map(x => {
+      const open = window._rd.open === x.it.id;
+      const bars = x.segs.map(s => '<i class="rd-seg" style="left:' + gp(s.a) + '%;width:' + Math.max(0.6, gp(s.lo) - gp(s.a)) + '%;background:' + SEG[s.k] + '"></i><i class="rd-seg h" style="left:' + gp(s.lo) + '%;width:' + Math.max(0, gp(s.hi) - gp(s.lo)) + '%;background:repeating-linear-gradient(45deg,' + SEG[s.k] + ' 0 3px,' + HATCH[s.k] + ' 3px 6px)"></i>').join("");
+      const note = x.unknown ? '<span class="rd-gnote bad">? ' + esc(x.st === "nodn" ? "nessuna DN né data di spedizione" : "PO senza data di pronto") + '</span>' : (!x.segs.length ? '<span class="rd-gnote ok">✓ pronto</span>' : "");
+      const verdict = x.k === "ok" ? x.margin : x.k === "risk" ? "a rischio · " + x.margin : x.unknown ? "senza data" : "non arriva · " + x.margin;
+      const sub = x.k === "ok" ? "a bordo entro il " + rdFD(x.hi, now) : x.unknown ? esc(x.chain.split(" → ")[0]) : "arrivo " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now);
+      let altHTML = "";
+      if(open){
+        altHTML = '<div class="rd-alt"><div class="rd-alt-h"><b>Dove arriva in tempo?</b><span>stessa catena, con dogana e preavviso di ogni porto</span>' +
+          '<span class="rd-alt-a"><button class="btn btn-sm" onclick="window.rdToggleCrit(\'' + ea(x.it.id) + '\')">' + (x.crit ? "◆ Critico · togli" : "◇ Segna come critico") + '</button>' +
+          '<button class="btn btn-sm" onclick="window.openItemDetailPopover(\'' + ea(x.it.id) + '\')">Apri scheda articolo</button></span></div>' +
+          '<div class="rd-chain"><b>Catena</b> · ' + esc(x.chain) + '</div>' +
+          rdAlts(x, M).map(a => {
+            const rel = a.pr.rel ? "●".repeat(a.pr.rel) + "○".repeat(5 - a.pr.rel) : "non valutato";
+            const relC = !a.pr.rel ? "#6a7d90" : a.pr.rel >= 4 ? "#14794e" : a.pr.rel === 3 ? "#b06a00" : "#c0261c";
+            return '<div class="rd-alt-r' + (a.cur ? " cur" : "") + '"><div class="rd-alt-p"><b>' + esc(a.c.port) + '</b><em>ETB ' + rdFDT(a.c.etb, now) + ' · limite ' + rdFDT(a.r.cut, now) + '</em></div>' +
+              '<div><span class="rd-pill" style="color:' + COL[a.r.k] + ';border-color:' + COL[a.r.k] + '">' + (a.r.k === "ok" ? "in tempo" : a.r.k === "risk" ? "a rischio" : "non arriva") + '</span><em style="color:' + COL[a.r.k] + '">' + a.r.margin + '</em></div>' +
+              '<div style="color:' + relC + '" class="rd-rel">' + rel + '</div>' +
+              '<div class="rd-alt-n">' + esc(a.pr.note || (a.pr.set ? "" : "Profilo porto non compilato: dogana e preavviso sono valori standard.")) + '</div>' +
+              '<div class="rd-alt-b">' + (a.cur ? '<span>scalo attuale</span>' : a.r.k !== "late" ? '<button class="btn btn-sm btn-primary" onclick="window.rdMove(\'' + ea(x.it.id) + '\',\'' + ea(a.c.id) + '\')">Sposta qui</button>' : "") + '</div></div>';
+          }).join("") +
+          (rdAlts(x, M).length < 2 ? '<div class="rd-sub">Il viaggio di ' + esc(x.c.vname) + ' ha un solo scalo impostato: aggiungi il successivo per vedere le alternative.</div>' : "") + '</div>';
+      }
+      return '<div class="rd-row' + (open ? " open" : "") + (x.k === "late" ? " late" : "") + '"><div class="rd-rg" onclick="window.rdOpen(\'' + ea(x.it.id) + '\')">' +
+        '<div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(x.it.poNumber || x.it.dnNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (x.crit ? '<span class="rd-crit">◆ CRITICO</span>' : "") + (x.noCust ? '<span class="rd-eu">UE</span>' : "") + '</div>' +
+        '<b>' + esc(x.it.description || "") + '</b><span>' + esc(x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "Fornitore non indicato") + '</span></div>' +
+        '<div class="rd-gantt"><i class="rd-band" style="' + band + '"></i><i class="rd-cut" style="left:' + gp(cut) + '%"></i><i class="rd-track"></i>' + bars + note + '</div>' +
+        '<div class="rd-v"><b style="color:' + COL[x.k] + '">' + verdict + '</b><span>' + sub + '</span></div></div>' + altHTML + '</div>';
+    }).join("");
+    const rel = pr.rel ? "●".repeat(pr.rel) + "○".repeat(5 - pr.rel) : "non valutato";
+    const relC = !pr.rel ? "#6a7d90" : pr.rel >= 4 ? "#14794e" : pr.rel === 3 ? "#b06a00" : "#c0261c";
+    const verdict = sel.n.late ? sel.n.late + " PO non arriv" + (sel.n.late > 1 ? "ano" : "a") : sel.n.risk ? "Coperto, con PO a rischio" : sel.its.length ? "Tutto a bordo in tempo" : "Nessun PO pianificato su questo scalo";
+    selHTML = '<div class="rd-card"><div class="rd-selh"><div class="rd-selm">' +
+      '<div class="rd-eyebrow">SCALO SELEZIONATO</div><div class="rd-selp">' + esc(sel.port) + ' <span>· ' + esc(sel.vname) + '</span></div>' +
+      '<div class="rd-mono">' + [sel.etaS ? "ETA " + rdFDT(sel.eta, now) : "", sel.etbS ? "ETB " + rdFDT(sel.etb, now) : "", "ETD " + rdFDT(sel.etd, now) + (sel.etdS ? "" : " (stimata: ETB + 1 g)")].filter(Boolean).join(" · ") + '</div>' +
+      '<div class="rd-cutrow"><span class="rd-cutp">Limite di consegna ' + rdFDT(cut, now) + '</span><span class="rd-sub">ETD − ' + pr.notice + ' h di preavviso</span></div>' +
+      '<div class="rd-mix"><i style="flex:' + sel.n.ok + ';background:#14794e"></i><i style="flex:' + sel.n.risk + ';background:#c07800"></i><i style="flex:' + sel.n.late + ';background:#c0261c"></i></div>' +
+      '<div class="rd-sum"><b style="color:' + TINT[sel.worst][1] + '">' + verdict + '</b> · ' + sel.its.length + ' PO · ' + sel.n.ok + ' in tempo · ' + sel.n.risk + ' a rischio · ' + sel.n.late + ' non arrivano</div></div>' +
+      '<div class="rd-prof"><div class="rd-prof-h"><b>Profilo porto · ' + esc(sel.port) + '</b><span class="rd-src ' + (pr.set ? "set" : "") + '">' + (pr.set ? "tuo profilo" : "valori standard") + '</span><button class="btn btn-sm" onclick="window.rdEditProfile(\'' + ea(sel.port) + '\')">Modifica</button></div>' +
+      '<div class="rd-prof-g"><div><em>Dogana</em><b>' + rdF1(pr.customs[0]) + '–' + rdF1(pr.customs[1]) + ' gg' + (pr.eu ? " · 0 se UE" : "") + '</b></div><div><em>Preavviso agente</em><b>' + pr.notice + ' h</b></div><div><em>Affidabilità</em><b style="color:' + relC + '">' + rel + '</b></div></div>' +
+      '<div class="rd-sub"><em>Agenzia</em> <b>' + esc(pr.agent || "—") + '</b></div>' + (pr.note ? '<div class="rd-note">' + esc(pr.note) + '</div>' : "") + '</div></div>' +
+      (sel.its.length ? '<div class="rd-tblw"><div class="rd-tbl"><div class="rd-rg rd-head"><div>PO · articolo · fornitore</div><div class="rd-gantt"><i class="rd-band" style="' + band + '"></i><span class="rd-bandl" style="left:' + gp(Math.max(0, sel.etb)) + '%">NAVE IN PORTO</span>' + gT + '</div><div>Margine sul limite</div></div>' + rows +
+      '<div class="rd-legend"><span><i style="background:#8fa1b5"></i>pronto dal fornitore</span><span><i style="background:#2b6de0"></i>trasporto</span><span><i style="background:#1d3a5c"></i>dogana</span><span><i style="background:repeating-linear-gradient(45deg,#2b6de0 0 3px,#dfe8fb 3px 6px)"></i>incertezza (min → max)</span><span><i class="cut"></i>limite di consegna</span><span>stima ' + M.basis + '</span></div></div></div>'
+      : '<div class="rd-sub" style="padding:10px 0">Nessuna consegna pianificata su questo scalo. Pianificala dalla scheda articolo (Pianifica consegna) o spostala qui dal radar.</div>') + '</div>';
+  }
+
+  // fornitori
+  const supMap = {};
+  bad.filter(x => x.st === "attesa" || x.unknown || x.k === "late").forEach(x => { const k = x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "Fornitore non indicato"; (supMap[k] = supMap[k] || []).push(x); });
+  const sups = Object.keys(supMap).map(k => { const l = supMap[k]; const nodn = l.some(x => x.unknown), late = l.some(x => x.k === "late");
+    return { k, l, tag: nodn ? "senza data" : late ? "in ritardo" : "da anticipare", c: nodn || late ? "#c0261c" : "#c07800", w: Math.min(...l.map(x => x.cut)) }; })
+    .sort((a, b) => a.w - b.w).slice(0, 6);
+  const supHTML = sups.length ? sups.map(s => '<div class="rd-sup"><div><b>' + esc(s.k) + '</b><span>' + s.l.map(x => (x.crit ? "◆ " : "") + esc(String(x.it.description || "").split(" —")[0].slice(0, 40)) + " → " + esc(x.c.vname) + " a " + esc(x.c.port) + ", limite " + rdFD(x.cut, now)).join(" · ") + '</span></div><em style="background:' + s.c + '">' + s.tag + '</em></div>').join("")
+    : '<div class="rd-ok">Nessun fornitore sta scoprendo uno scalo.</div>';
+
+  const P = rdPrefs();
+  const seg = (k, v, l) => '<button class="' + (String(P[k]) === String(v) ? "on" : "") + '" onclick="window.rdPref(\'' + k + '\',' + (typeof v === "number" ? v : "'" + v + "'") + ')">' + l + '</button>';
+  root.innerHTML =
+    '<div class="rd-top"><div class="rd-sw">' + seg("H", 14, "14 gg") + seg("H", 21, "21 gg") + seg("H", 30, "30 gg") + '</div>' +
+    '<div class="rd-sw">' + seg("basis", "pessimistica", "Pessimistica") + seg("basis", "media", "Media") + '</div>' +
+    '<span class="rd-legs"><span><i style="background:#14794e"></i>in tempo</span><span><i style="background:#c07800"></i>a rischio</span><span><i style="background:#c0261c"></i>non arriva</span><span><i class="crit"></i>critico</span></span>' +
+    '<span class="rd-topa">' + (window._rd.undo ? '<button class="btn btn-sm" onclick="window.rdUndo()">↩ Annulla: ' + esc(window._rd.undo.label.slice(0, 40)) + '</button>' : "") +
+    '<button class="btn btn-sm" onclick="window.mpdExportAll()" title="Scarica TUTTI i dati salvati in questo browser">⤓ Backup dati</button>' +
+    '<button class="btn btn-sm" onclick="window.setOverviewMode(\'classic\')">Vista classica</button></span></div>' +
+    '<div class="rd-hero-row"><div class="rd-hero"><div class="rd-eyebrow">RADAR SCALI · PROSSIMI ' + H + ' GIORNI</div><div class="rd-hl">' + esc(headline) + '</div><div class="rd-sl">' + esc(subline) + '</div>' +
+    '<div class="rd-stats"><div><b>' + risky.length + '</b><span>scali scoperti su ' + M.calls.length + '</span></div><div><b>' + all.filter(x => x.k === "late").length + '</b><span>PO non arrivano</span></div><div><b>' + all.filter(x => x.k === "risk").length + '</b><span>PO a rischio</span></div><div class="w"><b>' + critBad.length + '</b><span>critici scoperti</span></div></div></div>' +
+    '<div class="rd-card rd-moves"><div class="rd-ch"><b>Le mosse di oggi</b><span>critici prima, poi per ripartenza</span></div>' +
+    (mv.length ? mv.map((m, i) => '<div class="rd-move"><em>' + (i + 1) + '</em><div><small style="color:' + m.c + '">' + esc(m.where) + '</small><b>' + esc(m.title) + '</b><span>' + esc(m.why) + '</span></div><button class="btn btn-primary btn-sm" onclick="' + m.go + '">' + m.cta + '</button></div>').join("") : '<div class="rd-ok">Nessuna mossa urgente: tutti gli scali sono coperti.</div>') + '</div></div>' +
+    '<div class="rd-card"><div class="rd-ch"><b>Radar scali</b><span>ogni pallino è un PO che deve essere a bordo prima del limite di consegna · clicca uno scalo</span></div>' +
+    '<div class="rd-scroll"><div class="rd-radar"><div class="rd-lane rd-axis"><div></div><div class="rd-lt">' + ticks + '</div></div>' + lanesHTML + '</div></div></div>' +
+    selHTML +
+    '<div class="rd-bottom"><div class="rd-card"><div class="rd-ch"><b>Chi sentire oggi</b><span>solo i fornitori che scoprono uno scalo</span></div>' + supHTML + '</div>' +
+    '<div class="rd-card"><div class="rd-ch"><b>Come stimo i tempi</b></div><div class="rd-txt">Ogni PO è una catena: <b>pronto dal fornitore</b> (data di pronto del PO o lead time della scheda) → <b>trasporto</b> (tracking se c\'è, altrimenti stima per modo) → <b>dogana</b> (profilo porto; zero per merce UE in porto UE) → <b>sottobordo</b> (preavviso all\'agente). Ogni tappa ha minimo e massimo; il colore segue la stima ' + M.basis + '.</div><div class="rd-txt muted">I PO entrano nel radar quando sono pianificati su uno scalo del viaggio (Pianifica consegna o "Sposta"). Il flag ◆ critico si mette a mano finché non arriva la lista Critical Equipment.</div></div>' +
+    '<div class="rd-card rd-dq"><div class="rd-eyebrow">QUALITÀ DEI DATI</div>' +
+    '<b>' + M.staleDN + ' DN "in viaggio" da oltre 30 giorni</b><span>Escluse dal radar: probabilmente consegnate e mai chiuse in Infoship.</span>' +
+    '<b>' + M.unTot + ' PO aperti senza scalo di consegna</b><span>Non sappiamo per quale scalo servono: pianificali per vederli nel radar.</span>' +
+    '<a onclick="window.goFleetActions && window.goFleetActions(\'dn\')">Rivedi le consegne →</a></div></div>';
+}
+window.radarPaint = radarPaint;
+
+// === v0.96 BACKUP COMPLETO ==================================================
+// Scarica TUTTE le chiavi salvate da questa app nel browser (to-do, note, registri,
+// profili, spedizioni, piani di consegna, impostazioni…). Il ripristino le riscrive
+// tali e quali: serve per tornare indietro senza perdere nulla.
+window.mpdExportAll = function(){
+  const out = { app: "maritime-procurement-dashboard", version: "0.96", exportedAt: new Date().toISOString(), keys: {} };
+  for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); if(/^mpd/i.test(k)) out.keys[k] = localStorage.getItem(k); }
+  const n = Object.keys(out.keys).length;
+  const blob = new Blob([JSON.stringify(out)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "mpd-backup-completo-" + todayISO() + ".json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  try{ localStorage.setItem("mpd.lastFullBackup", new Date().toISOString()); }catch(e){}
+  showToast("Backup completo scaricato: " + n + " archivi");
+};
+window.mpdImportAll = function(file){
+  if(!file) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    try{
+      const j = JSON.parse(ev.target.result);
+      const keys = j && j.keys && typeof j.keys === "object" ? j.keys : null;
+      if(!keys) { showToast("File non valido: non è un backup completo"); return; }
+      const n = Object.keys(keys).length;
+      if(!confirm("Ripristino " + n + " archivi dal backup del " + String(j.exportedAt || "").slice(0,16).replace("T"," ") + ".\nI dati attuali di questo browser vengono sostituiti da quelli del backup. Procedo?")) return;
+      Object.keys(keys).forEach(k => { if(/^mpd/i.test(k) && typeof keys[k] === "string") localStorage.setItem(k, keys[k]); });
+      showToast("Backup ripristinato: ricarico…");
+      setTimeout(() => location.reload(), 800);
+    }catch(e){ showToast("File non valido: " + e.message); }
+  };
+  rd.readAsText(file);
+};
+
 // === BACKUP =================================================================
 // ============================================================================
 function exportBackup() {
@@ -26741,6 +27301,7 @@ function importBackup(e) {
 
     host.insertBefore(hello(), host.firstChild);
 
+    if (typeof overviewMode === "function" && overviewMode() === "radar") return;   // v0.96 — il radar sostituisce la riga
     var chart = ordersBoard(), next = nextCall();   // v0.95 — ordini in corsa (i solleciti restano in Azioni flotta)
     if (chart || next) {
       var row = document.createElement("div");
