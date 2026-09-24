@@ -12671,6 +12671,19 @@ function renderOverview() {
   const _idle = [];
   for (const cfg of VESSELS) {
     const v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
+    if ((!v || !(v.items || []).length) && /atlas/i.test(cfg.vesselId + " " + cfg.displayName) && typeof mpCardHTML === "function") {
+      try {
+        const cs = getCertStatsForVessel(cfg.vesselId) || {};
+        const certExp = cs.expired || 0, certUrg = (cs.urgent || 0) + (cs.week || 0);
+        const mo = manualOrdersOpen(cfg.vesselId), mt = [];
+        if (certExp) mt.push({ t: "red", n: certExp, l: certExp === 1 ? "certificato scaduto" : "certificati scaduti", attr: `data-vessel-certs="${cfg.vesselId}"` });
+        if (certUrg) mt.push({ t: "amber", n: certUrg, l: "certificati in scadenza", attr: `data-vessel-certs="${cfg.vesselId}"` });
+        if (mo) mt.push({ t: "blue", n: mo, l: mo === 1 ? "ordine aperto (gestione manuale)" : "ordini aperti (gestione manuale)", attr: `onclick="window.goVessel('${cfg.vesselId}')"` });
+        const _vt = todosForVessel(cfg.vesselId, false).length;
+        cardsHTML += mpCardHTML(cfg, { items: [] }, _mpM, mt, { manual: true, todo: _vt });
+        continue;
+      } catch(e) { console.error("[mpCard atlas]", e); }
+    }
     if (!v && cfg.manual) { _idle.push({ cfg, sub: "gestione manuale · " + manualOrdersOpen(cfg.vesselId) + " ordini aperti", todo: todosForVessel(cfg.vesselId, false).length }); continue; }
     if (v && !(v.items || []).length) { _idle.push({ cfg, sub: "nessun ordine in corso", todo: todosForVessel(cfg.vesselId, false).length }); continue; }
     if (!v) {
@@ -27010,7 +27023,8 @@ window.mpApplyNoon = function(vid){
 window.mpDismissNoon = function(vid){ const nc = mpNoon(vid); if(!nc) return; const all = rdLoadJSON("mpd.noonDismiss"); all[vid] = nc.port + "|" + nc.date; try{ localStorage.setItem("mpd.noonDismiss", JSON.stringify(all)); }catch(e){} render(); };
 
 // --- Scheda nave 1a ------------------------------------------------------------
-function mpCardHTML(cfg, v, M, tasks){
+function mpCardHTML(cfg, v, M, tasks, opt){
+  opt = opt || {};
   const esc = escapeHTML, ea = s => escapeAttr(String(s)).replace(/'/g, "\\'"), vid = ea(cfg.vesselId), now = Date.now();
   const lane = (M && M.lanes || []).find(l => l.vid === cfg.vesselId) || { calls: [] };
   const call = lane.calls.slice().sort((a, b) => a.eta - b.eta)[0] || null;
@@ -27059,12 +27073,13 @@ function mpCardHTML(cfg, v, M, tasks){
   (v.items || []).forEach(it => { const p = mpOf(it, now); if(!p || p.stale || p.pos === "onboard" || (p.pos === "route" && p.derived)) return; cnt[p.pos]++; });
   const dots = call && call.its.length ? call.its.slice().sort((a, b) => ({late:0,risk:1,ok:2})[a.k] - ({late:0,risk:1,ok:2})[b.k]).map(x => '<i class="mp-dot' + (x.crit ? " crit" : "") + '" style="background:' + ({ok:"#14794e",risk:"#c07800",late:"#c0261c"})[x.k] + '"></i>').join("") : "";
   const posRow = MP_ORDER.filter(k => k !== "onboard" && cnt[k]).map(k => '<span class="mp-pc"><i style="background:' + MP_POS[k].c + '"></i><b>' + cnt[k] + '</b> ' + MP_POS[k].s + '</span>').join("");
-  const matHTML = '<div class="mp-mat"><div class="mp-eb">' + (call ? "MATERIALE PER " + esc(call.port) + (call.its.length ? " · " + call.its.length + " PO" : "") : "DOVE SI TROVA IL MATERIALE") + '</div>' +
+  const matHTML = opt.manual ? '<div class="mp-mat"><div class="mp-eb">DOVE SI TROVA IL MATERIALE</div><div class="mp-ms">Nessun ordine da Infoship: i PO entreranno qui e nel radar quando la nave sarà a regime.</div></div>' : '<div class="mp-mat"><div class="mp-eb">' + (call ? "MATERIALE PER " + esc(call.port) + (call.its.length ? " · " + call.its.length + " PO" : "") : "DOVE SI TROVA IL MATERIALE") + '</div>' +
     (dots ? '<div class="mp-dots">' + dots + '</div><div class="mp-ms">' + [call.n.late ? call.n.late + " non arriva" + (call.n.late > 1 ? "no" : "") : "", call.n.risk ? call.n.risk + " a rischio" : "", call.n.ok ? call.n.ok + " in tempo" : ""].filter(Boolean).join(" · ") + '</div>' : "") +
     (posRow ? '<div class="mp-pr">' + posRow + '</div>' : "") +
     (lane.un ? '<button class="mp-link" data-proc-jump="po" data-proc-vid="' + vid + '">' + lane.un + ' PO senza scalo' + (call || prop ? " · assegna a " + esc((call && call.port) || prop.port) : "") + ' →</button>' : "") + '</div>';
   // azioni (max 3)
   const shown = tasks.slice(0, 3);
+  if(!shown.length && opt.todo) shown.push({ t: "slate", n: opt.todo, l: "to-do aperte", attr: 'data-vessel-todos="' + vid + '"' });
   const tHTML = shown.length ? '<div class="vc2-tasks">' + shown.map(k => '<button class="vc2-task t-' + k.t + '" ' + k.attr + '><b>' + k.n + '</b><span>' + k.l + '</span><i>→</i></button>').join("") + (tasks.length > 3 ? '<div class="vc2-more">+ altre ' + (tasks.length - 3) + ' voci nella scheda nave</div>' : "") + '</div>' : "";
   // bunker
   let bunk = "";
