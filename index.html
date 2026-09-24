@@ -7641,6 +7641,78 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 /* Sotto i 768px sostituiamo la UI desktop rimpicciolita con schermate mobile
    vere (card, drill-down, one-tap, FAB) che leggono i dati reali. */
 #mobile-app{ display:none; }
+/* v0.98 mobile v3 */
+#mobile-app .m3-card, #mobile-app .m3-head, #ma-sheet-host .m3-sheet, #ma-sheet-host .m3-card, .m3dn, #__m3prev{ line-height:1.35; }
+.m3-card span, .m3-card b, .m3-card small, .m3-sheet span, .m3-sheet b, .m3-sheet small{ line-height:1.35; }
+.m3-row-h > b, .m3-row-h > .m3-h1{ min-width:0; } .m3-row-h > .m3-mono, .m3-irow-h > .m3-mono{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.m3-irow-h > .m3-mono{ flex:1; } .m3-row-h > .m3-mono{ flex:0 0 auto; overflow:visible; }
+.m3-row-h > b{ flex:1 1 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .m3-rl > *{ white-space:nowrap; }
+.m3-head{ display:flex; flex-direction:column; gap:2px; padding:4px 4px 14px; }
+.m3-h1{ font:800 28px/1.1 Inter,system-ui,sans-serif; letter-spacing:-.02em; color:#0a1b2e; }
+.m3-h2{ font:700 19px/1.25 Inter,system-ui,sans-serif; color:#0a1b2e; letter-spacing:-.01em; }
+.m3-sub{ font-size:14px; color:#44576b; }
+.m3-mono{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; color:#6a7d90; }
+.m3-eb{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6a7d90; margin:16px 4px 8px; }
+.m3-card{ background:#fff; border:1px solid rgba(10,27,46,.10); border-radius:16px; overflow:hidden; }
+.m3-card.m3-blue{ border-color:#c9d8fb; }
+.m3-pad{ padding:14px; display:flex; flex-direction:column; gap:10px; }
+.m3-txt{ font-size:13.5px; line-height:1.4; color:#44576b; } .m3-txt b{ color:#0a1b2e; } .m3-txt.small{ font-size:12.5px; }
+.m3-empty{ font-size:13px; color:#6a7d90; padding:14px; }
+.m3-row-h{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; } .m3-row-h b{ font-size:14.5px; color:#0a1b2e; }
+.m3-prop{ padding:13px 14px; display:flex; flex-direction:column; gap:9px; border-bottom:1px solid rgba(10,27,46,.08); } .m3-prop:last-child{ border-bottom:none; }
+.m3-btns{ display:flex; gap:8px; }
+.m3-btn{ flex:1; min-height:44px; border-radius:12px; border:1px solid rgba(10,27,46,.16); background:#fff; color:#0a1b2e; font:600 14px Inter,system-ui,sans-serif; display:flex; align-items:center; justify-content:center; text-decoration:none; padding:0 10px; }
+.m3-btn.pri{ background:#1553d8; border-color:#1553d8; color:#fff; font-weight:700; }
+.m3-btn.ink{ background:#0a1b2e; border-color:#0a1b2e; color:#fff; font-weight:700; }
+.m3-btn[disabled]{ color:#9aa7b4; background:#f5f7fa; }
+.m3-pill{ flex:none; min-height:38px; padding:0 14px; border-radius:999px; border:none; background:#1553d8; color:#fff; font:700 13px Inter,system-ui,sans-serif; display:inline-flex; align-items:center; text-decoration:none; white-space:nowrap; }
+.m3-pill.sec{ background:#fff; color:#0a1b2e; border:1px solid rgba(10,27,46,.16); font-weight:600; } .m3-pill.ink{ background:#0a1b2e; }
+.m3-move{ display:flex; gap:12px; align-items:center; padding:12px 14px; width:100%; background:none; border:none; border-bottom:1px solid rgba(10,27,46,.08); text-align:left; } .m3-move:last-child{ border-bottom:none; }
+.m3-n{ min-width:32px; height:30px; padding:0 6px; border-radius:8px; background:#fdeed0; border:1px solid #c07800; color:#8a4b00; font:700 14px var(--font-mono); display:flex; align-items:center; justify-content:center; }
+.m3-n.red{ background:#c0261c; border-color:#c0261c; color:#fff; }
+.m3-move-t{ flex:1; display:flex; flex-direction:column; gap:1px; min-width:0; } .m3-move-t b{ font-size:14px; font-weight:600; color:#0a1b2e; } .m3-move-t small{ font-size:12.5px; color:#44576b; }
+.m3-cta{ font-size:13px; font-weight:700; color:#1553d8; }
+.m3-vrow{ display:flex; flex-direction:column; gap:7px; padding:12px 14px; width:100%; background:none; border:none; border-bottom:1px solid rgba(10,27,46,.08); text-align:left; } .m3-vrow:last-child{ border-bottom:none; }
+.m3-vrow-h{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; } .m3-vrow-h b{ font-size:14px; color:#0a1b2e; white-space:nowrap; } .m3-vrow-h span{ font-size:12.5px; color:#44576b; text-align:right; } .m3-vrow-h span.amber{ color:#b06a00; font-weight:600; }
+.m3-bar{ position:relative; height:6px; border-radius:3px; background:rgba(10,27,46,.10); } .m3-bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:3px; background:#1553d8; }
+.m3-chips{ display:flex; flex-wrap:wrap; gap:4px 12px; font-size:12px; color:#44576b; } .m3-chips span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; } .m3-chips i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+.m3-dark{ margin-top:16px; background:#0a1b2e; color:#fff; border-radius:16px; padding:14px; display:flex; align-items:center; gap:12px; } .m3-dark > div{ flex:1; display:flex; flex-direction:column; gap:3px; } .m3-dark b{ font-size:14.5px; } .m3-dark small{ font-size:12.5px; line-height:1.4; color:#c3cedb; }
+.m3-dark button{ min-height:40px; padding:0 16px; border-radius:999px; border:none; background:#fff; color:#0a1b2e; font:700 13.5px Inter,system-ui,sans-serif; }
+.m3-verdict{ font:600 15px/1.35 Inter,system-ui,sans-serif; color:#0a1b2e; margin:4px 2px 12px; } .m3-verdict.amber{ color:#b06a00; }
+.m3-acts{ display:flex; gap:8px; margin-bottom:10px; }
+.m3-track{ position:relative; height:14px; } .m3-track::before{ content:""; position:absolute; left:0; right:0; top:6px; height:2px; background:rgba(10,27,46,.12); }
+.m3-track .done{ position:absolute; left:0; top:6px; height:2px; background:#1553d8; } .m3-track .ship{ position:absolute; top:1px; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:#1553d8; box-shadow:0 0 0 3px #dbe6fd; }
+.m3-track .port{ position:absolute; right:0; top:2px; width:10px; height:10px; border-radius:50%; border:2px solid #0a1b2e; background:#fff; box-sizing:border-box; } .m3-track .port.dash{ border-style:dashed; border-color:#1553d8; }
+.m3-rl{ display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font:11.5px var(--font-mono); color:#44576b; } .m3-rl b{ color:#0a1b2e; font-weight:600; }
+.m3-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; border-top:1px solid rgba(10,27,46,.08); padding-top:10px; } .m3-grid.two{ grid-template-columns:1fr 1fr; border-bottom:1px solid rgba(10,27,46,.08); padding-bottom:12px; }
+.m3-grid > div{ display:flex; flex-direction:column; gap:2px; } .m3-k{ font:600 10px var(--font-mono); letter-spacing:.06em; color:#6a7d90; } .m3-mono-v{ font:600 15px var(--font-mono); color:#0a1b2e; } .m3-grid small{ font-size:11.5px; color:#44576b; }
+.m3-link{ align-self:flex-start; background:none; border:none; padding:2px 0; font:600 13px Inter,system-ui,sans-serif; color:#1553d8; }
+.m3-note{ display:flex; align-items:center; gap:10px; margin-top:10px; padding:12px 14px; border-radius:14px; background:#f5f7fa; border:1px solid rgba(10,27,46,.10); font-size:13.5px; line-height:1.4; color:#0a1b2e; } .m3-note > span{ flex:1; }
+.m3-note.blue{ background:#eef3fe; border-color:#c9d8fb; } .m3-note.amber{ background:#fdf3e2; border-color:#f0d49a; }
+.m3-mrow{ display:flex; align-items:center; gap:12px; padding:13px 14px; width:100%; background:none; border:none; border-bottom:1px solid rgba(10,27,46,.08); text-align:left; } .m3-mrow:last-child{ border-bottom:none; }
+.m3-mrow > i{ width:10px; height:10px; border-radius:50%; flex:none; box-sizing:border-box; } .m3-mrow > span{ flex:1; display:flex; flex-direction:column; min-width:0; } .m3-mrow b{ font-size:14px; font-weight:600; color:#0a1b2e; } .m3-mrow small{ font-size:12px; color:#6a7d90; }
+.m3-mrow em{ font:600 14px var(--font-mono); font-style:normal; color:#0a1b2e; } .m3-mrow u{ text-decoration:none; color:#9aa7b4; }
+.m3-agency{ flex-direction:row; align-items:center; } .m3-agency > span{ flex:1; display:flex; flex-direction:column; gap:2px; } .m3-agency b{ font-size:14px; } .m3-agency small{ font-size:12.5px; color:#44576b; }
+.m3-irow{ display:flex; flex-direction:column; gap:4px; padding:12px 14px; width:100%; background:none; border:none; border-bottom:1px solid rgba(10,27,46,.08); text-align:left; } .m3-irow:last-child{ border-bottom:none; }
+.m3-irow-h{ display:flex; justify-content:space-between; gap:8px; } .m3-irow-h > span:last-child{ font-size:12px; font-weight:600; white-space:nowrap; } .m3-irow b{ font-size:14.5px; font-weight:600; color:#0a1b2e; } .m3-irow small{ font-size:12.5px; color:#44576b; } .m3-irow small.red{ color:#c0261c; }
+.m3-sheet{ display:flex; flex-direction:column; gap:6px; } .m3-sheet .m3-eb{ margin:12px 0 4px; }
+.m3-posgrid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.m3-pos{ min-height:48px; border-radius:12px; border:1px solid rgba(10,27,46,.16); background:#fff; color:#0a1b2e; font:600 14px Inter,system-ui,sans-serif; display:flex; align-items:center; gap:8px; padding:0 12px; text-align:left; }
+.m3-pos i{ width:9px; height:9px; border-radius:50%; background:var(--c); flex:none; } .m3-pos.ded{ border:1.5px dashed var(--c); } .m3-pos.on{ background:var(--c); border-color:var(--c); color:#fff; } .m3-pos.on i{ background:#fff; }
+.m3-fields{ display:flex; gap:8px; margin-top:6px; } .m3-fields select, .m3-fields input{ flex:1; min-width:0; min-height:44px; border:1px solid rgba(10,27,46,.18); border-radius:10px; padding:0 10px; font:14px Inter,system-ui,sans-serif; background:#fff; color:#0a1b2e; }
+.m3-fields label{ flex:1; display:flex; flex-direction:column; gap:3px; font-size:11px; font-weight:600; color:#6a7d90; }
+.m3-srow{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid rgba(10,27,46,.08); } .m3-srow:last-child{ border-bottom:none; } .m3-srow > span{ flex:1; display:flex; flex-direction:column; gap:2px; } .m3-srow b{ font-size:14.5px; } .m3-srow small{ font-size:12.5px; color:#44576b; }
+.m3-q{ width:100%; min-height:48px; border-radius:12px; border:2px solid #1553d8; background:#fff; padding:0 14px; font:16px Inter,system-ui,sans-serif; color:#0a1b2e; box-sizing:border-box; }
+.m3dn{ position:fixed; inset:0; z-index:9999; background:#0a1b2e; color:#fff; display:flex; flex-direction:column; gap:16px; padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(24px + env(safe-area-inset-bottom,0px)); overflow:auto; font-family:Inter,system-ui,sans-serif; }
+.m3dn-top{ display:flex; justify-content:space-between; align-items:center; } .m3dn-top button{ background:none; border:none; color:#9fb4ff; font:600 15px Inter,system-ui,sans-serif; padding:6px 0; } .m3dn-top span{ font:600 11px var(--font-mono); letter-spacing:.08em; color:#c3cedb; }
+.m3dn-bar{ height:4px; border-radius:2px; background:rgba(255,255,255,.14); position:relative; } .m3dn-bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:2px; background:#fff; }
+.m3dn-card{ background:#fff; color:#0a1b2e; border-radius:22px; padding:20px 18px; display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+.m3dn-q{ font:700 17px Inter,system-ui,sans-serif; margin-top:4px; }
+.m3dn-btns{ display:flex; flex-direction:column; gap:10px; margin-top:auto; } .m3dn-btns > div{ display:flex; gap:10px; }
+.m3dn-btns button{ flex:1; min-height:50px; border-radius:14px; border:1px solid rgba(255,255,255,.28); background:transparent; color:#fff; font:600 15px Inter,system-ui,sans-serif; }
+.m3dn-btns button.yes{ min-height:54px; border:none; background:#14794e; font-weight:700; font-size:16px; } .m3dn-btns button.muted{ color:#c3cedb; }
+.m3dn-end{ display:flex; flex-direction:column; gap:10px; margin-top:40px; } .m3dn-end b{ font-size:26px; font-weight:800; } .m3dn-end span{ font-size:15px; line-height:1.5; color:#c3cedb; }
+.m3dn-end button{ margin-top:12px; align-self:flex-start; min-height:44px; padding:0 18px; border-radius:999px; border:none; background:#fff; color:#0a1b2e; font:700 14px Inter,system-ui,sans-serif; }
 @media (max-width: 768px){
   #view-root, .vessel-switcher, .fab{ display:none !important; }
   /* Header: lascia spazio alla status bar del telefono (notch/isola) */
@@ -8742,21 +8814,21 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
 
 <!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
 <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
-  <button class="mtab" data-mtab="flotta" aria-label="Flotta">
+  <button class="mtab" data-mtab="flotta" aria-label="Oggi">
+    <svg class="icon"><use href="#i-home"/></svg>
+    <span class="mtab-l">Oggi</span>
+  </button>
+  <button class="mtab" data-mtab="navi" aria-label="Navi">
     <svg class="icon"><use href="#i-ship"/></svg>
-    <span class="mtab-l">Flotta</span>
+    <span class="mtab-l">Navi</span>
   </button>
-  <button class="mtab" data-mtab="todo" aria-label="To-do">
-    <svg class="icon"><use href="#i-checksquare"/></svg>
-    <span class="mtab-l">To-do</span>
-    <span class="mtab-dot" id="mtab-todos-dot" style="display:none;"></span>
+  <button class="mtab" data-mtab="cerca" aria-label="Cerca">
+    <svg class="icon"><use href="#i-search"/></svg>
+    <span class="mtab-l">Cerca</span>
   </button>
-  <button class="mtab mtab-add" data-mtab="add" aria-label="Nuova to-do">
-    <span class="mtab-add-btn"><svg class="icon"><use href="#i-plus"/></svg></span>
-  </button>
-  <button class="mtab" data-mtab="email" aria-label="Email">
+  <button class="mtab" data-mtab="email" aria-label="Posta">
     <svg class="icon"><use href="#i-mail"/></svg>
-    <span class="mtab-l">Email</span>
+    <span class="mtab-l">Posta</span>
     <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
   </button>
   <button class="mtab" data-mtab="altro" aria-label="Altro">
@@ -10837,7 +10909,7 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const scr2tab = { home:"flotta", flotta:"flotta", todo:"todo", email:"email", cert:"altro", rubrica:"altro" };
+  const scr2tab = { home:"flotta", flotta:"flotta", navi:"navi", cerca:"cerca", todo:"altro", email:"email", cert:"altro", rubrica:"altro" };
   const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "flotta") : "flotta";
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
@@ -11341,12 +11413,15 @@ function renderMobileApp(){
   if(!app) return;
   if(!state.data){ app.innerHTML = `<div class="ma-empty" style="margin-top:40px">Caricamento…</div>`; return; }
   let html;
-  if(mstate.vessel) html = maVesselDetail(mstate.vessel);
+  const _v3 = typeof m3Today === "function";
+  if(mstate.vessel) html = _v3 ? m3Vessel(mstate.vessel) : maVesselDetail(mstate.vessel);
+  else if(_v3 && mstate.screen==="navi") html = m3Navi();
+  else if(_v3 && mstate.screen==="cerca") html = m3Search();
   else if(mstate.screen==="todo") html = maTodo();
   else if(mstate.screen==="email") html = maEmail();
   else if(mstate.screen==="cert") html = maCert();
   else if(mstate.screen==="rubrica") html = maRubrica();
-  else html = maHome();
+  else html = _v3 ? m3Today() : maHome();
   app.innerHTML = html;
 }
 
@@ -11357,7 +11432,7 @@ function mgo(screen){
   try{ window.scrollTo({top:0}); }catch(_){}
 }
 window.mgo = mgo;
-window.maOpenVessel = function(vid){ mstate.screen="flotta"; mstate.vessel=vid; mstate.detTab="ops"; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
+window.maOpenVessel = function(vid){ if(mstate.screen!=="navi") mstate.screen="flotta"; mstate.vessel=vid; mstate.m3Noon=false; mstate.detTab="ops"; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
 window.maDetTab = function(t){ mstate.detTab=t; renderMobileApp(); };
 window.maBack = function(){ mstate.vessel=null; renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
 window.maRubKind = function(k){ mstate.rubKind=k; renderMobileApp(); };
@@ -11443,7 +11518,7 @@ window.maTodoSetDue = function(id,val){
   const t=(state.todos||[]).find(x=>String(x.id)===String(id)); if(!t) return;
   const changed = (t.dueDate||"") !== (val||"");
   t.dueDate = val||null;
-  if(changed) maMarkSync(t,true);
+  if(changed){ t.updatedAt = new Date().toISOString(); maMarkSync(t,false); }
   document.querySelectorAll("#ma-sheet-host .ma-duechip").forEach(b=>{
     b.classList.toggle("on", b.getAttribute("onclick").includes(`'${val}'`));
   });
@@ -11599,7 +11674,8 @@ window.maOpenAltro = function(){
     ${row("🔄","Aggiorna dati","",'maCloseSheet();(document.getElementById(\'btn-refresh\')||{click:()=>{}}).click();maToast(\'Aggiornamento avviato\')')}
     ${row("🌙","Fine giornata","",'maCloseSheet();(document.getElementById(\'btn-eod\')||{click:()=>{}}).click()')}
     <div class="ma-sheet-h" style="margin-top:8px">NAVIGA</div>
-    ${row("🚢","Flotta","",'mgo(\'flotta\')')}
+    ${row("✓","To-do",(todosOpen().length||0)+" aperte",'mgo(\'todo\')')}
+    ${row("↺","Pulizia DN","conferma le DN vecchie",'m3DnStart()')}
     ${row("📇","Rubrica","fornitori e agenzie",'mgo(\'rubrica\')')}
     ${row("📅","Certificati","",'maGoCert(\'all\')')}
     ${row("📨","RFQ da sollecitare","tutta la flotta",'maOpenRfqAll()')}
@@ -26036,8 +26112,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const t = tab.dataset.mtab;
       if (t === "add") { if (typeof openTodoModal === "function") openTodoModal(); return; }
       if (t === "altro") { if (typeof maOpenAltro === "function") maOpenAltro(); return; }
-      if (t === "cerca") { const b = document.getElementById("btn-palette"); if (b) b.click(); return; }
-      const tab2scr = { flotta:"flotta", email:"email", todo:"todo" };
+      const tab2scr = { flotta:"flotta", navi:"navi", cerca:"cerca", email:"email", todo:"todo" };
       mgo(tab2scr[t] || "flotta");
     });
   });
@@ -26896,7 +26971,7 @@ function mpOf(it, now){
   const m = mpManual(it.id);
   if(it.dnStatus === "DN Received on Board") return { pos:"onboard" };
   if(m && (m.pos === "onboard" || m.pos === "repair")) return Object.assign({ manual:true }, m);
-  if(rdStaleDN(it, now)) return { pos:"transit", stale:true };
+  if(rdStaleDN(it, now) && !(m && m.pos === "transit")) return { pos:"transit", stale:true };
   const moving = getItemShipments(it.id).some(s => s.status !== "delivered");
   if(moving || it.dnStatus === "DN Shipped to Vessel") return { pos:"transit" };
   if(m) return Object.assign({ manual:true }, m);
@@ -27100,6 +27175,249 @@ function mpCardHTML(cfg, v, M, tasks, opt){
     route + propHTML + matHTML + tHTML + bunk + '</div>';
 }
 window.mpCardHTML = mpCardHTML;
+
+
+// ============================================================================
+// === v0.98 MOBILE v3 — fuori dall'ufficio ==================================
+// Oggi (scali dal noon + max 3 mosse + navi) · Nave = prossimo scalo · PO sheet
+// (posizione a pulsanti, scalo, contatti) · Pulizia DN · Cerca in tab.
+// Legge gli stessi dati del PC (mpWhere, mpOf, rdModel, mpd.matPos).
+// ============================================================================
+const m3E = s => escapeAttr(String(s == null ? "" : s)).replace(/'/g, "\\'");
+const m3Cap = s => s ? String(s).charAt(0).toUpperCase() + String(s).slice(1).toLowerCase() : "";
+const m3Short = n => String(n || "").replace(/^\d{4}-[A-Z]{3}-/, "");
+function m3Eb(t, c){ return '<div class="m3-eb"' + (c ? ' style="color:' + c + '"' : "") + '>' + escapeHTML(t) + '</div>'; }
+function m3VName(vid){ return ((VESSELS || []).find(v => v.vesselId === vid) || {}).displayName || vid; }
+function m3Items(vid){ const v = (state.data && state.data.vessels || []).find(x => x.vesselId === vid); return (v && v.items) || []; }
+function m3Lane(vid){ try { return ((window._m3M || rdModel()).lanes || []).find(l => l.vid === vid) || { calls: [], un: 0 }; } catch(e) { return { calls: [], un: 0 }; } }
+function m3Assigned(vid){ const s = new Set(); ["current","next"].forEach(w => { try { itemsForLeg(vid, w).forEach(it => s.add(it.id)); } catch(e) {} }); return s; }
+function m3Late(it, today){ return it.poNumber && !it.dnStatus && !rdCancelled(it) && String(it.poDeliveryDate || "").slice(0,10) && String(it.poDeliveryDate).slice(0,10) < today && !mpIntentional(it) && !(mpManual(it.id) && mpManual(it.id).pos); }
+function m3Counts(vid){
+  const c = { route:0, routeD:0, supplier:0, supplierD:0, hub:0, repair:0, transit:0, stale:0 };
+  m3Items(vid).forEach(it => { const p = mpOf(it); if(!p || p.pos === "onboard") return; if(p.stale){ c.stale++; return; } c[p.pos]++; if(p.derived && (p.pos === "route" || p.pos === "supplier")) c[p.pos + "D"]++; });
+  return c;
+}
+function m3Verdict(vid){
+  const W = mpWhere(vid), nc = W && W.nc;
+  const ST = { in_port:"in porto", at_anchor:"alla fonda", drydock:"in cantiere", loading:"in carico", discharging:"in scarico" };
+  if(!W) return { t: "Nessuna posizione recente.", c: "" };
+  if(W.src === "manualpos") return { t: "Posizione indicata da te: " + W.manualCity + ".", c: "" };
+  if(W.old) return { t: "Viaggio fermo a " + m3Cap(W.port) + " (" + mpFD(W.eta || W.etb) + ").", c: "amber", short: "viaggio da aggiornare" };
+  if(W.guess && nc) return { t: "A " + Math.round(nc.mtg) + " nm da " + m3Cap(W.port) + ".", c: "", short: "al largo di " + m3Cap(W.port) };
+  const st = ST[W.status];
+  if(st && W.src !== "noon") return { t: m3Cap(W.port) + ": nave " + st + (W.etd ? ", partenza " + mpFD(W.etd) : "") + ".", c: "", short: m3Cap(W.port) + " · " + st };
+  return { t: "In rotta per " + m3Cap(W.port) + (W.eta ? ", arrivo " + mpFD(W.eta) : "") + ".", c: "", short: m3Cap(W.port) + (W.eta ? " " + mpFD(W.eta) : "") + (nc && nc.mtg != null && nc.mtg > 50 ? " · " + Math.round(nc.mtg).toLocaleString("it-IT") + " nm" : "") };
+}
+function m3Pct(nc){ if(!nc || nc.mtg == null) return null; if(nc.guess) return 97; return nc.spd ? Math.max(4, Math.min(94, 100 - nc.mtg / Math.max(nc.mtg, 3000) * 90)) : 10; }
+
+function m3Moves(){
+  const today = mpToday(), out = [];
+  const late = {}; let lateN = 0;
+  (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { if(m3Late(it, today)){ lateN++; late[c.vesselId] = (late[c.vesselId] || 0) + 1; } }));
+  if(lateN){ const top = Object.keys(late).sort((a,b) => late[b] - late[a]); out.push({ n: lateN, red: true, t: "PO oltre il pronto, senza DN", s: top.map(v => m3VName(v) + " " + late[v]).join(" · ") + " · fermi apposta o in ritardo?", cta: "Rivedi", go: "m3List('late')" }); }
+  let unN = 0, unTop = null;
+  (VESSELS || []).forEach(c => { const l = m3Lane(c.vesselId); unN += l.un || 0; if((l.un || 0) > ((unTop && unTop.un) || 0)) unTop = { vid: c.vesselId, un: l.un }; });
+  if(unN && unTop){ const v = m3Verdict(unTop.vid); out.push({ n: unN, t: "PO senza scalo", s: m3VName(unTop.vid) + " " + unTop.un + (v.c === "amber" ? " · " + v.t.charAt(0).toLowerCase() + v.t.slice(1).replace(/\.$/, "") : " · assegnali allo scalo"), cta: "Assegna", go: "maOpenVessel('" + m3E(unTop.vid) + "')" }); }
+  let rf = []; try { rf = maFleetStaleRFQs() || []; } catch(e) {}
+  if(rf.length){ const by = {}; rf.forEach(r => by[r.vname] = (by[r.vname] || 0) + 1); out.push({ n: rf.length, t: "RFQ da sollecitare", s: Object.keys(by).map(k => by[k] + " " + k).join(" · "), cta: "Sollecita", go: "maOpenRfqAll()" }); }
+  return out.slice(0, 3);
+}
+function m3NaviRows(){
+  return (VESSELS || []).map(c => {
+    const vid = c.vesselId, W = mpWhere(vid), v = m3Verdict(vid), nc = W && W.nc, cnt = m3Counts(vid), l = m3Lane(vid), pct = m3Pct(nc && !W.old ? nc : null);
+    const has = m3Items(vid).length;
+    const chips = has ? [cnt.supplier ? '<span><i style="background:#c07800"></i>' + cnt.supplier + ' dal fornitore</span>' : "", cnt.hub ? '<span><i style="background:#b06a00"></i>' + cnt.hub + ' all\'hub</span>' : "", cnt.transit ? '<span><i style="background:#14794e"></i>' + cnt.transit + ' in viaggio</span>' : "", l.un ? '<span>' + l.un + ' senza scalo</span>' : ""].filter(Boolean).join("") : "";
+    return '<button class="m3-vrow" onclick="maOpenVessel(\'' + m3E(vid) + '\')"><span class="m3-vrow-h"><b>' + escapeHTML(c.displayName) + '</b><span class="' + (v.c === "amber" ? "amber" : "") + '">' + escapeHTML(v.short || (has ? v.t.replace(/\.$/, "") : "nessun viaggio · manuale")) + '</span></span>' +
+      (pct != null ? '<span class="m3-bar"><i style="width:' + pct + '%"></i></span>' : "") + (chips ? '<span class="m3-chips">' + chips + '</span>' : "") + '</button>';
+  }).join("");
+}
+function m3Today(){
+  try { window._m3M = rdModel(); } catch(e) { window._m3M = null; }
+  const d = new Date();
+  const when = d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase() + " · " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  const props = (VESSELS || []).map(c => ({ c, p: mpProposal(c.vesselId) })).filter(x => x.p);
+  const moves = m3Moves();
+  let stale = 0; (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { const p = mpOf(it); if(p && p.stale) stale++; }));
+  const sub = [props.length ? props.length + (props.length > 1 ? " scali da confermare" : " scalo da confermare") : "", moves.length ? moves.length + (moves.length > 1 ? " mosse" : " mossa") : ""].filter(Boolean).join(", ") || "Niente da fare adesso.";
+  const propHTML = props.length ? m3Eb("DAI NOON DI STANOTTE", "#1553d8") + '<div class="m3-card m3-blue">' + props.map(({ c, p }) => {
+    const txt = p.guess ? "A " + Math.round(p.mtg) + " nm da <b>" + escapeHTML(m3Cap(p.port)) + "</b>. Il noon non indica il porto: l'ho dedotto dalla posizione." : "In rotta per <b>" + escapeHTML(m3Cap(p.port)) + "</b>" + (p.eta ? ", ETA " + mpFD(p.eta) + " " + (String(p.eta).split("T")[1] || "").slice(0,5) : "") + ". Manca l'ETD.";
+    return '<div class="m3-prop"><div class="m3-row-h"><b>' + escapeHTML(c.displayName) + '</b><span class="m3-mono">NOON ' + mpFD(p.date) + '</span></div><div class="m3-txt">' + txt + '</div>' +
+      '<div class="m3-btns"><button class="m3-btn pri" onclick="window.mpApplyNoon(\'' + m3E(c.vesselId) + '\')">' + (p.guess ? "Conferma " + escapeHTML(m3Cap(p.port)) : "Imposta scalo") + '</button><button class="m3-btn" onclick="window.openVoyageEditor(\'' + m3E(c.vesselId) + '\')">' + (p.guess ? "Altro porto" : "Correggi") + '</button></div></div>';
+  }).join("") + '</div>' : "";
+  const movesHTML = moves.length ? m3Eb("LE MOSSE") + '<div class="m3-card">' + moves.map(m => '<button class="m3-move" onclick="' + m.go + '"><span class="m3-n' + (m.red ? " red" : "") + '">' + m.n + '</span><span class="m3-move-t"><b>' + escapeHTML(m.t) + '</b><small>' + escapeHTML(m.s) + '</small></span><span class="m3-cta">' + m.cta + '</span></button>').join("") + '</div>' : "";
+  const clean = stale ? '<div class="m3-dark"><div><b>5 minuti di pulizia</b><small>' + stale + ' DN "in viaggio" da oltre 30 giorni. Confermane qualcuna mentre aspetti.</small></div><button onclick="m3DnStart()">Inizia</button></div>' : "";
+  return '<div class="m3-head"><div class="m3-mono">' + escapeHTML(when) + '</div><div class="m3-h1">Oggi</div><div class="m3-sub">' + escapeHTML(sub) + '</div></div>' +
+    propHTML + movesHTML + m3Eb("NAVI") + '<div class="m3-card">' + m3NaviRows() + '</div>' + clean;
+}
+function m3Navi(){ try { window._m3M = rdModel(); } catch(e) {} return '<div class="m3-head"><div class="m3-h1">Navi</div></div><div class="m3-card">' + m3NaviRows() + '</div>'; }
+
+function m3Vessel(vid){
+  try { window._m3M = rdModel(); } catch(e) {}
+  const cfg = (VESSELS || []).find(v => v.vesselId === vid) || {}, name = cfg.displayName || vid;
+  const tab = mstate.detTab || "ops";
+  if(tab !== "ops"){
+    const body = tab === "todo" ? maVesselTodoPane(vid, cfg) : tab === "email" ? maVesselEmailPane(vid) : tab === "buy" ? maVesselBuyPane(vid, cfg) : maVesselDocsPane(vid);
+    const T = { todo: "To-do", email: "Comunicazioni", buy: "Acquisti e RFQ", docs: "Documenti e certificati" }[tab];
+    return '<button class="ma-back" onclick="maDetTab(\'ops\')">‹ ' + escapeHTML(name) + '</button><div class="m3-h1" style="margin:0 2px 12px">' + T + '</div>' + body;
+  }
+  const W = mpWhere(vid), nc = W && W.nc, v = m3Verdict(vid), prop = mpProposal(vid), fut = mpVoyFuture(vid);
+  const meta = [nc ? "NOON " + mpFD(nc.date) : "", W && W.src !== "noon" && W.voyAt ? "VIAGGIO " + mpFD(W.voyAt) : ""].filter(Boolean).join(" · ");
+  let route = "";
+  if(nc){
+    const pct = m3Pct(nc), P = W && W.port && !W.old ? W : nc;
+    const pt = String(nc.n.positionText || "").split("/"), lon = mpLL(nc.n.lon) ?? mpLL(pt[1]);
+    const st = lon != null && typeof shipLocalTimeFromLon === "function" ? shipLocalTimeFromLon(lon) : null;
+    const b = nc.n.bunkers || {}, cons = parseFloat(nc.n.consumption && nc.n.consumption.lsfo), f = x => (+x).toLocaleString("it-IT", { maximumFractionDigits: 0 });
+    const cell = (k, val, s, c) => val ? '<div><span class="m3-k">' + k + '</span><b class="m3-mono-v">' + val + '</b>' + (s ? '<small' + (c ? ' style="color:' + c + '"' : "") + '>' + s + '</small>' : "") + '</div>' : "";
+    const cells = [b.lsfo ? cell("LSFO", f(b.lsfo) + " t", cons >= 8 ? "~" + Math.floor(b.lsfo / cons) + " gg" : "", "#14794e") : "", b.fw ? cell("FW", f(b.fw) + " t") : "", st ? cell("A BORDO", st.text, st.off) : ""].filter(Boolean).join("");
+    route = '<div class="m3-card m3-pad"><div class="m3-track"><i class="done" style="width:' + pct + '%"></i><i class="ship" style="left:' + pct + '%"></i><i class="port' + (prop || !fut ? " dash" : "") + '"></i></div>' +
+      '<div class="m3-rl"><span>' + escapeHTML(nc.guess ? (nc.n.positionText || "") : (nc.from || "")) + '</span><span>' + escapeHTML([nc.mtg != null ? Math.round(nc.mtg).toLocaleString("it-IT") + " nm" : "", nc.spd ? String(nc.spd).replace(".", ",") + " kn" : ""].filter(Boolean).join(" · ")) + '</span><b>' + escapeHTML(P.port + (P.eta ? " " + mpFD(P.eta) : "")) + '</b></div>' +
+      (cells ? '<div class="m3-grid">' + cells + '</div>' : "") +
+      '<button class="m3-link" onclick="mstate.m3Noon=!mstate.m3Noon;renderMobileApp()">' + (mstate.m3Noon ? "Nascondi il noon completo" : "Noon completo, consumi e meteo ›") + '</button>' + (mstate.m3Noon ? maNoonBlock(vid) : "") + '</div>';
+  }
+  let box = "";
+  if(prop) box = '<div class="m3-note blue"><span>' + (prop.guess ? "Posizione compatibile con <b>" + escapeHTML(m3Cap(prop.port)) + "</b>. Confermi lo scalo?" : "Scalo " + escapeHTML(m3Cap(prop.port)) + " non ancora impostato: <b>nessun limite di consegna</b>.") + '</span><button class="m3-pill" onclick="window.mpApplyNoon(\'' + m3E(vid) + '\')">' + (prop.guess ? "Conferma" : "Imposta") + '</button></div>';
+  else if(fut && !fut.etd) box = '<div class="m3-note"><span>ETD di ' + escapeHTML(m3Cap(fut.to)) + ' non indicata: uso ETB + 1 g.</span><button class="m3-pill sec" onclick="window.openVoyageEditor(\'' + m3E(vid) + '\')">Aggiungi ETD</button></div>';
+  else if(W && W.old) box = '<div class="m3-note amber"><span>Il viaggio è fermo al ' + mpFD(W.eta || W.etb) + '. Aggiornalo per riaccendere il radar.</span><button class="m3-pill sec" onclick="window.openVoyageEditor(\'' + m3E(vid) + '\')">Aggiorna</button></div>';
+  const has = m3Items(vid).length, cnt = m3Counts(vid), l = m3Lane(vid);
+  const mrow = (dot, t, s, n, go, ring) => n ? '<button class="m3-mrow" onclick="' + go + '"><i style="' + (ring ? "border:1.5px solid " + dot : "background:" + dot) + '"></i><span><b>' + t + '</b>' + (s ? '<small>' + escapeHTML(s) + '</small>' : "") + '</span><em>' + n + '</em><u>›</u></button>' : "";
+  const port = W && W.port && !W.old ? m3Cap(W.port) : "";
+  const mat = has ? [
+    mrow("#14794e", "In viaggio", "", cnt.transit, "m3List('pos','" + m3E(vid) + "','transit')"),
+    mrow("#c07800", "Presso il fornitore", cnt.supplierD ? cnt.supplierD + " dedotti, da confermare" : "fermi apposta", cnt.supplier, "m3List('pos','" + m3E(vid) + "','supplier')"),
+    mrow("#b06a00", "All'hub TML", "", cnt.hub, "m3List('pos','" + m3E(vid) + "','hub')"),
+    mrow("#6b4fc4", "In riparazione", "", cnt.repair, "m3List('pos','" + m3E(vid) + "','repair')"),
+    mrow("#1553d8", "In attesa di rotta", port ? "scegli il fornitore vicino a " + port : "richieste senza PO", cnt.route, "m3List('pos','" + m3E(vid) + "','route')"),
+    mrow("#c0261c", "DN vecchie da chiudere", "in viaggio da oltre 30 gg, probabilmente a bordo", cnt.stale, "m3DnStart('" + m3E(vid) + "')", true)
+  ].join("") : "";
+  const matHTML = has ? m3Eb("DOVE SI TROVA IL MATERIALE") + '<div class="m3-card">' + (mat || '<div class="m3-empty">Tutto a bordo.</div>') + (l.un ? '<button class="m3-mrow" onclick="m3List(\'unsched\',\'' + m3E(vid) + '\')"><i style="border:1.5px dashed #6a7d90"></i><span><b>Senza scalo</b><small>' + (port ? "assegnali a " + port : "manca lo scalo") + '</small></span><em>' + l.un + '</em><u>›</u></button>' : "") + '</div>'
+    : m3Eb("DOVE SI TROVA IL MATERIALE") + '<div class="m3-card m3-pad"><div class="m3-txt">Nessun ordine da Infoship: i PO compariranno qui quando la nave sarà a regime.</div></div>';
+  const leg = (W && W.leg) || fut || null, ag = leg && leg.agency, agName = ag && (ag.name || (typeof ag === "string" ? ag : "")) || "";
+  const agP = agName ? getEntityProfile("agency", agName) : {}, agEmail = (ag && ag.email) || agP.email || "", agPhone = String((ag && ag.phone) || agP.phone || "").replace(/[^\d+]/g, "");
+  const agHTML = port ? m3Eb("A " + port.toUpperCase()) + '<div class="m3-card m3-pad m3-agency"><span><b>' + escapeHTML(agName || "Agenzia da indicare") + '</b><small>' + (agName ? [agEmail, agPhone].filter(Boolean).map(escapeHTML).join(" · ") || "contatti non in Rubrica" : "Dalla Rubrica, poi la chiami con un tocco") + '</small></span>' +
+    (agPhone ? '<a class="m3-pill" href="tel:' + escapeAttr(agPhone) + '">Chiama</a>' : '<button class="m3-pill sec" onclick="window.openVoyageEditor(\'' + m3E(vid) + '\')">' + (agName ? "Modifica" : "Scegli") + '</button>') + '</div>' : "";
+  let todoN = 0, emN = 0, rfqN = 0;
+  try { todoN = (state.todos || []).filter(t => todoActive(t) && t.vessel === vid).length; } catch(e) {}
+  try { emN = getEmailThreads().filter(r => r.vesselId === vid).length; } catch(e) {}
+  try { rfqN = (getStaleRFQs(vid, 8) || []).length; } catch(e) {}
+  const orow = (t, n, k) => '<button class="m3-mrow" onclick="maDetTab(\'' + k + '\')"><span><b>' + t + '</b></span>' + (n ? '<em>' + n + '</em>' : "") + '<u>›</u></button>';
+  const other = m3Eb("ALTRO PER QUESTA NAVE") + '<div class="m3-card">' + orow("To-do", todoN, "todo") + orow("Comunicazioni", emN, "email") + orow("Acquisti e RFQ" + (rfqN ? " · " + rfqN + " da sollecitare" : ""), 0, "buy") + orow("Documenti e certificati", 0, "docs") + '</div>';
+  const acts = '<div class="m3-acts">' + (agEmail ? '<a class="m3-btn" href="mailto:' + escapeAttr(agEmail) + '">Email agente</a>' : '<button class="m3-btn" disabled>Email agente</button>') +
+    (cfg.masterEmail ? '<a class="m3-btn" href="mailto:' + escapeAttr(cfg.masterEmail) + '">Comandante</a>' : '<button class="m3-btn" disabled>Comandante</button>') +
+    '<button class="m3-btn ink" onclick="maNewTodoFor(\'' + m3E(vid) + '\')">+ To-do</button></div>';
+  return '<button class="ma-back" onclick="maBack()">‹ ' + (mstate.screen === "navi" ? "Navi" : "Oggi") + '</button><div class="m3-row-h"><span class="m3-h1">' + escapeHTML(name) + '</span><span class="m3-mono">' + meta + '</span></div>' +
+    '<div class="m3-verdict ' + v.c + '">' + escapeHTML(v.t) + '</div>' + acts + route + box + matHTML + agHTML + other;
+}
+
+// --- liste + scheda PO ----------------------------------------------------------
+window.m3List = function(kind, vid, pos){
+  const today = mpToday(); let rows = [], title = "";
+  const vs = vid ? [vid] : (VESSELS || []).map(c => c.vesselId);
+  if(kind === "late"){ title = "PO OLTRE IL PRONTO, SENZA DN"; vs.forEach(v => m3Items(v).forEach(it => { if(m3Late(it, today)) rows.push({ it, v }); })); rows.sort((a,b) => String(a.it.poDeliveryDate).localeCompare(String(b.it.poDeliveryDate))); }
+  else if(kind === "unsched"){ const l = m3Lane(vid); title = "SENZA SCALO · " + m3VName(vid); const as = m3Assigned(vid); m3Items(vid).forEach(it => { if(!it.poNumber || rdCancelled(it) || it.dnStatus === "DN Received on Board" || rdStaleDN(it, Date.now()) || as.has(it.id)) return; rows.push({ it, v: vid }); }); }
+  else { title = (MP_POS[pos] ? MP_POS[pos].l.toUpperCase() : "") + " · " + m3VName(vid); m3Items(vid).forEach(it => { const p = mpOf(it); if(p && !p.stale && p.pos === pos) rows.push({ it, v: vid }); }); }
+  const body = rows.length ? rows.slice(0, 60).map(r => m3ItemRow(r.it, r.v, !vid)).join("") + (rows.length > 60 ? '<div class="m3-empty">+ altri ' + (rows.length - 60) + ': usa Cerca</div>' : "") : '<div class="m3-empty">Niente qui.</div>';
+  maRenderSheet('<div class="ma-sheet-h">' + escapeHTML(title) + ' (' + rows.length + ')</div><div class="m3-card">' + body + '</div>');
+};
+function m3ItemRow(it, vid, showV){
+  const p = mpOf(it) || { pos: "route" }, P = MP_POS[p.pos] || MP_POS.route, today = mpToday();
+  const num = it.poNumber || it.reqNumber || (it.rfqNumbers || [])[0] || "";
+  const warn = [];
+  if(rdCancelled(it)) warn.push("annullato");
+  else {
+    if(m3Late(it, today)) warn.push("pronto dal " + mpFD(it.poDeliveryDate) + " · senza DN");
+    if(it.poNumber && p.pos !== "onboard" && !p.stale && !m3Assigned(vid).has(it.id)) warn.push("senza scalo");
+  }
+  return '<button class="m3-irow" onclick="m3Po(\'' + m3E(it.id) + '\')"><span class="m3-irow-h"><span class="m3-mono">' + escapeHTML(m3Short(num)) + (showV ? " · " + escapeHTML(m3VName(vid)) : "") + '</span><span style="color:' + (rdCancelled(it) ? "#6a7d90" : P.c) + '">' + (rdCancelled(it) ? "annullato" : "● " + escapeHTML(P.s)) + '</span></span><b>' + escapeHTML(it.description || "—") + '</b>' +
+    (warn.length ? '<small class="' + (warn.some(w => /pronto/.test(w)) ? "red" : "") + '">' + escapeHTML(warn.join(" · ")) + '</small>' : '<small>' + escapeHTML(it.supplier || "") + '</small>') + '</button>';
+}
+window.m3Po = function(id){
+  const it = faFindItem(id); if(!it) return;
+  const vid = mpVidOf(id), p = mpOf(it) || { pos: "route" }, hasPO = !!(it.poNumber || it.dnStatus), eid = m3E(id);
+  const opts = hasPO ? ["supplier","hub","repair","transit","onboard"] : ["route"];
+  const btn = k => { const on = p.pos === k, ded = on && !p.manual, c = MP_POS[k].c; return '<button class="m3-pos' + (on ? (ded ? " ded" : " on") : "") + '" style="--c:' + c + '" onclick="m3SetPos(\'' + eid + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>'; };
+  const notes = { supplier: p.manual ? "Fermo apposta dal fornitore: non compare più tra gli ordini in ritardo." : "Dedotto: PO emesso, nessuna DN. Se lo tieni lì apposta, toccalo per confermare.",
+    hub: "Il radar calcola l'arrivo dall'hub.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
+  let extra = "";
+  if(p.pos === "hub" && p.manual) extra = '<div class="m3-fields"><select onchange="m3Field(\'' + eid + '\',\'hub\',this.value)">' + TML_HUBS.map(hb => '<option value="' + hb.id + '"' + (hb.id === p.hub ? " selected" : "") + '>' + escapeHTML(hb.name + " · " + hb.city) + '</option>').join("") + '</select><input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></div>';
+  if(p.pos === "repair" && p.manual) extra = '<div class="m3-fields"><label>Sbarcato<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></label><label>Rientro<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="m3Field(\'' + eid + '\',\'back\',this.value)"></label></div>';
+  let leg = "";
+  ["current","next"].forEach(w => { if(!leg && itemsForLeg(vid, w).some(x => x.id === id)) leg = (getVoyage(vid)[w] || {}).to || ""; });
+  const plan = getDeliveryPlan(id), W = mpWhere(vid), fut = mpVoyFuture(vid), prop = mpProposal(vid);
+  let scalo = "";
+  if(hasPO && p.pos !== "onboard"){
+    if(leg) scalo = '<div class="m3-note"><span>Consegna a <b>' + escapeHTML(m3Cap(leg)) + '</b>.</span></div>';
+    else if(plan && plan.mode === "manual" && plan.port) scalo = '<div class="m3-note"><span>Consegna pianificata a <b>' + escapeHTML(m3Cap(plan.port)) + '</b>' + (plan.date ? " · " + mpFD(plan.date) : "") + '.</span></div>';
+    else if(fut) scalo = '<div class="m3-note blue"><span>Nessuno scalo. Prossimo: <b>' + escapeHTML(m3Cap(fut.to)) + '</b>.</span><button class="m3-pill" onclick="m3Assign(\'' + eid + '\')">Assegna</button></div>';
+    else if(prop) scalo = '<div class="m3-note blue"><span>Nessuno scalo. ' + (prop.guess ? "La nave è a " + Math.round(prop.mtg) + " nm da " : "Il noon indica ") + '<b>' + escapeHTML(m3Cap(prop.port)) + '</b>.</span><button class="m3-pill" onclick="window.mpApplyNoon(\'' + m3E(vid) + '\');m3Assign(\'' + eid + '\')">Imposta e assegna</button></div>';
+    else scalo = '<div class="m3-note amber"><span>Nessuno scalo futuro nel viaggio.</span><button class="m3-pill sec" onclick="maCloseSheet();window.openVoyageEditor(\'' + m3E(vid) + '\')">Aggiorna</button></div>';
+  }
+  const sup = it.supplier && it.supplier !== "—" ? it.supplier : "";
+  const pr = sup ? getEntityProfile("supplier", sup) : {}, phone = String(pr.phone || "").replace(/[^\d+]/g, ""), wa = waDigits(pr.whatsapp || pr.phone || ""), mail = pr.email || (typeof rfqSupplierEmail === "function" ? rfqSupplierEmail(sup) : "");
+  const cbtn = (ok, href, t, cls) => ok ? '<a class="m3-btn ' + (cls || "") + '" href="' + escapeAttr(href) + '"' + (/^https/.test(href) ? ' target="_blank" rel="noopener"' : "") + '>' + t + '</a>' : '<button class="m3-btn" disabled>' + t + '</button>';
+  const num = it.poNumber || it.reqNumber || "";
+  maRenderSheet('<div class="m3-sheet"><div class="m3-mono">' + escapeHTML(num) + ' · ' + escapeHTML(m3VName(vid)) + '</div><div class="m3-h2">' + escapeHTML(it.description || "—") + '</div><div class="m3-txt">' + escapeHTML([sup, it.poDeliveryDate ? "pronto " + (String(it.poDeliveryDate).slice(0,10) < mpToday() ? "dal " : "il ") + mpFD(it.poDeliveryDate) : "", it.dnNumber ? m3Short(it.dnNumber) : ""].filter(Boolean).join(" · ")) + '</div>' +
+    m3Eb("DOVE SI TROVA") + '<div class="m3-posgrid">' + opts.map(btn).join("") + '</div><div class="m3-txt small">' + escapeHTML(notes[p.pos] || "") + (p.manual ? ' <a href="#" onclick="event.preventDefault();m3SetPos(\'' + eid + '\',\'auto\')">Automatico</a>' : "") + '</div>' + extra +
+    (scalo ? m3Eb("PER QUALE SCALO") + scalo : "") +
+    (sup ? m3Eb(sup.toUpperCase() + (phone || mail ? " · RUBRICA" : "")) + '<div class="m3-btns">' + cbtn(phone, "tel:" + phone, "Chiama", "ink") + cbtn(wa, "https://wa.me/" + wa, "WhatsApp") + cbtn(mail, "mailto:" + mail + "?subject=" + encodeURIComponent(num + " · " + m3VName(vid)), "Email") + '</div>' : "") + '</div>');
+};
+window.m3SetPos = function(id, pos){ window.mpSetPos(id, pos); try { renderMobileApp(); } catch(e) {} m3Po(id); };
+window.m3Field = function(id, k, v){ window.mpSetField(id, k, v); m3Po(id); };
+window.m3Assign = function(id){
+  const vid = mpVidOf(id), f = mpVoyFuture(vid); if(!f){ maToast("Prima imposta lo scalo"); return; }
+  const voy = getVoyage(vid) || {}, which = voy.next && voy.next.id && f.id === voy.next.id ? "next" : "current";
+  setDeliveryPlan(id, Object.assign({}, getDeliveryPlan(id) || {}, { mode: "voyage", leg: which, voyageLegId: f.id || undefined, updatedAt: new Date().toISOString() }));
+  maToast("Assegnato a " + m3Cap(f.to)); try { renderMobileApp(); } catch(e) {} m3Po(id);
+};
+
+// --- pulizia DN -----------------------------------------------------------------
+window.m3DnStart = function(vid){
+  maCloseSheet();
+  const now = Date.now(), list = [];
+  ((vid ? [vid] : (VESSELS || []).map(c => c.vesselId))).forEach(v => m3Items(v).forEach(it => { const p = mpOf(it, now); if(p && p.stale) list.push(it.id); }));
+  list.sort((a,b) => String((faFindItem(a) || {}).dnDate).localeCompare(String((faFindItem(b) || {}).dnDate)));
+  window._m3dn = { list, i: 0, yes: 0, no: 0, skip: 0 }; m3DnPaint();
+};
+function m3DnPaint(){
+  const host = document.getElementById("ma-brief-host"); if(!host) return;
+  const s = window._m3dn, n = s.list.length, done = s.i >= n;
+  const bar = '<div class="m3dn-top"><button onclick="m3DnEnd()">Fine</button><span>' + (done ? n + " DI " + n : (s.i + 1) + " DI " + n) + '</span></div><div class="m3dn-bar"><i style="width:' + (n ? Math.round(Math.min(s.i, n) / n * 100) : 100) + '%"></i></div>';
+  if(done){ host.innerHTML = '<div class="m3dn">' + bar + '<div class="m3dn-end"><b>Fatto.</b><span>' + s.yes + ' a bordo, ' + s.no + ' ancora in viaggio, ' + s.skip + ' saltate.' + (s.yes ? ' Le ' + s.yes + ' a bordo sono segnate "da chiudere in Infoship" per il PC.' : "") + '</span><button onclick="m3DnEnd()">Chiudi</button></div></div>'; return; }
+  const it = faFindItem(s.list[s.i]) || {}, vid = mpVidOf(it.id), age = mpDaysSince(it.dnDate);
+  host.innerHTML = '<div class="m3dn">' + bar + '<div class="m3dn-card"><div class="m3-row-h"><b>' + escapeHTML(m3VName(vid)) + '</b></div><div class="m3-mono">' + escapeHTML(it.dnNumber || "") + '</div><div class="m3-h2">' + escapeHTML(it.description || "—") + '</div><div class="m3-txt">' + escapeHTML(it.supplier || "") + '</div>' +
+    '<div class="m3-grid two"><div><span class="m3-k">SPEDITA</span><b class="m3-mono-v">' + mpFD(it.dnDate) + '</b><small style="color:#c0261c">' + (age != null ? age + " gg senza tracking" : "") + '</small></div><div><span class="m3-k">A BORDO PREVISTA</span><b class="m3-mono-v">' + (it.dnDeliveryDate ? mpFD(it.dnDeliveryDate) : "—") + '</b></div></div><div class="m3dn-q">È arrivata a bordo?</div></div>' +
+    '<div class="m3dn-btns"><button class="yes" onclick="m3DnAns(\'yes\')">Sì, è a bordo</button><div><button onclick="m3DnAns(\'no\')">Ancora in viaggio</button><button class="muted" onclick="m3DnAns(\'skip\')">Non so · salta</button></div></div></div>';
+}
+window.m3DnAns = function(a){
+  const s = window._m3dn, id = s.list[s.i];
+  if(a === "yes") mpSet(id, { pos: "onboard", closeInInfoship: true, by: "dn-clean" });
+  if(a === "no") mpSet(id, { pos: "transit", by: "dn-clean" });
+  s[a]++; s.i++; m3DnPaint();
+};
+window.m3DnEnd = function(){ const h = document.getElementById("ma-brief-host"); if(h) h.innerHTML = ""; try { render(); } catch(e) { renderMobileApp(); } };
+
+// --- Cerca ----------------------------------------------------------------------
+function m3Search(){
+  return '<div class="m3-head"><div class="m3-h1">Cerca</div></div><input id="m3-q" class="m3-q" type="search" autocomplete="off" placeholder="PO, RFQ, REQ, fornitore, articolo" value="' + escapeAttr(window._m3q || "") + '" oninput="window._m3q=this.value;m3SearchPaint()"><div id="m3-res">' + m3SearchHTML(window._m3q || "") + '</div>';
+}
+window.m3SearchPaint = function(){ const r = document.getElementById("m3-res"); if(r) r.innerHTML = m3SearchHTML(window._m3q || ""); };
+function m3SearchHTML(q){
+  q = String(q || "").trim().toLowerCase(); if(q.length < 2) return '<div class="m3-empty">Scrivi almeno 2 caratteri. Esempi: 00148, MAS, ejector.</div>';
+  const items = [], sups = {};
+  (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => {
+    const hay = [it.poNumber, it.reqNumber, it.dnNumber, (it.rfqNumbers || []).join(" "), it.description, it.supplier].join(" ").toLowerCase();
+    if(hay.includes(q)) items.push({ it, v: c.vesselId });
+    if(it.supplier && it.supplier.toLowerCase().includes(q)){ const s = sups[it.supplier] = sups[it.supplier] || { open: 0, v: new Set() }; if(it.poNumber && !rdCancelled(it) && it.dnStatus !== "DN Received on Board"){ s.open++; s.v.add(m3VName(c.vesselId)); } }
+  }));
+  try { Object.keys(loadEntityProfiles("supplier") || {}).forEach(n => { if(n.toLowerCase().includes(q) && !sups[n]) sups[n] = { open: 0, v: new Set() }; }); } catch(e) {}
+  const sn = Object.keys(sups).sort((a,b) => sups[b].open - sups[a].open).slice(0, 4);
+  const supHTML = sn.length ? m3Eb("FORNITORE") + '<div class="m3-card">' + sn.map(n => { const p = getEntityProfile("supplier", n) || {}, ph = String(p.phone || "").replace(/[^\d+]/g, ""), s = sups[n];
+    return '<div class="m3-srow"><span><b>' + escapeHTML(n) + '</b><small>' + (s.open ? s.open + " PO apert" + (s.open > 1 ? "i" : "o") + " · " + [...s.v].join(", ") : "nessun PO aperto") + '</small></span>' + (ph ? '<a class="m3-pill ink" href="tel:' + escapeAttr(ph) + '">Chiama</a>' : p.email ? '<a class="m3-pill sec" href="mailto:' + escapeAttr(p.email) + '">Email</a>' : "") + '</div>'; }).join("") + '</div>' : "";
+  items.sort((a,b) => (rdCancelled(a.it) ? 1 : 0) - (rdCancelled(b.it) ? 1 : 0) || ((mpOf(a.it) || {}).pos === "onboard" ? 1 : 0) - ((mpOf(b.it) || {}).pos === "onboard" ? 1 : 0));
+  const itHTML = items.length ? m3Eb("ORDINI E RICHIESTE · " + items.length) + '<div class="m3-card">' + items.slice(0, 30).map(x => m3ItemRow(x.it, x.v, true)).join("") + '</div>' + (items.length > 30 ? '<div class="m3-empty">Mostro i primi 30: affina la ricerca.</div>' : "") : "";
+  return supHTML + itHTML || '<div class="m3-empty">Nessun risultato per "' + escapeHTML(q) + '".</div>';
+}
+window.m3Today = m3Today;
 
 // === v0.96 BACKUP COMPLETO ==================================================
 // Scarica TUTTE le chiavi salvate da questa app nel browser (to-do, note, registri,
