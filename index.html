@@ -18476,8 +18476,18 @@ async function outlookPushCompletions(manual) {
       const api = "https://api.github.com/repos/" + OL_DONE_REPO + "/contents/" + OL_DONE_PATH, br = ((state.settings || {}).ghSyncBranch || "main").trim();
       const head = await fetch(api + "?ref=" + encodeURIComponent(br), { headers: ghSyncHeaders(), cache: "no-store" });
       const sha = head.ok ? ((await head.json()) || {}).sha : undefined;
-      const put = await fetch(api, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghSyncHeaders()), body: JSON.stringify({ message: "Dashboard: " + q.length + " to-do da chiudere in Outlook", content: b64EncodeUtf8(body), branch: br, sha }) });
-      if (!put.ok) throw new Error("GitHub " + put.status);
+      const doPut = s => fetch(api, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghSyncHeaders()), body: JSON.stringify({ message: "Dashboard: " + q.length + " to-do da chiudere in Outlook", content: b64EncodeUtf8(body), branch: br, sha: s }) });
+      let put = await doPut(sha);
+      if (put.status === 409 || put.status === 422) {   // sha cambiato nel frattempo: rileggo e riprovo una volta
+        const h2 = await fetch(api + "?ref=" + encodeURIComponent(br) + "&t=" + Date.now(), { headers: ghSyncHeaders(), cache: "no-store" });
+        put = await doPut(h2.ok ? ((await h2.json()) || {}).sha : undefined);
+      }
+      if (!put.ok) {
+        const why = put.status === 401 ? "token GitHub scaduto o non valido"
+          : (put.status === 403 || put.status === 404) ? "il token GitHub del Sync non ha il permesso di scrivere su " + OL_DONE_REPO + " (serve Contents: Read and write su quel repo)"
+          : "GitHub ha risposto " + put.status;
+        const e = new Error(why); e.gh = true; throw e;
+      }
       localStorage.setItem("mpd.olDoneSig", sig);
       console.log("[Outlook Sync] pubblicate " + q.length + " chiusure su " + OL_DONE_PATH);
       if (manual) showToast("✓ " + q.length + " to-do inviate: n8n le chiude in Outlook entro 5 minuti");
@@ -18495,7 +18505,10 @@ async function outlookPushCompletions(manual) {
     if (typeof updateOutlookQueueBadge === "function") updateOutlookQueueBadge();
   } catch (e) {
     console.warn("[Outlook Sync] invio chiusure fallito", e);
-    if (manual) showToast("Invio a n8n non riuscito: controlla indirizzo e token");
+    if (manual) {
+      const msg = e && e.gh ? "Chiusure non inviate: " + e.message : url ? "Webhook diretto non raggiungibile: svuota i due campi webhook per usare GitHub" : "Chiusure non inviate: " + ((e && e.message) || "errore di rete");
+      showToast(msg); try { alert(msg); } catch(_) {}
+    }
   } finally { _olPushBusy = false; }
 }
 window.outlookPushCompletions = outlookPushCompletions;
