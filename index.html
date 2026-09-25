@@ -8965,6 +8965,28 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
     </div>
 
     <div class="modal-section">
+      <h3>Chiusura to-do in Outlook</h3>
+      <p class="muted" style="font-size:var(--fs-xs);margin:0 0 10px;">
+        Quando chiudi una to-do nata da Outlook (dal PC, dal telefono o con "Chiudi tutto"), la dashboard aggiorna da sola
+        <code>data-completed-from-dashboard.json</code> sul repo (serve il Sync GitHub collegato su quel dispositivo) e il
+        workflow n8n <b>Dashboard Done Sync</b> la chiude in Outlook entro 5 minuti. I due campi qui sotto servono solo per un
+        eventuale webhook diretto: lasciali vuoti.
+      </p>
+      <div class="setting-row">
+        <label>Webhook diretto (facoltativo)</label>
+        <input type="text" placeholder="https://.../webhook/outlook-task-done" data-setting="outlookDoneUrl" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Token webhook (facoltativo)</label>
+        <input type="text" placeholder="solo per il webhook diretto" data-setting="outlookDoneToken" style="width:220px;">
+      </div>
+      <div class="setting-row">
+        <label>Invia ora le chiusure in coda</label>
+        <button class="btn btn-sm" onclick="window.outlookPushCompletions(true)">Invia →</button>
+      </div>
+    </div>
+
+    <div class="modal-section">
       <h3>Strumenti</h3>
       <div class="setting-row">
         <label>Apri Pulse del fornitore</label>
@@ -9641,6 +9663,8 @@ const DEFAULT_SETTINGS = {
   aiWebhookToken: "",
   shipWebhookUrl: "",    // v0.63 — webhook n8n per il tracking spedizioni (17TRACK) — vedi Impostazioni → Tracking spedizioni
   shipWebhookToken: "",
+  outlookDoneUrl: "",   // v1.00 — webhook n8n che chiude in Outlook le to-do chiuse in dashboard
+  outlookDoneToken: "",
   stateSyncUrl: "",     // v0.51 — sync stato multi-dispositivo via webhook n8n (funziona anche dove Google Drive non si collega, es. iPhone)
   stateSyncToken: "",
   ghSyncRepo: "",       // v0.52 — sync via GitHub (repo PRIVATO come database). Es. "Micheledv74/mpd-sync"
@@ -11443,6 +11467,7 @@ window.maToggleTodo = function(id){
   if(!t) return;
   t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null;
   t.updatedAt = new Date().toISOString();   // v0.89 — il merge deve sapere che è più recente
+  if (t.done && t.outlookTaskId && typeof queueOutlookCompletion === "function") queueOutlookCompletion(t);   // v1.00
   maMarkSync(t,false);
   try{ saveTodos(); }catch(_){}
   try{ render(); }catch(_){ renderMobileApp(); }
@@ -11542,6 +11567,8 @@ window.maTodoComplete = function(id){
   if(note!=null) t.note=note;
   const wasDone=t.done;
   t.done=!t.done; t.doneAt=t.done?new Date().toISOString():null;
+  t.updatedAt=new Date().toISOString();
+  if(t.done && t.outlookTaskId && typeof queueOutlookCompletion==="function") queueOutlookCompletion(t);   // v1.00
   maMarkSync(t,false);
   try{ saveTodos(); }catch(_){}
   maCloseSheet(); maToast(wasDone?"Riaperta · sincronizzata ✓":"Completata · sincronizzata ✓");
@@ -18371,6 +18398,13 @@ function syncOutlookTasksToTodos(outlookData) {
         existing.outlookWebUrl = task.webUrl;
         existing.outlookLinkedName = task.linkedDisplayName || "";
       }
+      // v1.00 — scadenza/titolo cambiati in Outlook dopo l'ultima modifica in dashboard → li riprendo
+      if (!existing.done && String(task.lastModifiedAt || "") > String(existing.updatedAt || existing.createdAt || "")) {
+        const isFl = !!(task.webUrl || task.linkedDisplayName);
+        let due = task.dueDate || "";
+        if (isFl && due && due <= String(task.createdAt || "").slice(0, 10)) due = "";
+        if (due && due !== (existing.dueDate || "")) { existing.dueDate = due; existing.updatedAt = task.lastModifiedAt; updated++; }
+      }
       const outlookCompleted = task.status === "completed";
       if (outlookCompleted && !existing.done) {
         // Outlook ha completato dopo: marca fatto anche in dashboard
@@ -18402,7 +18436,69 @@ function syncOutlookTasksToTodos(outlookData) {
     console.log(`[Outlook Sync] ${added} nuove, ${updated} aggiornate dalle ` + outlookData.tasks.length + " task Outlook");
     if (added > 0) showToast(`📧 ${added} nuovi to-do da Outlook`);
   }
+  // v1.00 — chiuse in dashboard (anche da telefono o da "Chiudi tutto") ma ancora aperte in Outlook:
+  // le rimetto in coda; quelle che Outlook ha già chiuso escono dalla coda.
+  const openO = {}, doneO = new Set(); outlookData.tasks.forEach(t => { if (!t.id) return; if (t.status !== "completed") openO[t.id] = t; else doneO.add(t.id); });
+  state.outlookCompletionQueue = (state.outlookCompletionQueue || []).filter(q => !doneO.has(q.taskId));
+  const qd = new Set((state.outlookCompletionQueue || []).map(q => q.taskId)); let requeued = 0;
+  state.todos.forEach(t => {
+    const o = t.outlookTaskId && openO[t.outlookTaskId];
+    if (!o || !t.done || qd.has(t.outlookTaskId)) return;
+    if (String(t.doneAt || t.updatedAt || "") < String(o.lastModifiedAt || "")) return;   // riaperta in Outlook dopo: vince Outlook
+    if (!t.outlookListId && (o.listId || listId)) t.outlookListId = o.listId || listId;
+    queueOutlookCompletion(t); requeued++;
+  });
+  if (requeued) console.log("[Outlook Sync] " + requeued + " to-do chiuse in dashboard ma aperte in Outlook → in coda");
+  outlookPushCompletions();
 }
+
+// v1.00 — invio della coda a Outlook. Via principale: la dashboard scrive da sola
+// data-completed-from-dashboard.json sul repo (token GitHub del Sync), che il workflow n8n
+// "Dashboard Done Sync" (già attivo, ogni 5 min) legge e chiude in Outlook. Prima quel file si
+// aggiornava solo a mano (copia/incolla) ed era fermo al 19 giugno. Alternativa: webhook diretto.
+const OL_DONE_REPO = "Micheledv74/maritime-dashboard", OL_DONE_PATH = "data-completed-from-dashboard.json";
+let _olPushBusy = false;
+async function outlookPushCompletions(manual) {
+  const url = (state.settings && state.settings.outlookDoneUrl || "").trim();
+  const token = (state.settings && state.settings.outlookDoneToken || "").trim();
+  // le voci più vecchie di 21 gg escono dalla coda (il workflow le ha già riprovate per settimane)
+  const lim = new Date(Date.now() - 21 * 864e5).toISOString();
+  state.outlookCompletionQueue = (state.outlookCompletionQueue || []).filter(x => x.taskId && String(x.completedAt || "") >= lim);
+  const q = state.outlookCompletionQueue;
+  const gh = typeof ghSyncConfigured === "function" && ghSyncConfigured();
+  if (!url && !gh) { if (manual) showToast("Collega il Sync GitHub (Impostazioni) per chiudere le to-do in Outlook"); return; }
+  if (_olPushBusy) return; _olPushBusy = true;
+  try {
+    if (!url) {
+      const body = JSON.stringify({ updatedAt: new Date().toISOString(), completedTaskIds: q.map(x => x.taskId), details: q.map(x => ({ taskId: x.taskId, listId: x.listId || "", completedAt: x.completedAt, title: x.title || "" })) }, null, 2);
+      const sig = q.map(x => x.taskId).sort().join(",");
+      if (!manual && sig === localStorage.getItem("mpd.olDoneSig")) return;
+      const api = "https://api.github.com/repos/" + OL_DONE_REPO + "/contents/" + OL_DONE_PATH, br = ((state.settings || {}).ghSyncBranch || "main").trim();
+      const head = await fetch(api + "?ref=" + encodeURIComponent(br), { headers: ghSyncHeaders(), cache: "no-store" });
+      const sha = head.ok ? ((await head.json()) || {}).sha : undefined;
+      const put = await fetch(api, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghSyncHeaders()), body: JSON.stringify({ message: "Dashboard: " + q.length + " to-do da chiudere in Outlook", content: b64EncodeUtf8(body), branch: br, sha }) });
+      if (!put.ok) throw new Error("GitHub " + put.status);
+      localStorage.setItem("mpd.olDoneSig", sig);
+      console.log("[Outlook Sync] pubblicate " + q.length + " chiusure su " + OL_DONE_PATH);
+      if (manual) showToast("✓ " + q.length + " to-do inviate: n8n le chiude in Outlook entro 5 minuti");
+      return;
+    }
+    if (!q.length) { if (manual) showToast("Nessuna to-do da chiudere in Outlook"); return; }
+    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, tasks: q.slice(0, 150).map(x => ({ taskId: x.taskId, listId: x.listId || "" })) }) });
+    const data = await res.json().catch(() => ({}));
+    const ok = new Set(((data && data.results) || []).filter(r => r && (r.ok || r.status === 404)).map(r => r.taskId));
+    state.outlookCompletionQueue = (state.outlookCompletionQueue || []).filter(x => !ok.has(x.taskId));
+    saveOutlookCompletionQueue();
+    const fail = q.length - ok.size;
+    console.log("[Outlook Sync] chiuse in Outlook: " + ok.size + (fail > 0 ? " · non riuscite " + fail : ""));
+    if (manual || ok.size) showToast("✓ " + ok.size + " to-do chiuse anche in Outlook" + (fail > 0 ? " · " + fail + " da riprovare" : ""));
+    if (typeof updateOutlookQueueBadge === "function") updateOutlookQueueBadge();
+  } catch (e) {
+    console.warn("[Outlook Sync] invio chiusure fallito", e);
+    if (manual) showToast("Invio a n8n non riuscito: controlla indirizzo e token");
+  } finally { _olPushBusy = false; }
+}
+window.outlookPushCompletions = outlookPushCompletions;
 
 // === Hook: quando completo una to-do con outlookTaskId, aggiungo alla queue ===
 // Viene chiamata da markTodoDone (sotto). Persiste localmente e via Drive.
@@ -18421,6 +18517,7 @@ function queueOutlookCompletion(todo) {
   });
   saveOutlookCompletionQueue();
   console.log("[Outlook Sync] queued completion for", todo.outlookTaskId);
+  clearTimeout(window._olPushT); window._olPushT = setTimeout(() => outlookPushCompletions(), 4000);
 }
 
 // === Esportazione queue per debug/upload manuale ===
