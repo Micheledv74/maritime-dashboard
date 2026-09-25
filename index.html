@@ -11710,6 +11710,7 @@ window.maOpenAltro = function(){
     ${row("✓","To-do",(todosOpen().length||0)+" aperte",'mgo(\'todo\')')}
     ${row("↺","Pulizia DN","conferma le DN vecchie",'m3DnStart()')}
     ${row("⇉","Hub e consolidati","più PO sotto un solo AWB",'maCloseSheet();window.shipHubBoard()')}
+    ${row("☑","DN da far chiudere alla nave",((typeof ifxList==="function"?ifxList().length:0)||0)+" confermate a bordo",'maCloseSheet();window.ifxOpen()')}
     ${row("📇","Rubrica","fornitori e agenzie",'mgo(\'rubrica\')')}
     ${row("📅","Certificati","",'maGoCert(\'all\')')}
     ${row("📨","RFQ da sollecitare","tutta la flotta",'maOpenRfqAll()')}
@@ -27043,6 +27044,9 @@ function radarPaint(){
     else moves.push({ where, c: COL[x.k], title: "Anticipa con " + (x.it.supplier || "il fornitore") + ": " + short,
       why: "Arrivo stimato " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now) + " e nessuno scalo successivo impostato lo copre. Valuta aereo o consegna parziale, oppure aggiungi il prossimo scalo nel viaggio.", cta: "Apri", go: openIt });
   });
+  if(typeof hubStuck === "function") hubStuck().forEach(h => { const hn = (mpHub(h.hub) || {}).name || "hub non indicato";
+    moves.push({ where: hn + " · giacenza", c: "#b06a00", title: h.n + " PO fermi a " + hn + " da oltre " + hubDays() + " giorni",
+      why: Object.keys(h.vids).map(v => m3VName(v) + " " + h.vids[v]).join(" · ") + " · il più vecchio da " + h.max + " gg. Consolidali in una spedizione o chiedi a TML la franchigia.", cta: "Consolida", go: "window.shipHubBoard('" + ea(h.hub) + "')" }); });
   const mv = moves.slice(0, 4);
 
   // radar lanes
@@ -27159,7 +27163,8 @@ function radarPaint(){
     '<div class="rd-card rd-dq"><div class="rd-eyebrow">QUALITÀ DEI DATI</div>' +
     '<b>' + M.staleDN + ' DN "in viaggio" da oltre 30 giorni</b><span>Escluse dal radar: probabilmente consegnate e mai chiuse in Infoship.</span>' +
     '<b>' + M.unTot + ' PO aperti senza scalo di consegna</b><span>Non sappiamo per quale scalo servono: pianificali per vederli nel radar.</span>' +
-    '<a onclick="window.goFleetActions && window.goFleetActions(\'dn\')">Rivedi le consegne →</a></div></div>';
+    '<a onclick="window.goFleetActions && window.goFleetActions(\'dn\')">Rivedi le consegne →</a>' +
+    (typeof ifxList === "function" && ifxList().length ? '<b style="margin-top:10px;">' + ifxList().length + ' DN da far chiudere alla nave</b><span>Confermate a bordo da te, ancora aperte in Infoship: solo la nave può chiuderle.</span><a onclick="window.ifxOpen()">Chiedi alla nave →</a>' : "") + '</div></div>';
 }
 window.radarPaint = radarPaint;
 
@@ -27257,7 +27262,7 @@ function mpRefresh(id){
 }
 window.mpSetPos = function(id, pos){
   if(pos === "auto"){ mpSet(id, { pos:"" }); if(typeof showToast === "function") showToast("Posizione: torna automatica"); }
-  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "it-goa"; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
+  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "it-goa"; if(pos === "onboard" && typeof ifxNeeds === "function" && ifxNeeds(faFindItem(id))){ p.closeInInfoship = true; p.by = "scheda"; } if(pos !== "onboard") p.closeInInfoship = false; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
   mpRefresh(id);
 };
 window.mpSetField = function(id, k, v){ const p = {}; p[k] = v; mpSet(id, p); mpRefresh(id); };
@@ -27482,6 +27487,7 @@ function m3Moves(){
   (VESSELS || []).forEach(c => { const l = m3Lane(c.vesselId); unN += l.un || 0; if((l.un || 0) > ((unTop && unTop.un) || 0)) unTop = { vid: c.vesselId, un: l.un }; });
   if(unN && unTop){ const v = m3Verdict(unTop.vid); out.push({ n: unN, t: "PO senza scalo", s: m3VName(unTop.vid) + " " + unTop.un + (v.c === "amber" ? " · " + v.t.charAt(0).toLowerCase() + v.t.slice(1).replace(/\.$/, "") : " · assegnali allo scalo"), cta: "Assegna", go: "maOpenVessel('" + m3E(unTop.vid) + "')" }); }
   let rf = []; try { rf = maFleetStaleRFQs() || []; } catch(e) {}
+  try { const hs = hubStuck(); if(hs.length){ const h = hs[0], n = hs.reduce((a, x) => a + x.n, 0); out.push({ n, t: "PO fermi all'hub oltre " + hubDays() + " gg", s: hs.map(x => ((mpHub(x.hub) || {}).city || "hub") + " " + x.n).join(" · ") + " · il più vecchio da " + h.max + " gg", cta: "Consolida", go: "window.shipHubBoard('" + m3E(h.hub) + "')" }); } } catch(e) {}
   if(rf.length){ const by = {}; rf.forEach(r => by[r.vname] = (by[r.vname] || 0) + 1); out.push({ n: rf.length, t: "RFQ da sollecitare", s: Object.keys(by).map(k => by[k] + " " + k).join(" · "), cta: "Sollecita", go: "maOpenRfqAll()" }); }
   return out.slice(0, 3);
 }
@@ -27663,12 +27669,13 @@ function shbPaint(){
   const sel = Object.keys(s.sel).filter(k => s.sel[k] && byId[k]);
   const inp = "border:1px solid #dfe2e7;border-radius:9px;padding:9px 10px;font-size:13px;font-family:var(--font-sans);background:#fff;min-width:0;box-sizing:border-box;";
   const row = r => { const id = m3E(r.it.id), on = !!s.sel[r.it.id], d = mpDaysSince(r.p.since);
-    const sub = [r.it.supplier && r.it.supplier !== "—" ? r.it.supplier : "", r.p.pos === "hub" ? (r.p.viaShip ? "all'hub secondo il tracking" : d != null ? "all'hub da " + d + " gg" : "") : "dal fornitore"].filter(Boolean).join(" · ");
+    const late_ = r.p.pos === "hub" && d != null && d > hubDays();
+    const sub = [r.it.supplier && r.it.supplier !== "—" ? r.it.supplier : "", r.p.pos === "hub" ? (r.p.viaShip ? "all'hub secondo il tracking" : d != null ? "all'hub da " + d + " gg" + (late_ ? " · oltre il limite di " + hubDays() : "") : "") : "dal fornitore"].filter(Boolean).join(" · ");
     return '<div onclick="shbRow(event,\'' + id + '\')" style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid rgba(10,27,46,.08);cursor:pointer;background:' + (on ? "#eef4ff" : "#fff") + ';">' +
       '<input type="checkbox"' + (on ? " checked" : "") + ' onchange="shbToggle(\'' + id + '\',this.checked)" style="width:18px;height:18px;margin:1px 0 0;">' +
       '<span style="min-width:0;"><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;"><b style="font-size:13px;color:#0a1b2e;">' + esc(m3VName(r.vid)) + '</b><span style="font-family:var(--font-mono);font-size:11.5px;color:#44576b;">' + esc(r.it.poNumber || r.it.reqNumber || "") + '</span></span>' +
       '<span style="display:block;font-size:12.5px;color:#0a1b2e;margin-top:2px;">' + esc(r.it.description || "—") + '</span>' +
-      (sub ? '<span style="display:block;font-size:11.5px;color:#6a7d90;margin-top:2px;">' + esc(sub) + '</span>' : "") + '</span>' +
+      (sub ? '<span style="display:block;font-size:11.5px;color:' + (late_ ? "#c0261c;font-weight:700" : "#6a7d90") + ';margin-top:2px;">' + esc(sub) + '</span>' : "") + '</span>' +
       (on ? '<label class="shb-p" style="font-size:11.5px;color:#44576b;display:flex;gap:5px;align-items:center;white-space:nowrap;cursor:pointer;"><input type="checkbox"' + (s.part[r.it.id] ? " checked" : "") + ' onchange="shbPart(\'' + id + '\',this.checked)">solo una parte</label>' : "<span></span>") + '</div>'; };
   const hubOpts = '<option value="">Tutti gli hub · ' + atHub.length + ' PO</option>' + TML_HUBS.map(h => '<option value="' + h.id + '"' + (h.id === s.hub ? " selected" : "") + '>' + esc(h.name + " · " + h.city + (cntH[h.id] ? " · " + cntH[h.id] + " PO" : "")) + '</option>').join("");
   const vesOpts = '<option value="">Tutte le navi</option>' + (VESSELS || []).map(c => '<option value="' + escapeAttr(c.vesselId) + '"' + (c.vesselId === s.vid ? " selected" : "") + '>' + esc(c.displayName) + '</option>').join("");
@@ -27683,6 +27690,7 @@ function shbPaint(){
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;">' + chips + '</div>' +
       '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">' + (g.number ? '<a class="btn btn-sm" href="' + escapeAttr(ship17TrackURL(g.number)) + '" target="_blank" rel="noopener">17TRACK ↗</a>' : "") +
       '<button class="btn btn-sm" onclick="shbOpen(\'' + m3E(g.items[0]) + '\')">Aggiorna tracking</button>' +
+      '<button class="btn btn-sm' + (g.preAlertAt ? "" : " btn-primary") + '" onclick="shbPreAlert(\'' + m3E(g.id) + '\')" title="Email all\'agenzia del porto con AWB, ETA e tutti i PO">✉ Pre-alert agenzia' + (g.preAlertAt ? " · inviato " + mpFD(g.preAlertAt) : "") + '</button>' +
       (allOn ? '<span style="font-size:12px;color:#14794e;font-weight:700;">Tutti a bordo</span>' : '<button class="btn btn-sm btn-primary" onclick="shbOnboard(\'' + m3E(g.id) + '\')">Tutti a bordo</button>') + '</div></div>'; };
   // form
   const vids = [...new Set(sel.map(k => byId[k].vid))], fut = vids.length === 1 ? mpVoyFuture(vids[0]) : null;
@@ -27714,7 +27722,7 @@ function shbPaint(){
     '<div style="position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);"><div style="max-width:1320px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
     '<button onclick="shbClose()" style="border:1px solid rgba(10,27,46,.14);background:#fff;border-radius:10px;padding:0 14px;min-height:44px;font-size:13px;font-weight:700;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);">← Torna alla dashboard</button>' +
     '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">HUB TML · SPEDIZIONI CONSOLIDATE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">' + (s.hub ? esc(shbHubLabel(s.hub)) : "Tutti gli hub") + (s.vid ? " · " + esc(m3VName(s.vid)) : "") + '</div></div>' +
-    '<select onchange="shbSet(\'hub\',this.value)" style="' + inp + 'min-height:44px;flex:0 1 260px;">' + hubOpts + '</select><select onchange="shbSet(\'vid\',this.value)" style="' + inp + 'min-height:44px;flex:0 1 200px;">' + vesOpts + '</select></div></div>' +
+    '<select onchange="shbSet(\'hub\',this.value)" style="' + inp + 'min-height:44px;flex:0 1 260px;">' + hubOpts + '</select><select onchange="shbSet(\'vid\',this.value)" style="' + inp + 'min-height:44px;flex:0 1 200px;">' + vesOpts + '</select><label style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:#44576b;white-space:nowrap;">Avviso giacenza dopo<input type="number" min="1" value="' + hubDays() + '" onchange="setHubDays(this.value)" style="' + inp + 'width:64px;min-height:40px;">gg</label></div></div>' +
     '<div style="max-width:1320px;margin:0 auto;padding:18px 20px 40px;display:flex;flex-direction:column;gap:16px;">' +
     (sumHubs ? '<div style="display:flex;gap:10px;flex-wrap:wrap;">' + sumHubs + '</div>' : "") + hubInfo +
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start;">' + left + right + '</div></div></div>';
@@ -27747,13 +27755,119 @@ window.shbOnboard = function(gid){
   const parts = g.items.filter(i => (getItemShipments(i).find(x => x.gid === gid) || {}).partial).length;
   if(!confirm("Segnare a bordo i " + g.items.length + " PO della spedizione " + (g.number || "") + "?" + (parts ? "\n\n" + parts + " PO viaggiano solo in parte: restano aperti come «parzialmente a bordo»." : ""))) return;
   const today = mpToday();
-  g.items.forEach(id => { const sg = getItemShipments(id).find(x => x.gid === gid); if(sg && sg.partial) mpSet(id, { partOn: today }); else mpSet(id, { pos: "onboard" }); });
+  g.items.forEach(id => { const sg = getItemShipments(id).find(x => x.gid === gid); if(sg && sg.partial) mpSet(id, { partOn: today }); else mpSet(id, Object.assign({ pos: "onboard" }, ifxNeeds(faFindItem(id)) ? { closeInInfoship: true, by: "consolidato" } : {})); });
   const first = g.items[0], a = getItemShipments(first), sg = a.find(x => x.gid === gid);
   if(sg && sg.status !== "delivered"){ sg.status = "delivered"; if(!sg.eta) sg.eta = today; sg.updatedAt = new Date().toISOString(); setItemShipments(first, a); }
   if(typeof showToast === "function") showToast("Spedizione a bordo · " + g.items.length + " PO");
   shbPaint(); mpRefresh(); try { if(window.innerWidth <= 768) renderMobileApp(); } catch(e) {}
 };
 setTimeout(() => { try { shipMigrateGroups(); } catch(e) {} }, 1500);
+
+// --- v1.02 Pre-alert all'agenzia dalla spedizione unica ----------------------------
+function shbLegFor(g){
+  const vids = [...new Set((g.items || []).map(mpVidOf).filter(Boolean))], vid = vids[0] || "";
+  const voy = getVoyage(vid) || {}, legs = [voy.current, voy.next].filter(l => l && l.to);
+  const want = String(g.toPort || "").toUpperCase().trim();
+  const leg = (want && legs.find(l => String(l.to).toUpperCase().includes(want) || want.includes(String(l.to).toUpperCase()))) || mpVoyFuture(vid) || legs[0] || {};
+  return { vid, vids, leg };
+}
+window.shbPreAlert = function(gid){
+  const g = shipGroups()[gid]; if(!g) return;
+  const { vid, vids, leg } = shbLegFor(g);
+  const port = g.toPort || leg.to || "port";
+  let ag = leg.agency || {};
+  if(!(ag && ag.name) && typeof rdProfile === "function"){ const pr = rdProfile(port); if(pr && pr.agent) ag = { name: pr.agent }; }
+  const nm = vids.map(v => m3VName(v).replace(/^M\/[VB]\s*/i, "").trim()).join(" / ");
+  const segOf = i => getItemShipments(i).find(x => x.gid === gid) || {};
+  const rows = g.items.map((i, n) => { const it = faFindItem(i) || {}; return (n + 1) + ") PO " + (it.poNumber || "—") + " · " + (it.description || "(no description)") + (it.supplier && it.supplier !== "—" ? " · Supplier: " + it.supplier : "") + (segOf(i).partial ? " · PARTIAL delivery" : ""); }).join("\n");
+  const eta = g.eta ? shipFmtDay(g.eta) : "", legEta = leg.etb || leg.eta ? shipFmtDay(leg.etb || leg.eta) : "";
+  const subject = "M/V " + nm + " - PRE-ALERT consolidated shipment AWB " + (g.number || "") + " - delivery on board @ " + port;
+  const body = "Dear " + (ag.name || "Agents") + ",\n\n" +
+    "please be pre-alerted of the following consolidated shipment for M/V " + nm + (legEta ? " (ETA/ETB " + legEta + ")" : "") + " calling at " + port + ".\n\n" +
+    "AWB / Tracking: " + (g.number || "—") + "\n" +
+    "Carrier: " + (g.carrier || "—") + "\n" +
+    (g.hub ? "Shipped from: " + g.hub + "\n" : "") +
+    (g.pickup ? "Departure: " + shipFmtDay(g.pickup) + "\n" : "") +
+    (eta ? "Expected arrival: " + eta + "\n" : "") +
+    "\nContent (" + g.items.length + " PO):\n" + rows + "\n\n" +
+    "Kindly arrange customs clearance and delivery on board, and confirm receipt of this pre-alert together with the expected delivery date.\n\n" +
+    "Best regards,\nMichele Del Vecchio\nPurchasing";
+  const to = typeof voyageAgencyEmail === "function" ? voyageAgencyEmail(ag) : "";
+  if(!to) showToast(ag.name ? "Agenzia senza email in Rubrica: apro la bozza senza destinatario" : "Nessuna agenzia sullo scalo: apro la bozza senza destinatario");
+  openComposeMail(buildComposeHref(subject, body, to));
+  const all = loadShipments(); if(all.__groups && all.__groups[gid]){ all.__groups[gid].preAlertAt = new Date().toISOString(); saveShipmentsDB(all); }
+  if(document.getElementById("shb-host") && document.getElementById("shb-host").innerHTML) shbPaint();
+};
+
+// --- v1.02 Giacenza negli hub: avviso dopo N giorni ---------------------------------
+function hubDays(){ const n = parseInt(localStorage.getItem("mpd.hubAlertDays") || "14", 10); return n > 0 ? n : 14; }
+window.setHubDays = function(v){ const n = Math.max(1, parseInt(v, 10) || 14); localStorage.setItem("mpd.hubAlertDays", String(n)); showToast("Avviso giacenza dopo " + n + " giorni"); shbPaint(); if(typeof radarPaint === "function" && document.getElementById("radar-root")) radarPaint(); };
+function hubStuck(){
+  const lim = hubDays(), by = {};
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { const p = mpOf(it); if(!p || p.pos !== "hub") return; const d = mpDaysSince(p.since); if(d == null || d <= lim) return;
+    const h = p.hub || ""; (by[h] = by[h] || { hub: h, n: 0, max: 0, vids: {} }); by[h].n++; by[h].max = Math.max(by[h].max, d); by[h].vids[v.vesselId] = (by[h].vids[v.vesselId] || 0) + 1; }));
+  return Object.values(by).sort((a, b) => b.max - a.max);
+}
+window.hubStuck = hubStuck;
+
+// --- v1.02 Da chiudere in Infoship (DN confermate a bordo dal telefono / dal PC) ---
+function ifxNeeds(it){ return !!(it && it.dnStatus !== "DN Received on Board" && (it.poNumber || it.dnNumber)); }
+function ifxList(){
+  const all = loadMatPos(), out = [];
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { const m = all[it.id]; if(m && m.closeInInfoship && ifxNeeds(it)) out.push({ it, vid: v.vesselId, m }); }));
+  return out.sort((a, b) => a.vid.localeCompare(b.vid) || String(a.it.dnNumber || a.it.poNumber).localeCompare(String(b.it.dnNumber || b.it.poNumber)));
+}
+window.ifxList = ifxList;
+window.ifxDone = function(id){ mpSet(id, { closeInInfoship: false, infoshipClosedAt: new Date().toISOString() }); ifxPaint(); if(document.getElementById("radar-root")) radarPaint(); };
+window.ifxAllDone = function(){ const L = ifxList(); if(!L.length || !confirm("Segnare come chiuse in Infoship tutte le " + L.length + " voci?")) return; L.forEach(x => mpSet(x.it.id, { closeInInfoship: false, infoshipClosedAt: new Date().toISOString() })); ifxPaint(); if(document.getElementById("radar-root")) radarPaint(); };
+window.ifxCopy = function(txt){ try { navigator.clipboard.writeText(txt); showToast("Copiato: " + txt); } catch(e) { prompt("Copia:", txt); } };
+window.ifxCopyAll = function(){ const t = ifxList().map(x => x.it.dnNumber || x.it.poNumber).filter(Boolean).join("\n"); window.ifxCopy(t); };
+// v1.02b — le DN le chiude SOLO la nave in Infoship: la dashboard prepara la richiesta al Comandante
+window.ifxAskShip = function(vid){
+  const L = ifxList().filter(x => x.vid === vid); if(!L.length) return;
+  const cfg = (VESSELS || []).find(v => v.vesselId === vid) || {}, nm = String(cfg.displayName || vid).replace(/^M\/[VB]\s*/i, "").trim();
+  const prev = L.filter(x => x.m.ifxAskedAt).map(x => mpFD(x.m.ifxAskedAt)), again = prev.length ? " (reminder)" : "";
+  const rows = L.map((x, i) => (i + 1) + ") " + (x.it.dnNumber ? "DN " + x.it.dnNumber + " · " : "") + "PO " + (x.it.poNumber || "—") + " · " + (x.it.description || "") + (x.it.supplier && x.it.supplier !== "—" ? " · " + x.it.supplier : "")).join("\n");
+  const subject = "M/V " + nm + " - Please confirm receipt on board in Infoship" + again + " - " + L.length + " DN";
+  const body = "Dear Captain,\n\n" + (prev.length ? "further to our previous request of " + [...new Set(prev)].join(", ") + ", " : "") +
+    "the goods listed below have been delivered on board but in Infoship the related Delivery Notes are still open.\n\n" + rows +
+    "\n\nKindly close each DN in Infoship as \"Received on Board\" (noting any shortage or damage), so that our records are aligned.\n\nThank you and best regards,\nMichele Del Vecchio\nPurchasing";
+  const to = cfg.masterEmail && !/example\.com|_{2,}/.test(cfg.masterEmail) ? cfg.masterEmail : "";
+  openComposeMail(buildComposeHref(subject, body, to));
+  const ts = new Date().toISOString(); L.forEach(x => mpSet(x.it.id, { ifxAskedAt: ts }));
+  ifxPaint();
+};
+window.ifxOpen = function(){ ifxPaint(); };
+window.ifxClose = function(){ const h = document.getElementById("ifx-host"); if(h) h.innerHTML = ""; };
+function ifxPaint(){
+  let host = document.getElementById("ifx-host"); if(!host){ host = document.createElement("div"); host.id = "ifx-host"; document.body.appendChild(host); }
+  const L = ifxList(), esc = escapeHTML, by = {};
+  L.forEach(x => (by[x.vid] = by[x.vid] || []).push(x));
+  const card = "border:1px solid rgba(10,27,46,.10);border-radius:14px;overflow:hidden;background:#fff;";
+  const mono = "font-family:var(--font-mono);font-size:13px;font-weight:700;color:#0a1b2e;";
+  const row = x => { const id = m3E(x.it.id), num = x.it.dnNumber || "", ask = x.m.ifxAskedAt, askD = ask ? mpDaysSince(ask) : null;
+    const what = ask ? "chiesto alla nave il " + mpFD(ask) + (askD > 7 ? " · ancora aperta dopo " + askD + " gg" : "") : num ? "DN ancora aperta in Infoship" : "nessuna DN in Infoship";
+    return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid rgba(10,27,46,.08);">' +
+      '<div style="min-width:0;"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
+      (num ? '<button onclick="ifxCopy(\'' + m3E(num) + '\')" title="Copia il numero DN" style="' + mono + 'background:#eef4ff;border:1px solid #cddafc;border-radius:7px;padding:4px 9px;cursor:pointer;">' + esc(num) + ' ⧉</button>' : "") +
+      '<button onclick="ifxCopy(\'' + m3E(x.it.poNumber || "") + '\')" title="Copia il numero PO" style="' + mono + 'font-weight:600;background:#f5f7fa;border:1px solid rgba(10,27,46,.12);border-radius:7px;padding:4px 9px;cursor:pointer;">' + esc(x.it.poNumber || "—") + ' ⧉</button>' +
+      '<span style="font-size:11.5px;color:' + (askD > 7 ? "#c0261c;font-weight:700" : "#6a7d90") + ';">' + esc(what) + '</span></div>' +
+      '<div style="font-size:13px;color:#0a1b2e;margin-top:5px;">' + esc(x.it.description || "—") + '</div>' +
+      '<div style="font-size:11.5px;color:#6a7d90;margin-top:2px;">' + esc([x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "", "a bordo confermato il " + mpFD(x.m.updatedAt) + (x.m.by === "dn-clean" ? " (pulizia DN)" : x.m.by === "consolidato" ? " (spedizione unica)" : ""), x.it.dnStatus || ""].filter(Boolean).join(" · ")) + '</div></div>' +
+      '<button class="btn btn-sm" onclick="ifxDone(\'' + id + '\')" title="Toglila dalla lista se la nave l\'ha già chiusa (sparisce comunque da sola col prossimo export Infoship)" style="min-height:40px;white-space:nowrap;">✓ Chiusa dalla nave</button></div>'; };
+  host.innerHTML = '<div style="position:fixed;inset:0;z-index:10050;background:#eef2f6;overflow:auto;font-family:var(--font-sans);">' +
+    '<div style="position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);"><div style="max-width:1000px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
+    '<button onclick="ifxClose()" style="border:1px solid rgba(10,27,46,.14);background:#fff;border-radius:10px;padding:0 14px;min-height:44px;font-size:13px;font-weight:700;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);">← Torna alla dashboard</button>' +
+    '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">PULIZIA DN · LE CHIUDE LA NAVE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">DN da far chiudere a bordo · ' + L.length + '</div></div>' +
+    (L.length ? '<button class="btn btn-sm" onclick="ifxCopyAll()" style="min-height:40px;">⧉ Copia tutti i numeri</button>' : "") + '</div></div>' +
+    '<div style="max-width:1000px;margin:0 auto;padding:18px 20px 40px;display:flex;flex-direction:column;gap:14px;">' +
+    '<div style="font-size:13px;color:#44576b;line-height:1.5;">Materiale che hai confermato a bordo («Pulizia DN» dal telefono, «A bordo» nella scheda PO, «Tutti a bordo» di una spedizione unica) ma con la DN ancora aperta in Infoship. Solo la nave può chiuderla: «Chiedi alla nave» prepara l\'email al Comandante con l\'elenco. Ogni voce sparisce da sola quando il prossimo export Infoship la porta come ricevuta a bordo.</div>' +
+    (L.length ? Object.keys(by).map(v => { const asked = by[v].filter(x => x.m.ifxAskedAt).length;
+      return '<div style="' + card + '"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;"><span style="flex:1;min-width:140px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">' + esc(m3VName(v).toUpperCase()) + ' · ' + by[v].length + (asked ? " · " + asked + " già chieste" : "") + '</span>' +
+        '<button class="btn btn-sm btn-primary" onclick="ifxAskShip(\'' + m3E(v) + '\')" style="min-height:40px;">✉ ' + (asked === by[v].length ? "Sollecita la nave" : "Chiedi alla nave di chiuderle") + '</button></div>' + by[v].map(row).join("") + '</div>'; }).join("")
+      : '<div style="' + card + 'padding:18px;font-size:13.5px;color:#44576b;">Niente in sospeso. Quando confermi una DN «a bordo» dal telefono, compare qui finché la nave non la chiude in Infoship.</div>') +
+    '</div></div>';
+}
 
 // --- pulizia DN -----------------------------------------------------------------
 window.m3DnStart = function(vid){
