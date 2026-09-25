@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-09-25T13:20:19.112Z",
+  "lastSync": "2026-09-25T13:25:17.966Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -1027,10 +1027,12 @@
         {
           "id": "med toscana::ows 15 ppm low level sensor",
           "description": "OWS 15 ppm Low Level Sensor",
-          "supplier": "O&Bis",
+          "supplier": "Dongjin Intec Co., Ltd.",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00098",
           "rfqNumbers": [
+            "2026-MDT-HQRQ-00219",
+            "2026-MDT-HQRQ-00218",
             "2026-MDT-HQRQ-00196",
             "2026-MDT-HQRQ-00195",
             "2026-MDT-HQRQ-00194"
@@ -1038,19 +1040,37 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 3,
+          "rfqIssued": 5,
           "rfqClosed": 1,
-          "rfqPct": 33,
+          "rfqPct": 20,
           "rfqDays": 38,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Sent to Vendor",
+            "RFQ Cancelled",
             "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00219",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00218",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Cancelled",
+              "date": "2026-09-22",
+              "deadline": ""
+            },
             {
               "number": "2026-MDT-HQRQ-00196",
               "supplier": "O&Bis",
@@ -12452,8 +12472,26 @@
               "deadline": "2026-09-30"
             }
           ],
-          "poDetails": [],
-          "dnDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-MLG-HQPO-00085",
+              "supplier": "PPG PROTECTIVE & MARINE COATINS",
+              "code": "SSS0058",
+              "status": "PO Finalized",
+              "date": "2026-09-16",
+              "deadline": "2026-09-30"
+            }
+          ],
+          "dnDetails": [
+            {
+              "number": "2026-MLG-HQDN-00078",
+              "supplier": "PPG PROTECTIVE & MARINE COATINS",
+              "code": "SSS0058",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "poSplit": null,
           "reqDate": "2026-09-15",
           "poDate": "2026-09-16",
@@ -16879,7 +16917,7 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 5,
           "rfqClosed": 0,
           "rfqPct": 0,
           "rfqDays": 3,
@@ -16890,7 +16928,48 @@
           "rfqStatusSummary": [
             "RFQ Created"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00255",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00254",
+              "supplier": "Proinelca Korea Co., Ltd.",
+              "code": "SSS0026",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00253",
+              "supplier": "MAS MARINE SHIPPING SUPPLIES",
+              "code": "SSS0002",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00252",
+              "supplier": "Zephyr Trading srl",
+              "code": "SSS0005",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00251",
+              "supplier": "Everllence Italia S.r.l.",
+              "code": "SSS0023",
+              "status": "RFQ Created",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -17321,10 +17400,11 @@
         {
           "id": "peppino::spa req e/r alarm lighting column imcos",
           "description": "SPA Req. E/R Alarm Lighting Column - IMCOS",
-          "supplier": "YH MARINE TRADE CO.,LTD",
+          "supplier": "TEFIN SCRL",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00123",
           "rfqNumbers": [
+            "2026-PEP-HQRQ-00256",
             "2026-PEP-HQRQ-00235",
             "2026-PEP-HQRQ-00234",
             "2026-PEP-HQRQ-00233",
@@ -17334,20 +17414,28 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 5,
+          "rfqIssued": 6,
           "rfqClosed": 2,
-          "rfqPct": 40,
+          "rfqPct": 33,
           "rfqDays": 38,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged",
-            "RFQ Refused",
-            "RFQ Sent to Vendor"
+            "RFQ Refused"
           ],
           "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00256",
+              "supplier": "TEFIN SCRL",
+              "code": "SSS0033",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
             {
               "number": "2026-PEP-HQRQ-00235",
               "supplier": "YH MARINE TRADE CO.,LTD",
