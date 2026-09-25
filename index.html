@@ -5934,7 +5934,7 @@ a:hover { text-decoration: underline; }
 .rd-call em{ font-style:normal; } .rd-call strong{ font-size:10.5px; }
 .rd-dots{ display:flex; flex-wrap:wrap; gap:4px; padding:2px 1px; font-family:var(--font-sans); }
 .rd-dots small{ font-size:10px; color:#6a7d90; }
-.rd-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; } .rd-dot.crit{ border-radius:1px; transform:rotate(45deg); }
+.rd-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; } .rd-dot.crit{ width:13px; height:13px; border-radius:3px; box-shadow:0 0 0 1.5px #c0261c; position:relative; } .rd-dot.crit::after{ content:"C"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font:800 9px/1 var(--font-sans); color:#fff; }
 .rd-empty{ position:absolute; left:6px; right:6px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:10px; padding:8px 12px; border:1.5px dashed rgba(10,27,46,.2); border-radius:10px; font-size:12px; color:#44576b; white-space:nowrap; overflow:hidden; background:rgba(255,255,255,.7); }
 .rd-empty span{ overflow:hidden; text-overflow:ellipsis; } .rd-empty b{ color:#1553d8; margin-left:auto; cursor:pointer; }
 .rd-selh{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:14px 22px; align-items:start; }
@@ -5966,7 +5966,7 @@ a:hover { text-decoration: underline; }
 .rd-po{ min-width:0; display:flex; flex-direction:column; gap:2px; }
 .rd-tags{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 5px; }
 .rd-pon{ font-family:var(--font-mono); font-size:10.5px; font-weight:700; color:#44576b; white-space:nowrap; }
-.rd-crit{ font-size:9.5px; font-weight:800; letter-spacing:.06em; color:#fff; background:#0a1b2e; border-radius:4px; padding:1px 6px; white-space:nowrap; line-height:1.5; }
+.rd-crit{ font-size:9.5px; font-weight:800; letter-spacing:.06em; color:#c0261c; background:#fdecea; border:1px solid #c0261c; border-radius:4px; padding:0 5px 0 2px; white-space:nowrap; line-height:1.5; display:inline-flex; align-items:center; gap:4px; }
 .rd-eu{ font-size:9.5px; font-weight:800; color:#0b3ea8; background:#dce8ff; border-radius:4px; padding:1px 6px; line-height:1.5; }
 .rd-po b{ font-size:13px; line-height:1.3; } .rd-po > span{ font-size:11.5px; color:#44576b; }
 .rd-gantt{ position:relative; height:30px; }
@@ -6084,7 +6084,7 @@ a:hover { text-decoration: underline; }
 .mp-x{ font:inherit; font-size:12px; background:none; border:none; color:#6a7d90; cursor:pointer; padding:4px; }
 .mp-mat{ display:flex; flex-direction:column; gap:7px; }
 .mp-dots{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
-.mp-dot{ width:9px; height:9px; border-radius:50%; } .mp-dot.crit{ border-radius:1px; transform:rotate(45deg); width:9px; height:9px; margin:0 1px; }
+.mp-dot{ width:9px; height:9px; border-radius:50%; } .mp-dot.crit{ width:14px; height:14px; border-radius:3px; box-shadow:0 0 0 1.5px #c0261c; position:relative; } .mp-dot.crit::after{ content:"C"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font:800 9.5px/1 var(--font-sans); color:#fff; }
 .mp-ms{ font-size:12.5px; color:#44576b; }
 .mp-pr{ display:flex; flex-wrap:wrap; gap:4px 12px; }
 .mp-pc{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:#44576b; white-space:nowrap; }
@@ -26810,7 +26810,44 @@ function rdProfile(port){
   if(out.agent && typeof entityRating === "function"){ const r = entityRating("agency", out.agent); if(r) out.rel = r; }   // v1.00 — voto unico = stelle dell'agenzia in Rubrica
   return out;
 }
-function rdCrit(id){ const f = loadCritFlags()[id]; return !!(f && f.v); }
+// v1.03 — CRITICAL EQUIPMENT dalla lista PMS (Asset Locations Reports, 25.09.2026; copia in data/critical-assets.json).
+// L'export Infoship non porta il codice macchinario sul PO: riconosco il sistema critico dalla descrizione,
+// solo per le navi che hanno quel sistema come "Critical Asset - 01". Il segno a mano (C rossa) vince sempre.
+const CRIT_RULES = [
+  { n: "Steering gear", s: "MDT MLG PEP", re: /steer/i },
+  { n: "Main engine · oil mist detector", s: "MDT MLG PEP", re: /oil mist/i },
+  { n: "Main engine", s: "MDT MLG PEP", re: /\b(main engine|m\/e|me)\b.*(critical|exhaust valve|cylinder cover|fuel valve|indicator valve|starting valve|crosshead|bearing|blower|lubricator|turbocharger|overhaul|pneumatic|spares?)|6s50mc|alpha lubricator|(exhaust valve|cylinder cover).*\b(me|m\/e|main engine)\b|air distributor|slow turning/i, not: /\b(oil|lube|jacket|cool|cooler|pump|chemical)\b(?!.*(blower|lubricator))/i },
+  { n: "Composite / aux boiler", s: "MDT MLG PEP", re: /boiler|unisab|kbo-e|mission oc/i, not: /steam\/water system for dry dock/i },
+  { n: "Emergency diesel generator", s: "MDT MLG PEP", re: /emerg\w*\s+(di[e]?sel\s+)?gen|emergency generator|em'cy\s*d\/?g/i },
+  { n: "Main starting air compressor", s: "MDT MLG PEP", re: /main (starting )?air compressor/i, not: /\boil\b/i },
+  { n: "Water ingress alarm", s: "MDT MLG PEP", re: /water ingress/i },
+  { n: "Oily water separator", s: "MDT MLG PEP", re: /\bows\b|oily water|bilge separ/i },
+  { n: "Hatch covers", s: "MLG PEP", re: /hatch cover/i },
+  { n: "Accommodation ladder", s: "MDT MLG PEP", re: /accommodation ladder/i },
+  { n: "Ballast water treatment", s: "MDT MLG PEP", re: /\bbwts\b|\bbwms\b|ballast water (treatment|mangement|management)|balclor|erma first|\btro\b|chlorine reagent kit for ballast/i, not: /analys|analisys|sample|\bvgp\b|\bd2\b/i },
+  { n: "Lifeboat / davit", s: "MDT MLG PEP", re: /life ?boat|free-?fall|davit/i, not: /gasoline|\bgas\b|liferaft/i },
+  { n: "Life / rescue boat", s: "MLG", re: /rescue boat/i, not: /gasoline|fall prevent/i },
+  { n: "Fire detection & alarm", s: "MDT MLG PEP", re: /fire (detect|alarm)|salwico|spot fire detector|manual fire alarm/i },
+  { n: "Water mist system", s: "MDT MLG PEP", re: /water mist|hyper ?lp|fixed water ?- ?based local fire/i },
+  { n: "Fire & emergency fire pump", s: "MDT MLG PEP", re: /fire\s*(&|and|e)?\s*(g\.?s\.?|general service)\s*pump|emergency fire (fighting )?pump|\bfire pump\b/i }
+];
+const CRIT_SHIP = { medtoscana: "MDT", medliguria: "MLG", peppino: "PEP" };
+function critAuto(it){
+  if(!it) return null;
+  const vid = it.vesselId || it.vid || (typeof mpVidOf === "function" ? mpVidOf(it.id) : ""), sh = CRIT_SHIP[vid], d = String(it.description || "");
+  if(sh){ const r = CRIT_RULES.find(x => x.s.includes(sh) && x.re.test(d) && !(x.not && x.not.test(d))); if(r) return { src: "pms", sys: r.n }; }
+  if(/\bcritical\b/i.test(d)) return { src: "req", sys: "dichiarato critico nella richiesta" };
+  return null;
+}
+function critInfo(id){
+  const f = loadCritFlags()[id];
+  if(f && f.v === false) return null;
+  const it = typeof faFindItem === "function" ? faFindItem(id) : null, a = critAuto(it);
+  if(f && f.v) return { src: "manual", sys: a ? a.sys : "segnato a mano" };
+  return a;
+}
+window.critInfo = critInfo;
+function rdCrit(id){ return !!critInfo(id); }
 function rdSetCrit(id, v){ const all = loadCritFlags(); all[id] = { v: !!v, updatedAt: new Date().toISOString() }; rdSaveJSON("mpd.critFlags", all); }
 function rdPrefs(){ const p = rdLoadJSON("mpd.radarPrefs"); return { H: [14,21,30].includes(+p.H) ? +p.H : 21, basis: p.basis === "media" ? "media" : "pessimistica" }; }
 function rdSetPref(k, v){ const p = rdLoadJSON("mpd.radarPrefs"); p[k] = v; try{ localStorage.setItem("mpd.radarPrefs", JSON.stringify(p)); }catch(e){} }
@@ -26949,6 +26986,7 @@ window.rdUndo = function(){
   radarPaint();
 };
 window.rdToggleCrit = function(id){ rdSetCrit(id, !rdCrit(id)); radarPaint(); };
+window.critToggle = function(id){ rdSetCrit(id, !rdCrit(id)); if(document.getElementById("radar-root")) radarPaint(); if(typeof openItemDetailPopover === "function" && document.querySelector(".item-detail-popover, #item-detail-host")) try{ openItemDetailPopover(id); }catch(e){} };
 window.rdPick = function(id){ window._rd.sel = id; window._rd.open = null; radarPaint(); };
 window.rdOpen = function(id){ window._rd.open = window._rd.open === id ? null : id; radarPaint(); };
 window.rdPref = function(k, v){ rdSetPref(k, v); radarPaint(); };
@@ -27095,7 +27133,7 @@ function radarPaint(){
       let altHTML = "";
       if(open){
         altHTML = '<div class="rd-alt"><div class="rd-alt-h"><b>Dove arriva in tempo?</b><span>stessa catena, con dogana e preavviso di ogni porto</span>' +
-          '<span class="rd-alt-a"><button class="btn btn-sm" onclick="window.rdToggleCrit(\'' + ea(x.it.id) + '\')">' + (x.crit ? "◆ Critico · togli" : "◇ Segna come critico") + '</button>' +
+          '<span class="rd-alt-a"><button class="btn btn-sm" onclick="window.rdToggleCrit(\'' + ea(x.it.id) + '\')">' + (x.crit ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:#c0261c;color:#fff;font:800 11px/1 var(--font-sans);vertical-align:-2px;">C</span> Critico · ' + esc((critInfo(x.it.id) || {}).sys || "") + " · togli" : "◇ Segna come critico") + '</button>' +
           '<button class="btn btn-sm" onclick="window.openItemDetailPopover(\'' + ea(x.it.id) + '\')">Apri scheda articolo</button></span></div>' +
           '<div class="rd-chain"><b>Catena</b> · ' + esc(x.chain) + '</div>' +
           rdAlts(x, M).map(a => {
@@ -27110,7 +27148,7 @@ function radarPaint(){
           (rdAlts(x, M).length < 2 ? '<div class="rd-sub">Il viaggio di ' + esc(x.c.vname) + ' ha un solo scalo impostato: aggiungi il successivo per vedere le alternative.</div>' : "") + '</div>';
       }
       return '<div class="rd-row' + (open ? " open" : "") + (x.k === "late" ? " late" : "") + '"><div class="rd-rg" onclick="window.rdOpen(\'' + ea(x.it.id) + '\')">' +
-        '<div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(x.it.poNumber || x.it.dnNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (x.crit ? '<span class="rd-crit">◆ CRITICO</span>' : "") + (x.noCust ? '<span class="rd-eu">UE</span>' : "") + '</div>' +
+        '<div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(x.it.poNumber || x.it.dnNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (x.crit ? '<span class="rd-crit"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:#c0261c;color:#fff;font:800 11px/1 var(--font-sans);vertical-align:-2px;">C</span> CRITICO</span>' : "") + (x.noCust ? '<span class="rd-eu">UE</span>' : "") + '</div>' +
         '<b>' + esc(x.it.description || "") + '</b><span>' + esc(x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "Fornitore non indicato") + '</span></div>' +
         '<div class="rd-gantt"><i class="rd-band" style="' + band + '"></i><i class="rd-cut" style="left:' + gp(cut) + '%"></i><i class="rd-track"></i>' + bars + note + '</div>' +
         '<div class="rd-v"><b style="color:' + COL[x.k] + '">' + verdict + '</b><span>' + sub + '</span></div></div>' + altHTML + '</div>';
@@ -27138,7 +27176,7 @@ function radarPaint(){
   const sups = Object.keys(supMap).map(k => { const l = supMap[k]; const nodn = l.some(x => x.unknown), late = l.some(x => x.k === "late");
     return { k, l, tag: nodn ? "senza data" : late ? "in ritardo" : "da anticipare", c: nodn || late ? "#c0261c" : "#c07800", w: Math.min(...l.map(x => x.cut)) }; })
     .sort((a, b) => a.w - b.w).slice(0, 6);
-  const supHTML = sups.length ? sups.map(s => '<div class="rd-sup"><div><b>' + esc(s.k) + '</b><span>' + s.l.map(x => (x.crit ? "◆ " : "") + esc(String(x.it.description || "").split(" —")[0].slice(0, 40)) + " → " + esc(x.c.vname) + " a " + esc(x.c.port) + ", limite " + rdFD(x.cut, now)).join(" · ") + '</span></div><em style="background:' + s.c + '">' + s.tag + '</em></div>').join("")
+  const supHTML = sups.length ? sups.map(s => '<div class="rd-sup"><div><b>' + esc(s.k) + '</b><span>' + s.l.map(x => (x.crit ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:#c0261c;color:#fff;font:800 11px/1 var(--font-sans);vertical-align:-2px;">C</span> ' : "") + esc(String(x.it.description || "").split(" —")[0].slice(0, 40)) + " → " + esc(x.c.vname) + " a " + esc(x.c.port) + ", limite " + rdFD(x.cut, now)).join(" · ") + '</span></div><em style="background:' + s.c + '">' + s.tag + '</em></div>').join("")
     : '<div class="rd-ok">Nessun fornitore sta scoprendo uno scalo.</div>';
 
   const P = rdPrefs();
@@ -27160,7 +27198,7 @@ function radarPaint(){
     '<div class="rd-scroll"><div class="rd-radar"><div class="rd-lane rd-axis"><div></div><div class="rd-lt">' + ticks + '</div></div>' + lanesHTML + '</div></div></div>' +
     selHTML +
     '<div class="rd-bottom"><div class="rd-card"><div class="rd-ch"><b>Chi sentire oggi</b><span>solo i fornitori che scoprono uno scalo</span></div>' + supHTML + '</div>' +
-    '<div class="rd-card"><div class="rd-ch"><b>Come stimo i tempi</b></div><div class="rd-txt">Ogni PO è una catena: <b>pronto dal fornitore</b> (data di pronto del PO o lead time della scheda) → <b>trasporto</b> (tracking se c\'è, altrimenti stima per modo) → <b>dogana</b> (profilo porto; zero per merce UE in porto UE) → <b>sottobordo</b> (preavviso all\'agente). Ogni tappa ha minimo e massimo; il colore segue la stima ' + M.basis + '.</div><div class="rd-txt muted">I PO entrano nel radar quando sono pianificati su uno scalo del viaggio (Pianifica consegna o "Sposta"). Il flag ◆ critico si mette a mano finché non arriva la lista Critical Equipment.</div></div>' +
+    '<div class="rd-card"><div class="rd-ch"><b>Come stimo i tempi</b></div><div class="rd-txt">Ogni PO è una catena: <b>pronto dal fornitore</b> (data di pronto del PO o lead time della scheda) → <b>trasporto</b> (tracking se c\'è, altrimenti stima per modo) → <b>dogana</b> (profilo porto; zero per merce UE in porto UE) → <b>sottobordo</b> (preavviso all\'agente). Ogni tappa ha minimo e massimo; il colore segue la stima ' + M.basis + '.</div><div class="rd-txt muted">I PO entrano nel radar quando sono pianificati su uno scalo del viaggio (Pianifica consegna o "Sposta"). Il flag <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:3px;background:#c0261c;color:#fff;font:800 9.5px/1 var(--font-sans);vertical-align:-2px;">C</span> critico viene dalla lista Critical Equipment (PMS) e si corregge a mano dalla scheda articolo.</div></div>' +
     '<div class="rd-card rd-dq"><div class="rd-eyebrow">QUALITÀ DEI DATI</div>' +
     '<b>' + M.staleDN + ' DN "in viaggio" da oltre 30 giorni</b><span>Escluse dal radar: probabilmente consegnate e mai chiuse in Infoship.</span>' +
     '<b>' + M.unTot + ' PO aperti senza scalo di consegna</b><span>Non sappiamo per quale scalo servono: pianificali per vederli nel radar.</span>' +
@@ -27292,7 +27330,10 @@ function mpDetailHTML(it){
   }
   if(p.pos === "hub") extra += '<div class="mp-row"><button class="btn btn-sm btn-primary" onclick="window.shipHubBoard(\'' + ea(p.hub || "") + '\',\'' + ea(mpVidOf(it.id)) + '\')">⇉ Spedisci insieme ad altri PO dell\'hub →</button>' + (p.viaShip ? '<span class="mp-note">arrivato all\'hub secondo il tracking' + (p.since ? " il " + mpFD(p.since) : "") + '</span>' : "") + '</div>';
   const state_ = p.partial ? "parzialmente a bordo dal " + mpFD(p.partOn) + ": il resto è ancora da consegnare" : p.viaShip ? "dal tracking" : p.derived && p.pos === "supplier" ? "dedotta: PO emesso, nessuna DN. Se lo tieni lì apposta, conferma" : p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo" : p.derived ? "dedotta da Infoship, non ancora confermata" : p.manual ? "segnata da te il " + mpFD(p.updatedAt) : "da Infoship / tracking";
-  return '<div class="detail-section mp-sec"><div class="idx-h"><h4>Dove si trova il materiale</h4><span class="mp-src">' + escapeHTML(MP_POS[p.pos].l) + ' · ' + escapeHTML(state_) + '</span>' +
+  const ci = typeof critInfo === "function" ? critInfo(it.id) : null;
+  const critRow = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;">' + (ci ? '<span style="display:inline-flex;gap:6px;align-items:center;background:#c0261c;color:#fff;font-size:12px;font-weight:800;padding:3px 10px 3px 3px;border-radius:999px;"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#fff;color:#c0261c;font-size:11px;">C</span>CRITICO</span><span style="font-size:12.5px;color:#44576b;">' + escapeHTML(ci.sys) + (ci.src === "pms" ? " · dalla lista Critical Equipment" : ci.src === "manual" ? " · segnato da te" : "") + '</span>' : '<span style="font-size:12.5px;color:#6a7d90;">Non critico</span>') +
+    '<button class="btn btn-sm" onclick="window.critToggle(\'' + id + '\')">' + (ci ? "Non è critico" : "Segna critico") + '</button></div>';
+  return '<div class="detail-section mp-sec">' + critRow + '<div class="idx-h"><h4>Dove si trova il materiale</h4><span class="mp-src">' + escapeHTML(MP_POS[p.pos].l) + ' · ' + escapeHTML(state_) + '</span>' +
     (p.manual ? '<button class="btn btn-sm" onclick="window.mpSetPos(\'' + id + '\',\'auto\')">Automatico</button>' : "") + '</div>' +
     '<div class="mp-opts">' + opts.map(btn).join("") + '</div>' + extra + '</div>';
 }
