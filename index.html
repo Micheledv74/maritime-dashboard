@@ -10562,6 +10562,7 @@ function updateTodo(id, patch) {
   if (i < 0) return;
   const before = state.todos[i];
   state.todos[i] = { ...before, ...patch, updatedAt: new Date().toISOString() };
+  if (patch && patch.dueDate === "" && before.dueDate) state.todos[i].dueCleared = true;   // v1.00 — tolta a mano: il sync Outlook non la rimette
   saveTodos();
   // v0.14 — Se la to-do ha un outlookTaskId e viene marcata done, queue per sync
   if (before.outlookTaskId && !before.done && state.todos[i].done) {
@@ -12395,6 +12396,7 @@ function renderPerformanceSection() {
       <td class="mono">${s.count}</td>
       <td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td>
       <td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td>
+      <td>${starsPickHTML("supplier", s.name, entityRating("supplier", s.name), Math.max(1, Math.round(s.score / 20)))}</td>
       <td>${flag}</td>
     </tr>`;
   }).join("");
@@ -12488,7 +12490,7 @@ function renderPerformanceSection() {
           ${period.suppliers.length > 10 ? `<button class="pp-sup-all" onclick="window.openAllSuppliers()">Vedi tutti (${period.suppliers.length}) →</button>` : ""}
         </div>
         <table class="pp-sup-table">
-          <thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Affidabilità</th><th></th></tr></thead>
+          <thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th title="Punteggio calcolato da tempi, rifiuti e puntualità">Dai dati</th><th title="Le stesse stelle della Rubrica: cambiarle qui le cambia anche lì">Tuo voto</th><th></th></tr></thead>
           <tbody>${supplierRows}</tbody>
         </table>
       </div>` : ""}
@@ -12550,6 +12552,32 @@ function saveEntityProfiles(kind, obj) {
   try { localStorage.setItem(key, JSON.stringify(obj)); if (typeof driveSchedulePush === "function") driveSchedulePush(); } catch {}
 }
 function getEntityProfile(kind, name) { return loadEntityProfiles(kind)[name] || {}; }
+// v1.00 — UN SOLO voto per fornitore/agenzia: le stelle della Rubrica (profile.rating, 1-5).
+// Lo leggono e lo scrivono Rubrica, scheda fornitore/agenzia, scorecard Performance e profilo porto.
+function entityKeyOf(kind, name) {
+  const all = loadEntityProfiles(kind), n = String(name || "").trim(); if (!n) return "";
+  if (all[n]) return n;
+  const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+  return Object.keys(all).find(k => norm(k) === norm(n)) || n;
+}
+function entityRating(kind, name) { const k = entityKeyOf(kind, name); return k ? (parseInt(getEntityProfile(kind, k).rating, 10) || 0) : 0; }
+function entitySetRating(kind, name, r) {
+  const k = entityKeyOf(kind, name); if (!k) return;
+  const all = loadEntityProfiles(kind); all[k] = Object.assign({}, all[k], { rating: r, ratingAt: new Date().toISOString() }); saveEntityProfiles(kind, all);
+}
+function starsPickHTML(kind, name, r, suggest) {
+  const e = escapeAttr(String(name)).replace(/'/g, "\\'");
+  let h = '<span style="display:inline-flex;gap:1px;white-space:nowrap;" title="' + (r ? "Il tuo voto (lo stesso della Rubrica)" : suggest ? "Non ancora votato · dai dati: " + suggest + " su 5" : "Non ancora votato") + '">';
+  for (let i = 1; i <= 5; i++) h += '<button onclick="event.stopPropagation();window.setEntityRating(\'' + kind + '\',\'' + e + '\',' + (i === r ? 0 : i) + ')" style="background:none;border:none;padding:0 1px;font-size:15px;line-height:1;cursor:pointer;color:' + (i <= r ? "#f0a500" : (!r && i <= (suggest || 0)) ? "#f3d58a" : "#d8dee5") + ';">★</button>';
+  return h + '</span>';
+}
+window.setEntityRating = function(kind, name, r) {
+  entitySetRating(kind, name, r);
+  if (typeof showToast === "function") showToast(r ? name + ": " + r + " su 5 (anche in Rubrica)" : "Voto tolto a " + name);
+  if (state.view === "performance") renderPerformancePage(); else if (state.view === "rubrica" && typeof renderRubricaPage === "function") renderRubricaPage();
+  if (document.getElementById("all-suppliers-body") && window._allSuppliersData) renderAllSuppliersList((document.getElementById("all-suppliers-search") || {}).value || "");
+  if (document.getElementById("radar-root") && typeof radarPaint === "function") radarPaint();
+};
 
 // v0.42 — Push webhook rimosso: la sincronizzazione verso Notion avviene ora via export CSV (Esporta CSV nella Rubrica → Merge with CSV su Notion). Il pull da Notion resta attivo.
 function scheduleNotionPush(){}
@@ -12601,7 +12629,7 @@ function renderEntityCardInto(kind, name) {
       <div class="ec-stats">
         <div class="ec-stat"><span class="ec-stat-n">${stats.count}</span><span class="ec-stat-l">Ordini (periodo)</span></div>
         <div class="ec-stat"><span class="ec-stat-n">${stats.avgDays != null ? stats.avgDays + "g" : "—"}</span><span class="ec-stat-l">Tempo medio risposta</span></div>
-        <div class="ec-stat"><span class="ec-stat-n ec-score-${scoreTier}">${stats.score}</span><span class="ec-stat-l">Affidabilità</span></div>
+        <div class="ec-stat"><span class="ec-stat-n ec-score-${scoreTier}">${stats.score}</span><span class="ec-stat-l">Affidabilità dai dati</span></div>
         ${stats.refused > 0 ? `<div class="ec-stat"><span class="ec-stat-n" style="color:#c8222a">${stats.refused}</span><span class="ec-stat-l">RFQ rifiutate</span></div>` : ""}
       </div>`;
   } else if (kind === "supplier") {
@@ -12718,9 +12746,9 @@ function renderAllSuppliersList(query) {
   const rows = arr.map(s => {
     const scoreTier = s.score >= 75 ? "good" : s.score >= 50 ? "mid" : "bad";
     const flag = s.refused > 0 ? `<span class="pp-sup-flag">⚠ ${s.refused} rifiutate</span>` : "";
-    return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')"><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td><td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td><td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${flag}</td></tr>`;
+    return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')"><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td><td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td><td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${starsPickHTML("supplier", s.name, entityRating("supplier", s.name), Math.max(1, Math.round(s.score / 20)))}</td><td>${flag}</td></tr>`;
   }).join("");
-  document.getElementById("all-suppliers-body").innerHTML = `<table class="pp-sup-table"><thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Affidabilità</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="mo-empty">Nessun fornitore trovato.</td></tr>`}</tbody></table>`;
+  document.getElementById("all-suppliers-body").innerHTML = `<table class="pp-sup-table"><thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Dai dati</th><th>Tuo voto</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="mo-empty">Nessun fornitore trovato.</td></tr>`}</tbody></table>`;
   document.getElementById("all-suppliers-count").textContent = `${arr.length} fornitori`;
 }
 
@@ -18359,8 +18387,8 @@ function syncOutlookTasksToTodos(outlookData) {
       // faceva nascere ogni to-do già "Scaduta" (332 su 336 nel tuo archivio). Se il task
       // è una email flaggata e la data non è nel futuro, la to-do nasce senza scadenza.
       const isFlaggedEmail = !!(task.webUrl || task.linkedDisplayName);
+      // v1.00 — scelta utente: la data di Outlook è la scadenza vera, anche per le email flaggate
       let dueImported = task.dueDate || "";
-      if (isFlaggedEmail && dueImported && dueImported <= String(task.createdAt || "").slice(0, 10)) dueImported = "";
       if (!dueImported && !isFlaggedEmail) dueImported = resolveWhen("tomorrow", null);
 
       // Costruisci la to-do
@@ -18407,11 +18435,12 @@ function syncOutlookTasksToTodos(outlookData) {
       // v1.00 — giorno del flag (per mostrare una data anche sulle email flaggate senza scadenza)
       const fd = String(task.dueDate || task.createdAt || "").slice(0, 10);
       if (fd && existing.outlookFlagDate !== fd) { existing.outlookFlagDate = fd; updated++; }
+      // v1.00 — la data di Outlook vale come scadenza: la rimetto sulle to-do rimaste senza (regola v0.88 abolita)
+      if (!existing.done && !existing.dueDate && task.dueDate && !existing.dueCleared) { existing.dueDate = task.dueDate; updated++; }
       // v1.00 — scadenza/titolo cambiati in Outlook dopo l'ultima modifica in dashboard → li riprendo
       if (!existing.done && String(task.lastModifiedAt || "") > String(existing.updatedAt || existing.createdAt || "")) {
         const isFl = !!(task.webUrl || task.linkedDisplayName);
         let due = task.dueDate || "";
-        if (isFl && due && due <= String(task.createdAt || "").slice(0, 10)) due = "";
         if (due && due !== (existing.dueDate || "")) { existing.dueDate = due; existing.updatedAt = task.lastModifiedAt; updated++; }
       }
       const outlookCompleted = task.status === "completed";
@@ -26776,7 +26805,9 @@ function rdProfile(port){
   const p = loadPortProfiles()[rdKey(port)];
   const base = { customs: eu ? [0.5,1] : [1,3], notice: 24, rel: 0, agent: "", note: "", eu, set: false };
   if(!p) return base;
-  return Object.assign(base, p, { set: true, customs: Array.isArray(p.customs) ? p.customs : base.customs, eu: p.eu != null ? !!p.eu : eu });
+  const out = Object.assign(base, p, { set: true, customs: Array.isArray(p.customs) ? p.customs : base.customs, eu: p.eu != null ? !!p.eu : eu });
+  if(out.agent && typeof entityRating === "function"){ const r = entityRating("agency", out.agent); if(r) out.rel = r; }   // v1.00 — voto unico = stelle dell'agenzia in Rubrica
+  return out;
 }
 function rdCrit(id){ const f = loadCritFlags()[id]; return !!(f && f.v); }
 function rdSetCrit(id, v){ const all = loadCritFlags(); all[id] = { v: !!v, updatedAt: new Date().toISOString() }; rdSaveJSON("mpd.critFlags", all); }
@@ -26937,7 +26968,7 @@ window.rdEditProfile = function(port){
     '<label>Dogana min (gg)<input id="rdp-c0" type="number" step="0.5" min="0" value="' + p.customs[0] + '"></label>' +
     '<label>Dogana max (gg)<input id="rdp-c1" type="number" step="0.5" min="0" value="' + p.customs[1] + '"></label>' +
     '<label>Preavviso agente (ore)<input id="rdp-n" type="number" step="1" min="0" value="' + p.notice + '"></label>' +
-    '<label>Affidabilità (1-5)<select id="rdp-r">' + [0,1,2,3,4,5].map(n => '<option value="' + n + '"' + (n === (p.rel||0) ? " selected" : "") + '>' + (n ? "●".repeat(n) + "○".repeat(5-n) : "non valutato") + '</option>').join("") + '</select></label>' +
+    '<label>Affidabilità agenzia (come in Rubrica)<select id="rdp-r">' + [0,1,2,3,4,5].map(n => '<option value="' + n + '"' + (n === (p.rel||0) ? " selected" : "") + '>' + (n ? "●".repeat(n) + "○".repeat(5-n) : "non valutato") + '</option>').join("") + '</select></label>' +
     '<label class="rd-wide">Agenzia<input id="rdp-a" list="rdp-al" value="' + escapeAttr(p.agent || "") + '" placeholder="dalla Rubrica"><datalist id="rdp-al">' + agencies.map(a => '<option value="' + escapeAttr(a) + '"></option>').join("") + '</datalist></label>' +
     '<label class="rd-check"><input id="rdp-eu" type="checkbox"' + (p.eu ? " checked" : "") + '> Porto UE (merce UE senza dogana)</label>' +
     '<label class="rd-wide">Note (la tua esperienza)<textarea id="rdp-t" rows="3" placeholder="es. dogana chiusa il venerdì pomeriggio, lancia solo con 24 h…">' + escapeHTML(p.note || "") + '</textarea></label>' +
@@ -26953,6 +26984,7 @@ window.rdSaveProfile = function(port){
   all[rdKey(port)] = { port, customs: [c0, c1], notice: Math.max(0, parseInt(g("rdp-n").value, 10) || 0), rel: parseInt(g("rdp-r").value, 10) || 0,
     agent: g("rdp-a").value.trim(), eu: g("rdp-eu").checked, note: g("rdp-t").value.trim(), updatedAt: new Date().toISOString() };
   rdSaveJSON("mpd.portProfiles", all);
+  { const pp = all[rdKey(port)]; if(pp.agent && typeof entitySetRating === "function" && pp.rel !== entityRating("agency", pp.agent)) entitySetRating("agency", pp.agent, pp.rel); }   // v1.00 — scrive anche in Rubrica
   document.getElementById("rd-prof-host").innerHTML = "";
   if(typeof showToast === "function") showToast("Profilo " + port + " salvato");
   radarPaint();
@@ -27655,7 +27687,7 @@ function shbPaint(){
   // form
   const vids = [...new Set(sel.map(k => byId[k].vid))], fut = vids.length === 1 ? mpVoyFuture(vids[0]) : null;
   const hubId = s.hub || (sel.length ? byId[sel[0]].p.hub || "" : ""), f = s.f;
-  const form = sel.length ? '<div style="background:#fff;border-top:2px solid #1553d8;padding:14px 16px;box-shadow:0 -8px 20px rgba(10,27,46,.08);">' +
+  const form = sel.length ? '<div style="background:#fff;padding:16px;">' +
     '<div style="font-size:14px;font-weight:800;color:#0a1b2e;">Spedisci insieme ' + sel.length + ' PO' + (hubId ? " da " + esc(shbHubLabel(hubId)) : "") + '</div>' +
     (vids.length > 1 ? '<div style="font-size:12px;color:#8a4b00;margin-top:4px;">PO di ' + vids.length + ' navi diverse: va bene solo se viaggiano davvero insieme.</div>' : "") +
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px;">' +
@@ -27666,18 +27698,26 @@ function shbPaint(){
     '<input id="shb-port" placeholder="Porto di destinazione" value="' + escapeAttr(f.port != null ? f.port : fut ? m3Cap(fut.to) : "") + '" style="' + inp + '"></div>' +
     (fut ? '<label style="display:flex;gap:7px;align-items:center;font-size:12.5px;margin-top:10px;color:#0a1b2e;"><input id="shb-assign" type="checkbox" checked>Assegna i PO allo scalo di ' + esc(m3Cap(fut.to)) + (fut.eta || fut.etb ? " (" + mpFD(fut.etb || fut.eta) + ")" : "") + '</label>' : "") +
     '<div style="display:flex;gap:8px;margin-top:12px;"><button class="btn btn-primary" style="flex:1;" onclick="shbCreate()">Crea spedizione unica</button><button class="btn" onclick="shbClear()">Deseleziona</button></div></div>' : "";
-  const lbl = t => '<div style="padding:9px 12px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">' + t + '</div>';
-  host.innerHTML = '<div onclick="if(event.target===this)shbClose()" style="position:fixed;inset:0;z-index:10050;background:rgba(10,27,46,.45);display:flex;align-items:center;justify-content:center;padding:10px;">' +
-    '<div style="width:100%;max-width:760px;max-height:94vh;display:flex;flex-direction:column;background:#f5f7fa;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(10,27,46,.3);font-family:var(--font-sans);">' +
-    '<div style="padding:14px 16px;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);display:flex;gap:10px;align-items:center;"><div style="flex:1;min-width:0;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">HUB TML · SPEDIZIONI CONSOLIDATE</div><div style="font-size:16px;font-weight:800;color:#0a1b2e;margin-top:2px;">Scegli i PO che partono insieme</div></div><button onclick="shbClose()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#44576b;min-width:44px;min-height:44px;">✕</button></div>' +
-    '<div style="flex:1;overflow:auto;">' +
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;"><select onchange="shbSet(\'hub\',this.value)" style="' + inp + 'flex:1 1 220px;">' + hubOpts + '</select><select onchange="shbSet(\'vid\',this.value)" style="' + inp + 'flex:1 1 180px;">' + vesOpts + '</select></div>' +
-    '<div style="margin:0 16px;border:1px solid rgba(10,27,46,.10);border-radius:12px;overflow:hidden;background:#fff;">' + lbl("ALL'HUB · " + list.length + " PO") +
-    (list.length ? list.map(row).join("") : '<div style="padding:12px;font-size:12.5px;color:#44576b;border-top:1px solid rgba(10,27,46,.08);line-height:1.45;">Nessun PO segnato ' + (s.hub ? "in questo hub" : "negli hub") + (s.vid ? " per questa nave" : "") + '. Segna "All\'hub TML" nella scheda del PO' + (s.vid ? ", oppure prendili dall\'elenco qui sotto." : ", oppure scegli la nave per prenderli da quelli presso i fornitori.") + '</div>') + '</div>' +
-    (more.length ? '<details style="margin:10px 16px 0;border:1px solid rgba(10,27,46,.10);border-radius:12px;background:#fff;overflow:hidden;"' + (more.some(r => s.sel[r.it.id]) || !list.length ? " open" : "") + '><summary style="padding:11px 12px;cursor:pointer;font-size:12.5px;font-weight:700;color:#1553d8;">Non ancora segnati all\'hub · ' + more.length + ' PO presso i fornitori</summary>' + more.map(row).join("") + '</details>' : "") +
-    '<div style="padding:16px 16px 8px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">SPEDIZIONI CONSOLIDATE' + (gl.length ? " · " + gl.length : "") + '</div>' +
-    '<div style="display:flex;flex-direction:column;gap:8px;padding:0 16px 16px;">' + (gl.length ? gl.map(grp).join("") : '<div style="font-size:12.5px;color:#44576b;line-height:1.45;">Nessuna spedizione con più PO. Quando ne crei una, AWB, date e tracking valgono per tutti i PO collegati.</div>') + '</div>' +
-    '</div>' + form + '</div></div>';
+  const lbl = t => '<div style="padding:11px 14px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">' + t + '</div>';
+  const card = "border:1px solid rgba(10,27,46,.10);border-radius:14px;overflow:hidden;background:#fff;";
+  const sumHubs = TML_HUBS.filter(h => cntH[h.id]).map(h => '<button onclick="shbSet(\'hub\',\'' + h.id + '\')" style="border:1px solid ' + (s.hub === h.id ? "#1553d8" : "rgba(10,27,46,.12)") + ';background:' + (s.hub === h.id ? "#eef4ff" : "#fff") + ';color:#0a1b2e;border-radius:12px;padding:10px 14px;cursor:pointer;text-align:left;font-family:var(--font-sans);min-width:150px;"><b style="display:block;font-size:20px;">' + cntH[h.id] + '</b><span style="font-size:12px;color:#44576b;">PO a ' + esc(h.city) + '</span></button>').join("");
+  const hubInfo = s.hub && mpHub(s.hub) ? (h => '<div style="font-size:12px;color:#44576b;line-height:1.5;">' + esc([h.address, h.phone].filter(Boolean).join(" · ")) + (h.email ? ' · <a href="mailto:' + escapeAttr(h.email) + '" style="color:#1553d8;">' + esc(h.email) + '</a>' : "") + '</div>')(mpHub(s.hub)) : "";
+  const empty = '<div style="padding:14px;font-size:13px;color:#44576b;border-top:1px solid rgba(10,27,46,.08);line-height:1.5;">Nessun PO segnato ' + (s.hub ? "in questo hub" : "negli hub") + (s.vid ? " per questa nave" : "") + '. Segna "All\'hub TML" nella scheda del PO' + (s.vid ? ", oppure prendili dall\'elenco qui sotto." : ", oppure scegli la nave per prenderli da quelli presso i fornitori.") + '</div>';
+  const left = '<div style="display:flex;flex-direction:column;gap:12px;min-width:0;">' +
+    '<div style="' + card + '">' + lbl("ALL'HUB · " + list.length + " PO · seleziona quelli che partono insieme") + (list.length ? list.map(row).join("") : empty) + '</div>' +
+    (more.length ? '<details style="' + card + '"' + (more.some(r => s.sel[r.it.id]) || !list.length ? " open" : "") + '><summary style="padding:12px 14px;cursor:pointer;font-size:13px;font-weight:700;color:#1553d8;">Non ancora segnati all\'hub · ' + more.length + ' PO presso i fornitori</summary>' + more.map(row).join("") + '</details>' : "") + '</div>';
+  const right = '<div style="display:flex;flex-direction:column;gap:12px;min-width:0;">' +
+    (form ? '<div style="' + card + 'border:2px solid #1553d8;">' + form + '</div>' : '<div style="' + card + 'padding:16px;font-size:13px;color:#44576b;line-height:1.5;"><b style="display:block;color:#0a1b2e;font-size:14px;margin-bottom:4px;">Come funziona</b>Spunta a sinistra i PO che viaggiano con lo stesso AWB. Qui compare il modulo: AWB, corriere e date si scrivono una volta sola e il tracking vale per tutti. «Solo una parte» se di quel PO parte solo un pezzo.</div>') +
+    '<div style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;padding:4px 2px 0;">SPEDIZIONI CONSOLIDATE' + (gl.length ? " · " + gl.length : "") + '</div>' +
+    (gl.length ? gl.map(grp).join("") : '<div style="font-size:13px;color:#44576b;line-height:1.45;">Nessuna spedizione con più PO.</div>') + '</div>';
+  host.innerHTML = '<div style="position:fixed;inset:0;z-index:10050;background:#eef2f6;overflow:auto;font-family:var(--font-sans);">' +
+    '<div style="position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);"><div style="max-width:1320px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
+    '<button onclick="shbClose()" style="border:1px solid rgba(10,27,46,.14);background:#fff;border-radius:10px;padding:0 14px;min-height:44px;font-size:13px;font-weight:700;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);">← Torna alla dashboard</button>' +
+    '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">HUB TML · SPEDIZIONI CONSOLIDATE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">' + (s.hub ? esc(shbHubLabel(s.hub)) : "Tutti gli hub") + (s.vid ? " · " + esc(m3VName(s.vid)) : "") + '</div></div>' +
+    '<select onchange="shbSet(\'hub\',this.value)" style="' + inp + 'min-height:44px;flex:0 1 260px;">' + hubOpts + '</select><select onchange="shbSet(\'vid\',this.value)" style="' + inp + 'min-height:44px;flex:0 1 200px;">' + vesOpts + '</select></div></div>' +
+    '<div style="max-width:1320px;margin:0 auto;padding:18px 20px 40px;display:flex;flex-direction:column;gap:16px;">' +
+    (sumHubs ? '<div style="display:flex;gap:10px;flex-wrap:wrap;">' + sumHubs + '</div>' : "") + hubInfo +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;align-items:start;">' + left + right + '</div></div></div>';
 }
 window.shbCreate = function(){
   shbKeep();
