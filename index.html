@@ -8973,6 +8973,10 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
         eventuale webhook diretto: lasciali vuoti.
       </p>
       <div class="setting-row">
+        <label>Token GitHub per le chiusure</label>
+        <input type="password" placeholder="ghp_… (classic, permesso repo)" data-setting="outlookDoneGhToken" style="width:220px;">
+      </div>
+      <div class="setting-row">
         <label>Webhook diretto (facoltativo)</label>
         <input type="text" placeholder="https://.../webhook/outlook-task-done" data-setting="outlookDoneUrl" style="width:220px;">
       </div>
@@ -9663,6 +9667,7 @@ const DEFAULT_SETTINGS = {
   aiWebhookToken: "",
   shipWebhookUrl: "",    // v0.63 — webhook n8n per il tracking spedizioni (17TRACK) — vedi Impostazioni → Tracking spedizioni
   shipWebhookToken: "",
+  outlookDoneGhToken: "",   // v1.00 — token GitHub (classic, repo) per scrivere data-completed-from-dashboard.json se quello del Sync non basta
   outlookDoneUrl: "",   // v1.00 — webhook n8n che chiude in Outlook le to-do chiuse in dashboard
   outlookDoneToken: "",
   stateSyncUrl: "",     // v0.51 — sync stato multi-dispositivo via webhook n8n (funziona anche dove Google Drive non si collega, es. iPhone)
@@ -18465,7 +18470,7 @@ async function outlookPushCompletions(manual) {
   const lim = new Date(Date.now() - 21 * 864e5).toISOString();
   state.outlookCompletionQueue = (state.outlookCompletionQueue || []).filter(x => x.taskId && String(x.completedAt || "") >= lim);
   const q = state.outlookCompletionQueue;
-  const gh = typeof ghSyncConfigured === "function" && ghSyncConfigured();
+  const gh = (typeof ghSyncConfigured === "function" && ghSyncConfigured()) || !!((state.settings || {}).outlookDoneGhToken || "").trim();
   if (!url && !gh) { if (manual) showToast("Collega il Sync GitHub (Impostazioni) per chiudere le to-do in Outlook"); return; }
   if (_olPushBusy) return; _olPushBusy = true;
   try {
@@ -18474,17 +18479,18 @@ async function outlookPushCompletions(manual) {
       const sig = q.map(x => x.taskId).sort().join(",");
       if (!manual && sig === localStorage.getItem("mpd.olDoneSig")) return;
       const api = "https://api.github.com/repos/" + OL_DONE_REPO + "/contents/" + OL_DONE_PATH, br = ((state.settings || {}).ghSyncBranch || "main").trim();
-      const head = await fetch(api + "?ref=" + encodeURIComponent(br), { headers: ghSyncHeaders(), cache: "no-store" });
+      const gHdr = (() => { const t = ((state.settings || {}).outlookDoneGhToken || "").trim(); return t ? { "Authorization": "Bearer " + t, "Accept": "application/vnd.github+json" } : ghSyncHeaders(); })();
+      const head = await fetch(api + "?ref=" + encodeURIComponent(br), { headers: gHdr, cache: "no-store" });
       const sha = head.ok ? ((await head.json()) || {}).sha : undefined;
-      const doPut = s => fetch(api, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, ghSyncHeaders()), body: JSON.stringify({ message: "Dashboard: " + q.length + " to-do da chiudere in Outlook", content: b64EncodeUtf8(body), branch: br, sha: s }) });
+      const doPut = s => fetch(api, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, gHdr), body: JSON.stringify({ message: "Dashboard: " + q.length + " to-do da chiudere in Outlook", content: b64EncodeUtf8(body), branch: br, sha: s }) });
       let put = await doPut(sha);
       if (put.status === 409 || put.status === 422) {   // sha cambiato nel frattempo: rileggo e riprovo una volta
-        const h2 = await fetch(api + "?ref=" + encodeURIComponent(br) + "&t=" + Date.now(), { headers: ghSyncHeaders(), cache: "no-store" });
+        const h2 = await fetch(api + "?ref=" + encodeURIComponent(br) + "&t=" + Date.now(), { headers: gHdr, cache: "no-store" });
         put = await doPut(h2.ok ? ((await h2.json()) || {}).sha : undefined);
       }
       if (!put.ok) {
         const why = put.status === 401 ? "token GitHub scaduto o non valido"
-          : (put.status === 403 || put.status === 404) ? "il token GitHub del Sync non ha il permesso di scrivere su " + OL_DONE_REPO + " (serve Contents: Read and write su quel repo)"
+          : (put.status === 403 || put.status === 404) ? "il token GitHub non può scrivere su " + OL_DONE_REPO + ". Incolla un token con permesso «repo» nel campo «Token GitHub per le chiusure» (Impostazioni → Chiusura to-do in Outlook)"
           : "GitHub ha risposto " + put.status;
         const e = new Error(why); e.gh = true; throw e;
       }
