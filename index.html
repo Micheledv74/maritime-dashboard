@@ -11676,6 +11676,7 @@ window.maOpenAltro = function(){
     <div class="ma-sheet-h" style="margin-top:8px">NAVIGA</div>
     ${row("✓","To-do",(todosOpen().length||0)+" aperte",'mgo(\'todo\')')}
     ${row("↺","Pulizia DN","conferma le DN vecchie",'m3DnStart()')}
+    ${row("⇉","Hub e consolidati","più PO sotto un solo AWB",'maCloseSheet();window.shipHubBoard()')}
     ${row("📇","Rubrica","fornitori e agenzie",'mgo(\'rubrica\')')}
     ${row("📅","Certificati","",'maGoCert(\'all\')')}
     ${row("📨","RFQ da sollecitare","tutta la flotta",'maOpenRfqAll()')}
@@ -19887,8 +19888,57 @@ let _shipOpen = {};   // segId -> timeline aperta
 
 function loadShipments(){ try{ const d=JSON.parse(localStorage.getItem("mpd.shipments")||"{}"); return (d&&typeof d==="object")?d:{}; }catch{ return {}; } }
 function saveShipmentsDB(obj){ try{ localStorage.setItem("mpd.shipments", JSON.stringify(obj)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
-function getItemShipments(itemId){ const a=loadShipments()[itemId]; return Array.isArray(a)?a:[]; }
-function setItemShipments(itemId, arr){ const all=loadShipments(); if(arr&&arr.length) all[itemId]=arr; else delete all[itemId]; saveShipmentsDB(all); }
+// v0.99 — spedizioni CONSOLIDATE: più PO sotto un solo AWB. I segmenti restano per item
+// (tutti i lettori invariati) ma quelli con `gid` prendono i campi condivisi dal record
+// unico mpd.shipments.__groups[gid] → AWB, stato, eventi, ETA si scrivono una volta sola.
+const SHIP_SHARED=["route","carrier","hub","number","status","pickup","eta","events","source","updatedAt","toPort"];
+function shipNorm(n){ return String(n||"").toUpperCase().replace(/[^A-Z0-9]/g,""); }
+function shipGroups(){ return loadShipments().__groups||{}; }
+function getItemShipments(itemId){
+  if(itemId==="__groups") return [];
+  const all=loadShipments(), a=all[itemId]; if(!Array.isArray(a)) return [];
+  const G=all.__groups||{};
+  return a.map(s=>{ const g=s.gid&&G[s.gid]; if(!g) return s; const o={...s}; SHIP_SHARED.forEach(k=>{ if(g[k]!==undefined) o[k]=g[k]; }); return o; });
+}
+function setItemShipments(itemId, arr){
+  const all=loadShipments(), G=all.__groups||(all.__groups={});
+  const prev=Array.isArray(all[itemId])?all[itemId]:[], keep=new Set((arr||[]).map(s=>s.gid).filter(Boolean));
+  prev.forEach(s=>{ if(s.gid&&!keep.has(s.gid)&&G[s.gid]){ G[s.gid].items=(G[s.gid].items||[]).filter(x=>x!==itemId); G[s.gid].updatedAt=new Date().toISOString(); if(!G[s.gid].items.length) delete G[s.gid]; } });
+  (arr||[]).forEach(s=>{ if(!s.gid) return; const g=G[s.gid]||(G[s.gid]={id:s.gid,items:[]}); SHIP_SHARED.forEach(k=>{ if(s[k]!==undefined) g[k]=s[k]; }); g.items=g.items||[]; if(!g.items.includes(itemId)) g.items.push(itemId); });
+  if(arr&&arr.length) all[itemId]=arr; else delete all[itemId];
+  if(!Object.keys(G).length) delete all.__groups;
+  saveShipmentsDB(all);
+}
+function shipFindByNumber(num, exceptItem){
+  const n=shipNorm(num); if(!n) return null; const all=loadShipments();
+  for(const k of Object.keys(all)){ if(k==="__groups"||k===exceptItem||!Array.isArray(all[k])) continue; const s=getItemShipments(k).find(x=>shipNorm(x.number)===n); if(s) return { itemId:k, seg:s }; }
+  return null;
+}
+// Collega itemId alla spedizione srcSegId di srcItemId (la trasforma in gruppo se serve)
+function shipLink(itemId, srcItemId, srcSegId, partial){
+  const src=getItemShipments(srcItemId), s=src.find(x=>x.id===srcSegId); if(!s) return false;
+  if(!s.gid){ s.gid="g"+genShipId().slice(2); setItemShipments(srcItemId, src); }
+  const mine=getItemShipments(itemId); if(mine.some(x=>x.gid===s.gid)) return true;
+  const o={ id:genShipId(), gid:s.gid, partial:!!partial }; SHIP_SHARED.forEach(k=>{ if(s[k]!==undefined) o[k]=s[k]; });
+  mine.push(o); setItemShipments(itemId, mine); return true;
+}
+// Migrazione: segmenti con lo STESSO numero e la stessa tratta su PO diversi → un gruppo
+function shipMigrateGroups(){
+  try{
+    const all=loadShipments(), by={};
+    Object.keys(all).forEach(k=>{ if(k==="__groups"||!Array.isArray(all[k])) return; all[k].forEach(s=>{ if(s.gid||!shipNorm(s.number)) return; const key=shipNorm(s.number)+"|"+(s.route||""); (by[key]=by[key]||[]).push({k,s}); }); });
+    const G=all.__groups||{}; let ch=false;
+    Object.values(by).forEach(list=>{
+      const items=[...new Set(list.map(x=>x.k))]; if(items.length<2) return;
+      list.sort((a,b)=>String(b.s.updatedAt||"").localeCompare(String(a.s.updatedAt||"")));
+      const best=list.find(x=>(x.s.events||[]).length)||list[0], gid="g"+genShipId().slice(2), g={ id:gid, items };
+      SHIP_SHARED.forEach(f=>{ if(best.s[f]!==undefined) g[f]=best.s[f]; });
+      G[gid]=g; list.forEach(x=>{ x.s.gid=gid; }); ch=true;
+    });
+    if(ch){ all.__groups=G; saveShipmentsDB(all); }
+    return ch;
+  }catch(e){ return false; }
+}
 function genShipId(){ return "sh"+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 function shipIcon(c){ return SHIP_COURIERS.has(c)?"📦":"✈️"; }
 function shipFmtDay(iso){ if(!iso) return "—"; const d=new Date(iso.length>10?iso.replace(" ","T"):iso+"T00:00:00"); return isNaN(d)?"—":d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"}); }
@@ -19920,6 +19970,9 @@ function shipmentMiniHTML(it){
   if(moveToPort){ pct=80; color="#b8860b"; label="Verso il porto"; }
   if(portDone){ pct=100; color="#117a3a"; label="Arrivata al porto"; }
   if(anyExc && !portDone){ color="#c8362f"; label="Problema spedizione"; }
+  const P_ = typeof mpOf==="function" ? mpOf(it) : null;
+  if(P_ && P_.partial){ label="Parzialmente a bordo"; color="#6b4fc4"; }
+  const gS = segs.find(s=>s.gid), grpN = gS ? Math.max(0, (((shipGroups()[gS.gid]||{}).items)||[]).length-1) : 0;
   const icon = portDone ? "✅" : anyExc ? "⚠️" : anyAir ? "✈️" : "🚚";
   const rShort={"supplier-hub":"Forn.→Hub","hub-port":"Hub→Porto","supplier-port":"Forn.→Porto"};
   const rep = segs.find(s=>s.route!=="supplier-hub"&&["in_transit","out_for_delivery","delivered"].includes(s.status))
@@ -19940,6 +19993,7 @@ function shipmentMiniHTML(it){
         <span style="color:#8a93a0;font-weight:700;">AWB</span>
         <span style="font-family:var(--font-mono);font-weight:700;color:#12233a;background:#eef0f3;border-radius:4px;padding:1px 5px;">${escapeHTML(nums[0])}</span>
         ${nums.length>1?`<span style="color:#8a93a0;">+${nums.length-1}</span>`:""}
+        ${grpN?`<span style="color:#1553d8;font-weight:700;">· unica con ${grpN} PO</span>`:""}
       </div>`
     : "";
   const datesLine = (dep||arr)
@@ -20011,6 +20065,8 @@ function shipmentSection(it, vessel){
     else if(seg.eta) meta = "ETA "+shipFmtDay(seg.eta);
     else meta = "Tracking attivo";
     const dashed = seg.status==="pending" ? "border-style:dashed;" : "";
+    const G_ = seg.gid ? shipGroups()[seg.gid] : null, oth = G_ ? (G_.items||[]).filter(x=>x!==it.id) : [];
+    const grpHTML = (oth.length||seg.partial) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:11.5px;color:#44576b;">${oth.length?`<b style="color:#1553d8;">Spedizione unica con ${oth.length} altr${oth.length>1?"i":"o"} PO:</b>`+oth.map(o=>{ const x=(typeof faFindItem==="function")?faFindItem(o):null; return `<button class="btn-mini-link" style="font-size:11.5px;" onclick="window.openItemDetailPopover('${escapeAttr(o)}')">${escapeHTML(x?(x.poNumber||x.reqNumber||o):o)}</button>`; }).join(""):""}${seg.partial?`<span style="font-weight:700;color:#8a4b00;background:#fdeed0;border-radius:5px;padding:1px 6px;">solo una parte del PO</span>`:""}</div>` : "";
     const timeline = open && events.length ? `<div style="margin-top:11px;padding-top:11px;border-top:1px solid #eef0f3;">${
       events.map((e,i)=>{
         const dot = e.code==="delivered"?"#117a3a":e.code==="exception"?"#c8362f":i===0?st.accent:"#c2c9d2";
@@ -20035,8 +20091,9 @@ function shipmentSection(it, vessel){
         <span style="font-size:12px;font-weight:700;color:#2f3b4d;">${escapeHTML(seg.carrier||"")}</span>
         <span style="font-family:var(--font-mono);font-size:11.5px;color:#5b6470;background:#f2f4f7;border-radius:6px;padding:3px 8px;">${escapeHTML(seg.number||"")}</span>
         ${seg.number ? `<a href="${escapeAttr(ship17TrackURL(seg.number))}" target="_blank" rel="noopener" title="Apri il tracking su 17TRACK (numero precompilato)" style="font-size:11px;font-weight:700;color:#0e54c1;text-decoration:none;border:1px solid #cddafc;background:#eef4ff;border-radius:6px;padding:3px 8px;white-space:nowrap;">${shipIsAWB(seg)?"✈ ":""}Apri su 17TRACK ↗</a>` : ""}
-        <button title="Rimuovi" onclick="window.shipRemove('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')" style="margin-left:auto;background:none;border:none;color:#c2c9d2;font-size:15px;cursor:pointer;line-height:1;">✕</button>
+        <button title="${seg.gid?"Togli questo PO dalla spedizione":"Rimuovi"}" onclick="window.shipRemove('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')" style="margin-left:auto;background:none;border:none;color:#c2c9d2;font-size:15px;cursor:pointer;line-height:1;">✕</button>
       </div>
+      ${grpHTML}
       ${shipIsAWB(seg) && (seg.status==="pending" || !events.length) ? `<div style="font-size:11px;color:#8a6d1a;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:8px;padding:7px 9px;margin-top:8px;line-height:1.4;">✈ Corriere aereo (AWB): il tracking automatico via API richiede il canale <b>Air Cargo</b> di 17TRACK. Aggiornalo qui sotto in 2 click: apri su 17TRACK, premi <b>COPIA DETTAGLI</b> e incolla.</div>` : ""}
       <details style="margin-top:8px;">
         <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#0e54c1;list-style:none;">📋 Incolla dati da 17TRACK${seg.source==="17track-manual"?" — aggiorna":""}</summary>
@@ -20054,6 +20111,7 @@ function shipmentSection(it, vessel){
   // Form aggiungi
   const carrierOpts = SHIP_CARRIERS.map(c=>`<option value="${escapeAttr(c)}">${escapeHTML(c)}</option>`).join("");
   const iid = escapeAttr(it.id);
+  const linkOpts = shipLinkOptions(it.id, vessel && vessel.vesselId);
   const form = `<div style="background:#fbfcfd;border:1px dashed #c4ccd6;border-radius:12px;padding:13px;">
     <div style="font-size:12.5px;font-weight:800;color:#0a3f93;margin-bottom:10px;">＋ Aggiungi spedizione</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -20066,7 +20124,10 @@ function shipmentSection(it, vessel){
     </div>
     <input id="ship-hub-${iid}" placeholder="Hub (opzionale, es. Frankfurt)" style="width:100%;box-sizing:border-box;border:1px solid #dfe2e7;border-radius:9px;padding:9px 11px;font-size:13px;font-family:var(--font-sans);margin-top:8px;" />
     <input id="ship-number-${iid}" placeholder="AWB o tracking number  (es. 020-8144 5372)" style="width:100%;box-sizing:border-box;border:1px solid #dfe2e7;border-radius:9px;padding:9px 11px;font-size:13px;font-family:var(--font-mono);margin-top:8px;" />
+    <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#44576b;margin-top:8px;"><input type="checkbox" id="ship-part-${iid}">Con questo AWB viaggia solo una parte del PO</label>
     <button class="btn btn-sm btn-primary" style="width:100%;margin-top:10px;" onclick="window.shipAdd('${iid}')">Traccia automaticamente</button>
+    ${linkOpts?`<div style="margin-top:12px;padding-top:11px;border-top:1px dashed #c4ccd6;"><div style="font-size:12px;font-weight:800;color:#0a3f93;margin-bottom:7px;">…oppure collega a una spedizione già registrata</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><select id="ship-link-${iid}" style="flex:1 1 220px;min-width:0;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:12.5px;font-family:var(--font-sans);background:#fff;">${linkOpts}</select><button class="btn btn-sm" onclick="window.shipLinkFromForm('${iid}')">Collega</button></div></div>`:""}
+    <button class="btn-mini-link" style="font-size:12px;margin-top:9px;" onclick="window.shipHubBoard('','${escapeAttr((vessel&&vessel.vesselId)||"")}')">⇉ Spedisci insieme più PO dall'hub →</button>
     ${configured?"":`<div style="font-size:11px;color:#b8860b;margin-top:8px;line-height:1.4;">⚠ Tracking automatico non configurato — imposta il webhook in Impostazioni → Tracking spedizioni. Puoi già registrare le spedizioni: si aggiorneranno appena configuri.</div>`}
   </div>`;
 
@@ -20086,11 +20147,40 @@ window.shipAdd = function(itemId){
   const hub=(((g("ship-hub")||{}).value)||"").trim();
   const number=(((g("ship-number")||{}).value)||"").trim();
   if(!number){ if(typeof showToast==="function") showToast("Inserisci un AWB o tracking number"); return; }
+  const part=!!((g("ship-part")||{}).checked);
+  const ex=shipFindByNumber(number, itemId);
+  if(ex && confirm("L'AWB "+number+" è già registrato su "+(((typeof faFindItem==="function"&&faFindItem(ex.itemId))||{}).poNumber||"un altro PO")+".\n\nCollego questo PO alla stessa spedizione (dati e tracking unici) invece di crearne una nuova?")){
+    shipLink(itemId, ex.itemId, ex.seg.id, part);
+    window.openItemDetailPopover(itemId);
+    if(typeof showToast==="function") showToast("Collegato alla spedizione "+number);
+    return;
+  }
   const segs=getItemShipments(itemId);
-  segs.push({ id:genShipId(), route, carrier, hub, number, status:"pending", pickup:new Date().toISOString().slice(0,10), eta:"", events:[], updatedAt:new Date().toISOString() });
+  segs.push({ id:genShipId(), partial:part, route, carrier, hub, number, status:"pending", pickup:new Date().toISOString().slice(0,10), eta:"", events:[], updatedAt:new Date().toISOString() });
   setItemShipments(itemId, segs);
   window.openItemDetailPopover(itemId);
   window.shipRefresh(itemId);
+};
+function shipLinkOptions(itemId, vid){
+  const all=loadShipments(), seen=new Set(), opts=[], G=shipGroups();
+  Object.keys(all).forEach(k=>{
+    if(k==="__groups"||k===itemId||!Array.isArray(all[k])) return;
+    const x=(typeof faFindItem==="function")?faFindItem(k):null, xv=x&&typeof mpVidOf==="function"?mpVidOf(k):"";
+    getItemShipments(k).forEach(s=>{
+      if(!s.number) return; const key=s.gid||("n"+shipNorm(s.number)); if(seen.has(key)) return;
+      if(s.status==="delivered" && typeof mpDaysSince==="function" && (mpDaysSince(s.eta||s.updatedAt)||0)>21) return;
+      seen.add(key); const n=s.gid?((G[s.gid]||{}).items||[]).length:1;
+      opts.push({ same:xv===vid?1:0, t:s.updatedAt||"", html:`<option value="${escapeAttr(k+"|"+s.id)}">${escapeHTML([s.number, s.carrier, (SHIP_ROUTE[s.route]||{}).label, (x?(x.poNumber||x.reqNumber||""):"")+(n>1?" +"+(n-1)+" PO":""), xv&&xv!==vid&&typeof m3VName==="function"?m3VName(xv):""].filter(Boolean).join(" · "))}</option>` });
+    });
+  });
+  opts.sort((a,b)=>(b.same-a.same)||String(b.t).localeCompare(String(a.t)));
+  return opts.slice(0,40).map(o=>o.html).join("");
+}
+window.shipLinkFromForm = function(itemId){
+  const v=((document.getElementById("ship-link-"+itemId)||{}).value)||""; if(!v) return;
+  const i=v.lastIndexOf("|"), part=!!((document.getElementById("ship-part-"+itemId)||{}).checked);
+  if(shipLink(itemId, v.slice(0,i), v.slice(i+1), part)){ if(typeof showToast==="function") showToast("PO collegato: tracking unico"); }
+  window.openItemDetailPopover(itemId);
 };
 window.shipRemove = function(itemId, segId){
   if(!confirm("Rimuovere questa spedizione dal tracking?")) return;
@@ -24475,7 +24565,10 @@ function mergeRemoteIntoLocal(remote) {
     saveDeliveriesDB({ ...loadDeliveries(), ...remote.deliveries });
   }
   if (remote.shipments && typeof remote.shipments === "object" && typeof saveShipmentsDB === "function") {
-    saveShipmentsDB({ ...loadShipments(), ...remote.shipments });
+    const loc = loadShipments(), rs = remote.shipments, mg = { ...loc, ...rs }, G = { ...(loc.__groups || {}) }, rg = rs.__groups || {};
+    Object.keys(rg).forEach(k => { if(!G[k] || String(rg[k].updatedAt || "") >= String(G[k].updatedAt || "")) G[k] = rg[k]; });
+    if (Object.keys(G).length) mg.__groups = G;
+    saveShipmentsDB(mg);
   }
   if (remote.vesselPos && typeof remote.vesselPos === "object" && typeof saveVesselPos === "function") {
     saveVesselPos({ ...loadVesselPos(), ...remote.vesselPos });
@@ -26899,6 +26992,7 @@ function radarPaint(){
     '<div class="rd-sw">' + seg("basis", "pessimistica", "Pessimistica") + seg("basis", "media", "Media") + '</div>' +
     '<span class="rd-legs"><span><i style="background:#14794e"></i>in tempo</span><span><i style="background:#c07800"></i>a rischio</span><span><i style="background:#c0261c"></i>non arriva</span><span><i class="crit"></i>critico</span></span>' +
     '<span class="rd-topa">' + (window._rd.undo ? '<button class="btn btn-sm" onclick="window.rdUndo()">↩ Annulla: ' + esc(window._rd.undo.label.slice(0, 40)) + '</button>' : "") +
+    '<button class="btn btn-sm" onclick="window.shipHubBoard()" title="PO negli hub TML e spedizioni con più PO sotto un solo AWB">⇉ Hub e consolidati</button>' +
     '<button class="btn btn-sm" onclick="window.mpdExportAll()" title="Scarica TUTTI i dati salvati in questo browser">⤓ Backup dati</button>' +
     '<button class="btn btn-sm" onclick="window.setOverviewMode(\'classic\')">Vista classica</button></span></div>' +
     '<div class="rd-hero-row"><div class="rd-hero"><div class="rd-eyebrow">RADAR SCALI · PROSSIMI ' + H + ' GIORNI</div><div class="rd-hl">' + esc(headline) + '</div><div class="rd-sl">' + esc(subline) + '</div>' +
@@ -26926,6 +27020,7 @@ window.radarPaint = radarPaint;
 // back,legAt,updatedAt}} (sync per voce). Le attese VOLUTE escono dal rosso.
 // ============================================================================
 const TML_HUBS = [
+  { id:"it-goa", name:"TML Genova", city:"Genova", lat:44.41, lon:8.93, email:"operations@tailormadelogistic.com", address:"Via Rivarolo 2/A, 16149 Genova", phone:"+39 010 84444734" },
   { id:"nl-ams", name:"TML Rotterdam", city:"Schiphol-Rijk", lat:52.28, lon:4.76, email:"rotterdam@tailormadelogistic.com" },
   { id:"de-ham", name:"TML Germany", city:"Amburgo", lat:53.55, lon:10.02, email:"g.timmermann@wendland-sped.de" },
   { id:"uk-lhr", name:"TML UK", city:"Colnbrook (Heathrow)", lat:51.48, lon:-0.52, email:"neil@wysiwyglogistics.com" },
@@ -26965,15 +27060,29 @@ function mpRouteKnown(it, vid){
   const m = mpManual(it.id); const voy = getVoyage(vid || mpVidOf(it.id)) || {};
   return ["current","next"].some(w => { const l = voy[w]; if(!l || !l.to) return false; const d = rdDD(l.etd || l.etb || l.eta, Date.now()); return d != null && d > 0 && (!m || !m.legAt || (l.id || l.to) !== m.legAt); });
 }
+function mpHubMatch(t){
+  t = String(t || "").toLowerCase(); if(!t) return "";
+  const h = TML_HUBS.find(h => t.includes(h.city.toLowerCase().split(/[\s(]/)[0]) || t.includes(h.name.toLowerCase().replace(/^tml\s*/, "").split(/[\s·]/)[0]));
+  return h ? h.id : "";
+}
 function mpOf(it, now){
+  const r = mpOf0(it, now);
+  if(r && r.pos !== "onboard"){ const m = loadMatPos()[it.id]; if(m && m.partOn){ r.partial = true; r.partOn = m.partOn; } }
+  return r;
+}
+function mpOf0(it, now){
   now = now || Date.now();
   if(rdCancelled(it)) return null;
   const m = mpManual(it.id);
   if(it.dnStatus === "DN Received on Board") return { pos:"onboard" };
   if(m && (m.pos === "onboard" || m.pos === "repair")) return Object.assign({ manual:true }, m);
   if(rdStaleDN(it, now) && !(m && m.pos === "transit")) return { pos:"transit", stale:true };
-  const moving = getItemShipments(it.id).some(s => s.status !== "delivered");
+  const segs = getItemShipments(it.id), lastS = segs[segs.length - 1];
+  const moving = segs.some(s => s.status !== "delivered");
   if(moving || it.dnStatus === "DN Shipped to Vessel") return { pos:"transit" };
+  // arrivato all'hub via tracking (ultima tratta Fornitore → Hub consegnata) e nessun segno manuale più recente
+  if(lastS && lastS.route === "supplier-hub" && !(m && m.pos && String(m.updatedAt || "") > String(lastS.updatedAt || "")))
+    return { pos:"hub", hub: mpHubMatch(lastS.hub), since: String(lastS.eta || "").slice(0,10), derived:true, viaShip:true };
   if(m) return Object.assign({ manual:true }, m);
   if(it.poNumber || it.dnStatus) return { pos:"supplier", derived:true };
   if(typeof reqIsClosed === "function" && reqIsClosed(it)) return null;
@@ -26981,7 +27090,8 @@ function mpOf(it, now){
 }
 // Attesa VOLUTA (segnata da te): niente rosso "oltre pronto senza DN" / "pronta a PO"
 function mpIntentional(it){
-  const m = mpManual(it.id); if(!m) return false;
+  const m = mpManual(it.id);
+  if(!m){ const s = getItemShipments(it.id), l = s[s.length - 1]; return !!(l && l.route === "supplier-hub" && s.every(x => x.status === "delivered")); }
   if(m.pos === "route") return !mpRouteKnown(it);
   return m.pos === "supplier" || m.pos === "hub" || m.pos === "repair";
 }
@@ -26995,7 +27105,7 @@ function mpRefresh(id){
 }
 window.mpSetPos = function(id, pos){
   if(pos === "auto"){ mpSet(id, { pos:"" }); if(typeof showToast === "function") showToast("Posizione: torna automatica"); }
-  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "nl-ams"; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
+  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "it-goa"; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
   mpRefresh(id);
 };
 window.mpSetField = function(id, k, v){ const p = {}; p[k] = v; mpSet(id, p); mpRefresh(id); };
@@ -27022,7 +27132,8 @@ function mpDetailHTML(it){
   } else if(p.pos === "supplier" && p.manual){
     extra = '<div class="mp-row"><span class="mp-note">Fermo apposta dal ' + mpFD(p.since) + ': non compare più tra gli ordini "oltre la data di pronto".</span></div>';
   }
-  const state_ = p.derived && p.pos === "supplier" ? "dedotta: PO emesso, nessuna DN. Se lo tieni lì apposta, conferma" : p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo" : p.derived ? "dedotta da Infoship, non ancora confermata" : p.manual ? "segnata da te il " + mpFD(p.updatedAt) : "da Infoship / tracking";
+  if(p.pos === "hub") extra += '<div class="mp-row"><button class="btn btn-sm btn-primary" onclick="window.shipHubBoard(\'' + ea(p.hub || "") + '\',\'' + ea(mpVidOf(it.id)) + '\')">⇉ Spedisci insieme ad altri PO dell\'hub →</button>' + (p.viaShip ? '<span class="mp-note">arrivato all\'hub secondo il tracking' + (p.since ? " il " + mpFD(p.since) : "") + '</span>' : "") + '</div>';
+  const state_ = p.partial ? "parzialmente a bordo dal " + mpFD(p.partOn) + ": il resto è ancora da consegnare" : p.viaShip ? "dal tracking" : p.derived && p.pos === "supplier" ? "dedotta: PO emesso, nessuna DN. Se lo tieni lì apposta, conferma" : p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo" : p.derived ? "dedotta da Infoship, non ancora confermata" : p.manual ? "segnata da te il " + mpFD(p.updatedAt) : "da Infoship / tracking";
   return '<div class="detail-section mp-sec"><div class="idx-h"><h4>Dove si trova il materiale</h4><span class="mp-src">' + escapeHTML(MP_POS[p.pos].l) + ' · ' + escapeHTML(state_) + '</span>' +
     (p.manual ? '<button class="btn btn-sm" onclick="window.mpSetPos(\'' + id + '\',\'auto\')">Automatico</button>' : "") + '</div>' +
     '<div class="mp-opts">' + opts.map(btn).join("") + '</div>' + extra + '</div>';
@@ -27335,11 +27446,13 @@ window.m3Po = function(id){
   const it = faFindItem(id); if(!it) return;
   const vid = mpVidOf(id), p = mpOf(it) || { pos: "route" }, hasPO = !!(it.poNumber || it.dnStatus), eid = m3E(id);
   const opts = hasPO ? ["supplier","hub","repair","transit","onboard"] : ["route"];
+  const gS = getItemShipments(id).find(s => s.gid && s.status !== "delivered"), gN = gS ? (((shipGroups()[gS.gid] || {}).items) || []).length : 0;
   const btn = k => { const on = p.pos === k, ded = on && !p.manual, c = MP_POS[k].c; return '<button class="m3-pos' + (on ? (ded ? " ded" : " on") : "") + '" style="--c:' + c + '" onclick="m3SetPos(\'' + eid + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>'; };
   const notes = { supplier: p.manual ? "Fermo apposta dal fornitore: non compare più tra gli ordini in ritardo." : "Dedotto: PO emesso, nessuna DN. Se lo tieni lì apposta, toccalo per confermare.",
-    hub: "Il radar calcola l'arrivo dall'hub.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
+    hub: "Il radar calcola l'arrivo dall'hub.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : gN > 1 ? "AWB " + gS.number + " · spedizione unica con " + (gN - 1) + " altri PO." : p.partial ? "Parzialmente a bordo: il resto è ancora in viaggio." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
   let extra = "";
   if(p.pos === "hub" && p.manual) extra = '<div class="m3-fields"><select onchange="m3Field(\'' + eid + '\',\'hub\',this.value)">' + TML_HUBS.map(hb => '<option value="' + hb.id + '"' + (hb.id === p.hub ? " selected" : "") + '>' + escapeHTML(hb.name + " · " + hb.city) + '</option>').join("") + '</select><input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></div>';
+  if(p.pos === "hub") extra += '<button class="m3-pill" style="margin-top:10px" onclick="maCloseSheet();window.shipHubBoard(\'' + m3E(p.hub || "") + '\',\'' + m3E(vid) + '\')">Spedisci insieme ad altri PO →</button>';
   if(p.pos === "repair" && p.manual) extra = '<div class="m3-fields"><label>Sbarcato<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></label><label>Rientro<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="m3Field(\'' + eid + '\',\'back\',this.value)"></label></div>';
   let leg = "";
   ["current","next"].forEach(w => { if(!leg && itemsForLeg(vid, w).some(x => x.id === id)) leg = (getVoyage(vid)[w] || {}).to || ""; });
@@ -27369,6 +27482,118 @@ window.m3Assign = function(id){
   setDeliveryPlan(id, Object.assign({}, getDeliveryPlan(id) || {}, { mode: "voyage", leg: which, voyageLegId: f.id || undefined, updatedAt: new Date().toISOString() }));
   maToast("Assegnato a " + m3Cap(f.to)); try { renderMobileApp(); } catch(e) {} m3Po(id);
 };
+
+// ============================================================================
+// === v0.99 HUB TML + SPEDIZIONI CONSOLIDATE (un AWB, più PO) ================
+// Dall'hub: selezioni i PO che partono insieme → UNA spedizione (gid) collegata a
+// tutti; tracking/ETA/stato unici; "Tutti a bordo" chiude i PO (i parziali restano
+// aperti come "parzialmente a bordo").
+// ============================================================================
+window._shb = window._shb || { hub:"", vid:"", sel:{}, part:{}, f:{} };
+function shbHubLabel(h){ const x = mpHub(h); return x ? x.name + " · " + x.city : "hub non indicato"; }
+function shbKeep(){ const s = window._shb; ["route","carrier","num","pick","port"].forEach(k => { const e = document.getElementById("shb-" + k); if(e) s.f[k] = e.value; }); }
+window.shipHubBoard = function(hub, vid){ shipMigrateGroups(); const s = window._shb; s.hub = hub || ""; s.vid = vid || ""; s.sel = {}; s.part = {}; s.f = {}; shbPaint(); };
+window.shbClose = function(){ const h = document.getElementById("shb-host"); if(h) h.innerHTML = ""; };
+window.shbSet = function(k, v){ shbKeep(); window._shb[k] = v; shbPaint(); };
+window.shbToggle = function(id, on){ shbKeep(); const s = window._shb; s.sel[id] = on == null ? !s.sel[id] : !!on; if(!s.sel[id]) delete s.part[id]; shbPaint(); };
+window.shbRow = function(ev, id){ if(ev.target.closest("input,.shb-p")) return; window.shbToggle(id); };
+window.shbPart = function(id, on){ window._shb.part[id] = !!on; };
+window.shbClear = function(){ shbKeep(); window._shb.sel = {}; window._shb.part = {}; shbPaint(); };
+window.shbOpen = function(id){ window.shbClose(); if(window.innerWidth <= 768 && typeof m3Po === "function") m3Po(id); else if(typeof window.openItemDetailPopover === "function") window.openItemDetailPopover(id); };
+function shbPaint(){
+  let host = document.getElementById("shb-host"); if(!host){ host = document.createElement("div"); host.id = "shb-host"; document.body.appendChild(host); }
+  const s = window._shb, esc = escapeHTML, now = Date.now(), rows = [], byId = {};
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { const p = mpOf(it, now); if(p){ const r = { it, vid: v.vesselId, p }; rows.push(r); byId[it.id] = r; } }));
+  const atHub = rows.filter(r => r.p.pos === "hub"), cntH = {}; atHub.forEach(r => { const h = r.p.hub || ""; cntH[h] = (cntH[h] || 0) + 1; });
+  const vf = r => !s.vid || r.vid === s.vid;
+  const list = atHub.filter(r => (!s.hub || (r.p.hub || "") === s.hub) && vf(r)).sort((a, b) => a.vid.localeCompare(b.vid) || String(a.p.since || "").localeCompare(String(b.p.since || "")));
+  const more = s.vid ? rows.filter(r => r.vid === s.vid && r.p.pos === "supplier" && r.it.poNumber) : [];
+  const sel = Object.keys(s.sel).filter(k => s.sel[k] && byId[k]);
+  const inp = "border:1px solid #dfe2e7;border-radius:9px;padding:9px 10px;font-size:13px;font-family:var(--font-sans);background:#fff;min-width:0;box-sizing:border-box;";
+  const row = r => { const id = m3E(r.it.id), on = !!s.sel[r.it.id], d = mpDaysSince(r.p.since);
+    const sub = [r.it.supplier && r.it.supplier !== "—" ? r.it.supplier : "", r.p.pos === "hub" ? (r.p.viaShip ? "all'hub secondo il tracking" : d != null ? "all'hub da " + d + " gg" : "") : "dal fornitore"].filter(Boolean).join(" · ");
+    return '<div onclick="shbRow(event,\'' + id + '\')" style="display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 12px;border-top:1px solid rgba(10,27,46,.08);cursor:pointer;background:' + (on ? "#eef4ff" : "#fff") + ';">' +
+      '<input type="checkbox"' + (on ? " checked" : "") + ' onchange="shbToggle(\'' + id + '\',this.checked)" style="width:18px;height:18px;margin:1px 0 0;">' +
+      '<span style="min-width:0;"><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;"><b style="font-size:13px;color:#0a1b2e;">' + esc(m3VName(r.vid)) + '</b><span style="font-family:var(--font-mono);font-size:11.5px;color:#44576b;">' + esc(r.it.poNumber || r.it.reqNumber || "") + '</span></span>' +
+      '<span style="display:block;font-size:12.5px;color:#0a1b2e;margin-top:2px;">' + esc(r.it.description || "—") + '</span>' +
+      (sub ? '<span style="display:block;font-size:11.5px;color:#6a7d90;margin-top:2px;">' + esc(sub) + '</span>' : "") + '</span>' +
+      (on ? '<label class="shb-p" style="font-size:11.5px;color:#44576b;display:flex;gap:5px;align-items:center;white-space:nowrap;cursor:pointer;"><input type="checkbox"' + (s.part[r.it.id] ? " checked" : "") + ' onchange="shbPart(\'' + id + '\',this.checked)">solo una parte</label>' : "<span></span>") + '</div>'; };
+  const hubOpts = '<option value="">Tutti gli hub · ' + atHub.length + ' PO</option>' + TML_HUBS.map(h => '<option value="' + h.id + '"' + (h.id === s.hub ? " selected" : "") + '>' + esc(h.name + " · " + h.city + (cntH[h.id] ? " · " + cntH[h.id] + " PO" : "")) + '</option>').join("");
+  const vesOpts = '<option value="">Tutte le navi</option>' + (VESSELS || []).map(c => '<option value="' + escapeAttr(c.vesselId) + '"' + (c.vesselId === s.vid ? " selected" : "") + '>' + esc(c.displayName) + '</option>').join("");
+  // spedizioni con più PO (o parziali) ancora aperte / consegnate da poco
+  const G = shipGroups();
+  const gl = Object.values(G).filter(g => (g.items || []).length && (!s.vid || g.items.some(i => byId[i] && byId[i].vid === s.vid)) && (g.status !== "delivered" || (mpDaysSince(g.eta || g.updatedAt) || 0) <= 14 || g.items.some(i => byId[i] && byId[i].p.pos !== "onboard")))
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+  const grp = g => { const st = SHIP_STATUS[g.status] || SHIP_STATUS.info_received, allOn = g.items.every(i => !byId[i] || byId[i].p.pos === "onboard");
+    const chips = g.items.map(i => { const r = byId[i], sg = getItemShipments(i).find(x => x.gid === g.id); return '<button onclick="shbOpen(\'' + m3E(i) + '\')" style="font-size:11.5px;border:1px solid rgba(10,27,46,.12);background:#f5f7fa;border-radius:999px;padding:4px 10px;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);">' + esc(r ? m3VName(r.vid) + " · " + m3Short(r.it.poNumber || r.it.reqNumber || "") : i) + (sg && sg.partial ? " · parte" : "") + (r && r.p.pos === "onboard" ? " ✓" : "") + '</button>'; }).join("");
+    return '<div style="border:1px solid rgba(10,27,46,.10);border-left:4px solid ' + st.accent + ';border-radius:10px;padding:11px 13px;background:#fff;">' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span style="font-family:var(--font-mono);font-weight:700;font-size:13px;color:#0a1b2e;">' + esc(g.number || "") + '</span><span style="font-size:12px;color:#44576b;">' + esc([g.carrier, (SHIP_ROUTE[g.route] || {}).label, g.hub, g.toPort ? "→ " + g.toPort : "", g.eta ? "ETA " + shipFmtDay(g.eta) : ""].filter(Boolean).join(" · ")) + '</span><span style="margin-left:auto;font-size:11px;font-weight:800;color:' + st.color + ';background:' + st.bg + ';border-radius:6px;padding:3px 8px;">' + esc(st.label) + '</span></div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;">' + chips + '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">' + (g.number ? '<a class="btn btn-sm" href="' + escapeAttr(ship17TrackURL(g.number)) + '" target="_blank" rel="noopener">17TRACK ↗</a>' : "") +
+      '<button class="btn btn-sm" onclick="shbOpen(\'' + m3E(g.items[0]) + '\')">Aggiorna tracking</button>' +
+      (allOn ? '<span style="font-size:12px;color:#14794e;font-weight:700;">Tutti a bordo</span>' : '<button class="btn btn-sm btn-primary" onclick="shbOnboard(\'' + m3E(g.id) + '\')">Tutti a bordo</button>') + '</div></div>'; };
+  // form
+  const vids = [...new Set(sel.map(k => byId[k].vid))], fut = vids.length === 1 ? mpVoyFuture(vids[0]) : null;
+  const hubId = s.hub || (sel.length ? byId[sel[0]].p.hub || "" : ""), f = s.f;
+  const form = sel.length ? '<div style="background:#fff;border-top:2px solid #1553d8;padding:14px 16px;box-shadow:0 -8px 20px rgba(10,27,46,.08);">' +
+    '<div style="font-size:14px;font-weight:800;color:#0a1b2e;">Spedisci insieme ' + sel.length + ' PO' + (hubId ? " da " + esc(shbHubLabel(hubId)) : "") + '</div>' +
+    (vids.length > 1 ? '<div style="font-size:12px;color:#8a4b00;margin-top:4px;">PO di ' + vids.length + ' navi diverse: va bene solo se viaggiano davvero insieme.</div>' : "") +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px;">' +
+    '<select id="shb-route" style="' + inp + '"><option value="hub-port"' + (f.route !== "supplier-port" ? " selected" : "") + '>Hub → Porto</option><option value="supplier-port"' + (f.route === "supplier-port" ? " selected" : "") + '>Fornitore → Porto</option></select>' +
+    '<select id="shb-carrier" style="' + inp + '">' + SHIP_CARRIERS.map(c => '<option' + (c === f.carrier ? " selected" : "") + '>' + esc(c) + '</option>').join("") + '</select>' +
+    '<input id="shb-num" placeholder="AWB o tracking" value="' + escapeAttr(f.num || "") + '" style="' + inp + 'font-family:var(--font-mono);">' +
+    '<input id="shb-pick" type="date" title="Partenza" value="' + escapeAttr(f.pick || mpToday()) + '" style="' + inp + '">' +
+    '<input id="shb-port" placeholder="Porto di destinazione" value="' + escapeAttr(f.port != null ? f.port : fut ? m3Cap(fut.to) : "") + '" style="' + inp + '"></div>' +
+    (fut ? '<label style="display:flex;gap:7px;align-items:center;font-size:12.5px;margin-top:10px;color:#0a1b2e;"><input id="shb-assign" type="checkbox" checked>Assegna i PO allo scalo di ' + esc(m3Cap(fut.to)) + (fut.eta || fut.etb ? " (" + mpFD(fut.etb || fut.eta) + ")" : "") + '</label>' : "") +
+    '<div style="display:flex;gap:8px;margin-top:12px;"><button class="btn btn-primary" style="flex:1;" onclick="shbCreate()">Crea spedizione unica</button><button class="btn" onclick="shbClear()">Deseleziona</button></div></div>' : "";
+  const lbl = t => '<div style="padding:9px 12px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">' + t + '</div>';
+  host.innerHTML = '<div onclick="if(event.target===this)shbClose()" style="position:fixed;inset:0;z-index:10050;background:rgba(10,27,46,.45);display:flex;align-items:center;justify-content:center;padding:10px;">' +
+    '<div style="width:100%;max-width:760px;max-height:94vh;display:flex;flex-direction:column;background:#f5f7fa;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(10,27,46,.3);font-family:var(--font-sans);">' +
+    '<div style="padding:14px 16px;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);display:flex;gap:10px;align-items:center;"><div style="flex:1;min-width:0;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">HUB TML · SPEDIZIONI CONSOLIDATE</div><div style="font-size:16px;font-weight:800;color:#0a1b2e;margin-top:2px;">Scegli i PO che partono insieme</div></div><button onclick="shbClose()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#44576b;min-width:44px;min-height:44px;">✕</button></div>' +
+    '<div style="flex:1;overflow:auto;">' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;"><select onchange="shbSet(\'hub\',this.value)" style="' + inp + 'flex:1 1 220px;">' + hubOpts + '</select><select onchange="shbSet(\'vid\',this.value)" style="' + inp + 'flex:1 1 180px;">' + vesOpts + '</select></div>' +
+    '<div style="margin:0 16px;border:1px solid rgba(10,27,46,.10);border-radius:12px;overflow:hidden;background:#fff;">' + lbl("ALL'HUB · " + list.length + " PO") +
+    (list.length ? list.map(row).join("") : '<div style="padding:12px;font-size:12.5px;color:#44576b;border-top:1px solid rgba(10,27,46,.08);line-height:1.45;">Nessun PO segnato ' + (s.hub ? "in questo hub" : "negli hub") + (s.vid ? " per questa nave" : "") + '. Segna "All\'hub TML" nella scheda del PO' + (s.vid ? ", oppure prendili dall\'elenco qui sotto." : ", oppure scegli la nave per prenderli da quelli presso i fornitori.") + '</div>') + '</div>' +
+    (more.length ? '<details style="margin:10px 16px 0;border:1px solid rgba(10,27,46,.10);border-radius:12px;background:#fff;overflow:hidden;"' + (more.some(r => s.sel[r.it.id]) || !list.length ? " open" : "") + '><summary style="padding:11px 12px;cursor:pointer;font-size:12.5px;font-weight:700;color:#1553d8;">Non ancora segnati all\'hub · ' + more.length + ' PO presso i fornitori</summary>' + more.map(row).join("") + '</details>' : "") +
+    '<div style="padding:16px 16px 8px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">SPEDIZIONI CONSOLIDATE' + (gl.length ? " · " + gl.length : "") + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:8px;padding:0 16px 16px;">' + (gl.length ? gl.map(grp).join("") : '<div style="font-size:12.5px;color:#44576b;line-height:1.45;">Nessuna spedizione con più PO. Quando ne crei una, AWB, date e tracking valgono per tutti i PO collegati.</div>') + '</div>' +
+    '</div>' + form + '</div></div>';
+}
+window.shbCreate = function(){
+  shbKeep();
+  const s = window._shb, f = s.f, ids = Object.keys(s.sel).filter(k => s.sel[k]);
+  const num = String(f.num || "").trim(); if(!ids.length) return;
+  if(!num){ if(typeof showToast === "function") showToast("Inserisci l'AWB o il tracking"); const e = document.getElementById("shb-num"); if(e) e.focus(); return; }
+  const assign = !!((document.getElementById("shb-assign") || {}).checked), nowIso = new Date().toISOString();
+  const r0 = mpOf(faFindItem(ids[0]) || {}) || {}, hubId = s.hub || r0.hub || "", hubName = f.route === "supplier-port" ? "" : (mpHub(hubId) || {}).name || "";
+  const ex = shipFindByNumber(num);
+  if(ex && confirm("L'AWB " + num + " esiste già. Aggiungo questi PO a quella spedizione invece di crearne una nuova?")){
+    ids.forEach(id => { if(id !== ex.itemId) shipLink(id, ex.itemId, ex.seg.id, s.part[id]); });
+  } else {
+    const base = { gid: "g" + genShipId().slice(2), route: f.route || "hub-port", carrier: f.carrier || SHIP_CARRIERS[0], hub: hubName, number: num, status: "pending", pickup: f.pick || mpToday(), eta: "", events: [], toPort: String(f.port || "").trim(), updatedAt: nowIso };
+    ids.forEach(id => { const a = getItemShipments(id); a.push(Object.assign({}, base, { id: genShipId(), partial: !!s.part[id] })); setItemShipments(id, a); });
+  }
+  ids.forEach(id => {
+    mpSet(id, { pos: "transit" });
+    if(assign){ const vid = mpVidOf(id), fu = mpVoyFuture(vid); if(fu){ const voy = getVoyage(vid) || {}, which = voy.next && voy.next.id && fu.id === voy.next.id ? "next" : "current"; setDeliveryPlan(id, Object.assign({}, getDeliveryPlan(id) || {}, { mode: "voyage", leg: which, voyageLegId: fu.id || undefined, updatedAt: nowIso })); } }
+  });
+  if(typeof showToast === "function") showToast("Spedizione " + num + " creata per " + ids.length + " PO");
+  s.sel = {}; s.part = {}; s.f = {};
+  if(state.settings && (state.settings.shipWebhookUrl || "").trim()) window.shipRefresh(ids[0]);
+  shbPaint(); mpRefresh(); try { if(window.innerWidth <= 768) renderMobileApp(); } catch(e) {}
+};
+window.shbOnboard = function(gid){
+  const g = shipGroups()[gid]; if(!g) return;
+  const parts = g.items.filter(i => (getItemShipments(i).find(x => x.gid === gid) || {}).partial).length;
+  if(!confirm("Segnare a bordo i " + g.items.length + " PO della spedizione " + (g.number || "") + "?" + (parts ? "\n\n" + parts + " PO viaggiano solo in parte: restano aperti come «parzialmente a bordo»." : ""))) return;
+  const today = mpToday();
+  g.items.forEach(id => { const sg = getItemShipments(id).find(x => x.gid === gid); if(sg && sg.partial) mpSet(id, { partOn: today }); else mpSet(id, { pos: "onboard" }); });
+  const first = g.items[0], a = getItemShipments(first), sg = a.find(x => x.gid === gid);
+  if(sg && sg.status !== "delivered"){ sg.status = "delivered"; if(!sg.eta) sg.eta = today; sg.updatedAt = new Date().toISOString(); setItemShipments(first, a); }
+  if(typeof showToast === "function") showToast("Spedizione a bordo · " + g.items.length + " PO");
+  shbPaint(); mpRefresh(); try { if(window.innerWidth <= 768) renderMobileApp(); } catch(e) {}
+};
+setTimeout(() => { try { shipMigrateGroups(); } catch(e) {} }, 1500);
 
 // --- pulizia DN -----------------------------------------------------------------
 window.m3DnStart = function(vid){
