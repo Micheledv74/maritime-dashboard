@@ -11091,7 +11091,7 @@ function maCertRow(c, showVessel){
 function maTodoRow(t){
   const cls = (typeof classifyDueDate==="function") ? classifyDueDate(t.dueDate) : "";
   const late = cls==="overdue", today = cls==="today";
-  const due = t.dueDate ? (today?"Oggi":late?"Scaduto "+formatDate(t.dueDate):formatDate(t.dueDate)) : "";
+  const due = t.dueDate ? (today?"Oggi":late?"Scaduto "+formatDate(t.dueDate):formatDate(t.dueDate)) : (t.outlookFlagDate ? "⚑ "+formatDate(t.outlookFlagDate) : t.createdAt ? "dal "+formatDate(String(t.createdAt).slice(0,10)) : "");
   const category = t.category || "Altro";
   const ref = (t.reference || t.target || "").trim();
   const actionRaw = (t.action || "").trim();
@@ -18370,6 +18370,7 @@ function syncOutlookTasksToTodos(outlookData) {
         outlookListId: listId,
         outlookSourceImported: true,
         outlookWebUrl: task.webUrl || "",                       // v0.14.2: link email originale
+        outlookFlagDate: String(task.dueDate || task.createdAt || "").slice(0, 10),   // v1.00 — giorno del flag, mostrato senza farla "scadere"
         outlookLinkedName: task.linkedDisplayName || "",        // v0.14.2: nome email collegata
         category: parsed.detectedVessel ? "Nave" : "Altro",
         priority: parsed.suggestedPriority || (task.importance === "high" ? "alta" : "media"),
@@ -18403,6 +18404,9 @@ function syncOutlookTasksToTodos(outlookData) {
         existing.outlookWebUrl = task.webUrl;
         existing.outlookLinkedName = task.linkedDisplayName || "";
       }
+      // v1.00 — giorno del flag (per mostrare una data anche sulle email flaggate senza scadenza)
+      const fd = String(task.dueDate || task.createdAt || "").slice(0, 10);
+      if (fd && existing.outlookFlagDate !== fd) { existing.outlookFlagDate = fd; updated++; }
       // v1.00 — scadenza/titolo cambiati in Outlook dopo l'ultima modifica in dashboard → li riprendo
       if (!existing.done && String(task.lastModifiedAt || "") > String(existing.updatedAt || existing.createdAt || "")) {
         const isFl = !!(task.webUrl || task.linkedDisplayName);
@@ -23564,7 +23568,7 @@ function todoRowHTML(t) {
     (cls === "today" ? "Oggi" :
      cls === "overdue" ? "Scaduto " + formatDate(t.dueDate) :
      formatDate(t.dueDate))
-    : "—";
+    : (t.outlookFlagDate ? "⚑ " + formatDate(t.outlookFlagDate) : t.createdAt ? "dal " + formatDate(String(t.createdAt).slice(0, 10)) : "—");
   const category = t.category || "Altro";
   const priority = t.priority || "media";
   const ref = t.reference || t.target || "";  // retrocompat con campo target
