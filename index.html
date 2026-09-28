@@ -8814,26 +8814,22 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
 
 <!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
 <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
-  <button class="mtab" data-mtab="flotta" aria-label="Oggi">
-    <svg class="icon"><use href="#i-home"/></svg>
-    <span class="mtab-l">Oggi</span>
-  </button>
-  <button class="mtab" data-mtab="navi" aria-label="Navi">
+  <!-- v1.05 — mobile v6: quattro porte fisse -->
+  <button class="mtab" data-mtab="flotta" aria-label="Flotta" style="position:relative">
     <svg class="icon"><use href="#i-ship"/></svg>
-    <span class="mtab-l">Navi</span>
+    <span class="mtab-l">Flotta</span>
   </button>
-  <button class="mtab" data-mtab="cerca" aria-label="Cerca">
+  <button class="mtab" data-mtab="todo" aria-label="To-do" style="position:relative">
+    <svg class="icon"><use href="#i-checksquare"/></svg>
+    <span class="mtab-l">To-do</span>
+  </button>
+  <button class="mtab" data-mtab="rubrica" aria-label="Rubrica" style="position:relative">
+    <svg class="icon"><use href="#i-phone"/></svg>
+    <span class="mtab-l">Rubrica</span>
+  </button>
+  <button class="mtab" data-mtab="cerca" aria-label="Cerca" style="position:relative">
     <svg class="icon"><use href="#i-search"/></svg>
     <span class="mtab-l">Cerca</span>
-  </button>
-  <button class="mtab" data-mtab="email" aria-label="Posta">
-    <svg class="icon"><use href="#i-mail"/></svg>
-    <span class="mtab-l">Posta</span>
-    <span class="mtab-dot" id="mtab-email-dot" style="display:none;"></span>
-  </button>
-  <button class="mtab" data-mtab="altro" aria-label="Altro">
-    <svg class="icon"><use href="#i-menu"/></svg>
-    <span class="mtab-l">Altro</span>
   </button>
 </nav>
 
@@ -10939,7 +10935,7 @@ function renderSwitcher() {
 
 // v0.24 — Aggiorna la tab bar in basso (mobile): stato attivo + pallini notifica
 function updateMobileTabBar() {
-  const scr2tab = { home:"flotta", flotta:"flotta", navi:"navi", cerca:"cerca", todo:"altro", email:"email", cert:"altro", rubrica:"altro" };
+  const scr2tab = { home:"flotta", flotta:"flotta", navi:"flotta", cerca:"cerca", todo:"todo", email:"flotta", cert:"flotta", rubrica:"rubrica" };   // v1.05 — tab bar v6
   const activeView = (typeof mstate !== "undefined") ? (scr2tab[mstate.screen] || "flotta") : "flotta";
   document.querySelectorAll("#mobile-tabbar .mtab").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.mtab === activeView);
@@ -11444,6 +11440,19 @@ function renderMobileApp(){
   if(!state.data){ app.innerHTML = `<div class="ma-empty" style="margin-top:40px">Caricamento…</div>`; return; }
   let html;
   const _v3 = typeof m3Today === "function";
+  const _v6 = typeof window.m6Fleet === "function";   // v1.05 — mobile v6
+  app.classList.toggle("m6-on", _v6);
+  if(_v6){
+    if(mstate.m6ct) html = m6Contact();
+    else if(mstate.vessel) html = (mstate.detTab && mstate.detTab !== "ops") ? m3Vessel(mstate.vessel) : m6Vessel(mstate.vessel);
+    else if(mstate.screen === "todo") html = m6Todo();
+    else if(mstate.screen === "rubrica") html = m6Rubrica();
+    else if(mstate.screen === "cerca") html = '<div class="m6" style="gap:14px">' + m3Search() + '</div>';
+    else if(mstate.screen === "email") html = maEmail();
+    else if(mstate.screen === "cert") html = maCert();
+    else html = m6Fleet();
+    app.innerHTML = html; m6Badge(); return;
+  }
   if(mstate.vessel) html = _v3 ? m3Vessel(mstate.vessel) : maVesselDetail(mstate.vessel);
   else if(_v3 && mstate.screen==="navi") html = m3Navi();
   else if(_v3 && mstate.screen==="cerca") html = m3Search();
@@ -11456,15 +11465,15 @@ function renderMobileApp(){
 }
 
 function mgo(screen){
-  mstate.screen = screen; mstate.vessel = null;
+  mstate.screen = screen; mstate.vessel = null; mstate.m6ct = null; mstate.m6All = false;
   maCloseSheet();
   renderMobileApp(); updateMobileTabBar();
   try{ window.scrollTo({top:0}); }catch(_){}
 }
 window.mgo = mgo;
-window.maOpenVessel = function(vid){ if(mstate.screen!=="navi") mstate.screen="flotta"; mstate.vessel=vid; mstate.m3Noon=false; mstate.detTab="ops"; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
+window.maOpenVessel = function(vid){ if(mstate.screen!=="navi") mstate.screen="flotta"; mstate.vessel=vid; mstate.m6ct=null; mstate.m6All=false; mstate.m3Noon=false; mstate.detTab="ops"; maCloseSheet(); renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
 window.maDetTab = function(t){ mstate.detTab=t; renderMobileApp(); };
-window.maBack = function(){ mstate.vessel=null; renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
+window.maBack = function(){ mstate.vessel=null; mstate.m6ct=null; renderMobileApp(); updateMobileTabBar(); try{window.scrollTo({top:0});}catch(_){} };
 window.maRubKind = function(k){ mstate.rubKind=k; renderMobileApp(); };
 window.maGoCert = function(f){ mstate.certFilter = f||"all"; mgo("cert"); };
 window.maSetCertFilter = function(f){ mstate.certFilter = f; renderMobileApp(); };
@@ -26355,7 +26364,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const t = tab.dataset.mtab;
       if (t === "add") { if (typeof openTodoModal === "function") openTodoModal(); return; }
       if (t === "altro") { if (typeof maOpenAltro === "function") maOpenAltro(); return; }
-      const tab2scr = { flotta:"flotta", navi:"navi", cerca:"cerca", email:"email", todo:"todo" };
+      const tab2scr = { flotta:"flotta", navi:"navi", cerca:"cerca", email:"email", todo:"todo", rubrica:"rubrica" };
       mgo(tab2scr[t] || "flotta");
     });
   });
@@ -27959,6 +27968,300 @@ function m3SearchHTML(q){
   return supHTML + itHTML || '<div class="m3-empty">Nessun risultato per "' + escapeHTML(q) + '".</div>';
 }
 window.m3Today = m3Today;
+
+// ============================================================================
+// === v1.05 MOBILE v6 — "tutto l'ufficio, stesso ordine" ===================
+// Quattro porte fisse: Flotta · To-do · Rubrica · Cerca. Ogni pagina = una frase,
+// poi sezioni sempre nello stesso ordine. Nave: Dove · Cosa arriva · Da fare ·
+// Certificati · Chi chiamare. Il colore compare solo per i problemi.
+// Prototipo: Mobile v6 Completa.dc.html. Riusa m3Po / m3Search / maOpenTodo.
+// ============================================================================
+(function(){ try { const s = document.createElement("style"); s.id = "m6-css"; s.textContent = `
+#mobile-app.m6-on{ background:#fff !important; }
+#mobile-app .m6{ font-family:var(--font-sans); color:#0a1b2e; display:flex; flex-direction:column; gap:24px; padding:4px 8px 12px; line-height:1.35; }
+#mobile-app .m6 *{ box-sizing:border-box; }
+.m6-hd{ display:flex; flex-direction:column; gap:4px; }
+.m6-hdr{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+.m6-when{ font:600 11px var(--font-mono); letter-spacing:.08em; color:#6a7d90; }
+.m6-h1{ font-size:31px; font-weight:800; letter-spacing:-.025em; line-height:1.1; margin-top:2px; }
+.m6-meta{ font:600 12.5px var(--font-mono); color:#6a7d90; }
+.m6-lead{ font-size:17px; line-height:1.45; text-wrap:pretty; }
+.m6 .red{ color:#c0261c; } .m6 .amber{ color:#b06a00; } .m6 .muted{ color:#6a7d90; }
+.m6-back{ align-self:flex-start; background:none; border:0; padding:4px 0; font:600 15px var(--font-sans); color:#1553d8; cursor:pointer; }
+.m6-sec{ display:flex; flex-direction:column; }
+.m6-eb{ font:600 11px var(--font-mono); letter-spacing:.08em; color:#6a7d90; padding-bottom:6px; }
+.m6-eb.red{ color:#c0261c; }
+.m6-list{ border-top:1px solid #e3e7ec; display:flex; flex-direction:column; }
+.m6-row{ display:flex; align-items:center; gap:12px; padding:14px 0; border:0; border-bottom:1px solid #e3e7ec; background:none; width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+.m6-row .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.m6-row .tx b{ font-size:16px; font-weight:700; }
+.m6-row .tx span{ font-size:14px; color:#44576b; }
+.m6-row .tx small{ font-size:13px; color:#6a7d90; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.m6-row .st{ font-size:14px; font-weight:600; text-align:right; flex:none; max-width:42%; }
+.m6-row .chev{ font-size:20px; color:#c9d3de; flex:none; }
+.m6-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-left:8px; vertical-align:middle; }
+.m6-kv{ display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid #eef1f4; font-size:15px; }
+.m6-kv > span{ color:#44576b; flex:0 1 auto; min-width:0; overflow-wrap:anywhere; }
+.m6-kv > span:only-child{ flex:1 1 auto; }
+.m6-kv > b{ font-weight:600; text-align:right; min-width:0; overflow-wrap:anywhere; }
+.m6-kv a{ color:#1553d8; text-decoration:none; font-weight:600; }
+.m6-trow{ display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid #eef1f4; }
+.m6-chk{ width:26px; height:26px; flex:none; border-radius:50%; border:2px solid #c9d3de; background:#fff; margin-top:-1px; cursor:pointer; padding:0; }
+.m6-trow .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; background:none; border:0; padding:0; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+.m6-trow .tx span{ font-size:15px; line-height:1.35; }
+.m6-trow .tx small{ font-size:13px; color:#6a7d90; }
+.m6-ic{ width:44px; height:44px; border-radius:50%; background:#f2f4f7; display:flex; align-items:center; justify-content:center; color:#1553d8; text-decoration:none; font-size:17px; flex:none; }
+.m6-ic.off{ color:#c9d3de; }
+.m6-plus{ width:50px; height:50px; border-radius:50%; border:0; background:#0a1b2e; color:#fff; font-size:30px; line-height:1; cursor:pointer; flex:none; }
+.m6-q{ height:48px; border-radius:12px; background:#f2f4f7; border:0; padding:0 14px; font:16px var(--font-sans); width:100%; color:#0a1b2e; }
+.m6-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+.m6-chip{ height:36px; padding:0 14px; border-radius:18px; border:0; background:#f2f4f7; color:#0a1b2e; font:600 13px var(--font-sans); cursor:pointer; }
+.m6-chip.on{ background:#0a1b2e; color:#fff; }
+.m6-big{ display:flex; gap:10px; }
+.m6-big a, .m6-big button{ flex:1; height:52px; border-radius:14px; background:#f2f4f7; color:#0a1b2e; display:flex; align-items:center; justify-content:center; font:700 15px var(--font-sans); text-decoration:none; border:0; }
+.m6-big a.pri{ background:#0a1b2e; color:#fff; }
+.m6-more{ background:none; border:0; color:#1553d8; font:600 14px var(--font-sans); padding:12px 0 0; text-align:left; cursor:pointer; }
+.m6-note{ background:#eef3ff; border-radius:14px; padding:13px 14px; display:flex; gap:12px; align-items:center; font-size:14.5px; line-height:1.4; }
+.m6-note.amber{ background:#fdf3e2; }
+.m6-note > span{ flex:1; }
+.m6-note button{ flex:none; height:38px; padding:0 14px; border-radius:10px; border:0; background:#0a1b2e; color:#fff; font:700 13px var(--font-sans); cursor:pointer; }
+.m6-foot{ font-size:12.5px; color:#6a7d90; line-height:1.5; }
+.m6-also{ display:flex; flex-wrap:wrap; gap:6px; }
+.m6-also button{ height:38px; padding:0 14px; border-radius:19px; border:1px solid #d5dce4; background:#fff; color:#0a1b2e; font:600 13px var(--font-sans); cursor:pointer; }
+.m6-sheet{ display:flex; flex-direction:column; gap:18px; font-family:var(--font-sans); color:#0a1b2e; }
+.m6-sheet-h{ display:flex; justify-content:space-between; align-items:center; }
+.m6-sheet-h b{ font-size:16px; }
+.m6-sheet-h button{ background:none; border:0; font:600 15px var(--font-sans); color:#6a7d90; cursor:pointer; padding:6px 0; }
+.m6-sheet-h button.save{ color:#1553d8; font-weight:700; }
+#mobile-tabbar .mtab-n{ position:absolute; top:2px; left:54%; min-width:18px; height:18px; border-radius:9px; background:#c0261c; color:#fff; font:700 11px/18px var(--font-sans); text-align:center; padding:0 5px; }
+`; document.head.appendChild(s); } catch(e) {} })();
+
+const M6_ST = { in_port:"in porto", at_anchor:"alla fonda", drydock:"in cantiere", loading:"in carico", discharging:"in scarico", at_sea:"in navigazione" };
+const m6Short = vid => String(m3VName(vid)).replace(/^M\/[VB]\s*/i, "").replace(/^MED\s+/i, "");
+function m6Hm(s){ const t = String(s || "").split("T")[1]; return t ? " · " + t.slice(0,5) : ""; }
+function m6Day(s){ if(!s) return ""; const d = new Date(String(s).length <= 10 ? s + "T12:00:00" : s); if(isNaN(d)) return mpFD(s); return d.toLocaleDateString("it-IT", { weekday: "short" }).replace(".", "") + " " + mpFD(s); }
+function m6Call(vid){ const l = m3Lane(vid); return (l.calls || []).slice().sort((a, b) => a.eta - b.eta)[0] || null; }
+function m6Open(it){ return it && it.poNumber && !rdCancelled(it); }
+
+function m6ShipInfo(vid){
+  const v = m3Verdict(vid), call = m6Call(vid), W = mpWhere(vid), l = m3Lane(vid), cfg = (VESSELS || []).find(x => x.vesselId === vid) || {};
+  const r = { line: "", note: "", tone: "", lead: v.t };
+  if(call){
+    const d = call.etbS || call.etaS;
+    r.line = m3Cap(call.port) + (d ? " · " + (call.etbS ? "attracca " : "arriva ") + m6Day(d) : "");
+    if(call.n.late){ r.note = call.n.late + " PO rischi" + (call.n.late > 1 ? "ano" : "a") + " di non arrivare"; r.tone = "red"; }
+    else if(call.n.risk){ r.note = call.n.risk + " PO a rischio"; r.tone = "amber"; }
+    else if(call.its.length) r.note = call.its.length + " PO in tempo per " + m3Cap(call.port);
+    r.lead = v.t + " " + (call.n.late ? call.n.late + " PO su " + call.its.length + " non arriv" + (call.n.late > 1 ? "ano" : "a") + " in tempo." : call.n.risk ? call.n.risk + " PO su " + call.its.length + " a rischio." : call.its.length ? "I " + call.its.length + " PO dello scalo sono in tempo." : "Nessun PO ancora legato allo scalo.");
+  } else {
+    r.line = v.short || (W ? v.t.replace(/\.$/, "") : cfg.manual ? "gestione manuale" : "nessuna posizione recente");
+    if(W && W.old){ r.note = "Viaggio fermo al " + mpFD(W.eta || W.etb) + ": aggiornalo al PC"; r.tone = "amber"; r.lead = v.t + " Finché non inserisci il prossimo scalo, i suoi ordini non hanno una scadenza."; }
+    else if(!W || !W.port){ if(l.un){ r.note = "Prossimo scalo non inserito"; r.tone = "amber"; } }
+  }
+  if(!r.tone && l.un){ r.note = (r.note ? r.note + " · " : "") + l.un + " PO senza scalo"; r.tone = "amber"; }
+  return r;
+}
+
+function m6Fleet(){
+  try { window._m3M = rdModel(); } catch(e) { window._m3M = null; }
+  const d = new Date(), esc = escapeHTML;
+  const when = d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase() + " · " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  const rows = (VESSELS || []).map(c => ({ c, i: m6ShipInfo(c.vesselId) }));
+  const bad = rows.filter(x => x.i.tone), ok = rows.length - bad.length;
+  const red = bad.find(x => x.i.tone === "red") || bad[0];
+  const lead = !bad.length ? "Tutte le navi in regola." : (ok ? (ok === 1 ? "Una nave in regola. " : ok + " navi in regola. ") : "") + '<b class="' + red.i.tone + '">' + esc(m6Short(red.c.vesselId)) + ": " + esc(red.i.note.charAt(0).toLowerCase() + red.i.note.slice(1)) + '</b>' + (bad.length > 1 ? ", e " + (bad.length - 1) + " altr" + (bad.length > 2 ? "e" : "a") + " da guardare." : ".");
+  const list = rows.map(({ c, i }) => '<button class="m6-row" onclick="maOpenVessel(\'' + m3E(c.vesselId) + '\')"><span class="tx"><b>' + esc(c.displayName) + (i.tone ? '<i class="m6-dot" style="background:' + (i.tone === "red" ? "#c0261c" : "#b06a00") + '"></i>' : "") + '</b><span>' + esc(i.line) + '</span>' + (i.note ? '<span class="' + i.tone + '">' + esc(i.note) + '</span>' : "") + '</span><span class="chev">›</span></button>').join("");
+  let emN = 0, stale = 0, ifx = 0;
+  try { emN = getEmailThreads().filter(r => !/^(noise|agency_ops)$/.test(r.category)).length; } catch(e) {}
+  try { (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { const p = mpOf(it); if(p && p.stale) stale++; })); } catch(e) {}
+  try { ifx = ifxList().length; } catch(e) {}
+  const also = ['<button onclick="mgo(\'email\')">Posta' + (emN ? " · " + emN : "") + '</button>', '<button onclick="maGoCert(\'all\')">Certificati</button>', stale ? '<button onclick="m3DnStart()">Pulizia DN · ' + stale + '</button>' : "", '<button onclick="maOpenAltro()">Impostazioni e altro</button>'].join("");
+  return '<div class="m6"><div class="m6-hd"><div class="m6-when">' + esc(when) + '</div><div class="m6-h1">Flotta</div></div>' +
+    '<div class="m6-lead">' + lead + '</div>' +
+    '<div class="m6-list">' + list + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">ANCHE</div><div class="m6-also">' + also + '</div></div>' +
+    '<div class="m6-foot">Posizioni dai noon e dal viaggio · stessi dati del PC' + (ifx ? " · " + ifx + " DN da far chiudere alla nave" : "") + '</div></div>';
+}
+
+function m6TTitle(t){
+  const cat = t.category || "Altro", ref = (t.reference || t.target || "").trim(), a = (t.action || "").trim();
+  const generic = !a || a.toLowerCase() === cat.toLowerCase() || a.toLowerCase() === "altro";
+  return generic ? (ref || t.note || a || "To-do") : a + (ref && ref !== a ? " · " + ref : "");
+}
+function m6TodoRow(t, withShip){
+  const cls = classifyDueDate(t.dueDate), late = cls === "overdue";
+  const due = t.dueDate ? (cls === "today" ? "oggi" : late ? "scaduta " + m6Day(t.dueDate) : m6Day(t.dueDate)) : "";
+  const meta = [withShip && t.vessel ? m6Short(t.vessel) : "", due, t.outlookTaskId ? "Outlook" : ""].filter(Boolean).join(" · ");
+  const id = m3E(t.id);
+  return '<div class="m6-trow"><button class="m6-chk" aria-label="Segna fatta" onclick="maToggleTodo(\'' + id + '\')"></button><button class="tx" onclick="maOpenTodo(\'' + id + '\')"><span>' + escapeHTML(String(m6TTitle(t)).replace(/\s+/g, " ").slice(0, 140)) + '</span>' + (meta ? '<small' + (late ? ' class="red"' : "") + '>' + escapeHTML(meta) + '</small>' : "") + '</button></div>';
+}
+
+function m6Vessel(vid){
+  try { window._m3M = rdModel(); } catch(e) {}
+  const esc = escapeHTML, cfg = (VESSELS || []).find(v => v.vesselId === vid) || {}, now = Date.now();
+  const W = mpWhere(vid), nc = W && W.nc, call = m6Call(vid), info = m6ShipInfo(vid), prop = mpProposal(vid);
+  const meta = [nc ? "NOON " + mpFD(nc.date) : "", W && W.src !== "noon" && W.voyAt ? "VIAGGIO " + mpFD(W.voyAt) : ""].filter(Boolean).join(" · ");
+  const kv = (k, v, c) => v ? '<div class="m6-kv"><span>' + esc(k) + '</span><b' + (c ? ' class="' + c + '"' : "") + '>' + v + '</b></div>' : "";
+  // DOVE
+  let now_ = "";
+  if(nc && !W.old){ now_ = nc.guess ? esc(nc.n.positionText || "") + (nc.mtg != null ? " · " + Math.round(nc.mtg) + " nm da " + esc(m3Cap(nc.port)) : "") : [M6_ST[W.status] && W.src !== "noon" ? M6_ST[W.status] : "in navigazione", nc.spd ? String(nc.spd).replace(".", ",") + " nodi" : "", nc.mtg != null ? Math.round(nc.mtg).toLocaleString("it-IT") + " nm all'arrivo" : ""].filter(Boolean).join(" · "); }
+  else if(W && W.src === "manualpos") now_ = esc(W.manualCity) + " (indicata da te)";
+  else if(W && M6_ST[W.status]) now_ = M6_ST[W.status];
+  let bunk = "";
+  if(nc && nc.n.bunkers){ const b = nc.n.bunkers, cons = parseFloat(nc.n.consumption && nc.n.consumption.lsfo), f = x => (+x).toLocaleString("it-IT", { maximumFractionDigits: 0 }); bunk = [b.lsfo ? "LSFO " + f(b.lsfo) + " t" + (cons >= 8 ? " (~" + Math.floor(b.lsfo / cons) + " gg)" : "") : "", b.fw ? "FW " + f(b.fw) + " t" : ""].filter(Boolean).join(" · "); }
+  const port = W && W.port && !W.old ? m3Cap(W.port) : "";
+  const cut = call ? rdFDT(call.etd - rdProfile(call.port).notice / 24, now) : "";
+  const dove = kv("Adesso", now_) + (port ? kv("Prossimo scalo", esc(port) + (W.guess ? "?" : "")) : kv("Prossimo scalo", "non inserito", "amber")) +
+    (W && W.old ? kv("Ultimo scalo", esc(m3Cap(W.port)) + " · " + mpFD(W.eta || W.etb)) : "") +
+    (port && W.etb ? kv("Attracco", esc(m6Day(W.etb) + m6Hm(W.etb))) : port && W.eta ? kv("Arrivo", esc(m6Day(W.eta) + m6Hm(W.eta))) : "") +
+    (port && W.etd ? kv("Partenza", esc(m6Day(W.etd) + m6Hm(W.etd))) : "") + (cut ? kv("Consegne all'agente entro", esc(cut)) : "") + kv("Bunker", esc(bunk));
+  const box = prop ? '<div class="m6-note"><span>' + (prop.guess ? "Posizione compatibile con <b>" + esc(m3Cap(prop.port)) + "</b>. Confermi lo scalo?" : "Il noon indica <b>" + esc(m3Cap(prop.port)) + "</b>" + (prop.eta ? ", ETA " + mpFD(prop.eta) : "") + ". Lo imposto come scalo?") + '</span><button onclick="window.mpApplyNoon(\'' + m3E(vid) + '\')">' + (prop.guess ? "Conferma" : "Imposta") + '</button></div>' : "";
+  const noonLink = nc ? '<button class="m6-more" onclick="mstate.m3Noon=!mstate.m3Noon;renderMobileApp()">' + (mstate.m3Noon ? "Nascondi il noon completo" : "Noon completo, consumi e meteo ›") + '</button>' + (mstate.m3Noon ? maNoonBlock(vid) : "") : "";
+  // COSA ARRIVA
+  const byCall = {}; if(call) call.its.forEach(x => byCall[x.it.id] = x);
+  const today = mpToday(), items = m3Items(vid), rows = []; let stale = 0, reqs = 0;
+  items.forEach(it => { const p = mpOf(it, now); if(!p || p.pos === "onboard") return; if(p.stale){ stale++; return; } if(!m6Open(it)){ if(p.pos === "route") reqs++; return; }
+    const x = byCall[it.id]; let st = (MP_POS[p.pos] || MP_POS.route).l, c = "", rank = 3;
+    if(x && x.k === "late"){ st = "Non arriva in tempo"; c = "red"; rank = 0; } else if(x && x.k === "risk"){ st = "A rischio"; c = "amber"; rank = 1; } else if(m3Late(it, today)){ st = "Pronto, senza DN"; c = "red"; rank = 2; }
+    rows.push({ it, st, c, rank, crit: x ? x.crit : false }); });
+  rows.sort((a, b) => a.rank - b.rank || String(a.it.supplier || "").localeCompare(String(b.it.supplier || "")));
+  const lim = mstate.m6All ? 999 : 10;
+  const arr = rows.slice(0, lim).map(r => '<button class="m6-row" style="padding:12px 0" onclick="m3Po(\'' + m3E(r.it.id) + '\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + esc(r.it.supplier && r.it.supplier !== "—" ? r.it.supplier : (r.it.description || "—")) + (r.crit ? ' <span class="red" style="font-size:11px;font-weight:800;border:1.5px solid #c0261c;border-radius:4px;padding:0 4px">C</span>' : "") + '</b><small>' + esc(m3Short(r.it.poNumber) + " · " + (r.it.description || "")) + '</small></span><span class="st ' + r.c + '">' + esc(r.st) + '</span><span class="chev">›</span></button>').join("");
+  const extra = (rows.length > lim ? '<button class="m6-more" onclick="mstate.m6All=true;renderMobileApp()">Mostra tutti (' + rows.length + ')</button>' : "") +
+    (stale ? '<button class="m6-row" onclick="m3DnStart(\'' + m3E(vid) + '\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + stale + ' DN vecchie da verificare</b><small>in viaggio da oltre 30 gg: probabilmente già a bordo</small></span><span class="chev">›</span></button>' : "") +
+    (reqs ? '<button class="m6-row" onclick="m3List(\'pos\',\'' + m3E(vid) + '\',\'route\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + reqs + ' richieste senza PO</b><small>in attesa di rotta</small></span><span class="chev">›</span></button>' : "");
+  const arriva = arr || extra ? arr + extra : '<div class="m6-kv"><span>' + (items.length ? "Tutto a bordo." : cfg.manual ? "Nessun ordine da Infoship per questa nave." : "Nessun ordine aperto.") + '</span></div>';
+  // DA FARE
+  const tds = (state.todos || []).filter(t => todoActive(t) && t.vessel === vid).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+  const fare = (tds.length ? tds.slice(0, 8).map(t => m6TodoRow(t, false)).join("") + (tds.length > 8 ? '<button class="m6-more" onclick="mgo(\'todo\')">Tutte le ' + tds.length + ' to-do ›</button>' : "") : '<div class="m6-kv"><span>Niente da fare per questa nave.</span></div>') +
+    '<button class="m6-more" onclick="m6NewTodo(\'' + m3E(vid) + '\')">+ Nuova to-do per ' + esc(m6Short(vid)) + '</button>';
+  // CERTIFICATI
+  const certs = ((state.certificates && state.certificates[vid]) || []).filter(c => !c.isPermanent && c.expiry).map(c => ({ c, d: daysToExpiry(c.expiry) })).filter(x => x.d != null && x.d <= 60).sort((a, b) => a.d - b.d);
+  const cert = certs.length ? certs.map(x => kv(x.c.name || "Certificato", esc(x.d < 0 ? "scaduto da " + Math.abs(x.d) + " gg" : mpFD(x.c.expiry) + " · tra " + x.d + " gg"), x.d <= 14 ? "red" : x.d <= 30 ? "amber" : "")).join("") : '<div class="m6-kv"><span>Nessuna scadenza nei prossimi 60 giorni.</span></div>';
+  // CHI CHIAMARE
+  const leg = (W && W.leg) || mpVoyFuture(vid) || null, ag = leg && leg.agency, agName = ag && (ag.name || (typeof ag === "string" ? ag : "")) || "";
+  const agP = agName ? getEntityProfile("agency", entityKeyOf("agency", agName) || agName) : {}, agEmail = (ag && ag.email) || agP.email || "", agPhone = String((ag && ag.phone) || agP.phone || "").replace(/[^\d+]/g, "");
+  const master = cfg.masterEmail && !/example\.com|_{2,}/.test(cfg.masterEmail) ? cfg.masterEmail : "";
+  const who = m6WhoRow("Comandante", master ? master : "email mancante", "", master, null) +
+    (agName ? m6WhoRow(agName, "Agenzia" + (port ? " · " + port : ""), agPhone, agEmail, "m6OpenContact('agency','" + m3E(agName) + "')") : port ? '<div class="m6-kv"><span>Agenzia di ' + esc(port) + ' non indicata</span></div>' : "");
+  return '<div class="m6"><div class="m6-hd"><button class="m6-back" onclick="maBack()">‹ Flotta</button><div class="m6-h1">' + esc(cfg.displayName || vid) + '</div>' + (meta ? '<div class="m6-meta">' + meta + '</div>' : "") + '</div>' +
+    '<div class="m6-lead' + (info.tone === "red" ? "" : "") + '">' + esc(info.lead) + '</div>' + box +
+    '<div class="m6-sec"><div class="m6-eb">DOVE</div>' + dove + noonLink + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">COSA ARRIVA' + (rows.length ? " · " + rows.length + " PO" : "") + '</div>' + arriva + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">DA FARE' + (tds.length ? " · " + tds.length : "") + '</div>' + fare + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">CERTIFICATI · PROSSIMI 60 GIORNI</div>' + cert + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">CHI CHIAMARE</div>' + who + '</div></div>';
+}
+function m6WhoRow(n, r, phone, email, open){
+  const esc = escapeHTML;
+  return '<div class="m6-kv" style="align-items:center;padding:10px 0"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;color:#0a1b2e;' + (open ? "cursor:pointer" : "") + '"' + (open ? ' onclick="' + open + '"' : "") + '><b style="font-weight:600">' + esc(n) + (open ? ' <span style="color:#c9d3de">›</span>' : "") + '</b><small style="font-size:13px;color:#6a7d90;overflow:hidden;text-overflow:ellipsis">' + esc(r) + '</small></span>' +
+    (phone ? '<a class="m6-ic" href="tel:' + escapeAttr(phone) + '" aria-label="Chiama">✆</a>' : '<span class="m6-ic off">✆</span>') +
+    (email ? '<a class="m6-ic" href="mailto:' + escapeAttr(email) + '" aria-label="Scrivi">✉</a>' : '<span class="m6-ic off">✉</span>') + '</div>';
+}
+
+// --- To-do ------------------------------------------------------------------------
+function m6Todo(){
+  const esc = escapeHTML, open = (state.todos || []).filter(todoActive);
+  const iso = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); }, wk = iso(7);
+  const g = t => { const c = classifyDueDate(t.dueDate); if(!t.dueDate) return "none"; if(c === "overdue") return "late"; if(c === "today") return "today"; return t.dueDate <= wk ? "week" : "later"; };
+  const G = { late: [], today: [], week: [], later: [], none: [] }; open.forEach(t => G[g(t)].push(t));
+  Object.keys(G).forEach(k => G[k].sort((a, b) => k === "late" ? (b.dueDate || "").localeCompare(a.dueDate || "") : k === "none" ? String(b.createdAt || "").localeCompare(String(a.createdAt || "")) : (a.dueDate || "").localeCompare(b.dueDate || "")));
+  const L = [["today","OGGI"],["late","SCADUTE"],["week","PROSSIMI 7 GIORNI"],["later","PIÙ AVANTI"],["none","SENZA SCADENZA"]];
+  const ex = mstate.m6TodoOpen || {};
+  const secs = L.filter(([k]) => G[k].length).map(([k, lbl]) => { const n = G[k].length, lim = ex[k] ? 999 : (k === "today" ? 20 : 6);
+    return '<div class="m6-sec"><div class="m6-eb' + (k === "late" ? " red" : "") + '">' + lbl + " · " + n + '</div>' + G[k].slice(0, lim).map(t => m6TodoRow(t, true)).join("") + (n > lim ? '<button class="m6-more" onclick="m6TodoMore(\'' + k + '\')">Mostra tutte (' + n + ')</button>' : "") + '</div>'; }).join("");
+  const nT = G.today.length, nL = G.late.length;
+  const lead = !open.length ? "Niente da fare." : (nT ? (nT === 1 ? "Una per oggi" : nT + " per oggi") : "Niente per oggi") + (nL ? ', <span class="red">' + nL + " scadut" + (nL === 1 ? "a" : "e") + '</span>' : "") + ". " + open.length + " aperte in tutto.";
+  return '<div class="m6"><div class="m6-hdr"><div class="m6-hd"><div class="m6-when">DA OUTLOOK E DALLA DASHBOARD</div><div class="m6-h1">To-do</div></div><button class="m6-plus" aria-label="Nuova to-do" onclick="m6NewTodo()">+</button></div>' +
+    '<div class="m6-lead">' + lead + '</div>' + secs + '</div>';
+}
+window.m6TodoMore = function(k){ mstate.m6TodoOpen = Object.assign({}, mstate.m6TodoOpen, { [k]: true }); renderMobileApp(); };
+window.m6NewTodo = function(vid){ window._m6n = { text: "", ship: vid || "", due: "today" }; m6NewPaint(); setTimeout(() => { const e = document.getElementById("m6-nt"); if(e) e.focus(); }, 60); };
+function m6NewPaint(){
+  const n = window._m6n, chip = (on, l, js) => '<button class="m6-chip' + (on ? " on" : "") + '" onclick="' + js + '">' + escapeHTML(l) + '</button>';
+  const ships = chip(!n.ship, "Nessuna", "m6NSet('ship','')") + (VESSELS || []).map(c => chip(n.ship === c.vesselId, m6Short(c.vesselId), "m6NSet('ship','" + m3E(c.vesselId) + "')")).join("");
+  const dues = [["today","Oggi"],["tomorrow","Domani"],["week","Tra una settimana"],["none","Nessuna"]].map(([k, l]) => chip(n.due === k, l, "m6NSet('due','" + k + "')")).join("");
+  maRenderSheet('<div class="m6-sheet"><div class="m6-sheet-h"><button onclick="maCloseSheet()">Annulla</button><b>Nuova to-do</b><button class="save" onclick="m6NSave()">Salva</button></div>' +
+    '<input id="m6-nt" class="m6-q" placeholder="Cosa devi fare?" value="' + escapeAttr(n.text) + '" oninput="window._m6n.text=this.value" onkeydown="if(event.key===\'Enter\')m6NSave()">' +
+    '<div class="m6-sec"><div class="m6-eb">NAVE</div><div class="m6-chips">' + ships + '</div></div>' +
+    '<div class="m6-sec"><div class="m6-eb">SCADENZA</div><div class="m6-chips">' + dues + '</div></div></div>');
+}
+window.m6NSet = function(k, v){ const e = document.getElementById("m6-nt"); if(e) window._m6n.text = e.value; window._m6n[k] = v; m6NewPaint(); };
+window.m6NSave = function(){
+  const n = window._m6n, e = document.getElementById("m6-nt"); if(e) n.text = e.value;
+  const txt = String(n.text || "").trim(); if(!txt){ maToast("Scrivi cosa devi fare"); if(e) e.focus(); return; }
+  const iso = k => { const d = new Date(); d.setDate(d.getDate() + k); return d.toISOString().slice(0,10); };
+  const due = { today: iso(0), tomorrow: iso(1), week: iso(7), none: "" }[n.due] || "";
+  const t = addTodo({ category: n.ship ? "Nave" : "Ufficio", vessel: n.ship, action: "Altro", reference: txt, dueDate: due });
+  try { maMarkSync(t, false); saveTodos(); } catch(_) {}
+  try { if(typeof ghSetDirty === "function") ghSetDirty(); } catch(_) {}
+  maCloseSheet(); try { render(); } catch(_) { renderMobileApp(); } maToast("To-do creata");
+};
+
+// --- Rubrica ----------------------------------------------------------------------
+function m6RubAll(){
+  const out = [], seen = {};
+  const add = (kind, name, sub) => { if(!name) return; const k = kind + "|" + String(name).toLowerCase().trim(); if(seen[k]) return; seen[k] = 1; out.push({ kind, name, sub }); };
+  const loc = p => [p.city, p.country].filter(Boolean).join(", ");
+  try { const P = loadEntityProfiles("supplier") || {}; Object.keys(P).forEach(n => add("supplier", n, ["Fornitore", loc(P[n])].filter(Boolean).join(" · "))); } catch(e) {}
+  try { const r = getPeriodRange("365"); ((computePeriodStats(r.from, r.to).suppliers) || []).forEach(s => add("supplier", s.name, "Fornitore")); } catch(e) {}
+  try { const P = loadEntityProfiles("agency") || {}; Object.keys(P).forEach(n => add("agency", n, ["Agenzia", loc(P[n])].filter(Boolean).join(" · "))); } catch(e) {}
+  try { (loadAgencies() || []).forEach(a => add("agency", a.name, ["Agenzia", a.port || a.city || ""].filter(Boolean).join(" · "))); } catch(e) {}
+  try { (TML_HUBS || []).forEach(h => add("hub", h.name, "Hub TML · " + h.city)); } catch(e) {}
+  (VESSELS || []).forEach(c => add("ship", "Comandante " + m6Short(c.vesselId), "Nave · " + c.displayName));
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+function m6RubRows(){
+  const q = String(window._m6rq || "").trim().toLowerCase(), k = mstate.m6rk || "all";
+  let all = window._m6rub || (window._m6rub = m6RubAll());
+  const hay = x => { if(!q) return true; let s = (x.name + " " + x.sub).toLowerCase(); if(s.includes(q)) return true; try { const p = x.kind === "supplier" || x.kind === "agency" ? getEntityProfile(x.kind, x.name) : {}; s = [p.email, p.contact, p.notes, p.note].join(" ").toLowerCase(); return s.includes(q); } catch(e) { return false; } };
+  const L = all.filter(x => (k === "all" || x.kind === k) && hay(x));
+  const stars = x => { try { const r = x.kind === "supplier" || x.kind === "agency" ? entityRating(x.kind, x.name) : 0; return r ? '<span style="color:#b06a00;font-size:13px;letter-spacing:1px;flex:none">' + "★".repeat(r) + '</span>' : ""; } catch(e) { return ""; } };
+  const rows = L.slice(0, 80).map(x => '<button class="m6-row" style="padding:13px 0" onclick="m6OpenContact(\'' + x.kind + '\',\'' + m3E(x.name) + '\',\'rubrica\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + escapeHTML(x.name) + '</b><small>' + escapeHTML(x.sub) + '</small></span>' + stars(x) + '<span class="chev">›</span></button>').join("");
+  return (rows || '<div class="m6-kv"><span>Nessun contatto trovato.</span></div>') + (L.length > 80 ? '<div class="m6-foot" style="padding-top:10px">Mostro 80 di ' + L.length + ': affina la ricerca.</div>' : "");
+}
+function m6Rubrica(){
+  window._m6rub = m6RubAll();
+  const k = mstate.m6rk || "all", chip = (id, l) => '<button class="m6-chip' + (k === id ? " on" : "") + '" onclick="mstate.m6rk=\'' + id + '\';renderMobileApp()">' + l + '</button>';
+  return '<div class="m6" style="gap:18px"><div class="m6-hd"><div class="m6-when">' + window._m6rub.length + ' CONTATTI</div><div class="m6-h1">Rubrica</div></div>' +
+    '<input class="m6-q" type="search" autocomplete="off" placeholder="Nome, porto, email, cosa fornisce" value="' + escapeAttr(window._m6rq || "") + '" oninput="window._m6rq=this.value;var r=document.getElementById(\'m6-rub\');if(r)r.innerHTML=m6RubRows()">' +
+    '<div class="m6-chips">' + chip("all", "Tutti") + chip("supplier", "Fornitori") + chip("agency", "Agenzie") + chip("hub", "Hub") + chip("ship", "Navi") + '</div>' +
+    '<div class="m6-list" id="m6-rub">' + m6RubRows() + '</div></div>';
+}
+window.m6RubRows = m6RubRows;
+window.m6OpenContact = function(kind, name, from){ mstate.m6ct = { kind, name, from: from || (mstate.vessel ? "ship" : "rubrica") }; renderMobileApp(); try { window.scrollTo({ top: 0 }); } catch(_) {} };
+window.m6CloseContact = function(){ mstate.m6ct = null; renderMobileApp(); try { window.scrollTo({ top: 0 }); } catch(_) {} };
+function m6Contact(){
+  const esc = escapeHTML, ct = mstate.m6ct, kind = ct.kind, name = ct.name;
+  let p = {}, sub = "", lead = "", rating = 0;
+  if(kind === "supplier" || kind === "agency"){ const key = entityKeyOf(kind, name) || name; p = getEntityProfile(kind, key) || {}; rating = entityRating(kind, name); sub = (kind === "supplier" ? "Fornitore" : "Agenzia") + ([p.city, p.country].filter(Boolean).length ? " · " + [p.city, p.country].filter(Boolean).join(", ") : "");
+    if(kind === "agency"){ try { const a = (loadAgencies() || []).find(x => String(x.name).toLowerCase() === String(name).toLowerCase()); if(a){ p = Object.assign({}, a, p); } } catch(e) {} } }
+  else if(kind === "hub"){ const h = (TML_HUBS || []).find(x => x.name === name) || {}; p = { email: h.email, phone: h.phone, address: h.address }; sub = "Hub TML · " + (h.city || ""); }
+  else if(kind === "ship"){ const c = (VESSELS || []).find(x => "Comandante " + m6Short(x.vesselId) === name) || {}; p = { email: c.masterEmail }; sub = "Nave · " + (c.displayName || ""); }
+  const phone = String(p.phone || "").replace(/[^\d+]/g, ""), wa = typeof waDigits === "function" ? waDigits(p.whatsapp || "") : "", email = p.email && !/example\.com|_{2,}/.test(p.email) ? p.email : "";
+  // ordini aperti
+  const orders = [];
+  if(kind === "supplier"){ const nk = s => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { if(!m6Open(it) || nk(it.supplier) !== nk(name)) return; const q = mpOf(it); if(!q || q.pos === "onboard" || q.stale) return; orders.push({ it, vid: c.vesselId, q }); })); }
+  if(kind === "hub"){ const h = (TML_HUBS || []).find(x => x.name === name) || {}; (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { const q = mpOf(it); if(q && q.pos === "hub" && q.hub === h.id) orders.push({ it, vid: c.vesselId, q }); })); }
+  const ships = [...new Set(orders.map(o => m6Short(o.vid)))];
+  if(kind === "supplier" || kind === "hub") lead = orders.length ? orders.length + (orders.length === 1 ? " ordine aperto" : " ordini aperti") + " · " + ships.join(", ") + "." : "Nessun ordine aperto.";
+  else if(kind === "agency") lead = p.contact ? "Referente: " + p.contact + "." : "Agenzia marittima.";
+  else lead = sub.replace("Nave · ", "") + ".";
+  const kv = (k, v, href) => v ? '<div class="m6-kv"><span>' + esc(k) + '</span><b>' + (href ? '<a href="' + escapeAttr(href) + '">' + esc(v) + '</a>' : esc(v)) + '</b></div>' : "";
+  const rows = kv("Email", email, email ? "mailto:" + email : "") + kv("Telefono", p.phone, phone ? "tel:" + phone : "") + kv("WhatsApp", wa && p.whatsapp ? p.whatsapp : "", wa ? "https://wa.me/" + wa : "") + kv("Referente", p.contact) + kv("Indirizzo", p.address) + kv("Porto", p.port) || '<div class="m6-kv"><span>Nessun contatto salvato. Si aggiunge al PC, in Rubrica.</span></div>';
+  const big = '<div class="m6-big">' + (phone ? '<a class="pri" href="tel:' + escapeAttr(phone) + '">✆ Chiama</a>' : "") + (email ? '<a href="mailto:' + escapeAttr(email) + '">✉ Scrivi</a>' : "") + (wa ? '<a href="https://wa.me/' + escapeAttr(wa) + '" target="_blank" rel="noopener">WhatsApp</a>' : "") + '</div>';
+  const ord = orders.length ? '<div class="m6-sec"><div class="m6-eb">' + (kind === "hub" ? "PO ALL'HUB" : "ORDINI APERTI") + " · " + orders.length + '</div>' + orders.slice(0, 30).map(o => '<button class="m6-row" style="padding:12px 0" onclick="m3Po(\'' + m3E(o.it.id) + '\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + esc(m3Short(o.it.poNumber)) + " · " + esc(m6Short(o.vid)) + '</b><small>' + esc(o.it.description || "") + '</small></span><span class="st">' + esc((MP_POS[o.q.pos] || MP_POS.route).l) + '</span><span class="chev">›</span></button>').join("") + '</div>' : "";
+  const note = p.notes || p.note || "";
+  const back = ct.from === "ship" && mstate.vessel ? m3VName(mstate.vessel) : "Rubrica";
+  return '<div class="m6"><div class="m6-hd"><button class="m6-back" onclick="m6CloseContact()">‹ ' + esc(back) + '</button><div class="m6-h1">' + esc(name) + '</div><div class="m6-meta" style="font-family:var(--font-sans);font-weight:500;font-size:14px">' + esc(sub) + (rating ? ' · <span style="color:#b06a00;letter-spacing:1px">' + "★".repeat(rating) + '</span>' : "") + '</div></div>' +
+    '<div class="m6-lead">' + esc(lead) + '</div>' + (phone || email || wa ? big : "") +
+    '<div class="m6-sec"><div class="m6-eb">CONTATTI</div>' + rows + '</div>' + ord +
+    (note ? '<div class="m6-sec"><div class="m6-eb">NOTE</div><div style="font-size:15px;line-height:1.5;white-space:pre-wrap">' + esc(note) + '</div></div>' : "") + '</div>';
+}
+function m6Badge(){
+  try { const n = (state.todos || []).filter(t => todoActive(t) && t.dueDate && classifyDueDate(t.dueDate) === "today").length; const tab = document.querySelector('#mobile-tabbar .mtab[data-mtab="todo"]'); if(!tab) return; let b = tab.querySelector(".mtab-n"); if(!n){ if(b) b.remove(); return; } if(!b){ b = document.createElement("span"); b.className = "mtab-n"; tab.appendChild(b); } b.textContent = n; } catch(e) {}
+}
+window.m6Fleet = m6Fleet;
 
 // === v0.96 BACKUP COMPLETO ==================================================
 // Scarica TUTTE le chiavi salvate da questa app nel browser (to-do, note, registri,
