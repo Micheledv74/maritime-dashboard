@@ -2141,11 +2141,11 @@
       {
         "isNoonReport": true,
         "_loose": true,
-        "lat": "76-80S",
-        "positionText": "76-80S",
+        "lat": "03-57.9S",
+        "positionText": "03-57.9S / 039-55.0E",
         "vesselId": "medtoscana",
         "date": "2026-09-24",
-        "type": "sea",
+        "type": "anchor",
         "lon": "039-55.0E",
         "milesToGo": "13",
         "etaText": "N/A",
@@ -2165,7 +2165,7 @@
       },
       {
         "isNoonReport": true,
-        "type": "sea",
+        "type": "anchor",
         "date": "2026-09-25",
         "lat": "04-03.6S",
         "lon": "039-52.6E",
@@ -2186,6 +2186,54 @@
         "vesselId": "medtoscana",
         "to": "MOMBASA",
         "status": "in deriva / rada"
+      },
+      {
+        "isNoonReport": true,
+        "type": "anchor",
+        "date": "2026-09-26",
+        "lat": "04-13.1S",
+        "lon": "039-45.9E",
+        "positionText": "04-13.1S / 039-45.9E",
+        "milesToGo": "8",
+        "etaText": "N/A",
+        "to": "MOMBASA",
+        "status": "in deriva / rada",
+        "bunkers": {
+          "lsfo": "372.591",
+          "lsmgo": "57.981"
+        },
+        "consumption": {
+          "lsfo": "4.01",
+          "lsmgo": "0.10"
+        },
+        "wind": "S/4",
+        "sea": "SE/1.4 MTR",
+        "swell": "SE/ABT 1.4 MTR",
+        "vesselId": "medtoscana"
+      },
+      {
+        "isNoonReport": true,
+        "type": "anchor",
+        "date": "2026-09-27",
+        "lat": "04-10.8S",
+        "lon": "039-51.0E",
+        "positionText": "04-10.8S / 039-51.0E",
+        "milesToGo": "8",
+        "etaText": "N/A",
+        "to": "MOMBASA",
+        "status": "in deriva / rada",
+        "bunkers": {
+          "lsfo": "368.035",
+          "lsmgo": "57.881"
+        },
+        "consumption": {
+          "lsfo": "3.304",
+          "lsmgo": "0.10"
+        },
+        "wind": "S/4",
+        "sea": "SE/1.5 MTR",
+        "swell": "SE/ABT 1.5 MTR",
+        "vesselId": "medtoscana"
       }
     ],
     "medliguria": [
@@ -4538,9 +4586,9 @@
         "from": "SINGAPORE",
         "to": "TANGA",
         "date": "2026-09-24",
-        "lat": "06-14.6N",
-        "lon": "095-14.8E",
-        "positionText": "06-14.6N / 095-14.8E",
+        "lat": "06-06S",
+        "lon": "078-00E",
+        "positionText": "06-06S / 078-00E",
         "speed": "12.4",
         "milesToGo": "3649",
         "consumption": {
@@ -4598,6 +4646,108 @@
         "wind": "S/15 KTS",
         "sea": "S/1.5",
         "current": "ENE/0.5 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "SINGAPORE",
+        "to": "TANGA",
+        "date": "2026-09-26",
+        "lat": "01-08.6N",
+        "lon": "087-51.8E",
+        "positionText": "01-08.6N / 087-51.8E",
+        "speed": "11.17",
+        "milesToGo": "3151",
+        "consumption": {
+          "lsfo": "19.57",
+          "lsmgo": "0.00",
+          "fw": "6"
+        },
+        "bunkers": {
+          "lsfo": "1306.79",
+          "lsmgo": "45.67",
+          "fw": "219"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "25275",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 07 OCT 2026 1200LT WP AGW",
+        "etaISO": "2026-10-07T12:00",
+        "wind": "ESE/7 KTS",
+        "sea": "ESE/0.5",
+        "current": "NE/0.8 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "SINGAPORE",
+        "to": "TANGA",
+        "date": "2026-09-27",
+        "lat": "01-53.2S",
+        "lon": "083-45.4E",
+        "positionText": "01-53.2S / 083-45.4E",
+        "speed": "12.24",
+        "milesToGo": "2845",
+        "consumption": {
+          "lsfo": "20.43",
+          "lsmgo": "0.00",
+          "fw": "4"
+        },
+        "bunkers": {
+          "lsfo": "1286.36",
+          "lsmgo": "45.67",
+          "fw": "229"
+        },
+        "cylinderOil": {
+          "daily": "312",
+          "rob": "24963",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 07 OCT 2026 1200LT WP AGW",
+        "etaISO": "2026-10-07T12:00",
+        "wind": "SSE/8 KTS",
+        "sea": "SSE/0.5",
+        "current": "SSE/0.3 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "SINGAPORE",
+        "to": "TANGA",
+        "date": "2026-09-28",
+        "lat": "04-48.2S",
+        "lon": "079-46.7E",
+        "positionText": "04-48.2S / 079-46.7E",
+        "speed": "12.29",
+        "milesToGo": "2550",
+        "consumption": {
+          "lsfo": "19.69",
+          "lsmgo": "0.00",
+          "fw": "9"
+        },
+        "bunkers": {
+          "lsfo": "1266.67",
+          "lsmgo": "45.67",
+          "fw": "233"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "24663",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 07 OCT 2026 1200LT WP AGW",
+        "etaISO": "2026-10-07T12:00",
+        "wind": "SSW/7 KTS",
+        "sea": "SSW/0.5",
+        "current": "NNW/0.2 KTS",
         "vesselId": "medliguria"
       }
     ],
@@ -7206,6 +7356,49 @@
         "speed": "0.1",
         "milesToGo": "10",
         "wind": "3.  Wind (Direction/Speed) SW / 4/ 13. knots"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "consumption": {
+          "lsfo": "3.20",
+          "lsmgo": "0.10",
+          "fw": "5.0"
+        },
+        "cylinderOil": {
+          "daily": "0.00",
+          "unit": "Ltrs"
+        },
+        "lat": "05-31.6N",
+        "lon": "000-01.4E",
+        "positionText": "05-31.6N / 000-01.4E",
+        "speed": "0.1",
+        "milesToGo": "10",
+        "wind": "3.  Wind (Direction/Speed) SW / 4/ 14. knots",
+        "current": "SW / 0.1kts",
+        "vesselId": "peppino",
+        "date": "2026-09-26"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "consumption": {
+          "lsfo": "5.67",
+          "lsmgo": "0.10",
+          "fw": "2.0"
+        },
+        "cylinderOil": {
+          "daily": "3.0",
+          "unit": "Ltrs"
+        },
+        "lat": "05-37.6N",
+        "lon": "000-00.5E",
+        "positionText": "05-37.6N / 000-00.5E",
+        "speed": "10",
+        "wind": "SW / 3 /10 knots",
+        "current": "SW 0.1Kts",
+        "vesselId": "peppino",
+        "date": "2026-09-27"
       }
     ],
     "norrbotten": [
@@ -7529,5 +7722,5 @@
       }
     ]
   },
-  "syncedAt": "2026-09-25T21:06:57.468Z"
+  "syncedAt": "2026-09-28T08:04:01.558Z"
 }
