@@ -8922,7 +8922,7 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       </div>
       <div class="setting-row">
         <label>Personal Access Token</label>
-        <input type="password" placeholder="github_pat_…" data-setting="ghSyncToken" style="width:220px;">
+        <input type="text" class="mp-secret" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" placeholder="github_pat_…" data-setting="ghSyncToken" style="width:220px;-webkit-text-security:disc;">
       </div>
     </div>
 
@@ -8970,7 +8970,7 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       </p>
       <div class="setting-row">
         <label>Token GitHub per le chiusure</label>
-        <input type="password" placeholder="ghp_… (classic, permesso repo)" data-setting="outlookDoneGhToken" style="width:220px;">
+        <input type="text" class="mp-secret" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other" placeholder="ghp_… (classic, permesso repo)" data-setting="outlookDoneGhToken" style="width:220px;-webkit-text-security:disc;">
       </div>
       <div class="setting-row">
         <label>Webhook diretto (facoltativo)</label>
@@ -20031,11 +20031,11 @@ window.shipApply17Track = function(itemId, segId){
 };
 const SHIP_STATUS = {
   info_received:{ label:"Registrato", color:"#5b6470", bg:"#eef0f3", accent:"#c2c9d2" },
-  in_transit:{ label:"In transito", color:"#b8860b", bg:"#fdf4e2", accent:"#b8860b" },
-  out_for_delivery:{ label:"In consegna", color:"#0e54c1", bg:"#eaf0fb", accent:"#0e54c1" },
+  in_transit:{ label:"In transito", color:"#1553d8", bg:"#e8effd", accent:"#1553d8" },
+  out_for_delivery:{ label:"In consegna", color:"#0f7b8a", bg:"#e2f3f5", accent:"#0f7b8a" },
   delivered:{ label:"Consegnato", color:"#117a3a", bg:"#e8f5ec", accent:"#117a3a" },
   exception:{ label:"Problema", color:"#c8362f", bg:"#fbe6e6", accent:"#c8362f" },
-  pending:{ label:"In attesa…", color:"#b8860b", bg:"#fdf4e2", accent:"#b8860b" },
+  pending:{ label:"In attesa…", color:"#44576b", bg:"#eef1f5", accent:"#8a9bb0" },
   not_found:{ label:"Non trovato", color:"#8a93a0", bg:"#f0f1f4", accent:"#c2c9d2" }
 };
 const SHIP_ROUTE = {
@@ -20124,12 +20124,14 @@ function shipmentMiniHTML(it){
   const anyMove=segs.some(s=>s.status==="in_transit"||s.status==="out_for_delivery");
   const anyAir=segs.some(s=>!SHIP_COURIERS.has(s.carrier));
   let pct=15, color="#5b6470", label="Registrata";
-  if(anyMove){ pct=45; color="#b8860b"; label="In transito"; }
-  if(hubDone){ pct=60; color="#b8860b"; label="Arrivata all'hub"; }
-  if(moveToPort){ pct=80; color="#b8860b"; label="Verso il porto"; }
+  if(anyMove){ pct=45; color="#1553d8"; label="In transito"; }
+  if(hubDone){ pct=60; color="#1553d8"; label="Arrivata all'hub"; }
+  if(moveToPort){ pct=80; color="#1553d8"; label="Verso il porto"; }
   if(portDone){ pct=100; color="#117a3a"; label="Arrivata al porto"; }
   if(anyExc && !portDone){ color="#c8362f"; label="Problema spedizione"; }
   const P_ = typeof mpOf==="function" ? mpOf(it) : null;
+  if(P_ && P_.pos==="customs"){ pct=Math.max(pct,85); color="#b3246b"; label="In dogana"; }
+  else if(P_ && P_.pos==="agency"){ pct=Math.max(pct,95); color="#0f7b8a"; label="Gestita dall'agenzia"; }
   if(P_ && P_.partial){ label="Parzialmente a bordo"; color="#6b4fc4"; }
   const gS = segs.find(s=>s.gid), grpN = gS ? Math.max(0, (((shipGroups()[gS.gid]||{}).items)||[]).length-1) : 0;
   const icon = portDone ? "✅" : anyExc ? "⚠️" : anyAir ? "✈️" : "🚚";
@@ -20203,7 +20205,7 @@ function shipmentSection(it, vessel){
     const portDone = toPort.some(s=>s.status==="delivered");
     let icon,color,bg,border,title,sub;
     if(portDone){ icon="✅"; color="#117a3a"; bg="#e8f5ec"; border="#bfe4cb"; title="Merce arrivata al porto"; sub="Pronta per l'imbarco"; }
-    else if(last){ icon="⏱"; color="#b8860b"; bg="#fff8ec"; border="#f0d79a"; title="Arrivo stimato al porto: "+shipFmtDay(last.eta); sub="Spedizione in transito"; }
+    else if(last){ icon="⏱"; color="#1553d8"; bg="#eef3fd"; border="#c3d4f7"; title="Arrivo stimato al porto: "+shipFmtDay(last.eta); sub="Spedizione in transito"; }
     else { icon="📦"; color="#5b6470"; bg="#fff"; border="#eceef1"; title="In movimento verso l'hub"; sub="Nessuna tratta verso il porto ancora"; }
     etaHTML = `<div style="display:flex;align-items:center;gap:11px;background:${bg};border:1px solid ${border};border-radius:11px;padding:11px 13px;margin-bottom:12px;">
       <span style="font-size:19px;">${icon}</span>
@@ -26887,7 +26889,16 @@ function rdCalc(it, c, now, basis){
   const ships = getItemShipments(it.id);
   const moving = ships.filter(s => s.status !== "delivered" && s.eta).sort((a, b) => String(b.eta).localeCompare(String(a.eta)))[0];
   const delivered = ships.length && ships.every(s => s.status === "delivered");
-  if(delivered){
+  const mpX = typeof mpOf === "function" ? mpOf(it, now) : null;
+  if(mpX && mpX.pos === "customs"){
+    st = "dogana"; const b = rdDD(mpX.back, now), el = mpDaysSince(mpX.since) || 0;
+    if(b != null){ const b0 = Math.max(0, b); lo = b0; hi = b0 + 1; chain.push("in dogana · svincolo previsto " + rdFD(b0, now)); }
+    else { const c = noCust ? [0.5, 2] : cust; lo = Math.max(0.5, c[0] - el); hi = Math.max(1.5, c[1] - el); chain.push("in dogana" + (el ? " da " + el + " gg" : "") + ", svincolo non indicato"); }
+    segs.push({ k: "d", a: 0, lo, hi });
+  } else if(mpX && mpX.pos === "agency"){
+    st = "agente"; lo = 0; hi = 0.5; segs.push({ k: "d", a: 0, lo: 0, hi: 0.5 });
+    chain.push("pronto " + (mpX.agent ? "da " + mpX.agent : "all'agenzia") + ", imbarco a sua discrezione");
+  } else if(delivered){
     st = "agente"; lo = 0; hi = Math.max(0.2, cust[1]); segs.push({ k: "d", a: 0, lo: Math.min(cust[0], hi), hi });
     chain.push("consegnato all'agente (tracking)"); chain.push(custLbl);
   } else if(moving && rdDD(moving.eta, now) != null){
@@ -27082,6 +27093,8 @@ function radarPaint(){
     const where = x.c.vname + " · " + x.c.port + (x.crit ? " · critico" : "") + " · limite " + rdFDT(x.cut, now);
     const short = String(x.it.description || "").split(" —")[0].slice(0, 60);
     const openIt = "window.openItemDetailPopover('" + ea(x.it.id) + "')";
+    if(x.st === "dogana"){ const mp = mpOf(x.it, now) || {}; moves.push({ where, c: COL[x.k], title: "Sblocca la dogana a " + (mp.port || x.c.port) + ": " + short,
+      why: (x.it.poNumber || "") + " è in dogana" + (mpDaysSince(mp.since) != null ? " da " + mpDaysSince(mp.since) + " gg" : "") + (mp.note ? " (" + String(mp.note).slice(0, 80) + ")" : "") + ". " + (mp.back ? "Svincolo previsto " + mpFD(mp.back) + ": non basta per lo scalo." : "Chiedi all'agenzia la data di svincolo."), cta: "Apri", go: openIt }); return; }
     if(x.unknown){ moves.push({ where, c: COL[x.k], title: "Chiedi la data di spedizione a " + (x.it.supplier || "fornitore"),
       why: short + " (" + (x.it.poNumber || "") + ") " + (x.st === "nodn" ? "è " + x.chain.split(" → ")[0] : "non ha data di pronto") + ". Senza una data non si può legare allo scalo.", cta: "Apri", go: openIt }); return; }
     const alt = rdAlts(x, M).filter(a => !a.cur && a.r.k === "ok" && a.c.etd > x.c.etd).sort((a, b) => (b.pr.rel||0) - (a.pr.rel||0) || a.c.etd - b.c.etd)[0];
@@ -27244,9 +27257,22 @@ const MP_POS = {
   hub:      { l:"All'hub TML",         s:"all'hub TML",         c:"#b06a00" },
   repair:   { l:"In riparazione",      s:"in riparazione",      c:"#6b4fc4" },
   transit:  { l:"In viaggio",          s:"in viaggio",          c:"#14794e" },
+  customs:  { l:"In dogana",           s:"fermi in dogana",      c:"#b3246b" },
+  agency:   { l:"Gestito dall'agenzia", s:"all'agenzia",         c:"#0f7b8a" },
   onboard:  { l:"A bordo",             s:"a bordo",             c:"#6a7d90" }
 };
-const MP_ORDER = ["route","supplier","hub","repair","transit","onboard"];
+const MP_ORDER = ["route","supplier","hub","repair","transit","customs","agency","onboard"];
+const MP_OPTS_PO = ["supplier","hub","repair","transit","customs","agency","onboard"];
+// v1.06 — dogana / agenzia dedotte dal tracking
+const MP_CUST_RX = /custom|dogan|clearance|held|hold\b|detain|inspection|examination|sdogan|import (?:hold|control)|awaiting (?:documents|release)/i;
+const MP_CLEAR_RX = /cleared|released|svincolat|clearance complete|customs ok|delivered|consegnat/i;
+function mpToPort(s){ return s && (s.route === "hub-port" || s.route === "supplier-port"); }
+function mpCustomsFromShip(segs){
+  for(const s of segs){ if(s.status === "delivered") continue; const e = (s.events || [])[0]; if(!e) continue;
+    const t = (e.text || "") + " " + (e.code || ""); if(MP_CUST_RX.test(t) && !MP_CLEAR_RX.test(t)) return { seg:s, ev:e }; }
+  return null;
+}
+function mpLegAgency(vid){ const voy = getVoyage(vid) || {}; for(const w of ["current","next"]){ const l = voy[w]; if(l && l.agency){ const n = l.agency.name || (typeof l.agency === "string" ? l.agency : ""); if(n) return { name:n, port:l.to || "" }; } } return null; }
 function loadMatPos(){ return rdLoadJSON("mpd.matPos"); }
 function mpManual(id){ const p = loadMatPos()[id]; return p && p.pos ? p : null; }
 function mpHub(id){ return TML_HUBS.find(h => h.id === id) || null; }
@@ -27281,10 +27307,23 @@ function mpOf0(it, now){
   const m = mpManual(it.id);
   if(it.dnStatus === "DN Received on Board") return { pos:"onboard" };
   if(m && (m.pos === "onboard" || m.pos === "repair")) return Object.assign({ manual:true }, m);
-  if(rdStaleDN(it, now) && !(m && m.pos === "transit")) return { pos:"transit", stale:true };
   const segs = getItemShipments(it.id), lastS = segs[segs.length - 1];
+  if(m && (m.pos === "customs" || m.pos === "agency")){
+    // svincolata: il tracking verso il porto risulta consegnato DOPO il tuo segno "in dogana" → passa all'agenzia
+    if(m.pos === "customs" && mpToPort(lastS) && lastS.status === "delivered" && String(lastS.updatedAt || "") > String(m.updatedAt || ""))
+      return { pos:"agency", derived:true, viaShip:true, since:String(lastS.eta || "").slice(0,10), port:m.port || "" };
+    return Object.assign({ manual:true }, m);
+  }
+  const cu = mpCustomsFromShip(segs);
+  if(cu && !(m && m.pos && String(m.updatedAt || "") > String(cu.seg.updatedAt || ""))) return { pos:"customs", derived:true, viaShip:true, since:String(cu.ev.ts || "").slice(0,10), port:cu.ev.place || "", note:cu.ev.text || "" };
+  if(rdStaleDN(it, now) && !(m && m.pos === "transit")) return { pos:"transit", stale:true };
   const moving = segs.some(s => s.status !== "delivered");
   if(moving || it.dnStatus === "DN Shipped to Vessel") return { pos:"transit" };
+  // tratta verso il porto consegnata e nessun segno più recente → la merce è in mano all'agenzia
+  if(mpToPort(lastS) && lastS.status === "delivered" && !(m && m.pos && String(m.updatedAt || "") > String(lastS.updatedAt || ""))){
+    const ag = mpLegAgency(mpVidOf(it.id));
+    return { pos:"agency", derived:true, viaShip:true, since:String(lastS.eta || "").slice(0,10), agent:ag ? ag.name : "", port:ag ? ag.port : "" };
+  }
   // arrivato all'hub via tracking (ultima tratta Fornitore → Hub consegnata) e nessun segno manuale più recente
   if(lastS && lastS.route === "supplier-hub" && !(m && m.pos && String(m.updatedAt || "") > String(lastS.updatedAt || "")))
     return { pos:"hub", hub: mpHubMatch(lastS.hub), since: String(lastS.eta || "").slice(0,10), derived:true, viaShip:true };
@@ -27296,9 +27335,9 @@ function mpOf0(it, now){
 // Attesa VOLUTA (segnata da te): niente rosso "oltre pronto senza DN" / "pronta a PO"
 function mpIntentional(it){
   const m = mpManual(it.id);
-  if(!m){ const s = getItemShipments(it.id), l = s[s.length - 1]; return !!(l && l.route === "supplier-hub" && s.every(x => x.status === "delivered")); }
+  if(!m){ const s = getItemShipments(it.id), l = s[s.length - 1]; return !!(l && (l.route === "supplier-hub" || mpToPort(l)) && s.every(x => x.status === "delivered")) || !!mpCustomsFromShip(s); }
   if(m.pos === "route") return !mpRouteKnown(it);
-  return m.pos === "supplier" || m.pos === "hub" || m.pos === "repair";
+  return ["supplier","hub","repair","customs","agency"].includes(m.pos);
 }
 window.mpIntentional = mpIntentional;
 function mpRefresh(id){
@@ -27310,17 +27349,24 @@ function mpRefresh(id){
 }
 window.mpSetPos = function(id, pos){
   if(pos === "auto"){ mpSet(id, { pos:"" }); if(typeof showToast === "function") showToast("Posizione: torna automatica"); }
-  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "it-goa"; if(pos === "onboard" && typeof ifxNeeds === "function" && ifxNeeds(faFindItem(id))){ p.closeInInfoship = true; p.by = "scheda"; } if(pos !== "onboard") p.closeInInfoship = false; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
+  else { const p = { pos }; if(pos === "hub" && !(mpManual(id)||{}).hub) p.hub = "it-goa";
+    if(pos === "customs" || pos === "agency"){ const cur = mpManual(id) || {}, ag = mpLegAgency(mpVidOf(id)); if(!cur.port && ag && ag.port) p.port = ag.port; if(pos === "agency" && !cur.agent && ag) p.agent = ag.name; } if(pos === "onboard" && typeof ifxNeeds === "function" && ifxNeeds(faFindItem(id))){ p.closeInInfoship = true; p.by = "scheda"; } if(pos !== "onboard") p.closeInInfoship = false; mpSet(id, p); if(typeof showToast === "function") showToast("Posizione: " + MP_POS[pos].l); }
   mpRefresh(id);
 };
 window.mpSetField = function(id, k, v){ const p = {}; p[k] = v; mpSet(id, p); mpRefresh(id); };
 
+function mpAgList(){
+  const s = new Set();
+  try { Object.keys(loadEntityProfiles("agency") || {}).forEach(n => s.add(n)); } catch(e) {}
+  try { (loadAgencies() || []).forEach(a => a.name && s.add(a.name)); } catch(e) {}
+  return '<datalist id="mp-ag-list">' + [...s].sort().map(n => '<option value="' + escapeAttr(n) + '"></option>').join("") + '</datalist>';
+}
 function mpDetailHTML(it){
   const p = mpOf(it); if(!p) return "";
   const ea = s => escapeAttr(String(s)).replace(/'/g, "\\'");
   const id = ea(it.id);
   const hasPO = !!(it.poNumber || it.dnStatus);
-  const opts = hasPO ? ["supplier","hub","repair","transit","onboard"] : ["route"];
+  const opts = hasPO ? MP_OPTS_PO : ["route"];
   const btn = k => '<button class="mp-opt' + (p.pos === k ? (p.manual ? " on" : " auto") : "") + '" style="--mp:' + MP_POS[k].c + '" onclick="window.mpSetPos(\'' + id + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>';
   let extra = "";
   if(p.pos === "hub" && p.manual){
@@ -27332,6 +27378,21 @@ function mpDetailHTML(it){
     extra = '<div class="mp-row"><label>Sbarcato il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
       '<label>Rientro previsto<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="window.mpSetField(\'' + id + '\',\'back\',this.value)"></label>' +
       '<label class="mp-wide">Riparatore / note<input value="' + escapeAttr(p.note || "") + '" placeholder="es. officina Singapore, rientro via agenzia" onchange="window.mpSetField(\'' + id + '\',\'note\',this.value)"></label></div>';
+  } else if(p.pos === "customs" && p.manual){
+    const d = mpDaysSince(p.since);
+    extra = '<div class="mp-row"><label>Porto<input value="' + escapeAttr(p.port || "") + '" placeholder="es. TEMA" onchange="window.mpSetField(\'' + id + '\',\'port\',this.value.toUpperCase())"></label>' +
+      '<label>In dogana dal<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
+      '<label>Svincolo previsto<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="window.mpSetField(\'' + id + '\',\'back\',this.value)"></label>' +
+      '<label class="mp-wide">Pratica / cosa manca<input value="' + escapeAttr(p.note || "") + '" placeholder="es. manca packing list, ispezione, dazi da pagare" onchange="window.mpSetField(\'' + id + '\',\'note\',this.value)"></label>' +
+      '<span class="mp-note">' + (d != null ? "in dogana da " + d + " gg. " : "") + (p.back ? "Il radar usa lo svincolo previsto." : "Senza data di svincolo il radar usa i giorni di dogana del profilo porto.") + '</span></div>';
+  } else if(p.pos === "agency" && p.manual){
+    extra = '<div class="mp-row"><label>Agenzia<input value="' + escapeAttr(p.agent || "") + '" list="mp-ag-list" placeholder="nome dalla Rubrica" onchange="window.mpSetField(\'' + id + '\',\'agent\',this.value)"></label>' +
+      '<label>Porto<input value="' + escapeAttr(p.port || "") + '" onchange="window.mpSetField(\'' + id + '\',\'port\',this.value.toUpperCase())"></label>' +
+      '<label>Presa in carico il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
+      '<label class="mp-wide">Note<input value="' + escapeAttr(p.note || "") + '" placeholder="es. imbarca con la prossima barca, attende permesso" onchange="window.mpSetField(\'' + id + '\',\'note\',this.value)"></label>' +
+      '<span class="mp-note">Pronta: l\'agenzia sceglie il momento dell\'imbarco. Non compare in rosso.</span></div>' + mpAgList();
+  } else if((p.pos === "customs" || p.pos === "agency") && p.derived){
+    extra = '<div class="mp-row"><span class="mp-note">' + (p.pos === "customs" ? "Dal tracking: " + escapeHTML(String(p.note || "evento doganale").slice(0, 120)) + (p.port ? " · " + escapeHTML(p.port) : "") + ". Toccalo per confermare e aggiungere lo svincolo previsto." : "Il tracking dà la merce consegnata al porto" + (p.agent ? ": in mano a " + escapeHTML(p.agent) : "") + ". Toccalo per confermare.") + '</span></div>';
   } else if(p.pos === "route" && p.manual){
     extra = '<div class="mp-row"><span class="mp-note">' + (mpRouteKnown(it) ? "La rotta ora è nota: scegli il fornitore più vicino allo scalo ed emetti il PO." : "Non compare più tra le \"pronte a PO\" finché il viaggio non ha un nuovo scalo.") + '</span></div>';
   } else if(p.pos === "supplier" && p.manual){
@@ -27512,7 +27573,7 @@ function m3Lane(vid){ try { return ((window._m3M || rdModel()).lanes || []).find
 function m3Assigned(vid){ const s = new Set(); ["current","next"].forEach(w => { try { itemsForLeg(vid, w).forEach(it => s.add(it.id)); } catch(e) {} }); return s; }
 function m3Late(it, today){ return it.poNumber && !it.dnStatus && !rdCancelled(it) && String(it.poDeliveryDate || "").slice(0,10) && String(it.poDeliveryDate).slice(0,10) < today && !mpIntentional(it) && !(mpManual(it.id) && mpManual(it.id).pos); }
 function m3Counts(vid){
-  const c = { route:0, routeD:0, supplier:0, supplierD:0, hub:0, repair:0, transit:0, stale:0 };
+  const c = { route:0, routeD:0, supplier:0, supplierD:0, hub:0, repair:0, transit:0, customs:0, agency:0, stale:0 };
   m3Items(vid).forEach(it => { const p = mpOf(it); if(!p || p.pos === "onboard") return; if(p.stale){ c.stale++; return; } c[p.pos]++; if(p.derived && (p.pos === "route" || p.pos === "supplier")) c[p.pos + "D"]++; });
   return c;
 }
@@ -27603,6 +27664,8 @@ function m3Vessel(vid){
   const mrow = (dot, t, s, n, go, ring) => n ? '<button class="m3-mrow" onclick="' + go + '"><i style="' + (ring ? "border:1.5px solid " + dot : "background:" + dot) + '"></i><span><b>' + t + '</b>' + (s ? '<small>' + escapeHTML(s) + '</small>' : "") + '</span><em>' + n + '</em><u>›</u></button>' : "";
   const port = W && W.port && !W.old ? m3Cap(W.port) : "";
   const mat = has ? [
+    mrow("#b3246b", "In dogana", "pratiche doganali in corso", cnt.customs, "m3List('pos','" + m3E(vid) + "','customs')"),
+    mrow("#0f7b8a", "Gestiti dall'agenzia", "pronti, imbarco a discrezione dell'agenzia", cnt.agency, "m3List('pos','" + m3E(vid) + "','agency')"),
     mrow("#14794e", "In viaggio", "", cnt.transit, "m3List('pos','" + m3E(vid) + "','transit')"),
     mrow("#c07800", "Presso il fornitore", cnt.supplierD ? cnt.supplierD + " dedotti, da confermare" : "fermi apposta", cnt.supplier, "m3List('pos','" + m3E(vid) + "','supplier')"),
     mrow("#b06a00", "All'hub TML", "", cnt.hub, "m3List('pos','" + m3E(vid) + "','hub')"),
@@ -27654,14 +27717,15 @@ function m3ItemRow(it, vid, showV){
 window.m3Po = function(id){
   const it = faFindItem(id); if(!it) return;
   const vid = mpVidOf(id), p = mpOf(it) || { pos: "route" }, hasPO = !!(it.poNumber || it.dnStatus), eid = m3E(id);
-  const opts = hasPO ? ["supplier","hub","repair","transit","onboard"] : ["route"];
+  const opts = hasPO ? MP_OPTS_PO : ["route"];
   const gS = getItemShipments(id).find(s => s.gid && s.status !== "delivered"), gN = gS ? (((shipGroups()[gS.gid] || {}).items) || []).length : 0;
   const btn = k => { const on = p.pos === k, ded = on && !p.manual, c = MP_POS[k].c; return '<button class="m3-pos' + (on ? (ded ? " ded" : " on") : "") + '" style="--c:' + c + '" onclick="m3SetPos(\'' + eid + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>'; };
   const notes = { supplier: p.manual ? "Fermo apposta dal fornitore: non compare più tra gli ordini in ritardo." : "Dedotto: PO emesso, nessuna DN. Se lo tieni lì apposta, toccalo per confermare.",
-    hub: "Il radar calcola l'arrivo dall'hub.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : gN > 1 ? "AWB " + gS.number + " · spedizione unica con " + (gN - 1) + " altri PO." : p.partial ? "Parzialmente a bordo: il resto è ancora in viaggio." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
+    hub: "Il radar calcola l'arrivo dall'hub.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : gN > 1 ? "AWB " + gS.number + " · spedizione unica con " + (gN - 1) + " altri PO." : p.partial ? "Parzialmente a bordo: il resto è ancora in viaggio." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", customs: p.manual ? "In dogana" + (p.port ? " a " + p.port : "") + (p.note ? ": " + p.note : "") + ". Il radar usa lo svincolo previsto." : "Dedotto dal tracking (evento doganale). Toccalo per confermare.", agency: "Pronto" + (p.agent ? " da " + p.agent : " all'agenzia") + (p.port ? " · " + p.port : "") + ": imbarca a sua discrezione.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
   let extra = "";
   if(p.pos === "hub" && p.manual) extra = '<div class="m3-fields"><select onchange="m3Field(\'' + eid + '\',\'hub\',this.value)">' + TML_HUBS.map(hb => '<option value="' + hb.id + '"' + (hb.id === p.hub ? " selected" : "") + '>' + escapeHTML(hb.name + " · " + hb.city) + '</option>').join("") + '</select><input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></div>';
   if(p.pos === "hub") extra += '<button class="m3-pill" style="margin-top:10px" onclick="maCloseSheet();window.shipHubBoard(\'' + m3E(p.hub || "") + '\',\'' + m3E(vid) + '\')">Spedisci insieme ad altri PO →</button>';
+  if(p.pos === "customs" && p.manual) extra = '<div class="m3-fields"><label>In dogana dal<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></label><label>Svincolo<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="m3Field(\'' + eid + '\',\'back\',this.value)"></label></div>';
   if(p.pos === "repair" && p.manual) extra = '<div class="m3-fields"><label>Sbarcato<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></label><label>Rientro<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="m3Field(\'' + eid + '\',\'back\',this.value)"></label></div>';
   let leg = "";
   ["current","next"].forEach(w => { if(!leg && itemsForLeg(vid, w).some(x => x.id === id)) leg = (getVoyage(vid)[w] || {}).to || ""; });
@@ -27976,6 +28040,25 @@ window.m3Today = m3Today;
 // Certificati · Chi chiamare. Il colore compare solo per i problemi.
 // Prototipo: Mobile v6 Completa.dc.html. Riusa m3Po / m3Search / maOpenTodo.
 // ============================================================================
+// v1.06 — caselle di ricerca: niente più "password"/autofill, tastiera sempre disponibile
+(function(){
+  let n = 0;
+  const fix = el => {
+    if(!el || el.dataset.qfix) return; el.dataset.qfix = "1";
+    if(el.type === "search") el.type = "text";
+    el.setAttribute("autocomplete", "off"); el.setAttribute("autocorrect", "off"); el.setAttribute("autocapitalize", "off"); el.setAttribute("spellcheck", "false");
+    el.setAttribute("inputmode", "search"); el.setAttribute("enterkeyhint", "search"); el.setAttribute("role", "searchbox");
+    el.setAttribute("data-lpignore", "true"); el.setAttribute("data-1p-ignore", ""); el.setAttribute("data-form-type", "other"); el.setAttribute("data-bwignore", "");
+    if(!el.name || /user|mail|login|pass/i.test(el.name)) el.name = "q_" + (++n) + "_" + Date.now().toString(36);
+    el.readOnly = false;
+  };
+  const SEL = 'input[type="search"], input.search-input, input.m6-q, input.m3-q, #palette-input, input[placeholder^="Cerca"], input[placeholder*="cerca"]';
+  const scan = root => { try { (root.querySelectorAll ? root.querySelectorAll(SEL) : []).forEach(fix); if(root.matches && root.matches(SEL)) fix(root); } catch(e) {} };
+  const start = () => { scan(document); new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(nd => nd.nodeType === 1 && scan(nd)))).observe(document.body, { childList: true, subtree: true }); };
+  // se il tocco non apre la tastiera (autofill che ruba il fuoco), rimetti il fuoco sulla casella
+  document.addEventListener("touchend", e => { const t = e.target; if(t && t.matches && t.matches(SEL) && document.activeElement !== t){ setTimeout(() => { try { t.focus({ preventScroll: true }); } catch(_) {} }, 0); } }, { passive: true });
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
 (function(){ try { const s = document.createElement("style"); s.id = "m6-css"; s.textContent = `
 #mobile-app.m6-on{ background:#fff !important; }
 #mobile-app .m6{ font-family:var(--font-sans); color:#0a1b2e; display:flex; flex-direction:column; gap:24px; padding:4px 8px 12px; line-height:1.35; }
@@ -28010,6 +28093,16 @@ window.m3Today = m3Today;
 .m6-trow .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; background:none; border:0; padding:0; text-align:left; font:inherit; color:inherit; cursor:pointer; }
 .m6-trow .tx span{ font-size:15px; line-height:1.35; }
 .m6-trow .tx small{ font-size:13px; color:#6a7d90; }
+.m6-tmeta{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:3px; }
+.m6-tmeta.red i{ color:#c0261c; font-weight:600; }
+.m6-tmeta i{ font-style:normal; }
+.m6-vtag{ font:700 11px var(--font-sans); font-style:normal; color:#fff; padding:2px 8px; border-radius:999px; letter-spacing:.02em; }
+.m6-ptag{ font:700 10px var(--font-mono); font-style:normal; letter-spacing:.06em; border:1.5px solid; border-radius:4px; padding:0 4px; line-height:15px; }
+.m6-fbar{ display:flex; flex-direction:column; gap:8px; margin-top:-10px; }
+.m6-scroll{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:0 -8px; padding:0 8px; }
+.m6-scroll::-webkit-scrollbar{ display:none; }
+.m6-scroll .m6-chip{ flex:none; }
+.m6-chip.on{ color:#fff; }
 .m6-ic{ width:44px; height:44px; border-radius:50%; background:#f2f4f7; display:flex; align-items:center; justify-content:center; color:#1553d8; text-decoration:none; font-size:17px; flex:none; }
 .m6-ic.off{ color:#c9d3de; }
 .m6-plus{ width:50px; height:50px; border-radius:50%; border:0; background:#0a1b2e; color:#fff; font-size:30px; line-height:1; cursor:pointer; flex:none; }
@@ -28088,12 +28181,16 @@ function m6TTitle(t){
   const generic = !a || a.toLowerCase() === cat.toLowerCase() || a.toLowerCase() === "altro";
   return generic ? (ref || t.note || a || "To-do") : a + (ref && ref !== a ? " · " + ref : "");
 }
+function m6VCol(vid){ const k = vid === "peppino" ? "peppino" : vid === "medtoscana" ? "toscana" : vid === "medliguria" ? "liguria" : vid === "norrbotten" ? "norrbotten" : "vega"; return "var(--c-" + k + ")"; }
+const M6_PRIO = { alta: { l: "ALTA", c: "#c0261c" }, media: { l: "MEDIA", c: "#c07800" }, bassa: { l: "BASSA", c: "#8a9bb0" } };
 function m6TodoRow(t, withShip){
   const cls = classifyDueDate(t.dueDate), late = cls === "overdue";
   const due = t.dueDate ? (cls === "today" ? "oggi" : late ? "scaduta " + m6Day(t.dueDate) : m6Day(t.dueDate)) : "";
-  const meta = [withShip && t.vessel ? m6Short(t.vessel) : "", due, t.outlookTaskId ? "Outlook" : ""].filter(Boolean).join(" · ");
-  const id = m3E(t.id);
-  return '<div class="m6-trow"><button class="m6-chk" aria-label="Segna fatta" onclick="maToggleTodo(\'' + id + '\')"></button><button class="tx" onclick="maOpenTodo(\'' + id + '\')"><span>' + escapeHTML(String(m6TTitle(t)).replace(/\s+/g, " ").slice(0, 140)) + '</span>' + (meta ? '<small' + (late ? ' class="red"' : "") + '>' + escapeHTML(meta) + '</small>' : "") + '</button></div>';
+  const meta = [due, t.outlookTaskId ? "Outlook" : ""].filter(Boolean).join(" · ");
+  const id = m3E(t.id), pr = M6_PRIO[t.priority] || M6_PRIO.media;
+  const ship = withShip && t.vessel ? '<em class="m6-vtag" style="background:' + m6VCol(t.vessel) + '">' + escapeHTML(m6Short(t.vessel)) + '</em>' : "";
+  const pTag = '<em class="m6-ptag" style="color:' + pr.c + ';border-color:' + pr.c + '">' + pr.l + '</em>';
+  return '<div class="m6-trow" style="box-shadow:inset 3px 0 0 ' + pr.c + ';padding-left:12px"><button class="m6-chk" aria-label="Segna fatta" onclick="maToggleTodo(\'' + id + '\')"></button><button class="tx" onclick="maOpenTodo(\'' + id + '\')"><span>' + escapeHTML(String(m6TTitle(t)).replace(/\s+/g, " ").slice(0, 140)) + '</span><small class="m6-tmeta' + (late ? " red" : "") + '">' + ship + pTag + (meta ? '<i>' + escapeHTML(meta) + '</i>' : "") + '</small></button></div>';
 }
 
 function m6Vessel(vid){
@@ -28161,30 +28258,40 @@ function m6WhoRow(n, r, phone, email, open){
 
 // --- To-do ------------------------------------------------------------------------
 function m6Todo(){
-  const esc = escapeHTML, open = (state.todos || []).filter(todoActive);
-  const iso = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); }, wk = iso(7);
-  const g = t => { const c = classifyDueDate(t.dueDate); if(!t.dueDate) return "none"; if(c === "overdue") return "late"; if(c === "today") return "today"; return t.dueDate <= wk ? "week" : "later"; };
-  const G = { late: [], today: [], week: [], later: [], none: [] }; open.forEach(t => G[g(t)].push(t));
-  Object.keys(G).forEach(k => G[k].sort((a, b) => k === "late" ? (b.dueDate || "").localeCompare(a.dueDate || "") : k === "none" ? String(b.createdAt || "").localeCompare(String(a.createdAt || "")) : (a.dueDate || "").localeCompare(b.dueDate || "")));
-  const L = [["today","OGGI"],["late","SCADUTE"],["week","PROSSIMI 7 GIORNI"],["later","PIÙ AVANTI"],["none","SENZA SCADENZA"]];
+  const esc = escapeHTML, all = (state.todos || []).filter(todoActive);
+  const iso = n => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); }, tm = iso(1), wk = iso(7);
+  const g = t => { const c = classifyDueDate(t.dueDate); if(!t.dueDate) return "none"; if(c === "overdue") return "late"; if(c === "today") return "today"; if(t.dueDate === tm) return "tomorrow"; return t.dueDate <= wk ? "week" : "later"; };
+  const F = mstate.m6tf || "all", P = mstate.m6tp || "all", V = mstate.m6tv || "all";
+  const byPV = all.filter(t => (P === "all" || (t.priority || "media") === P) && (V === "all" || t.vessel === V));
+  const G = { late: [], today: [], tomorrow: [], week: [], later: [], none: [] }; byPV.forEach(t => G[g(t)].push(t));
+  const rank = t => ({ alta: 0, media: 1, bassa: 2 })[t.priority || "media"];
+  Object.keys(G).forEach(k => G[k].sort((a, b) => (k === "late" ? (b.dueDate || "").localeCompare(a.dueDate || "") : k === "none" ? 0 : (a.dueDate || "").localeCompare(b.dueDate || "")) || rank(a) - rank(b) || (k === "none" ? String(b.createdAt || "").localeCompare(String(a.createdAt || "")) : 0)));
+  const L = [["late","SCADUTE","Scadute"],["today","OGGI","Oggi"],["tomorrow","DOMANI","Domani"],["week","PROSSIMI 7 GIORNI","7 giorni"],["later","PIÙ AVANTI","Più avanti"],["none","SENZA SCADENZA","Senza"]];
   const ex = mstate.m6TodoOpen || {};
-  const secs = L.filter(([k]) => G[k].length).map(([k, lbl]) => { const n = G[k].length, lim = ex[k] ? 999 : (k === "today" ? 20 : 6);
-    return '<div class="m6-sec"><div class="m6-eb' + (k === "late" ? " red" : "") + '">' + lbl + " · " + n + '</div>' + G[k].slice(0, lim).map(t => m6TodoRow(t, true)).join("") + (n > lim ? '<button class="m6-more" onclick="m6TodoMore(\'' + k + '\')">Mostra tutte (' + n + ')</button>' : "") + '</div>'; }).join("");
+  const secs = L.filter(([k]) => G[k].length && (F === "all" || F === k)).map(([k, lbl]) => { const n = G[k].length, lim = ex[k] || F !== "all" ? 999 : (k === "today" ? 20 : 6);
+    return '<div class="m6-sec"><div class="m6-eb' + (k === "late" ? " red" : "") + '">' + lbl + " · " + n + '</div>' + G[k].slice(0, lim).map(t => m6TodoRow(t, true)).join("") + (n > lim ? '<button class="m6-more" onclick="m6TodoMore(\'' + k + '\')">Mostra tutte (' + n + ')</button>' : "") + '</div>'; }).join("") || '<div class="m6-kv"><span>Nessuna to-do con questi filtri.</span></div>';
+  const chip = (on, l, js, col) => '<button class="m6-chip' + (on ? " on" : "") + '" style="' + (col ? (on ? "background:" + col + ";" : "box-shadow:inset 0 0 0 2px " + col + ";") : "") + '" onclick="' + js + ';renderMobileApp()">' + l + '</button>';
+  const whenChips = chip(F === "all", "Tutte " + byPV.length, "mstate.m6tf='all'") + L.filter(([k]) => G[k].length).map(([k, , s]) => chip(F === k, s + " " + G[k].length, "mstate.m6tf='" + k + "'", k === "late" ? "#c0261c" : "")).join("");
+  const prioChips = chip(P === "all", "Ogni priorità", "mstate.m6tp='all'") + ["alta","media","bassa"].map(k => chip(P === k, M6_PRIO[k].l.charAt(0) + M6_PRIO[k].l.slice(1).toLowerCase(), "mstate.m6tp='" + k + "'", M6_PRIO[k].c)).join("");
+  const shipChips = chip(V === "all", "Tutte le navi", "mstate.m6tv='all'") + (VESSELS || []).map(c => chip(V === c.vesselId, esc(m6Short(c.vesselId)), "mstate.m6tv='" + m3E(c.vesselId) + "'", m6VCol(c.vesselId))).join("");
   const nT = G.today.length, nL = G.late.length;
-  const lead = !open.length ? "Niente da fare." : (nT ? (nT === 1 ? "Una per oggi" : nT + " per oggi") : "Niente per oggi") + (nL ? ', <span class="red">' + nL + " scadut" + (nL === 1 ? "a" : "e") + '</span>' : "") + ". " + open.length + " aperte in tutto.";
+  const lead = !all.length ? "Niente da fare." : (nT ? (nT === 1 ? "Una per oggi" : nT + " per oggi") : "Niente per oggi") + (nL ? ', <span class="red">' + nL + " scadut" + (nL === 1 ? "a" : "e") + '</span>' : "") + ". " + all.length + " aperte in tutto.";
   return '<div class="m6"><div class="m6-hdr"><div class="m6-hd"><div class="m6-when">DA OUTLOOK E DALLA DASHBOARD</div><div class="m6-h1">To-do</div></div><button class="m6-plus" aria-label="Nuova to-do" onclick="m6NewTodo()">+</button></div>' +
-    '<div class="m6-lead">' + lead + '</div>' + secs + '</div>';
+    '<div class="m6-lead">' + lead + '</div>' +
+    '<div class="m6-fbar"><div class="m6-scroll">' + whenChips + '</div><div class="m6-scroll">' + prioChips + '</div><div class="m6-scroll">' + shipChips + '</div></div>' + secs + '</div>';
 }
 window.m6TodoMore = function(k){ mstate.m6TodoOpen = Object.assign({}, mstate.m6TodoOpen, { [k]: true }); renderMobileApp(); };
-window.m6NewTodo = function(vid){ window._m6n = { text: "", ship: vid || "", due: "today" }; m6NewPaint(); setTimeout(() => { const e = document.getElementById("m6-nt"); if(e) e.focus(); }, 60); };
+window.m6NewTodo = function(vid){ window._m6n = { text: "", ship: vid || "", due: "today", prio: "media" }; m6NewPaint(); setTimeout(() => { const e = document.getElementById("m6-nt"); if(e) e.focus(); }, 60); };
 function m6NewPaint(){
   const n = window._m6n, chip = (on, l, js) => '<button class="m6-chip' + (on ? " on" : "") + '" onclick="' + js + '">' + escapeHTML(l) + '</button>';
   const ships = chip(!n.ship, "Nessuna", "m6NSet('ship','')") + (VESSELS || []).map(c => chip(n.ship === c.vesselId, m6Short(c.vesselId), "m6NSet('ship','" + m3E(c.vesselId) + "')")).join("");
   const dues = [["today","Oggi"],["tomorrow","Domani"],["week","Tra una settimana"],["none","Nessuna"]].map(([k, l]) => chip(n.due === k, l, "m6NSet('due','" + k + "')")).join("");
+  const prios = ["alta","media","bassa"].map(k => chip((n.prio || "media") === k, M6_PRIO[k].l.charAt(0) + M6_PRIO[k].l.slice(1).toLowerCase(), "m6NSet('prio','" + k + "')")).join("");
   maRenderSheet('<div class="m6-sheet"><div class="m6-sheet-h"><button onclick="maCloseSheet()">Annulla</button><b>Nuova to-do</b><button class="save" onclick="m6NSave()">Salva</button></div>' +
     '<input id="m6-nt" class="m6-q" placeholder="Cosa devi fare?" value="' + escapeAttr(n.text) + '" oninput="window._m6n.text=this.value" onkeydown="if(event.key===\'Enter\')m6NSave()">' +
     '<div class="m6-sec"><div class="m6-eb">NAVE</div><div class="m6-chips">' + ships + '</div></div>' +
-    '<div class="m6-sec"><div class="m6-eb">SCADENZA</div><div class="m6-chips">' + dues + '</div></div></div>');
+    '<div class="m6-sec"><div class="m6-eb">SCADENZA</div><div class="m6-chips">' + dues + '</div></div>' +
+    '<div class="m6-sec"><div class="m6-eb">PRIORITÀ</div><div class="m6-chips">' + prios + '</div></div></div>');
 }
 window.m6NSet = function(k, v){ const e = document.getElementById("m6-nt"); if(e) window._m6n.text = e.value; window._m6n[k] = v; m6NewPaint(); };
 window.m6NSave = function(){
@@ -28192,7 +28299,7 @@ window.m6NSave = function(){
   const txt = String(n.text || "").trim(); if(!txt){ maToast("Scrivi cosa devi fare"); if(e) e.focus(); return; }
   const iso = k => { const d = new Date(); d.setDate(d.getDate() + k); return d.toISOString().slice(0,10); };
   const due = { today: iso(0), tomorrow: iso(1), week: iso(7), none: "" }[n.due] || "";
-  const t = addTodo({ category: n.ship ? "Nave" : "Ufficio", vessel: n.ship, action: "Altro", reference: txt, dueDate: due });
+  const t = addTodo({ category: n.ship ? "Nave" : "Ufficio", vessel: n.ship, action: "Altro", reference: txt, dueDate: due, priority: n.prio || "media" });
   try { maMarkSync(t, false); saveTodos(); } catch(_) {}
   try { if(typeof ghSetDirty === "function") ghSetDirty(); } catch(_) {}
   maCloseSheet(); try { render(); } catch(_) { renderMobileApp(); } maToast("To-do creata");
