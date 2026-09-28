@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-09-28T20:20:16.363Z",
+  "lastSync": "2026-09-28T20:30:18.012Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -1144,7 +1144,7 @@
           "poNumber": "2026-MDT-HQPO-00114",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
+          "rfqIssued": 0,
           "rfqClosed": 0,
           "rfqPct": 0,
           "rfqDays": 27,
@@ -1155,16 +1155,7 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-MDT-HQRQ-00202",
-              "supplier": "FORTUNE MARITIME",
-              "code": "SSS0064",
-              "status": "RFQ Sent to Vendor",
-              "date": "2026-09-01",
-              "deadline": "2026-09-16"
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-MDT-HQPO-00114",
@@ -16572,12 +16563,12 @@
     {
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
-      "totalReq": 170,
+      "totalReq": 171,
       "rfqOpen": 15,
       "rfqOverdue7": 1,
       "rfqOverdue15": 1,
       "readyForPO": 3,
-      "orders": 13,
+      "orders": 14,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 15,
@@ -16595,6 +16586,47 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "peppino::welding machine",
+          "description": "Welding machine",
+          "supplier": "OMA GROUP",
+          "department": "DECK Department",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-PEP-HQPO-00158",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-PEP-HQPO-00158",
+              "supplier": "OMA GROUP",
+              "code": "SSS0067",
+              "status": "PO Published",
+              "date": "2026-09-28",
+              "deadline": "2026-10-13"
+            }
+          ],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "",
+          "poDate": "2026-09-28",
+          "dnDate": "",
+          "poDeliveryDate": "2026-10-13",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-10-13"
+        },
         {
           "id": "peppino::electrical store for maintenance urgent::2026-PEP-HQPO-00135",
           "description": "Electrical Store for maintenance URGENT",
