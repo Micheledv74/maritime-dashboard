@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-09-29T10:10:16.654Z",
+  "lastSync": "2026-09-29T10:15:16.544Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -11621,8 +11621,8 @@
     {
       "vesselId": "medliguria",
       "vesselName": "MED LIGURIA",
-      "totalReq": 93,
-      "rfqOpen": 18,
+      "totalReq": 92,
+      "rfqOpen": 17,
       "rfqOverdue7": 0,
       "rfqOverdue15": 0,
       "readyForPO": 0,
@@ -11632,7 +11632,7 @@
       "dnPending": 55,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 81,
+      "pctReqToPO": 82,
       "pctPOToDN": 93,
       "lat": null,
       "lng": null,
@@ -12679,45 +12679,64 @@
           "description": "Cooking range spares",
           "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "ENGINE Department",
-          "reqNumber": "2026-MLG-SHPR-00085",
+          "reqNumber": "2026-MLG-SHPR-00084",
           "rfqNumbers": [
+            "2026-MLG-HQRQ-00162",
             "2026-MLG-HQRQ-00155"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MLG-HQPO-00087",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 2,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 7,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Cancelled",
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00162",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Cancelled",
+              "date": "2026-09-29",
+              "deadline": ""
+            },
             {
               "number": "2026-MLG-HQRQ-00155",
               "supplier": "YH MARINE TRADE CO.,LTD",
               "code": "SSS0003",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-09-22",
               "deadline": "2026-10-07"
             }
           ],
-          "poDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-MLG-HQPO-00087",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "PO Published",
+              "date": "2026-09-29",
+              "deadline": "2026-10-07"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-09-15",
-          "poDate": "",
+          "poDate": "2026-09-29",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-10-07",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-10-07"
         },
         {
           "id": "med liguria::deck & engine paint",
@@ -16568,14 +16587,14 @@
       "rfqOverdue7": 1,
       "rfqOverdue15": 1,
       "readyForPO": 3,
-      "orders": 14,
+      "orders": 13,
       "poReadyForDN": 0,
       "dn": 0,
-      "dnPending": 15,
+      "dnPending": 16,
       "delivery": "delayed",
       "deliveryColor": "red",
       "pctReqToPO": 89,
-      "pctPOToDN": 91,
+      "pctPOToDN": 92,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -17074,15 +17093,15 @@
           "reqNumber": "",
           "rfqNumbers": [],
           "poNumber": "2026-PEP-HQPO-00154",
-          "dnNumber": "",
-          "dnInfoshipId": "",
+          "dnNumber": "2026-PEP-HQDN-00140",
+          "dnInfoshipId": "HQS000000007669",
           "rfqIssued": 0,
           "rfqClosed": 0,
           "rfqPct": 0,
           "rfqDays": null,
           "rfqStatus": "",
-          "poStatus": "PO Published",
-          "dnStatus": "",
+          "poStatus": "PO Finalized",
+          "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
           "rfqDetails": [],
@@ -17091,18 +17110,27 @@
               "number": "2026-PEP-HQPO-00154",
               "supplier": "CAIM",
               "code": "SSS0038",
-              "status": "PO Published",
+              "status": "PO Finalized",
               "date": "2026-09-21",
               "deadline": "2026-10-06"
             }
           ],
-          "dnDetails": [],
+          "dnDetails": [
+            {
+              "number": "2026-PEP-HQDN-00140",
+              "supplier": "CAIM",
+              "code": "SSS0038",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-09-29",
+              "deadline": "2026-10-14"
+            }
+          ],
           "poSplit": null,
           "reqDate": "",
           "poDate": "2026-09-21",
-          "dnDate": "",
+          "dnDate": "2026-09-29",
           "poDeliveryDate": "2026-10-06",
-          "dnDeliveryDate": "",
+          "dnDeliveryDate": "2026-10-14",
           "origin": "",
           "transportMode": "",
           "deliveryDate": "2026-10-06"
