@@ -12491,6 +12491,27 @@ function renderPerformanceSection() {
             <div class="pp-kpi-desc">${onTime.total ? `${onTime.onTime} su ${onTime.total} consegnate entro la data promessa${onTime.avgDelayDays ? " · ritardo medio " + onTime.avgDelayDays + "gg" : ""}.` : "Dati di consegna insufficienti nel periodo."}</div>
           </div>`;
         })()}
+        ${(() => {
+          if (typeof window.computeDelivGoal !== "function") return "";
+          const g = window.computeDelivGoal(range.from, range.to);
+          const t = g.rate == null ? "calm" : g.rate < 75 ? "red" : g.rate < 90 ? "amber" : "calm";
+          return `<div class="pp-kpi tier-${t}" title="Per ogni PO: lo scalo per cui doveva essere a bordo e se ce l'ha fatta. 'Salvati in corsa' = PO che il radar dava a rischio o fuori tempo e che sono arrivati lo stesso.">
+            <div class="pp-kpi-num">${g.rate != null ? g.rate : "—"}<span class="pp-kpi-unit">${g.rate != null ? "%" : ""}</span></div>
+            <div class="pp-kpi-lbl">Obiettivo consegna · a bordo per lo scalo <span class="pp-live-tag pp-period-tag">${escapeHTML(range.label)}</span></div>
+            <div class="pp-kpi-desc">${g.tot ? `${g.made} su ${g.tot} PO a bordo per lo scalo previsto${g.miss ? " · " + g.miss + " mancat" + (g.miss > 1 ? "i" : "o") : ""}.` : "Si misura dal radar, scalo dopo scalo: i primi esiti arrivano con i prossimi scali conclusi."}${g.tight ? `<br><b style="color:#14794e">${g.saves} salvat${g.saves === 1 ? "o" : "i"} in corsa su ${g.tight}</b> PO che erano a rischio o fuori tempo${g.savesLate ? ` (${g.savesLate} dati per persi)` : ""}.` : ""}</div>
+          </div>`;
+        })()}
+        ${(() => {
+          if (typeof window.computeShipResponse !== "function") return "";
+          const sr = window.computeShipResponse();
+          const t = sr.avg == null ? (sr.open ? "amber" : "calm") : sr.avg > 7 ? "red" : sr.avg > 3 ? "amber" : "calm";
+          const per = sr.byV.map(r => `${escapeHTML(String(r.name).replace(/^M\/V\s*/i, ""))} ${r.avg != null ? r.avg + "gg" : "—"}${r.open ? " (" + r.open + " aperte)" : ""}`).join(" · ");
+          return `<div class="pp-kpi tier-${t} clickable" onclick="window.ifxOpen && window.ifxOpen()" title="Apri le DN da chiudere in Infoship">
+            <div class="pp-kpi-num">${sr.avg != null ? String(sr.avg).replace(".", ",") : "—"}<span class="pp-kpi-unit">${sr.avg != null ? "gg" : ""}</span></div>
+            <div class="pp-kpi-lbl">Risposta nave · a bordo → DN chiusa</div>
+            <div class="pp-kpi-desc">${sr.n ? `Media su ${sr.n} DN chiuse dalla nave` : "Nessuna DN chiusa misurata finora"}${sr.open ? ` · ${sr.open} ancora aperte, la più vecchia da ${sr.oldest} gg` : ""}.${per ? `<br>${per}` : ""}</div>
+          </div>`;
+        })()}
       </div>
 
       ${period.volume > 0 ? `<div class="pp-chart-wrap">
@@ -20831,7 +20852,7 @@ async function exportDeliveriesExcel(){
   const rowFor = (o)=>({
     "Data consegna": o.date || "",
     "Porto": o.port || "",
-    "Stato": o.status === "delivered" ? "Consegnato" : "Pianificato",
+    "Stato": o.status === "delivered" ? (o.dnOpen ? "A bordo · DN da chiudere" : "A bordo") : o.status === "check" ? "Da verificare" : "Pianificato",
     "Documento": (o.docLabel ? o.docLabel + " " : "") + (o.doc || "") + (o.docExtra ? " (" + o.docExtra + ")" : ""),
     "Descrizione": o.description || "",
     "Fornitore": o.supplier || "",
@@ -20869,15 +20890,20 @@ function collectArchiveOrders() {
       for (const it of (v.items || [])) {
         const plan = (typeof getDeliveryPlan === "function") ? getDeliveryPlan(it.id) : null;
         const dnRecv = it.dnStatus === "DN Received on Board";
-        if (!plan && !dnRecv) continue;                 // solo ciò che ho pianificato o è arrivato
+        const mpP = (typeof mpOf === "function") ? mpOf(it) : null;
+        const onb = dnRecv || !!(mpP && mpP.pos === "onboard");
+        if (!plan && !onb) continue;                 // solo ciò che ho pianificato o risulta a bordo
         const eff = getEffectiveDelivery(it, v.vesselId) || {};
         if (!plan && eff.source === "infoship") { /* nessun piano mio, solo stima */ }
         // v0.56 — la data della scheda (Pianifica consegna: manuale o voyage) è quella
         // che conta: la uso sempre se presente, così un DN registrato con altra data
         // (nave alla fonda per giorni, ecc.) non crea discrepanze. Il DN è solo fallback.
-        const date = eff.date || (dnRecv ? (it.dnDate || it.dnDeliveryDate || "") : "");
+        const mm = (typeof mpManual === "function") ? mpManual(it.id) : null;
+        const date = eff.date || (dnRecv ? (it.dnDate || it.dnDeliveryDate || "") : (onb && mm && mm.since) || "");
         const port = eff.port || "";
-        const delivered = dnRecv || (!!date && date <= today);
+        // v1.07 — "Consegnato" SOLO se risulta a bordo (DN ricevuta in Infoship o segnato da te).
+        // Una data pianificata già passata non basta più: diventa "Da verificare".
+        const delivered = onb, check = !onb && !!date && date < today;
         out.push({
           date, vesselId: v.vesselId,
           doc: it.dnNumber || it.poNumber || it.reqNumber || "",
@@ -20887,7 +20913,7 @@ function collectArchiveOrders() {
           description: it.description || "(senza descrizione)",
           supplier: it.supplier || "",
           port, amount: "",
-          status: delivered ? "delivered" : "planned",
+          status: delivered ? "delivered" : check ? "check" : "planned", dnOpen: onb && !dnRecv,
           itemId: it.id
         });
       }
@@ -20950,7 +20976,9 @@ function renderArchiveList() {
     const title = k === "0000-00" ? "Senza data" : (() => { const [y,m] = k.split("-"); return `${months[parseInt(m,10)-1]} ${y}`; })();
     const rows = list.map(o => {
       const stPill = o.status === "delivered"
-        ? `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#e7f0e9;color:#1f5a2c;">✓ Consegnato</span>`
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#e6f4ec;color:#14794e;">✓ A bordo</span>${o.dnOpen ? ` <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#e6eefc;color:#1553d8;">DN da chiudere</span>` : ""}`
+        : o.status === "check"
+        ? `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#fdf3e2;color:#8a4b00;" title="La data è passata ma non risulta a bordo: né DN ricevuta in Infoship né segnata da te">? Da verificare</span>`
         : `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#e7f0fb;color:#0a3f93;">⚓ Pianificato</span>`;
       const clickable = o.itemId ? `onclick="window.closeDeliveryArchive(); window.openItemDetailPopover('${escapeAttr(o.itemId)}')" style="cursor:pointer;"` : "";
       return `
@@ -21014,7 +21042,7 @@ window.openDeliveryArchive = function() {
         <input type="search" class="search-input" id="da-search" placeholder="Cerca descrizione, fornitore, porto, N° doc…" value="${escapeHTML(f.q||"")}" style="flex:1;min-width:200px;">
         <select class="filter-select" id="da-vessel" style="flex:none;">${vesselOpts}</select>
         <div id="da-status-seg" style="display:inline-flex;gap:4px;background:var(--bg-muted);border-radius:8px;padding:3px;">
-          ${seg("delivered","Consegnate")}${seg("planned","Pianificate")}${seg("all","Tutte")}
+          ${seg("delivered","A bordo")}${seg("check","Da verificare")}${seg("planned","Pianificate")}${seg("all","Tutte")}
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);background:#f7f9fc;">
@@ -24803,6 +24831,7 @@ function buildStatePayload() {
     portProfiles: (typeof loadPortProfiles === "function" ? loadPortProfiles() : {}),
     critFlags: (typeof loadCritFlags === "function" ? loadCritFlags() : {}),
     matPos: (typeof loadMatPos === "function" ? loadMatPos() : {}),
+    delivGoal: (typeof loadDelivGoal === "function" ? loadDelivGoal() : {}),
     todoTombs: (typeof loadTodoTombs === "function" ? loadTodoTombs() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
@@ -25280,7 +25309,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags","matPos"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags","matPos","delivGoal"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -25318,6 +25347,7 @@ function collSnapshot(){
     portProfiles: f(typeof loadPortProfiles==="function"?loadPortProfiles():{}),
     critFlags: f(typeof loadCritFlags==="function"?loadCritFlags():{}),
     matPos: f(typeof loadMatPos==="function"?loadMatPos():{}),
+    delivGoal: f(typeof loadDelivGoal==="function"?loadDelivGoal():{}),
     todoTombs: f(typeof loadTodoTombs==="function"?loadTodoTombs():{})
   };
 }
@@ -25462,7 +25492,7 @@ function mpdMergeRemote(remote, force){
       }
     }
     // v0.96 — profili porto e flag critico: unione per voce, vince updatedAt più recente
-    ["portProfiles", "critFlags", "matPos"].forEach(cn => {
+    ["portProfiles", "critFlags", "matPos", "delivGoal"].forEach(cn => {
       const rv = remote[cn]; if (!rv || typeof rv !== "object") return;
       const lk = "mpd." + cn;
       let local = {}; try { local = JSON.parse(localStorage.getItem(lk) || "{}") || {}; } catch {}
@@ -26832,6 +26862,41 @@ function rdLoadJSON(k){ try{ const o=JSON.parse(localStorage.getItem(k)||"{}"); 
 function rdSaveJSON(k,o){ try{ localStorage.setItem(k, JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); if(typeof ghSetDirty==="function") ghSetDirty(); }catch(e){} }
 function loadPortProfiles(){ return rdLoadJSON("mpd.portProfiles"); }
 function loadCritFlags(){ return rdLoadJSON("mpd.critFlags"); }
+// v1.07 — OBIETTIVO CONSEGNA: per ogni PO lo scalo per cui doveva essere a bordo (key porto|ETD), l'esito
+// (made/miss) e la situazione PEGGIORE vista dal radar lungo la strada (risk/late) → "salvataggi".
+function loadDelivGoal(){ return rdLoadJSON("mpd.delivGoal"); }
+function rdISO(off, now){ return new Date(now + off * 864e5).toISOString().slice(0,10); }
+const RD_W = { "": 0, risk: 1, late: 2 };
+function rdGoalSet(G, id, patch){ const cur = G[id] || {}; const nx = Object.assign({}, cur, patch); delete nx.updatedAt; const a = Object.assign({}, cur); delete a.updatedAt;
+  if(JSON.stringify(nx) === JSON.stringify(a)) return false; nx.updatedAt = new Date().toISOString(); G[id] = nx; return true; }
+function rdGoalCall(G, c, now){
+  let d = false; const etdI = rdISO(c.etd, now), key = c.port + "|" + etdI;
+  c.its.forEach(x => { const id = x.it.id, g = G[id] || {};
+    if(x.onb){ if(g.out === "miss" && g.key && g.key !== key) return; if(g.out !== "made") d = rdGoalSet(G, id, { key, port: c.port, etd: etdI, out: "made", vid: c.vid }) || d; return; }
+    const w = x.k === "ok" ? "" : x.k, p = {};
+    if(RD_W[w] > RD_W[g.worst || ""]){ p.worst = w; p.tightAt = rdISO(0, now); }
+    if(!g.out) Object.assign(p, { key, port: c.port, etd: etdI, vid: c.vid });
+    if(Object.keys(p).length) d = rdGoalSet(G, id, p) || d; });
+  return d;
+}
+function rdGoalPast(G, pc, now){
+  let d = false; const etdI = rdISO(pc.etd, now), key = pc.port + "|" + etdI;
+  pc.rows.forEach(r => { const id = r.it.id, g = G[id] || {};
+    if(r.s !== "miss"){ if(g.out === "miss" && g.key && g.key !== key) return;
+      let made = true; if(r.s === "onb"){ const dd = String(r.it.dnDeliveryDate || r.it.dnDate || "").slice(0,10); if(dd && dd > rdISO(pc.etd + 1, now)) made = false; }
+      const o = made ? "made" : "miss"; if(g.out !== o || g.key !== key) d = rdGoalSet(G, id, { key, port: pc.port, etd: etdI, out: o, vid: pc.vid }) || d; }
+    else if(pc.etd < -2 && !g.out) d = rdGoalSet(G, id, { key, port: pc.port, etd: etdI, out: "miss", vid: pc.vid }) || d; });
+  return d;
+}
+function computeDelivGoal(from, to){
+  const G = loadDelivGoal(), f = from.toISOString().slice(0,10), t = to.toISOString().slice(0,10);
+  let made = 0, miss = 0, saves = 0, savesLate = 0, missTight = 0;
+  Object.values(G).forEach(g => { if(!g || !g.out || !g.etd || g.etd < f || g.etd > t) return;
+    if(g.out === "made"){ made++; if(g.worst){ saves++; if(g.worst === "late") savesLate++; } } else { miss++; if(g.worst) missTight++; } });
+  const tot = made + miss;
+  return { tot, made, miss, saves, savesLate, tight: saves + missTight, rate: tot ? Math.round(made / tot * 100) : null };
+}
+window.computeDelivGoal = computeDelivGoal;
 function rdProfile(port){
   const eu = RD_EU_PORTS.test(port||"");
   const p = loadPortProfiles()[rdKey(port)];
@@ -26982,6 +27047,8 @@ function rdPastCall(cfg, leg, its, now, key){
   return { id: "past:" + cfg.vesselId + ":" + key, past: true, vid: cfg.vesselId, vname: cfg.displayName, port: leg.to || "?", from: leg.from || "", eta, etd, etaS: leg.eta || "", etdS: leg.etd || "", rows, n, open: n.ifx + n.miss };
 }
 function rdModel(){
+  if(typeof ifxStampClosed === "function") try{ ifxStampClosed(); }catch(e){}
+  const G = loadDelivGoal(); let gDirty = false;
   const { H, basis } = rdPrefs();
   const now = Date.now();
   const lanes = [], calls = [], past = []; let staleDN = 0, unTot = 0;
@@ -27010,6 +27077,7 @@ function rdModel(){
       c.onb = its.filter(rdOnb).length;
       c.onbIfx = its.filter(it => rdOnb(it) && it.dnStatus !== "DN Received on Board").length;
       c.its = its.filter(it => rdOnb(it) || !rdStaleDN(it, now)).map(it => rdCalc(it, c, now, basis));
+      try{ if(rdGoalCall(G, c, now)) gDirty = true; }catch(e){}
       c.n = { ok: 0, risk: 0, late: 0 }; c.its.forEach(x => c.n[x.k]++);
       c.worst = c.n.late ? "late" : c.n.risk ? "risk" : "ok";
       calls.push(c); lane.calls.push(c);
@@ -27018,6 +27086,7 @@ function rdModel(){
       const set = new Set((h.deliveredItems || []).map(d => d.poNumber).filter(Boolean));
       const pc = rdPastCall(cfg, h, v.items.filter(it => set.has(it.poNumber)), now, h.id || ("h" + i));
       if(pc){ lane.past.push(pc); if(h.id) seenP.add(h.id); } });
+    lane.past.forEach(pc => { try{ if(rdGoalPast(G, pc, now)) gDirty = true; }catch(e){} });
     lane.past.sort((a, b) => b.etd - a.etd); lane.pastMore = Math.max(0, lane.past.length - 2); lane.past = lane.past.slice(0, 2);
     past.push(...lane.past);
     v.items.forEach(it => {
@@ -27028,6 +27097,7 @@ function rdModel(){
     });
     unTot += lane.un;
   }
+  if(gDirty) rdSaveJSON("mpd.delivGoal", G);
   const inH = calls.filter(c => c.eta < H);
   return { H, basis, now, lanes, calls: inH, allCalls: calls, past, staleDN, unTot };
 }
@@ -27199,10 +27269,11 @@ function radarPaint(){
   if(sel && sel.past){
     const PS = { miss: 0, ifx: 1, onb: 2 };
     const PILL = { onb: ["#14794e", "#e6f4ec", "A bordo · DN chiusa"], ifx: ["#1553d8", "#e6eefc", "A bordo · DN da chiudere"], miss: ["#b06a00", "#fdf3e2", "Non risulta a bordo"] };
+    const G0 = loadDelivGoal();
     const rowsP = sel.rows.slice().sort((a, b) => PS[a.s] - PS[b.s]).map(r => { const p = PILL[r.s], id = ea(r.it.id);
       const where = r.s === "miss" && r.pos && MP_POS[r.pos] ? " · " + MP_POS[r.pos].l.toLowerCase() : "";
       return '<div class="rd-prow"><div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(r.it.poNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (r.it.dnNumber ? '<span class="rd-pon">DN ' + esc(String(r.it.dnNumber).replace(/^\d{4}-/, "")) + '</span>' : "") + '</div><b>' + esc(r.it.description || "") + '</b><span>' + esc(r.it.supplier && r.it.supplier !== "—" ? r.it.supplier : "Fornitore non indicato") + '</span></div>' +
-        '<span class="rd-ppill" style="color:' + p[0] + ';background:' + p[1] + ';border-color:' + p[0] + '">' + p[2] + esc(where) + '</span>' +
+        '<span class="rd-ppill" style="color:' + p[0] + ';background:' + p[1] + ';border-color:' + p[0] + '">' + p[2] + (r.s !== "miss" && G0[r.it.id] && G0[r.it.id].worst ? " · salvato in corsa" : "") + esc(where) + '</span>' +
         '<div class="rd-pact">' + (r.s === "miss" ? '<button class="btn btn-sm" onclick="window.mpSetPos(\'' + id + '\',\'onboard\')">✓ È a bordo</button>' : "") + '<button class="btn btn-sm" onclick="window.openItemDetailPopover(\'' + id + '\')">Apri</button></div></div>'; }).join("");
     const pv = !sel.rows.length ? "Nessun PO era legato a questo scalo" : !sel.open ? "Cerchio chiuso: tutto a bordo e DN chiuse" : [sel.n.miss ? sel.n.miss + " PO non risult" + (sel.n.miss > 1 ? "ano" : "a") + " a bordo" : "", sel.n.ifx ? sel.n.ifx + " DN da chiudere" : ""].filter(Boolean).join(" · ");
     selHTML = '<div class="rd-card"><div class="rd-selh"><div class="rd-selm">' +
@@ -27352,6 +27423,28 @@ function mpCustomsFromShip(segs){
 }
 function mpLegAgency(vid){ const voy = getVoyage(vid) || {}; for(const w of ["current","next"]){ const l = voy[w]; if(l && l.agency){ const n = l.agency.name || (typeof l.agency === "string" ? l.agency : ""); if(n) return { name:n, port:l.to || "" }; } } return null; }
 function loadMatPos(){ return rdLoadJSON("mpd.matPos"); }
+// v1.07 — Risposta nave: la prima volta che l'export Infoship mostra "DN Received on Board" per un PO che avevi
+// segnato a bordo, annoto il giorno (dnClosedAt). Al primo avvio le chiusure già avvenute vanno in "pre" (data ignota).
+function ifxStampClosed(){
+  const all = loadMatPos(); let ch = false; const t = mpToday();
+  let init = true; try{ init = !localStorage.getItem("mpd.ifxStampInit"); }catch(e){}
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { const m = all[it.id];
+    if(m && m.pos === "onboard" && !m.dnClosedAt && it.dnStatus === "DN Received on Board"){ m.dnClosedAt = init ? "pre" : t; m.updatedAt = new Date().toISOString(); ch = true; } }));
+  if(ch) rdSaveJSON("mpd.matPos", all);
+  if(init && state.data && state.data.vessels && state.data.vessels.length){ try{ localStorage.setItem("mpd.ifxStampInit", t); }catch(e){} }
+}
+function computeShipResponse(){
+  const all = loadMatPos(), now = Date.now(), D = s => new Date(String(s).slice(0,10) + "T12:00:00").getTime();
+  const byV = {}; let sum = 0, n = 0, open = 0, oldest = 0;
+  ((state.data && state.data.vessels) || []).forEach(v => { const cfg = VESSELS.find(x => x.vesselId === v.vesselId) || {};
+    const r = byV[v.vesselId] = { name: cfg.displayName || v.vesselId, sum: 0, n: 0, open: 0 };
+    (v.items || []).forEach(it => { const m = all[it.id]; if(!m || m.pos !== "onboard" || !m.since) return;
+      if(it.dnStatus === "DN Received on Board"){ if(!m.dnClosedAt || m.dnClosedAt === "pre") return; const d = Math.max(0, Math.round((D(m.dnClosedAt) - D(m.since)) / 864e5)); if(isNaN(d)) return; r.sum += d; r.n++; sum += d; n++; }
+      else { const a = Math.round((now - D(m.since)) / 864e5); if(isNaN(a)) return; r.open++; open++; oldest = Math.max(oldest, a); } }); });
+  const list = Object.values(byV).filter(r => r.n || r.open).map(r => ({ name: r.name, avg: r.n ? Math.round(r.sum / r.n * 10) / 10 : null, n: r.n, open: r.open }));
+  return { avg: n ? Math.round(sum / n * 10) / 10 : null, n, open, oldest, byV: list };
+}
+window.computeShipResponse = computeShipResponse;
 function mpManual(id){ const p = loadMatPos()[id]; return p && p.pos ? p : null; }
 function mpHub(id){ return TML_HUBS.find(h => h.id === id) || null; }
 function mpToday(){ return new Date().toISOString().slice(0,10); }
