@@ -26966,13 +26966,17 @@ function rdModel(){
       its.forEach(it => assigned.add(it.id));
       if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length }; return; }
       const c = { id: cfg.vesselId + ":" + w, vid: cfg.vesselId, vname: cfg.displayName, which: w, legId: leg.id || "", port: leg.to, eta, etb, etd, etaS: leg.eta || "", etbS: leg.etb || "", etdS: leg.etd || "", its: [] };
-      c.its = its.filter(it => !rdStaleDN(it, now)).map(it => rdCalc(it, c, now, basis));
+      const rdOnb = it => { const p = typeof mpOf === "function" ? mpOf(it, now) : null; return !!(p && p.pos === "onboard"); };
+      c.onb = its.filter(rdOnb).length;
+      c.onbIfx = its.filter(it => rdOnb(it) && it.dnStatus !== "DN Received on Board").length;
+      c.its = its.filter(it => !rdStaleDN(it, now) && !rdOnb(it)).map(it => rdCalc(it, c, now, basis));
       c.n = { ok: 0, risk: 0, late: 0 }; c.its.forEach(x => c.n[x.k]++);
       c.worst = c.n.late ? "late" : c.n.risk ? "risk" : "ok";
       calls.push(c); lane.calls.push(c);
     });
     v.items.forEach(it => {
       if(!it.poNumber || rdCancelled(it) || it.dnStatus === "DN Received on Board") return;
+      { const p = typeof mpOf === "function" ? mpOf(it, now) : null; if(p && p.pos === "onboard") return; }
       if(rdStaleDN(it, now)){ staleDN++; return; }
       if(!assigned.has(it.id)) lane.un++;
     });
@@ -27183,7 +27187,7 @@ function radarPaint(){
       '<div class="rd-mono">' + [sel.etaS ? "ETA " + rdFDT(sel.eta, now) : "", sel.etbS ? "ETB " + rdFDT(sel.etb, now) : "", "ETD " + rdFDT(sel.etd, now) + (sel.etdS ? "" : " (stimata: ETB + 1 g)")].filter(Boolean).join(" · ") + '</div>' +
       '<div class="rd-cutrow"><span class="rd-cutp">Limite di consegna ' + rdFDT(cut, now) + '</span><span class="rd-sub">ETD − ' + pr.notice + ' h di preavviso</span></div>' +
       '<div class="rd-mix"><i style="flex:' + sel.n.ok + ';background:#14794e"></i><i style="flex:' + sel.n.risk + ';background:#c07800"></i><i style="flex:' + sel.n.late + ';background:#c0261c"></i></div>' +
-      '<div class="rd-sum"><b style="color:' + TINT[sel.worst][1] + '">' + verdict + '</b> · ' + sel.its.length + ' PO · ' + sel.n.ok + ' in tempo · ' + sel.n.risk + ' a rischio · ' + sel.n.late + ' non arrivano</div></div>' +
+      '<div class="rd-sum"><b style="color:' + TINT[sel.worst][1] + '">' + verdict + '</b> · ' + sel.its.length + ' PO · ' + sel.n.ok + ' in tempo · ' + sel.n.risk + ' a rischio · ' + sel.n.late + ' non arrivano' + (sel.onb ? ' · <span style="color:#14794e;font-weight:700">' + sel.onb + ' già a bordo</span>' + (sel.onbIfx ? ' <a href="#" onclick="if(window.ifxOpen)window.ifxOpen();return false;" style="color:#1553d8;font-weight:700">(' + sel.onbIfx + ' DN da chiudere in Infoship →)</a>' : '') : '') + '</div></div>' +
       '<div class="rd-prof"><div class="rd-prof-h"><b>Profilo porto · ' + esc(sel.port) + '</b><span class="rd-src ' + (pr.set ? "set" : "") + '">' + (pr.set ? "tuo profilo" : "valori standard") + '</span><button class="btn btn-sm" onclick="window.rdEditProfile(\'' + ea(sel.port) + '\')">Modifica</button></div>' +
       '<div class="rd-prof-g"><div><em>Dogana</em><b>' + rdF1(pr.customs[0]) + '–' + rdF1(pr.customs[1]) + ' gg' + (pr.eu ? " · 0 se UE" : "") + '</b></div><div><em>Preavviso agente</em><b>' + pr.notice + ' h</b></div><div><em>Affidabilità</em><b style="color:' + relC + '">' + rel + '</b></div></div>' +
       '<div class="rd-sub"><em>Agenzia</em> <b>' + esc(pr.agent || "—") + '</b></div>' + (pr.note ? '<div class="rd-note">' + esc(pr.note) + '</div>' : "") + '</div></div>' +
