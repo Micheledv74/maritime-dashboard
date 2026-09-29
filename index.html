@@ -5936,6 +5936,26 @@ a:hover { text-decoration: underline; }
 .rd-dots small{ font-size:10px; color:#6a7d90; }
 .rd-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; } .rd-dot.crit{ width:13px; height:13px; border-radius:3px; box-shadow:0 0 0 1.5px #c0261c; position:relative; } .rd-dot.crit::after{ content:"C"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font:800 9px/1 var(--font-sans); color:#fff; }
 .rd-empty{ position:absolute; left:6px; right:6px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:10px; padding:8px 12px; border:1.5px dashed rgba(10,27,46,.2); border-radius:10px; font-size:12px; color:#44576b; white-space:nowrap; overflow:hidden; background:rgba(255,255,255,.7); }
+.rd-radar{ min-width:940px; }
+.rd-pastz{ position:absolute; left:0; top:0; bottom:0; width:240px; background:repeating-linear-gradient(135deg,#f5f7fa 0 6px,#eef2f6 6px 12px); border-right:1px dashed rgba(10,27,46,.2); }
+.rd-tick.rd-pastlab{ transform:none; color:#44576b; font-weight:700; letter-spacing:.04em; }
+.rd-call.rd-pastc{ width:112px; min-width:0; background:#fff; border:1.5px dashed #8a9bb0; }
+.rd-call.rd-pastc.done{ border-style:solid; border-color:#14794e; background:#f3faf6; }
+.rd-call.rd-pastc strong{ color:#44576b; } .rd-call.rd-pastc.done strong{ color:#14794e; }
+.rd-dot.rd-pd.onb{ background:#14794e; } .rd-dot.rd-pd.ifx{ background:#fff; box-shadow:inset 0 0 0 2px #14794e; } .rd-dot.rd-pd.miss{ background:#fff; box-shadow:inset 0 0 0 2px #c07800; }
+.rd-pastnone{ position:absolute; left:10px; width:220px; top:50%; transform:translateY(-50%); font-size:10.5px; color:#6a7d90; }
+.rd-pastmore{ position:absolute; left:8px; bottom:3px; font-size:10px; color:#44576b; }
+.rd-pk{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.rd-pk > div{ border:1px solid rgba(10,27,46,.10); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:3px; background:#fff; }
+.rd-pk b{ font-size:26px; line-height:1; font-weight:800; }
+.rd-pk span{ font-size:11.5px; color:#44576b; }
+.rd-pk a{ font-size:11.5px; font-weight:700; color:#1553d8; cursor:pointer; text-decoration:none; }
+.rd-plist{ margin-top:14px; border-top:1px solid rgba(10,27,46,.08); }
+.rd-prow{ display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:12px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(10,27,46,.06); }
+.rd-ppill{ font-size:11px; font-weight:700; border:1px solid; border-radius:999px; padding:3px 9px; white-space:nowrap; }
+.rd-pact{ display:flex; gap:6px; }
+.rd-pfoot{ margin-top:12px; font-size:12px; color:#44576b; }
+.rd-pfoot a{ color:#1553d8; font-weight:700; }
 .rd-empty span{ overflow:hidden; text-overflow:ellipsis; } .rd-empty b{ color:#1553d8; margin-left:auto; cursor:pointer; }
 .rd-selh{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:14px 22px; align-items:start; }
 .rd-selm{ display:flex; flex-direction:column; gap:6px; }
@@ -26890,6 +26910,13 @@ function rdCalc(it, c, now, basis){
   const moving = ships.filter(s => s.status !== "delivered" && s.eta).sort((a, b) => String(b.eta).localeCompare(String(a.eta)))[0];
   const delivered = ships.length && ships.every(s => s.status === "delivered");
   const mpX = typeof mpOf === "function" ? mpOf(it, now) : null;
+  if(mpX && mpX.pos === "onboard"){
+    const mm = mpManual(it.id) || {};
+    const ds = String(mm.since || (it.dnStatus === "DN Received on Board" ? (it.dnDeliveryDate || it.dnDate) : "") || mm.updatedAt || "").slice(0,10);
+    const d = rdDD(ds, now), ifx = it.dnStatus !== "DN Received on Board";
+    return { it, c, pr, cut: c.etd - pr.notice / 24, lo: 0, hi: 0, H2: 0, k: "ok", onb: true, ifx, onbD: d, segs: [], unknown: false, st: "onboard",
+      chain: "consegnata a bordo" + (d != null ? " il " + rdFD(d, now) : "") + (ifx ? " (segnata da te) → DN ancora aperta in Infoship" : " → DN chiusa in Infoship"), crit: rdCrit(it.id), margin: "a bordo", noCust };
+  }
   if(mpX && mpX.pos === "customs"){
     st = "dogana"; const b = rdDD(mpX.back, now), el = mpDaysSince(mpX.since) || 0;
     if(b != null){ const b0 = Math.max(0, b); lo = b0; hi = b0 + 1; chain.push("in dogana · svincolo previsto " + rdFD(b0, now)); }
@@ -26943,13 +26970,25 @@ function rdCalc(it, c, now, basis){
   return { it, c, pr, cut, lo, hi, H2, k, segs, unknown, st, chain: chain.join(" → "), crit: rdCrit(it.id), margin, noCust };
 }
 
+const RD_PB = 14;
+function rdPastCall(cfg, leg, its, now, key){
+  const eta0 = rdDD(leg.eta, now), etb0 = rdDD(leg.etb, now), etd0 = rdDD(leg.etd, now);
+  const eta = eta0 != null ? eta0 : etb0 != null ? etb0 : etd0; if(eta == null) return null;
+  const etd = etd0 != null ? etd0 : (etb0 != null ? etb0 : eta) + 1;
+  if(etd >= 0 || etd < -RD_PB) return null;
+  const rows = its.filter(it => !rdCancelled(it)).map(it => { const p = mpOf(it, now); const onb = !!(p && p.pos === "onboard");
+    return { it, s: onb ? (it.dnStatus === "DN Received on Board" ? "onb" : "ifx") : "miss", pos: p ? p.pos : "" }; });
+  const n = { onb: 0, ifx: 0, miss: 0 }; rows.forEach(r => n[r.s]++);
+  return { id: "past:" + cfg.vesselId + ":" + key, past: true, vid: cfg.vesselId, vname: cfg.displayName, port: leg.to || "?", from: leg.from || "", eta, etd, etaS: leg.eta || "", etdS: leg.etd || "", rows, n, open: n.ifx + n.miss };
+}
 function rdModel(){
   const { H, basis } = rdPrefs();
   const now = Date.now();
-  const lanes = [], calls = []; let staleDN = 0, unTot = 0;
+  const lanes = [], calls = [], past = []; let staleDN = 0, unTot = 0;
   for(const cfg of VESSELS){
     const v = (state.data && state.data.vessels || []).find(x => x.vesselId === cfg.vesselId);
-    const lane = { vid: cfg.vesselId, name: cfg.displayName, calls: [], un: 0, stale: null, state: "" };
+    const lane = { vid: cfg.vesselId, name: cfg.displayName, calls: [], past: [], pastMore: 0, un: 0, stale: null, state: "" };
+    const seenP = new Set();
     lanes.push(lane);
     if(!v || !v.items){ lane.state = cfg.manual ? "Gestione manuale" : "Nessun dato"; continue; }
     const voy = getVoyage(cfg.vesselId) || {};
@@ -26964,16 +27003,23 @@ function rdModel(){
       const etdR = rdDD(leg.etd, now); const etd = etdR != null ? etdR : etb + 1;
       const its = itemsForLeg(cfg.vesselId, w).filter(it => !rdCancelled(it));
       its.forEach(it => assigned.add(it.id));
-      if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length }; return; }
+      if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length };
+        const pc = rdPastCall(cfg, leg, its, now, leg.id || w); if(pc){ lane.past.push(pc); if(leg.id) seenP.add(leg.id); } return; }
       const c = { id: cfg.vesselId + ":" + w, vid: cfg.vesselId, vname: cfg.displayName, which: w, legId: leg.id || "", port: leg.to, eta, etb, etd, etaS: leg.eta || "", etbS: leg.etb || "", etdS: leg.etd || "", its: [] };
       const rdOnb = it => { const p = typeof mpOf === "function" ? mpOf(it, now) : null; return !!(p && p.pos === "onboard"); };
       c.onb = its.filter(rdOnb).length;
       c.onbIfx = its.filter(it => rdOnb(it) && it.dnStatus !== "DN Received on Board").length;
-      c.its = its.filter(it => !rdStaleDN(it, now) && !rdOnb(it)).map(it => rdCalc(it, c, now, basis));
+      c.its = its.filter(it => rdOnb(it) || !rdStaleDN(it, now)).map(it => rdCalc(it, c, now, basis));
       c.n = { ok: 0, risk: 0, late: 0 }; c.its.forEach(x => c.n[x.k]++);
       c.worst = c.n.late ? "late" : c.n.risk ? "risk" : "ok";
       calls.push(c); lane.calls.push(c);
     });
+    (voy.history || []).forEach((h, i) => { if(h.id && seenP.has(h.id)) return;
+      const set = new Set((h.deliveredItems || []).map(d => d.poNumber).filter(Boolean));
+      const pc = rdPastCall(cfg, h, v.items.filter(it => set.has(it.poNumber)), now, h.id || ("h" + i));
+      if(pc){ lane.past.push(pc); if(h.id) seenP.add(h.id); } });
+    lane.past.sort((a, b) => b.etd - a.etd); lane.pastMore = Math.max(0, lane.past.length - 2); lane.past = lane.past.slice(0, 2);
+    past.push(...lane.past);
     v.items.forEach(it => {
       if(!it.poNumber || rdCancelled(it) || it.dnStatus === "DN Received on Board") return;
       { const p = typeof mpOf === "function" ? mpOf(it, now) : null; if(p && p.pos === "onboard") return; }
@@ -26983,11 +27029,12 @@ function rdModel(){
     unTot += lane.un;
   }
   const inH = calls.filter(c => c.eta < H);
-  return { H, basis, now, lanes, calls: inH, allCalls: calls, staleDN, unTot };
+  return { H, basis, now, lanes, calls: inH, allCalls: calls, past, staleDN, unTot };
 }
 
 window._rd = window._rd || { sel: null, open: null, undo: null };
 function rdAlts(x, M){
+  if(x.onb) return [];
   return M.allCalls.filter(c => c.vid === x.c.vid).map(c => ({ c, r: rdCalc(x.it, c, M.now, M.basis), cur: c.id === x.c.id, pr: rdProfile(c.port) }));
 }
 window.rdMove = function(itemId, callId){
@@ -27062,7 +27109,7 @@ function radarPaint(){
   const risky = M.calls.filter(c => c.n.late);
   const critBad = all.filter(x => x.crit && x.k !== "ok");
   const staleLanes = M.lanes.filter(l => l.stale && !l.calls.length);
-  const sel = M.calls.find(c => c.id === window._rd.sel) || risky.slice().sort((a, b) => a.etd - b.etd)[0] || M.calls[0] || null;
+  const sel = M.calls.concat(M.past).find(c => c.id === window._rd.sel) || risky.slice().sort((a, b) => a.etd - b.etd)[0] || M.calls[0] || M.past[0] || null;
   if(sel) window._rd.sel = sel.id;
   const esc = escapeHTML, ea = s => escapeAttr(String(s)).replace(/'/g, "\\'");
 
@@ -27114,33 +27161,60 @@ function radarPaint(){
   const mv = moves.slice(0, 4);
 
   // radar lanes
-  const pct = d => Math.max(0, Math.min(100, d / H * 100));
+  const PW = 240, fr = d => Math.max(0, Math.min(1, d / H));
+  const fx = d => 'calc(' + PW + 'px + (100% - ' + PW + 'px) * ' + fr(d).toFixed(4) + ')';
+  const fw = (a, b) => 'calc((100% - ' + PW + 'px) * ' + Math.max(0, fr(b) - fr(a)).toFixed(4) + ')';
   let ticks = "", grid = "";
   const step = H > 21 ? 3 : 2;
   for(let d = 0; d <= H; d++){
     const x = new Date(now + d*864e5), first = x.getDate() === 1, pre = new Date(now + (d+1)*864e5).getDate() === 1;
     const MES = ["GEN","FEB","MAR","APR","MAG","GIU","LUG","AGO","SET","OTT","NOV","DIC"];
     const lab = d === 0 ? "OGGI" : first ? "1 " + MES[x.getMonth()] : (d % step === 0 && !pre && d > 1 ? String(x.getDate()) : "");
-    if(lab) ticks += '<span class="rd-tick' + (d === 0 ? " now" : first ? " m" : "") + '" style="left:' + pct(d) + '%">' + lab + '</span>';
-    grid += '<i class="rd-grid' + (x.getDay() === 1 ? " wk" : "") + '" style="left:' + pct(d) + '%"></i>';
+    if(lab) ticks += '<span class="rd-tick' + (d === 0 ? " now" : first ? " m" : "") + '" style="left:' + fx(d) + '">' + lab + '</span>';
+    grid += '<i class="rd-grid' + (x.getDay() === 1 ? " wk" : "") + '" style="left:' + fx(d) + '"></i>';
   }
   const TINT = { ok: ["#e6f4ec", "#14794e"], risk: ["#fdf3e2", "#c07800"], late: ["#fde3e0", "#c0261c"] };
   const lanesHTML = M.lanes.map(l => {
     const dotC = l.calls.some(c => c.worst === "late") ? "#c0261c" : l.calls.some(c => c.worst === "risk") ? "#c07800" : l.calls.length ? "#14794e" : "#9fb0c4";
     const blocks = l.calls.filter(c => c.eta < H).map(c => {
       const dots = c.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || (b.crit - a.crit)).map(x => '<i class="rd-dot' + (x.crit ? " crit" : "") + '" style="background:' + COL[x.k] + '"></i>').join("");
-      return '<button class="rd-call' + (sel && c.id === sel.id ? " on" : "") + '" onclick="window.rdPick(\'' + ea(c.id) + '\')" style="left:' + pct(c.eta) + '%;width:' + Math.max(0, pct(Math.min(c.etd, H)) - pct(c.eta)) + '%;background:' + TINT[c.worst][0] + ';border-color:' + TINT[c.worst][1] + '">' +
+      return '<button class="rd-call' + (sel && c.id === sel.id ? " on" : "") + '" onclick="window.rdPick(\'' + ea(c.id) + '\')" style="left:' + fx(c.eta) + ';width:' + fw(Math.max(0, c.eta), Math.min(c.etd, H)) + ';background:' + TINT[c.worst][0] + ';border-color:' + TINT[c.worst][1] + '">' +
         '<b>' + esc(c.port) + '</b><span><em>' + rdFD(c.eta, now) + '</em> <strong style="color:' + TINT[c.worst][1] + '">' + c.n.ok + "/" + c.its.length + '</strong></span><span class="rd-dots">' + (dots || '<small>nessun PO pianificato</small>') + '</span></button>';
     }).join("");
-    const empty = !blocks ? '<div class="rd-empty"><span>' + (l.stale ? "ETA " + esc(l.stale.port) + " " + rdFD(l.stale.eta, now) + " passata: viaggio da aggiornare" : "Viaggio non impostato: PO non legabili a uno scalo") + '</span><b onclick="window.goVessel(\'' + ea(l.vid) + '\')">Apri viaggio →</b></div>' : "";
+    const PO = { miss: 0, ifx: 1, onb: 2 };
+    const pastB = l.past.length ? l.past.map((c, i) => {
+      const dots = c.rows.slice().sort((a, b) => PO[a.s] - PO[b.s]).map(r => '<i class="rd-dot rd-pd ' + r.s + '"></i>').join("");
+      const done = !c.open && c.rows.length;
+      return '<button class="rd-call rd-pastc' + (done ? " done" : "") + (sel && c.id === sel.id ? " on" : "") + '" onclick="window.rdPick(\'' + ea(c.id) + '\')" title="Scalo concluso: verifica cosa è arrivato a bordo" style="left:' + (PW - 8 - (i + 1) * 116) + 'px">' +
+        '<b>' + esc(c.port) + '</b><span><em>' + rdFD(c.etd, now) + '</em> <strong>' + (done ? "✓ " : "") + (c.n.onb + c.n.ifx) + '/' + c.rows.length + ' a bordo</strong></span><span class="rd-dots">' + (dots || '<small>nessun PO</small>') + '</span></button>';
+    }).join("") + (l.pastMore ? '<span class="rd-pastmore">+' + l.pastMore + ' prima</span>' : "") : '<span class="rd-pastnone">nessuno scalo concluso negli ultimi ' + RD_PB + ' gg</span>';
+    const empty = !blocks ? '<div class="rd-empty" style="left:' + (PW + 6) + 'px"><span>' + (l.stale ? "ETA " + esc(l.stale.port) + " " + rdFD(l.stale.eta, now) + " passata: viaggio da aggiornare" : "Viaggio non impostato: PO non legabili a uno scalo") + '</span><b onclick="window.goVessel(\'' + ea(l.vid) + '\')">Apri viaggio →</b></div>' : "";
     return '<div class="rd-lane"><div class="rd-lh"><div class="rd-ln"><i style="background:' + dotC + '"></i>' + esc(l.name) + '</div>' + (l.state ? '<div class="rd-ls">' + esc(l.state) + '</div>' : "") +
       (l.un ? '<span class="rd-un" onclick="window.goVesselWithFilter && window.goVesselWithFilter(\'' + ea(l.vid) + '\',\'orders\')">' + l.un + ' PO senza scalo</span>' : "") + '</div>' +
-      '<div class="rd-lt">' + grid + '<i class="rd-nowline" style="left:0"></i>' + blocks + empty + '</div></div>';
+      '<div class="rd-lt"><i class="rd-pastz"></i>' + grid + '<i class="rd-nowline" style="left:' + PW + 'px"></i>' + pastB + blocks + empty + '</div></div>';
   }).join("");
 
   // scalo selezionato
   let selHTML = "";
-  if(sel){
+  if(sel && sel.past){
+    const PS = { miss: 0, ifx: 1, onb: 2 };
+    const PILL = { onb: ["#14794e", "#e6f4ec", "A bordo · DN chiusa"], ifx: ["#1553d8", "#e6eefc", "A bordo · DN da chiudere"], miss: ["#b06a00", "#fdf3e2", "Non risulta a bordo"] };
+    const rowsP = sel.rows.slice().sort((a, b) => PS[a.s] - PS[b.s]).map(r => { const p = PILL[r.s], id = ea(r.it.id);
+      const where = r.s === "miss" && r.pos && MP_POS[r.pos] ? " · " + MP_POS[r.pos].l.toLowerCase() : "";
+      return '<div class="rd-prow"><div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(r.it.poNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (r.it.dnNumber ? '<span class="rd-pon">DN ' + esc(String(r.it.dnNumber).replace(/^\d{4}-/, "")) + '</span>' : "") + '</div><b>' + esc(r.it.description || "") + '</b><span>' + esc(r.it.supplier && r.it.supplier !== "—" ? r.it.supplier : "Fornitore non indicato") + '</span></div>' +
+        '<span class="rd-ppill" style="color:' + p[0] + ';background:' + p[1] + ';border-color:' + p[0] + '">' + p[2] + esc(where) + '</span>' +
+        '<div class="rd-pact">' + (r.s === "miss" ? '<button class="btn btn-sm" onclick="window.mpSetPos(\'' + id + '\',\'onboard\')">✓ È a bordo</button>' : "") + '<button class="btn btn-sm" onclick="window.openItemDetailPopover(\'' + id + '\')">Apri</button></div></div>'; }).join("");
+    const pv = !sel.rows.length ? "Nessun PO era legato a questo scalo" : !sel.open ? "Cerchio chiuso: tutto a bordo e DN chiuse" : [sel.n.miss ? sel.n.miss + " PO non risult" + (sel.n.miss > 1 ? "ano" : "a") + " a bordo" : "", sel.n.ifx ? sel.n.ifx + " DN da chiudere" : ""].filter(Boolean).join(" · ");
+    selHTML = '<div class="rd-card"><div class="rd-selh"><div class="rd-selm">' +
+      '<div class="rd-eyebrow">SCALO CONCLUSO · VERIFICA</div><div class="rd-selp">' + esc(sel.port) + ' <span>· ' + esc(sel.vname) + '</span></div>' +
+      '<div class="rd-mono">' + [sel.etaS ? "ETA " + rdFD(sel.eta, now) : "", "ETD " + rdFD(sel.etd, now) + (sel.etdS ? "" : " (stimata)")].filter(Boolean).join(" · ") + '</div>' +
+      '<div class="rd-sum"><b style="color:' + (sel.open ? (sel.n.miss ? "#b06a00" : "#1553d8") : "#14794e") + '">' + esc(pv) + '</b></div></div>' +
+      '<div class="rd-pk"><div><b style="color:#14794e">' + sel.n.onb + '</b><span>a bordo · DN chiusa</span></div>' +
+      '<div><b style="color:#1553d8">' + sel.n.ifx + '</b><span>a bordo · DN da chiudere</span>' + (sel.n.ifx ? '<a href="#" onclick="window.ifxOpen();return false;">Chiedi alla nave →</a>' : "") + '</div>' +
+      '<div><b style="color:#b06a00">' + sel.n.miss + '</b><span>non risultano a bordo</span>' + (sel.n.miss ? '<span>segnali a bordo o riassegnali a uno scalo</span>' : "") + '</div></div></div>' +
+      (rowsP ? '<div class="rd-plist">' + rowsP + '</div>' : "") +
+      '<div class="rd-pfoot">Qui restano solo gli scali degli ultimi ' + RD_PB + ' giorni, finché non chiudi il cerchio. L\'elenco completo di tutti i viaggi è nello <a href="#" onclick="window.openDeliveryArchive();return false;">Storico consegne (flotta) →</a></div></div>';
+  } else if(sel){
     const pr = rdProfile(sel.port);
     const cut = sel.etd - pr.notice / 24;
     const known = sel.its.filter(x => !x.unknown).map(x => x.hi);
@@ -27150,12 +27224,12 @@ function radarPaint(){
     for(let d = 0; d <= ax1; d += gs) gT += '<span class="rd-gt' + (d === 0 ? " now" : "") + '" style="left:' + gp(d) + '%">' + (d === 0 ? "OGGI" : rdFD(d, now)) + '</span>';
     const band = 'left:' + gp(Math.max(0, sel.etb)) + '%;width:' + Math.max(0, gp(sel.etd) - gp(Math.max(0, sel.etb))) + '%';
     const SEG = { f: "#8fa1b5", t: "#2b6de0", d: "#1d3a5c", s: "#2b6de0" }, HATCH = { f: "#e7ecf2", t: "#dfe8fb", d: "#d3dbe6", s: "#dfe8fb" };
-    const rows = sel.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || (b.crit - a.crit) || ((a.cut - a.H2) - (b.cut - b.H2))).map(x => {
+    const rows = sel.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || ((a.onb ? 1 : 0) - (b.onb ? 1 : 0)) || (b.crit - a.crit) || ((a.cut - a.H2) - (b.cut - b.H2))).map(x => {
       const open = window._rd.open === x.it.id;
       const bars = x.segs.map(s => '<i class="rd-seg" style="left:' + gp(s.a) + '%;width:' + Math.max(0.6, gp(s.lo) - gp(s.a)) + '%;background:' + SEG[s.k] + '"></i><i class="rd-seg h" style="left:' + gp(s.lo) + '%;width:' + Math.max(0, gp(s.hi) - gp(s.lo)) + '%;background:repeating-linear-gradient(45deg,' + SEG[s.k] + ' 0 3px,' + HATCH[s.k] + ' 3px 6px)"></i>').join("");
-      const note = x.unknown ? '<span class="rd-gnote bad">? ' + esc(x.st === "nodn" ? "nessuna DN né data di spedizione" : "PO senza data di pronto") + '</span>' : (!x.segs.length ? '<span class="rd-gnote ok">✓ pronto</span>' : "");
-      const verdict = x.k === "ok" ? x.margin : x.k === "risk" ? "a rischio · " + x.margin : x.unknown ? "senza data" : "non arriva · " + x.margin;
-      const sub = x.k === "ok" ? "a bordo entro il " + rdFD(x.hi, now) : x.unknown ? esc(x.chain.split(" → ")[0]) : "arrivo " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now);
+      const note = x.unknown ? '<span class="rd-gnote bad">? ' + esc(x.st === "nodn" ? "nessuna DN né data di spedizione" : "PO senza data di pronto") + '</span>' : (x.onb ? '<span class="rd-gnote ok">✓ a bordo' + (x.ifx ? ' · DN da chiudere' : '') + '</span>' : !x.segs.length ? '<span class="rd-gnote ok">✓ pronto</span>' : "");
+      const verdict = x.onb ? "✓ a bordo" : x.k === "ok" ? x.margin : x.k === "risk" ? "a rischio · " + x.margin : x.unknown ? "senza data" : "non arriva · " + x.margin;
+      const sub = x.onb ? (x.onbD != null ? "consegnata il " + rdFD(x.onbD, now) : "consegnata") + (x.ifx ? " · DN aperta in Infoship" : " · DN chiusa") : x.k === "ok" ? "a bordo entro il " + rdFD(x.hi, now) : x.unknown ? esc(x.chain.split(" → ")[0]) : "arrivo " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now);
       let altHTML = "";
       if(open){
         altHTML = '<div class="rd-alt"><div class="rd-alt-h"><b>Dove arriva in tempo?</b><span>stessa catena, con dogana e preavviso di ogni porto</span>' +
@@ -27187,7 +27261,7 @@ function radarPaint(){
       '<div class="rd-mono">' + [sel.etaS ? "ETA " + rdFDT(sel.eta, now) : "", sel.etbS ? "ETB " + rdFDT(sel.etb, now) : "", "ETD " + rdFDT(sel.etd, now) + (sel.etdS ? "" : " (stimata: ETB + 1 g)")].filter(Boolean).join(" · ") + '</div>' +
       '<div class="rd-cutrow"><span class="rd-cutp">Limite di consegna ' + rdFDT(cut, now) + '</span><span class="rd-sub">ETD − ' + pr.notice + ' h di preavviso</span></div>' +
       '<div class="rd-mix"><i style="flex:' + sel.n.ok + ';background:#14794e"></i><i style="flex:' + sel.n.risk + ';background:#c07800"></i><i style="flex:' + sel.n.late + ';background:#c0261c"></i></div>' +
-      '<div class="rd-sum"><b style="color:' + TINT[sel.worst][1] + '">' + verdict + '</b> · ' + sel.its.length + ' PO · ' + sel.n.ok + ' in tempo · ' + sel.n.risk + ' a rischio · ' + sel.n.late + ' non arrivano' + (sel.onb ? ' · <span style="color:#14794e;font-weight:700">' + sel.onb + ' già a bordo</span>' + (sel.onbIfx ? ' <a href="#" onclick="if(window.ifxOpen)window.ifxOpen();return false;" style="color:#1553d8;font-weight:700">(' + sel.onbIfx + ' DN da chiudere in Infoship →)</a>' : '') : '') + '</div></div>' +
+      '<div class="rd-sum"><b style="color:' + TINT[sel.worst][1] + '">' + verdict + '</b> · ' + sel.its.length + ' PO · ' + (sel.n.ok - (sel.onb || 0)) + ' in tempo · ' + sel.n.risk + ' a rischio · ' + sel.n.late + ' non arrivano' + (sel.onb ? ' · <span style="color:#14794e;font-weight:700">' + sel.onb + ' già a bordo</span>' + (sel.onbIfx ? ' <a href="#" onclick="if(window.ifxOpen)window.ifxOpen();return false;" style="color:#1553d8;font-weight:700">(' + sel.onbIfx + ' DN da chiudere in Infoship →)</a>' : '') : '') + '</div></div>' +
       '<div class="rd-prof"><div class="rd-prof-h"><b>Profilo porto · ' + esc(sel.port) + '</b><span class="rd-src ' + (pr.set ? "set" : "") + '">' + (pr.set ? "tuo profilo" : "valori standard") + '</span><button class="btn btn-sm" onclick="window.rdEditProfile(\'' + ea(sel.port) + '\')">Modifica</button></div>' +
       '<div class="rd-prof-g"><div><em>Dogana</em><b>' + rdF1(pr.customs[0]) + '–' + rdF1(pr.customs[1]) + ' gg' + (pr.eu ? " · 0 se UE" : "") + '</b></div><div><em>Preavviso agente</em><b>' + pr.notice + ' h</b></div><div><em>Affidabilità</em><b style="color:' + relC + '">' + rel + '</b></div></div>' +
       '<div class="rd-sub"><em>Agenzia</em> <b>' + esc(pr.agent || "—") + '</b></div>' + (pr.note ? '<div class="rd-note">' + esc(pr.note) + '</div>' : "") + '</div></div>' +
@@ -27220,8 +27294,8 @@ function radarPaint(){
     '<div class="rd-stats"><div><b>' + risky.length + '</b><span>scali scoperti su ' + M.calls.length + '</span></div><div><b>' + all.filter(x => x.k === "late").length + '</b><span>PO non arrivano</span></div><div><b>' + all.filter(x => x.k === "risk").length + '</b><span>PO a rischio</span></div><div class="w"><b>' + critBad.length + '</b><span>critici scoperti</span></div></div></div>' +
     '<div class="rd-card rd-moves"><div class="rd-ch"><b>Le mosse di oggi</b><span>critici prima, poi per ripartenza</span></div>' +
     (mv.length ? mv.map((m, i) => '<div class="rd-move"><em>' + (i + 1) + '</em><div><small style="color:' + m.c + '">' + esc(m.where) + '</small><b>' + esc(m.title) + '</b><span>' + esc(m.why) + '</span></div><button class="btn btn-primary btn-sm" onclick="' + m.go + '">' + m.cta + '</button></div>').join("") : '<div class="rd-ok">Nessuna mossa urgente: tutti gli scali sono coperti.</div>') + '</div></div>' +
-    '<div class="rd-card"><div class="rd-ch"><b>Radar scali</b><span>ogni pallino è un PO che deve essere a bordo prima del limite di consegna · clicca uno scalo</span></div>' +
-    '<div class="rd-scroll"><div class="rd-radar"><div class="rd-lane rd-axis"><div></div><div class="rd-lt">' + ticks + '</div></div>' + lanesHTML + '</div></div></div>' +
+    '<div class="rd-card"><div class="rd-ch"><b>Radar scali</b><span>ogni pallino è un PO che deve essere a bordo prima del limite di consegna · clicca uno scalo · a sinistra gli scali appena conclusi: ● a bordo, ○ DN da chiudere, <span style="color:#b06a00">○</span> non risulta a bordo</span></div>' +
+    '<div class="rd-scroll"><div class="rd-radar"><div class="rd-lane rd-axis"><div></div><div class="rd-lt"><i class="rd-pastz"></i><span class="rd-tick rd-pastlab" style="left:10px">APPENA CONCLUSI · ' + RD_PB + ' GG</span>' + ticks + '</div></div>' + lanesHTML + '</div></div></div>' +
     selHTML +
     '<div class="rd-bottom"><div class="rd-card"><div class="rd-ch"><b>Chi sentire oggi</b><span>solo i fornitori che scoprono uno scalo</span></div>' + supHTML + '</div>' +
     '<div class="rd-card"><div class="rd-ch"><b>Come stimo i tempi</b></div><div class="rd-txt">Ogni PO è una catena: <b>pronto dal fornitore</b> (data di pronto del PO o lead time della scheda) → <b>trasporto</b> (tracking se c\'è, altrimenti stima per modo) → <b>dogana</b> (profilo porto; zero per merce UE in porto UE) → <b>sottobordo</b> (preavviso all\'agente). Ogni tappa ha minimo e massimo; il colore segue la stima ' + M.basis + '.</div><div class="rd-txt muted">I PO entrano nel radar quando sono pianificati su uno scalo del viaggio (Pianifica consegna o "Sposta"). Il flag <span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:3px;background:#c0261c;color:#fff;font:800 9.5px/1 var(--font-sans);vertical-align:-2px;">C</span> critico viene dalla lista Critical Equipment (PMS) e si corregge a mano dalla scheda articolo.</div></div>' +
