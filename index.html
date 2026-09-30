@@ -9771,7 +9771,7 @@ const state = {
 function saveSettings() {
   localStorage.setItem(LS_KEYS.settings, JSON.stringify(state.settings));
 }
-function saveSnoozed() { localStorage.setItem(LS_KEYS.snoozed, JSON.stringify(state.snoozed)); }
+function saveSnoozed() { localStorage.setItem(LS_KEYS.snoozed, JSON.stringify(state.snoozed)); if (typeof driveSchedulePush === "function") driveSchedulePush(); }
 function saveNotes() {
   localStorage.setItem(LS_KEYS.notes, JSON.stringify(state.notes));
   driveSchedulePush();
@@ -14967,7 +14967,8 @@ window.addManualOrder = function(vid){
 };
 window.updateManualOrder = function(vid,id,field,value){
   const all=loadAllManualOrders(); const arr=all[vid]||[]; const o=arr.find(x=>x.id===id);
-  if(!o) return; o[field]=value; all[vid]=arr; saveAllManualOrders(all);
+  if(!o){ renderManualOrdersInto(vid); showToast("Ordine non trovato: ricaricato il registro"); return; }
+  o[field]=value; o.updatedAt=new Date().toISOString(); all[vid]=arr; saveAllManualOrders(all);
   // aggiorno solo i badge di stato senza ri-renderizzare tutto (mantiene focus input)
   if(field==="status"){ renderManualOrdersInto(vid); }
 };
@@ -24711,13 +24712,13 @@ async function drivePull() {
   console.log(`[Drive] pull: ricevuti ${(remote.todos||[]).length} to-do, ${Object.keys(remote.notes||{}).length} note dal file (modifiedTime: ${meta.modifiedTime})`);
 
   // Merge con dati locali
-  mergeRemoteIntoLocal(remote);
+  const _dch = mergeRemoteIntoLocal(remote);
 
   state.drive.lastModifiedAt = meta.modifiedTime;
   localStorage.setItem(LS_KEYS.driveLastModified, meta.modifiedTime);
   state.drive.lastSyncAt = new Date().toISOString();
   driveSetStatus("connected");
-  render();  // rerender per mostrare eventuali to-do nuove
+  if (_dch) syncRender();  // v1.09 — solo se è cambiato qualcosa, e non mentre scrivi
 }
 
 // === MERGE (last-write-wins su id, additivo per chiavi) ====================
@@ -24728,146 +24729,11 @@ async function drivePull() {
 //          merge per id chiave: se entrambi presenti vince il remoto
 // - archivedActions: union — se entrambi presenti vince archivedAt più recente
 function mergeRemoteIntoLocal(remote) {
-  if (!remote || typeof remote !== "object") return;
-
-  const beforeCount = state.todos.length;
-  console.log(`[Drive] merge: remote ha ${(remote.todos||[]).length} to-do, locale ${beforeCount}`);
-
-  // --- TODOS ---
-  if (Array.isArray(remote.todos)) {
-    const localById = {};
-    for (const t of state.todos) localById[t.id] = t;
-    for (const r of remote.todos) {
-      const local = localById[r.id];
-      if (!local) {
-        state.todos.push(r);
-      } else {
-        // Vince il più recente: confronto updatedAt (o doneAt o createdAt)
-        const localTs = local.updatedAt || local.doneAt || local.createdAt || "";
-        const remoteTs = r.updatedAt || r.doneAt || r.createdAt || "";
-        if (remoteTs > localTs) {
-          Object.assign(local, r);
-        }
-      }
-    }
-    console.log(`[Drive] merge completato: ${state.todos.length} to-do (era ${beforeCount})`);
-    saveTodos();
-  }
-
-  // --- NOTES (dizionario itemId -> testo) ---
-  if (remote.notes && typeof remote.notes === "object") {
-    // Strategia semplice: merge additivo. In caso di conflitto vince remoto
-    // (perché un'altra device l'ha aggiornato dopo)
-    state.notes = { ...state.notes, ...remote.notes };
-    saveNotes();
-  }
-
-  // --- SUPPLIER TIMEZONES (v0.8) ---
-  // v0.10: merge completionsHistory (union by key+completedAt per evitare duplicati)
-  if (Array.isArray(remote.completionsHistory)) {
-    const existingKeys = new Set(state.completionsHistory.map(e => e.key + "|" + e.completedAt));
-    for (const remoteEntry of remote.completionsHistory) {
-      const k = remoteEntry.key + "|" + remoteEntry.completedAt;
-      if (!existingKeys.has(k)) {
-        state.completionsHistory.push(remoteEntry);
-        existingKeys.add(k);
-      }
-    }
-    // Ordino per data crescente
-    state.completionsHistory.sort((a, b) => a.completedAt.localeCompare(b.completedAt));
-    saveCompletionsHistory();
-  }
-
-  // v0.10.2 — merge supplierLanguages (last-write-wins per chiave)
-  if (remote.supplierLanguages && typeof remote.supplierLanguages === "object") {
-    state.supplierLanguages = { ...state.supplierLanguages, ...remote.supplierLanguages };
-    saveSupplierLanguages();
-  }
-  // v0.11 — merge certificates (last-write-wins per vessel)
-  if (remote.certificates && typeof remote.certificates === "object") {
-    state.certificates = { ...state.certificates, ...remote.certificates };
-    if (remote.certificatesMeta && typeof remote.certificatesMeta === "object") {
-      state.certificatesMeta = { ...state.certificatesMeta, ...remote.certificatesMeta };
-    }
-    saveCertificates();
-  }
-  if (remote.certExtras && typeof remote.certExtras === "object" && typeof saveCertExtras === "function") {
-    saveCertExtras({ ...(typeof loadCertExtras==="function"?loadCertExtras():{}), ...remote.certExtras });
-  }
-  // v0.12 — merge voyages (last-write-wins per nave)
-  if (remote.voyages && typeof remote.voyages === "object") {
-    state.voyages = { ...state.voyages, ...remote.voyages };
-    saveVoyages();
-  }
-  // v0.14 — merge outlookCompletionQueue (union, dedup per taskId)
-  if (Array.isArray(remote.outlookCompletionQueue)) {
-    const localTaskIds = new Set((state.outlookCompletionQueue || []).map(q => q.taskId));
-    for (const item of remote.outlookCompletionQueue) {
-      if (item && item.taskId && !localTaskIds.has(item.taskId)) {
-        state.outlookCompletionQueue.push(item);
-      }
-    }
-    saveOutlookCompletionQueue();
-  }
-  // v0.10.2 — merge pinnedActions (union dei due array)
-  if (Array.isArray(remote.pinnedActions)) {
-    const set = new Set([...(state.pinnedActions || []), ...remote.pinnedActions]);
-    state.pinnedActions = [...set];
-    savePinnedActions();
-  }
-
-  if (remote.supplierTimezones && typeof remote.supplierTimezones === "object") {
-    // Merge additivo: per chiavi solo remote, aggiungo. Locale ha precedenza.
-    for (const supplier of Object.keys(remote.supplierTimezones)) {
-      if (!(supplier in state.supplierTimezones)) {
-        state.supplierTimezones[supplier] = remote.supplierTimezones[supplier];
-      }
-    }
-    saveSupplierTimezones();
-  }
-
-  // --- ARCHIVED ACTIONS ---
-  if (remote.archivedActions && typeof remote.archivedActions === "object") {
-    for (const [key, val] of Object.entries(remote.archivedActions)) {
-      const local = state.archivedActions[key];
-      if (!local || (val.archivedAt && val.archivedAt > (local.archivedAt || ""))) {
-        state.archivedActions[key] = val;
-      }
-    }
-    saveArchivedActions();
-  }
-
-  // === v0.51 — chiavi aggiuntive per sync COMPLETO cross-dispositivo ===
-  // Convenzione coerente col resto del merge: in conflitto vince il remoto
-  // (spread {...local, ...remote}); le chiavi presenti solo da un lato si sommano.
-  if (remote.snoozed && typeof remote.snoozed === "object") {
-    state.snoozed = { ...state.snoozed, ...remote.snoozed };
-    saveSnoozed();
-  }
-  if (remote.manualOrders && typeof remote.manualOrders === "object" && typeof saveAllManualOrders === "function") {
-    saveAllManualOrders({ ...loadAllManualOrders(), ...remote.manualOrders });
-  }
-  if (remote.deliveries && typeof remote.deliveries === "object" && typeof saveDeliveriesDB === "function") {
-    saveDeliveriesDB({ ...loadDeliveries(), ...remote.deliveries });
-  }
-  if (remote.shipments && typeof remote.shipments === "object" && typeof saveShipmentsDB === "function") {
-    const loc = loadShipments(), rs = remote.shipments, mg = { ...loc, ...rs }, G = { ...(loc.__groups || {}) }, rg = rs.__groups || {};
-    Object.keys(rg).forEach(k => { if(!G[k] || String(rg[k].updatedAt || "") >= String(G[k].updatedAt || "")) G[k] = rg[k]; });
-    if (Object.keys(G).length) mg.__groups = G;
-    saveShipmentsDB(mg);
-  }
-  if (remote.vesselPos && typeof remote.vesselPos === "object" && typeof saveVesselPos === "function") {
-    saveVesselPos({ ...loadVesselPos(), ...remote.vesselPos });
-  }
-  if (remote.supplierProfiles && typeof remote.supplierProfiles === "object" && typeof saveEntityProfiles === "function") {
-    saveEntityProfiles("supplier", { ...loadEntityProfiles("supplier"), ...remote.supplierProfiles });
-  }
-  if (remote.agencyProfiles && typeof remote.agencyProfiles === "object" && typeof saveEntityProfiles === "function") {
-    saveEntityProfiles("agency", { ...loadEntityProfiles("agency"), ...remote.agencyProfiles });
-  }
-  if (Array.isArray(remote.worldClockCities) && remote.worldClockCities.length && typeof saveWorldClockCities === "function") {
-    saveWorldClockCities(remote.worldClockCities);
-  }
+  // v1.09 — Drive e sync n8n usano lo STESSO merge sicuro del sync GitHub: to-do per voce con
+  // pietre tombali, dizionari per voce (recMerge), registri additivi. Prima qui vinceva sempre il
+  // remoto ({...locale, ...remoto}) e il lavoro non ancora spedito veniva cancellato.
+  if (!remote || typeof remote !== "object") return false;
+  return mpdMergeRemote(remote, false);
 }
 
 // === PAYLOAD CONDIVISO (Drive + Sync n8n) =================================
@@ -24913,7 +24779,8 @@ function buildStatePayload() {
     reminders: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.reminders") : {}),
     chaseOff: (typeof loadChaseOff === "function" ? loadChaseOff() : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
-    collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {})
+    collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {}),
+    recRev: (typeof recTrack === "function" ? recTrack() : {})
   };
 }
 
@@ -25159,6 +25026,7 @@ async function driveRecoverFromDrive() {
 
 // === DEBOUNCED PUSH (chiamato a ogni modifica locale) =====================
 function driveSchedulePush() {
+  if (typeof recTrackSoon === "function") recTrackSoon();   // v1.09 — revisione per voce, subito dopo la modifica
   // v0.51 — il sync n8n è indipendente da Drive: va agganciato PRIMA dell'early-return,
   // altrimenti su iPhone (dove Drive non è connesso) non partirebbe mai.
   if (typeof stateSyncSchedulePush === "function") stateSyncSchedulePush();
@@ -25267,9 +25135,10 @@ async function stateSyncPull(opts) {
     const remote = await stateSyncRequest("load");
     if (remote && typeof remote === "object" && Object.keys(remote).length) {
       STATE_SYNC.suppressPush = true;
-      try { mergeRemoteIntoLocal(remote); }
+      let ch = false;
+      try { ch = mergeRemoteIntoLocal(remote); }
       finally { STATE_SYNC.suppressPush = false; }
-      if (!opts || opts.render !== false) render();
+      if (ch && (!opts || opts.render !== false)) syncRender();
     }
     STATE_SYNC.lastPullAt = new Date().toISOString();
     stateSyncSetStatus("ok");
@@ -25395,6 +25264,97 @@ function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }c
 function collIsEmpty(s){ return s===undefined||s===""||s==="[]"||s==="{}"||s==='{"c":{},"m":{}}'; }
 function ghLoadCollMeta(){ return ghLoadObj("mpd.collMeta"); }
 function ghSaveCollMeta(m){ ghSaveObj("mpd.collMeta", m); }
+
+// ============================================================================
+// === v1.09 — SYNC PER SINGOLA VOCE per tutti i dizionari (fine dei "dati che spariscono")
+// ============================================================================
+// Sintomo: ordini manuali VEGA UNO scritti e poi spariti. Cause: (1) il merge Drive/n8n faceva
+// {...locale, ...remoto} → l'ARRAY ordini della nave veniva sostituito da quello remoto (più vecchio);
+// (2) il sync GitHub adottava l'intera collezione se il suo timestamp era più recente; (3) mentre
+// scrivevi, una volta sostituito il dato, la battuta successiva non trovava più l'ordine e non salvava.
+// Ora ogni VOCE (ordine, consegna, profilo, nota, viaggio…) ha la sua revisione [hash, quando]
+// in mpd.recRev, calcolata diffando il contenuto (nessun save*() da riscrivere). In merge vince
+// la revisione più recente voce per voce; una cancellazione viaggia come voce [null, quando].
+// Da un dispositivo non aggiornato (senza recRev) si prendono solo le voci nuove: non sovrascrive.
+function recDefs(){
+  const st = (k, saveFn) => ({ load: () => (state[k] && typeof state[k] === "object" ? state[k] : {}), save: o => { state[k] = o; saveFn(); } });
+  return {
+    manualOrders: { load: loadAllManualOrders, save: saveAllManualOrders,
+      flat: o => { const f = {}; Object.keys(o || {}).forEach(v => (Array.isArray(o[v]) ? o[v] : []).forEach(x => { if (x && x.id) f[v + "|" + x.id] = x; })); return f; },
+      join: (f, prev) => { const idx = {}; Object.keys(prev || {}).forEach(v => (prev[v] || []).forEach((x, i) => { if (x && x.id) idx[v + "|" + x.id] = i; }));
+        const out = {}; Object.keys(prev || {}).forEach(v => out[v] = []);
+        Object.keys(f).sort((a, b) => ((idx[a] ?? 1e9) - (idx[b] ?? 1e9)) || a.localeCompare(b)).forEach(k => { const v = k.slice(0, k.indexOf("|")); (out[v] = out[v] || []).push(f[k]); });
+        return out; } },
+    shipments: { load: loadShipments, save: saveShipmentsDB,
+      flat: o => { const f = {}; Object.keys(o || {}).forEach(k => { if (k === "__groups") Object.keys(o.__groups || {}).forEach(g => f["G|" + g] = o.__groups[g]); else f[k] = o[k]; }); return f; },
+      join: f => { const o = {}; Object.keys(f).forEach(k => { if (k.startsWith("G|")) { (o.__groups = o.__groups || {})[k.slice(2)] = f[k]; } else o[k] = f[k]; }); return o; } },
+    deliveries: { load: loadDeliveries, save: saveDeliveriesDB },
+    vesselPos: { load: loadVesselPos, save: saveVesselPos },
+    supplierProfiles: { load: () => loadEntityProfiles("supplier"), save: o => saveEntityProfiles("supplier", o) },
+    agencyProfiles: { load: () => loadEntityProfiles("agency"), save: o => saveEntityProfiles("agency", o) },
+    itemOverrides: { load: loadItemOverrides, save: saveItemOverrides },
+    certExtras: { load: loadCertExtras, save: saveCertExtras },
+    notes: st("notes", saveNotes), voyages: st("voyages", saveVoyages), snoozed: st("snoozed", saveSnoozed),
+    archivedActions: st("archivedActions", saveArchivedActions), supplierTimezones: st("supplierTimezones", saveSupplierTimezones),
+    supplierLanguages: st("supplierLanguages", saveSupplierLanguages)
+  };
+}
+function recHash(v){ const s = JSON.stringify(v === undefined ? null : v); let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); }
+function recFlat(d, o){ return d.flat ? d.flat(o) : Object.assign({}, o || {}); }
+// Stampa "ora" sulle voci cambiate dall'ultima osservazione. Prima osservazione di una collezione:
+// revisione vuota (le voci locali preesistenti non rivendicano freschezza).
+function recTrack(){
+  let D; try { D = recDefs(); } catch (e) { return ghLoadObj("mpd.recRev"); }
+  const RR = ghLoadObj("mpd.recRev"), now = new Date().toISOString(), old = new Date(Date.now() - 180 * 86400000).toISOString();
+  let dirty = false;
+  for (const c of Object.keys(D)) {
+    let cur; try { cur = recFlat(D[c], D[c].load()); } catch (e) { continue; }
+    const first = !RR[c], r = RR[c] || {};
+    for (const k of Object.keys(cur)) { const h = recHash(cur[k]); if (!r[k] || r[k][0] !== h) { r[k] = [h, first ? "" : now]; dirty = true; } }
+    for (const k of Object.keys(r)) { if (!(k in cur)) { if (r[k][0] !== null) { r[k] = [null, now]; dirty = true; } else if (r[k][1] < old) { delete r[k]; dirty = true; } } }
+    if (first) dirty = true; RR[c] = r;
+  }
+  if (dirty) ghSaveObj("mpd.recRev", RR);
+  return RR;
+}
+function recTrackSoon(){ clearTimeout(window._recT); window._recT = setTimeout(() => { try { recTrack(); } catch (e) {} }, 300); }
+// Merge per voce. force = adotta il remoto così com'è (Sostituisci con la versione cloud / ripristino).
+function recMerge(remote, force){
+  if (!remote || typeof remote !== "object") return false;
+  let D; try { D = recDefs(); } catch (e) { return false; }
+  const LR = recTrack(), RRv = (remote.recRev && typeof remote.recRev === "object") ? remote.recRev : {};
+  let any = false;
+  for (const c of Object.keys(D)) {
+    const rv = remote[c]; if (!rv || typeof rv !== "object" || Array.isArray(rv)) continue;
+    const d = D[c], prev = d.load(), L = recFlat(d, prev), Rf = recFlat(d, rv), rrev = RRv[c] || {}, lrev = LR[c] || (LR[c] = {});
+    let ch = false;
+    const keys = new Set([...Object.keys(L), ...Object.keys(Rf), ...Object.keys(rrev)]);
+    for (const k of keys) {
+      const rr = rrev[k] ? String(rrev[k][1] || "") : "", lr = lrev[k] ? String(lrev[k][1] || "") : "";
+      const rHas = (k in Rf) && !(rrev[k] && rrev[k][0] === null), lHas = k in L;
+      let take = false;
+      if (force) take = true;
+      else if (rrev[k] && rr > lr) take = true;
+      else if (rHas && !lHas && !(lrev[k] && lrev[k][0] === null && lr >= rr)) take = true;   // voce nuova arrivata da altrove
+      if (!take) continue;
+      if (rHas) { if (!lHas || recHash(L[k]) !== recHash(Rf[k])) { L[k] = Rf[k]; ch = true; } lrev[k] = [recHash(Rf[k]), rr]; }
+      else if (lHas && (force || rrev[k])) { delete L[k]; ch = true; lrev[k] = [null, rr || new Date().toISOString()]; }
+    }
+    if (ch) { try { d.save(d.join ? d.join(L, prev) : L); any = true; } catch (e) { console.warn("[sync voce]", c, e); } }
+  }
+  ghSaveObj("mpd.recRev", LR);
+  return any;
+}
+const REC_COLLS = ["manualOrders","shipments","deliveries","vesselPos","supplierProfiles","agencyProfiles","itemOverrides","certExtras","notes","voyages","snoozed","archivedActions","supplierTimezones","supplierLanguages"];
+// Dopo un sync non ridisegno mentre stai scrivendo in un campo: lo faccio quando esci dal campo.
+function syncRender(){
+  const a = document.activeElement;
+  if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== "search" && a.closest && a.closest("#view-root")) {
+    if (!window._syncRenderPending) { window._syncRenderPending = true; a.addEventListener("blur", () => { window._syncRenderPending = false; setTimeout(() => { try { render(); } catch (e) {} }, 50); }, { once: true }); }
+    return;
+  }
+  render();
+}
 
 // Serializzazione stabile del contenuto attuale di ogni collezione.
 function collSnapshot(){
@@ -25532,25 +25492,20 @@ function mpdMergeRemote(remote, force){
         changed = true;
       }
     }
-    adopt("notes", ()=>{ if(!remote.notes||typeof remote.notes!=="object") return false; state.notes=remote.notes; saveNotes(); });
-    adopt("snoozed", ()=>{ if(!remote.snoozed||typeof remote.snoozed!=="object") return false; state.snoozed=remote.snoozed; saveSnoozed(); });
-    adopt("archivedActions", ()=>{ if(!remote.archivedActions||typeof remote.archivedActions!=="object") return false; state.archivedActions=remote.archivedActions; saveArchivedActions(); });
-    adopt("completionsHistory", ()=>{ if(!Array.isArray(remote.completionsHistory)) return false; state.completionsHistory=remote.completionsHistory; saveCompletionsHistory(); });
-    adopt("supplierTimezones", ()=>{ if(!remote.supplierTimezones||typeof remote.supplierTimezones!=="object") return false; state.supplierTimezones=remote.supplierTimezones; saveSupplierTimezones(); });
-    adopt("supplierLanguages", ()=>{ if(!remote.supplierLanguages||typeof remote.supplierLanguages!=="object") return false; state.supplierLanguages=remote.supplierLanguages; saveSupplierLanguages(); });
+    // v1.09 — storico "fatte": unione additiva (chiave+data), non a blocco
+    if (Array.isArray(remote.completionsHistory)) {
+      if (force) { state.completionsHistory = remote.completionsHistory; saveCompletionsHistory(); changed = true; }
+      else { const L = Array.isArray(state.completionsHistory) ? state.completionsHistory : (state.completionsHistory = []);
+        const seen = new Set(L.map(e => e && (e.key + "|" + e.completedAt))); let add = 0;
+        remote.completionsHistory.forEach(e => { const k = e && (e.key + "|" + e.completedAt); if (e && !seen.has(k)) { L.push(e); seen.add(k); add++; } });
+        if (add) { L.sort((a, b) => String(a.completedAt || "").localeCompare(String(b.completedAt || ""))); saveCompletionsHistory(); changed = true; } }
+    }
     adopt("pinnedActions", ()=>{ if(!Array.isArray(remote.pinnedActions)) return false; state.pinnedActions=remote.pinnedActions; savePinnedActions(); });
     adopt("certificates", ()=>{ if(!remote.certificates||typeof remote.certificates!=="object") return false; state.certificates=remote.certificates; if(remote.certificatesMeta&&typeof remote.certificatesMeta==="object") state.certificatesMeta=remote.certificatesMeta; saveCertificates(); });
-    adopt("voyages", ()=>{ if(!remote.voyages||typeof remote.voyages!=="object") return false; state.voyages=remote.voyages; saveVoyages(); });
-    adopt("certExtras", ()=>{ if(!remote.certExtras||typeof remote.certExtras!=="object"||typeof saveCertExtras!=="function") return false; saveCertExtras(remote.certExtras); });
     adopt("outlookCompletionQueue", ()=>{ if(!Array.isArray(remote.outlookCompletionQueue)) return false; state.outlookCompletionQueue=remote.outlookCompletionQueue; saveOutlookCompletionQueue(); });
-    adopt("manualOrders", ()=>{ if(!remote.manualOrders||typeof remote.manualOrders!=="object"||typeof saveAllManualOrders!=="function") return false; saveAllManualOrders(remote.manualOrders); });
-    adopt("deliveries", ()=>{ if(!remote.deliveries||typeof remote.deliveries!=="object"||typeof saveDeliveriesDB!=="function") return false; saveDeliveriesDB(remote.deliveries); });
-    adopt("vesselPos", ()=>{ if(!remote.vesselPos||typeof remote.vesselPos!=="object"||typeof saveVesselPos!=="function") return false; saveVesselPos(remote.vesselPos); });
-    adopt("supplierProfiles", ()=>{ if(!remote.supplierProfiles||typeof remote.supplierProfiles!=="object"||typeof saveEntityProfiles!=="function") return false; saveEntityProfiles("supplier", remote.supplierProfiles); });
-    adopt("agencyProfiles", ()=>{ if(!remote.agencyProfiles||typeof remote.agencyProfiles!=="object"||typeof saveEntityProfiles!=="function") return false; saveEntityProfiles("agency", remote.agencyProfiles); });
     adopt("worldClockCities", ()=>{ if(!Array.isArray(remote.worldClockCities)||typeof saveWorldClockCities!=="function") return false; saveWorldClockCities(remote.worldClockCities); });
-    adopt("itemOverrides", ()=>{ if(!remote.itemOverrides||typeof remote.itemOverrides!=="object"||typeof saveItemOverrides!=="function") return false; saveItemOverrides(remote.itemOverrides); });
-    adopt("shipments", ()=>{ if(!remote.shipments||typeof remote.shipments!=="object"||typeof saveShipmentsDB!=="function") return false; saveShipmentsDB(remote.shipments); });
+    // v1.09 — dizionari: merge per singola voce (ordini manuali, consegne, spedizioni, profili, note, viaggi…)
+    if (recMerge(remote, force)) { REC_COLLS.forEach(c => { if (rMeta[c] && rMeta[c] > (lMeta[c] || "")) lMeta[c] = rMeta[c]; }); changed = true; }
     // v0.88 — registro solleciti RFQ: UNIONE additiva per numero RFQ (un sollecito inviato
     // da un device non può sparire perché un altro device è rimasto indietro).
     if (remote.rfqChases && typeof remote.rfqChases==="object" && typeof loadRfqChases==="function") {
@@ -25923,7 +25878,7 @@ async function ghSyncPull(opts) {
       // le mie modifiche più recenti restano. Sempre sicuro (niente gate su dirty).
       const changed = mpdMergeRemote(payload, false);
       if (remoteRev > ghGetBaseRev()) ghSetBaseRev(remoteRev);
-      if (changed && (!opts || opts.render !== false)) render();
+      if (changed && (!opts || opts.render !== false)) syncRender();
     }
     GH_SYNC.lastPullAt = new Date().toISOString();
     ghSyncSetStatus("ok");
@@ -26064,7 +26019,7 @@ async function ghSyncInit(force) {
       const remoteRev = Number(payload.rev) || 0;
       const changed = mpdMergeRemote(payload, false);   // LWW per collezione, sempre sicuro
       if (remoteRev > ghGetBaseRev()) ghSetBaseRev(remoteRev);
-      if (changed) render();
+      if (changed) syncRender();
       GH_SYNC.lastPullAt = new Date().toISOString();
     }
     ghSyncSetStatus("ok");
