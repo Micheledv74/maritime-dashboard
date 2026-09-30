@@ -15234,9 +15234,10 @@ function renderVesselDetail() {
     <div class="vd-panel" data-tab="procurement" style="display:${_vtab==='procurement'?'':'none'};">
       ${cfg.manual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : `
       ${cfg.allowManual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : ``}
-      ${ageBandsHTML}
-      <div class="section-title"><h2>Pipeline procurement</h2></div>
-      <div class="pipeline-grid">
+      ${(typeof pvMode === "function" && pvMode() === "radar") ? `<div id="pv-root">${(() => { try { return pvHTML(cfg.vesselId); } catch(e) { console.warn("[radar nave]", e); return ""; } })()}</div>` : `<div style="display:flex;justify-content:flex-end;margin:4px 0 -4px;"><button class="btn btn-sm" onclick="window.pvSetMode('radar')">Radar della nave →</button></div>`}
+      ${(typeof pvMode === "function" && pvMode() === "radar") ? "" : ageBandsHTML}
+      <div class="section-title" style="${(typeof pvMode === "function" && pvMode() === "radar") ? "display:none;" : ""}"><h2>Pipeline procurement</h2></div>
+      <div class="pipeline-grid" style="${(typeof pvMode === "function" && pvMode() === "radar") ? "display:none;" : ""}">
         <div class="pipeline-col ${state.pipelineFilter === "REQ" ? "active" : ""}" data-stage="REQ"><div class="pl-label">REQ</div><div class="pl-count">${pipeline.REQ.total}</div><div class="pl-sub">${pipeline.REQ.sub || "—"}</div></div>
         <div class="pipeline-col ${state.pipelineFilter === "RFQ" ? "active" : ""}" data-stage="RFQ"><div class="pl-label">RFQ</div><div class="pl-count">${pipeline.RFQ.total}</div><div class="pl-sub">${pipeline.RFQ.sub || "—"}</div></div>
         <div class="pipeline-col ${state.pipelineFilter === "PO" ? "active" : ""}" data-stage="PO"><div class="pl-label">PO</div><div class="pl-count">${pipeline.PO.total}</div><div class="pl-sub">${pipeline.PO.sub || "—"}</div></div>
@@ -27413,6 +27414,149 @@ function radarPaint(){
     (typeof ifxList === "function" && ifxList().length ? '<b style="margin-top:10px;">' + ifxList().length + ' DN da far chiudere alla nave</b><span>Confermate a bordo da te, ancora aperte in Infoship: solo la nave può chiuderle.</span><a onclick="window.ifxOpen()">Chiedi alla nave →</a>' : "") + '</div></div>';
 }
 window.radarPaint = radarPaint;
+
+// === v1.10 — RADAR DELLA NAVE (pagina Procurement) ===========================================
+// Stesso asse e stessi pallini del Radar scali, ma con TUTTI gli articoli aperti della nave:
+//  · una corsia per scalo futuro (pallino = arrivo a bordo stimato, linea rossa = limite di consegna)
+//  · "PO senza scalo" (pallino = pronto dal fornitore / arrivo se in viaggio)
+//  · "In acquisto" REQ/RFQ (pallino = quando aspetti l'offerta; in ritardo = a sinistra di oggi)
+//  · "Fermi apposta" (attese volute + solleciti annullati): grigi, mai rossi.
+// Vista classica (fasce età + pipeline) con mpd.procView = "classic".
+function pvMode(){ try { return localStorage.getItem("mpd.procView") === "classic" ? "classic" : "radar"; } catch(e) { return "radar"; } }
+window.pvSetMode = function(m){ try { localStorage.setItem("mpd.procView", m === "classic" ? "classic" : "radar"); } catch(e) {} render(); };
+window._pv = window._pv || { lane: {}, q: "" };
+const PV_C = { ok: "#14794e", risk: "#c07800", late: "#c0261c", me: "#1553d8", wait: "#8797a8", move: "#0f7b8a", hold: "#b8c3cf" };
+function pvStage(it){ return it.dnNumber ? 4 : it.poNumber ? 3 : (Array.isArray(it.rfqNumbers) && it.rfqNumbers.filter(Boolean).length) ? 2 : 1; }
+function pvDoc(it){ return it.dnNumber || it.poNumber || ((it.rfqNumbers || []).filter(Boolean)[0]) || it.reqNumber || ""; }
+function pvModel(vid){
+  const now = Date.now(), v = (state.data && state.data.vessels || []).find(x => x.vesselId === vid);
+  if(!v || !v.items) return null;
+  let M = null; try { M = rdModel(); } catch(e) {}
+  const calls = M ? M.allCalls.filter(c => c.vid === vid).sort((a, b) => a.etd - b.etd) : [];
+  const lanes = [], seen = new Set();
+  const thr = (state.settings && state.settings.overdueDays) || 7;
+  const co = typeof loadChaseOff === "function" ? loadChaseOff() : {};
+  calls.forEach(c => {
+    const dots = [];
+    c.its.forEach(x => { seen.add(x.it.id); if(x.onb) return;
+      const d = x.unknown ? -10 : x.H2;
+      dots.push({ it: x.it, d, c: PV_C[x.k], k: x.k, note: (x.unknown ? "senza data · " : "") + x.chain + (x.unknown ? "" : " · margine " + x.margin), crit: x.crit }); });
+    const onb = c.its.filter(x => x.onb).length;
+    lanes.push({ id: "call:" + c.id, name: c.port, sub: "ETD " + rdFD(c.etd, now) + " · limite " + rdFDT(c.its[0] ? c.its[0].cut : c.etd - 1, now), lim: c.its[0] ? c.its[0].cut : c.etd - 1, call: c, dots, onb });
+  });
+  const assign = [], buy = [], hold = [], nextCall = calls[0] || null;
+  v.items.forEach(it => {
+    if(seen.has(it.id) || rdCancelled(it) || it.dnStatus === "DN Received on Board") return;
+    const p = typeof mpOf === "function" ? mpOf(it, now) : null;
+    if(p && p.pos === "onboard") return;
+    if(it.poNumber){
+      if(rdStaleDN(it, now)) return;
+      if(typeof mpIntentional === "function" && mpIntentional(it)){ hold.push({ it, d: -10, c: PV_C.hold, k: "hold", note: (p && MP_POS[p.pos] ? MP_POS[p.pos].l : "fermo apposta") + (p && p.since ? " dal " + mpFD(p.since) : "") }); return; }
+      let d = null, c = PV_C.wait, k = "wait", note = "";
+      const ships = typeof getItemShipments === "function" ? getItemShipments(it.id) : [];
+      const mv = ships.filter(s => s.status !== "delivered" && s.eta).sort((a, b) => String(b.eta).localeCompare(String(a.eta)))[0];
+      if(mv){ d = rdDD(mv.eta, now); c = PV_C.move; k = "move"; note = "in viaggio · arrivo " + mpFD(mv.eta) + " · decidi lo scalo"; }
+      else if(it.dnStatus === "DN Shipped to Vessel"){ d = rdDD(it.dnDeliveryDate, now); c = PV_C.move; k = "move"; note = "DN spedita" + (it.dnDeliveryDate ? " · consegna " + mpFD(it.dnDeliveryDate) : "") + " · decidi lo scalo"; }
+      else { const rs = String(it.poDeliveryDate || "").slice(0, 10) || (typeof itemReadyDate === "function" ? (itemReadyDate(it) || "") : "");
+        d = rdDD(rs, now);
+        if(d == null){ d = 0; c = PV_C.me; k = "me"; note = "PO senza data di pronto · chiedila al fornitore"; }
+        else if(d <= 0.5){ c = PV_C.me; k = "me"; note = "pronto dal " + mpFD(rs) + " · decidi dove mandarlo"; }
+        else note = "pronto " + mpFD(rs); }
+      assign.push({ it, d, c, k, note, crit: rdCrit(it.id), cta: nextCall ? { lbl: "→ " + nextCall.port, fn: "window.rdMove('" + it.id + "','" + nextCall.id + "')" } : null });
+      return;
+    }
+    if(typeof reqIsClosed === "function" && reqIsClosed(it)) return;
+    if(co[it.id] && co[it.id].on){ hold.push({ it, d: -10, c: PV_C.hold, k: "hold", note: "sollecito annullato · " + (co[it.id].reason || "") }); return; }
+    const rfqs = (it.rfqNumbers || []).filter(Boolean), days = it.rfqDays || 0;
+    let d, c, k, note;
+    if(it.rfqStatus === "RFQ Refused"){ d = -Math.min(10, days); c = PV_C.late; k = "late"; note = "RFQ rifiutata " + days + " gg fa · trova un altro fornitore"; }
+    else if(it.rfqStatus === "RFQ Offer Acknowledged"){ d = -Math.min(10, days); c = PV_C.me; k = "me"; note = "offerta ricevuta · emetti il PO"; }
+    else if(rfqs.length){ d = thr - days; if(d < 0){ c = PV_C.late; k = "late"; note = "offerta attesa da " + days + " gg · sollecita"; } else { c = PV_C.wait; k = "wait"; note = "offerta attesa entro " + rdFD(d, now); } }
+    else { d = -Math.min(10, mpDaysSince(it.reqDate) || 0); c = PV_C.me; k = "me"; note = "REQ senza RFQ · manda la richiesta d'offerta"; }
+    buy.push({ it, d, c, k, note, crit: rdCrit(it.id) });
+  });
+  lanes.push({ id: "assign", name: "PO senza scalo", sub: "pallino = quando è pronto", dots: assign });
+  lanes.push({ id: "buy", name: "In acquisto", sub: "REQ / RFQ · pallino = offerta attesa", dots: buy });
+  lanes.push({ id: "hold", name: "Fermi apposta", sub: "attese volute · non sono ritardi", dots: hold });
+  return { now, vid, v, lanes, calls, nextCall };
+}
+function pvHTML(vid){
+  const P = pvModel(vid); if(!P) return "";
+  const esc = escapeHTML, ea = escapeAttr, now = P.now;
+  const A0 = -10, A1 = 30, pos = d => ((Math.max(A0, Math.min(A1, d)) - A0) / (A1 - A0) * 100).toFixed(2);
+  const all = P.lanes.flatMap(l => l.dots.map(x => Object.assign({ lane: l }, x)));
+  const tot = all.length, meN = all.filter(x => x.k === "me").length, lateN = all.filter(x => x.k === "late").length;
+  if(!window._pv.lane[vid] || !P.lanes.some(l => l.id === window._pv.lane[vid])) window._pv.lane[vid] = (P.lanes.find(l => l.dots.some(x => x.k === "late")) || P.lanes.find(l => l.dots.length) || P.lanes[0]).id;
+  const selId = window._pv.lane[vid];
+  // testata
+  const nc = P.nextCall, ncL = nc ? P.lanes.find(l => l.call === nc) : null;
+  let head;
+  if(nc && ncL){ const left = ncL.lim, dd = Math.max(0, Math.floor(left)), hh = Math.max(0, Math.floor((left - Math.floor(left)) * 24));
+    const n = { ok: 0, risk: 0, late: 0 }; ncL.dots.forEach(x => n[x.k] = (n[x.k] || 0) + 1);
+    const verdict = n.late ? n.late + " PO non arriva" + (n.late === 1 ? "" : "no") + " in tempo" : n.risk ? n.risk + " PO a rischio" : ncL.dots.length ? "tutto in tempo" : "nessun PO pianificato";
+    const tile = (num, lbl, white) => '<div style="' + (white ? "background:#fff;color:#0a1b2e;" : "background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);") + 'border-radius:12px;padding:8px 10px;"><div style="font-family:var(--font-mono);font-size:20px;font-weight:700;' + (white ? "color:#c0261c;" : "") + '">' + num + '</div><div style="font-size:11.5px;' + (white ? "color:#44576b;" : "") + '">' + lbl + '</div></div>';
+    head = '<div style="border-radius:18px;padding:16px 18px;color:#fff;background:linear-gradient(140deg,#1553d8 0%,#2b7cff 48%,#00c2ff 100%);display:flex;flex-direction:column;gap:12px;">' +
+      '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;"><span style="font-size:10.5px;font-weight:800;letter-spacing:.16em;opacity:.9;">PROSSIMO SCALO · ' + esc(String(nc.port).toUpperCase()) + '</span><span style="margin-left:auto;font-family:var(--font-mono);font-size:12px;opacity:.9;">limite ' + rdFDT(left, now) + '</span></div>' +
+      '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;"><span style="font-family:var(--font-mono);font-size:36px;font-weight:700;line-height:1;">' + (left < 0 ? "scaduto" : dd + "g " + String(hh).padStart(2, "0") + "h") + '</span><span style="font-size:18px;font-weight:800;line-height:1.2;">' + esc(verdict) + '</span></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;">' + tile(n.ok || 0, "in tempo") + tile(n.risk || 0, "a rischio") + tile(n.late || 0, "fuori tempo", true) + tile(meN, "tocca a te · nave") + '</div></div>';
+  } else {
+    head = '<div style="border-radius:18px;padding:16px 18px;background:#f5f7fa;border:1.5px dashed rgba(10,27,46,.2);display:flex;flex-direction:column;gap:8px;justify-content:center;">' +
+      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#44576b;">PROSSIMO SCALO</div><div style="font-size:18px;font-weight:800;">Nessuno scalo futuro nel Viaggio</div>' +
+      '<div style="font-size:12.5px;color:#44576b;line-height:1.45;">Senza scalo i PO non si possono misurare contro un limite di consegna. Aggiorna il Viaggio (Panoramica › Viaggio) e il radar si accende.</div>' +
+      '<div style="display:flex;gap:14px;font-size:12.5px;"><span><b style="font-family:var(--font-mono);font-size:18px;color:#1553d8;">' + meN + '</b> tocca a te</span><span><b style="font-family:var(--font-mono);font-size:18px;color:#c0261c;">' + lateN + '</b> in ritardo</span></div></div>';
+  }
+  // mosse: prima i fuori tempo dello scalo, poi "tocca a te" più vecchi, poi ritardi RFQ
+  const rank = x => (x.lane.call && x.k === "late" ? 0 : x.k === "late" ? 1 : x.k === "me" ? 2 : 9) + (x.crit ? -0.5 : 0);
+  const moves = all.filter(x => rank(x) < 9).sort((a, b) => rank(a) - rank(b) || a.d - b.d).slice(0, 3);
+  const mvHTML = moves.map((x, i) => {
+    const col = x.k === "late" ? "#c0261c" : "#1553d8", where = (x.lane.call ? x.lane.name + " · " + (x.k === "late" ? "fuori tempo" : "") : x.lane.name).toUpperCase();
+    const cta = x.cta ? '<button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="event.stopPropagation();' + x.cta.fn + '">' + esc(x.cta.lbl) + '</button>' : '<button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="window.openItemDetailPopover(\'' + ea(x.it.id) + '\')">Apri</button>';
+    return '<div style="display:flex;gap:12px;align-items:center;padding:9px 0;border-top:1px solid rgba(10,27,46,.08);"><span style="flex:none;width:24px;height:24px;border-radius:7px;background:#0a1b2e;color:#fff;font-family:var(--font-mono);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;">' + (i + 1) + '</span>' +
+      '<div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:800;letter-spacing:.06em;color:' + col + ';">' + esc(where.replace(/ · $/, "")) + (x.crit ? ' · <span style="color:#c0261c;">CRITICO</span>' : "") + '</div><div style="font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(x.it.description || "—") + (x.it.supplier && x.it.supplier !== "—" ? " · " + esc(x.it.supplier) : "") + '</div><div style="font-size:12px;color:#44576b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(x.note) + '</div></div>' + cta + '</div>';
+  }).join("") || '<div style="padding:14px 0;border-top:1px solid rgba(10,27,46,.08);font-size:13.5px;font-weight:700;color:#14794e;">Niente da fare adesso su questa nave.</div>';
+  const movesCard = '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;"><div style="font-size:15px;font-weight:800;margin-bottom:6px;">Le mosse di oggi</div>' + mvHTML + '</div>';
+  // radar
+  const ticks = [-10, -5, 0, 5, 10, 15, 20, 25, 30].map(d => '<div style="position:absolute;left:' + pos(d) + '%;top:2px;transform:translateX(-50%);font-family:var(--font-mono);font-size:10.5px;font-weight:' + (d === 0 ? 800 : 600) + ';color:' + (d === 0 ? "#1553d8" : "#6a7d90") + ';white-space:nowrap;">' + (d === 0 ? "OGGI" : rdFD(d, now)) + '</div>').join("");
+  const laneRow = l => {
+    const on = l.id === selId, worst = l.dots.some(x => x.k === "late") ? PV_C.late : l.dots.some(x => x.k === "risk") ? PV_C.risk : l.dots.some(x => x.k === "me") ? PV_C.me : l.dots.length ? (l.id === "hold" ? PV_C.hold : PV_C.ok) : "#d5dde6";
+    const rows = Math.max(1, Math.min(4, Math.ceil(l.dots.length / 14)));
+    const sorted = l.dots.slice().sort((a, b) => a.d - b.d); const lastAt = [];
+    const dots = sorted.map(x => { const p = +pos(x.d); let r = 0; while(r < 5 && lastAt[r] != null && p - lastAt[r] < 1.3) r++; lastAt[r] = p;
+      return '<i title="' + ea((x.it.description || "") + " · " + (x.it.supplier || "") + " · " + x.note) + '" onclick="event.stopPropagation();window.openItemDetailPopover(\'' + ea(x.it.id) + '\')" style="position:absolute;left:' + p + '%;top:' + (10 + r * 14) + 'px;transform:translateX(-50%);width:11px;height:11px;border-radius:' + (x.crit ? "3px" : "50%") + ';background:' + x.c + ';box-shadow:0 0 0 2px #fff' + (x.crit ? ",0 0 0 3.5px #c0261c" : "") + ';cursor:pointer;display:block;"></i>'; }).join("");
+    const h = Math.max(46, 20 + (lastAt.length) * 14);
+    const lim = l.lim != null ? '<div style="position:absolute;top:4px;bottom:4px;left:' + pos(0) + '%;width:' + Math.max(0, pos(l.lim) - pos(0)) + '%;background:rgba(20,121,78,.06);"></div><div style="position:absolute;top:0;bottom:0;left:' + pos(l.lim) + '%;border-left:2px dashed #c0261c;"></div><div style="position:absolute;top:1px;left:' + pos(l.lim) + '%;transform:translateX(5px);font-size:9.5px;font-weight:800;color:#c0261c;white-space:nowrap;">LIMITE</div>' : "";
+    return '<div onclick="window.pvLane(\'' + ea(vid) + '\',\'' + ea(l.id) + '\')" style="display:grid;grid-template-columns:190px minmax(0,1fr);border-bottom:1px solid rgba(10,27,46,.07);cursor:pointer;background:' + (on ? "#f3f7ff" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + ';">' +
+      '<div style="padding:9px 10px 9px 12px;display:flex;flex-direction:column;gap:2px;justify-content:center;min-width:0;"><div style="font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;"><i style="width:9px;height:9px;border-radius:50%;background:' + worst + ';flex:none;display:inline-block;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(l.name) + '</span><span style="font-family:var(--font-mono);font-size:11.5px;color:#44576b;margin-left:auto;">' + l.dots.length + '</span></div><div style="font-size:11px;color:#44576b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(l.sub) + (l.onb ? " · " + l.onb + " già a bordo" : "") + '</div></div>' +
+      '<div style="position:relative;height:' + h + 'px;"><div style="position:absolute;top:0;bottom:0;left:' + pos(0) + '%;width:2px;background:#1553d8;"></div>' + lim + dots + '</div></div>';
+  };
+  const legend = [["in tempo", PV_C.ok], ["a rischio", PV_C.risk], ["fuori tempo / in ritardo", PV_C.late], ["tocca a te", PV_C.me], ["in viaggio", PV_C.move], ["aspetti altri", PV_C.wait]].map(([l, c]) => '<span style="display:flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:9px;height:9px;border-radius:50%;background:' + c + ';display:inline-block;"></i>' + l + '</span>').join("") + '<span style="display:flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:9px;height:9px;border-radius:2px;background:#fff;box-shadow:0 0 0 1.5px #c0261c;display:inline-block;"></i>critico</span>';
+  const radar = '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;padding:14px 16px 8px;"><div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px;flex-wrap:wrap;"><div style="font-size:15px;font-weight:800;">Radar della nave · ' + tot + ' articoli aperti</div><div style="display:flex;gap:12px;font-size:11.5px;color:#44576b;margin-left:auto;flex-wrap:wrap;">' + legend + '</div></div>' +
+    '<div style="overflow-x:auto;"><div style="min-width:760px;"><div style="display:grid;grid-template-columns:190px minmax(0,1fr);"><div></div><div style="position:relative;height:22px;border-bottom:1px solid rgba(10,27,46,.12);">' + ticks + '</div></div>' + P.lanes.map(laneRow).join("") + '</div></div>' +
+    '<div style="font-size:11.5px;color:#6a7d90;padding:8px 2px 2px;">Ogni pallino è un articolo · clicca un pallino per aprirlo, una corsia per vederne l\'elenco. A sinistra di OGGI = già in ritardo.</div></div>';
+  // elenco corsia / ricerca
+  const q = String(window._pv.q || "").trim().toLowerCase();
+  const selL = P.lanes.find(l => l.id === selId) || P.lanes[0];
+  const list = (q ? all.filter(x => [x.it.description, x.it.supplier, x.it.poNumber, x.it.dnNumber, x.it.reqNumber, (x.it.rfqNumbers || []).join(" "), x.note].join(" ").toLowerCase().includes(q)) : selL.dots.map(x => Object.assign({ lane: selL }, x)))
+    .slice().sort((a, b) => ({ late: 0, risk: 1, me: 2, move: 3, wait: 4, ok: 5, hold: 6 }[a.k] - { late: 0, risk: 1, me: 2, move: 3, wait: 4, ok: 5, hold: 6 }[b.k]) || a.d - b.d);
+  const segs = it => { const s = pvStage(it); return '<div style="display:flex;gap:3px;" title="REQ → RFQ → PO → DN">' + [0, 1, 2, 3].map(k => '<i style="flex:1;height:6px;border-radius:3px;display:block;background:' + (k < s - 1 ? "#9cb6dc" : k === s - 1 ? "#1553d8" : "#e3e9f0") + ';"></i>').join("") + '</div>'; };
+  const rowsH = list.map(x => '<div onclick="window.openItemDetailPopover(\'' + ea(x.it.id) + '\')" style="display:grid;grid-template-columns:20px minmax(0,1.3fr) 150px 110px minmax(0,1.6fr) auto;gap:12px;align-items:center;padding:9px 16px;border-top:1px solid rgba(10,27,46,.07);cursor:pointer;">' +
+    '<i style="width:11px;height:11px;border-radius:' + (x.crit ? "3px" : "50%") + ';background:' + x.c + ';display:block;justify-self:center;' + (x.crit ? "box-shadow:0 0 0 1.5px #fff,0 0 0 3px #c0261c;" : "") + '"></i>' +
+    '<div style="min-width:0;"><div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(x.it.description || "—") + '</div><div style="font-size:11.5px;color:#44576b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "") + (q ? " · " + esc(x.lane.name) : "") + '</div></div>' +
+    '<span style="font-family:var(--font-mono);font-size:11.5px;color:#2c4054;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(pvDoc(x.it)) + '</span>' + segs(x.it) +
+    '<span style="font-size:12px;color:' + (x.k === "late" ? "#c0261c" : x.k === "risk" ? "#b06a00" : x.k === "me" ? "#1553d8" : "#44576b") + ';font-weight:600;line-height:1.35;">' + esc(x.note) + '</span>' +
+    (x.cta ? '<button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="event.stopPropagation();' + x.cta.fn + '">' + esc(x.cta.lbl) + '</button>' : '<span></span>') + '</div>').join("");
+  const listCard = '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;overflow:hidden;"><div style="display:flex;align-items:center;gap:10px;padding:12px 16px;flex-wrap:wrap;"><div style="font-size:15px;font-weight:800;">' + (q ? "Risultati della ricerca" : esc(selL.name)) + '</div><div style="font-size:12px;color:#44576b;">' + (q ? list.length + " articoli" : esc(selL.sub) + " · " + list.length + " articoli") + '</div>' +
+    '<input type="search" id="pv-q" autocomplete="off" value="' + ea(window._pv.q || "") + '" oninput="window.pvQ(\'' + ea(vid) + '\',this.value)" placeholder="Trova PO, RFQ, REQ, DN, fornitore…" style="margin-left:auto;width:320px;max-width:100%;border:1px solid rgba(10,27,46,.16);border-radius:10px;padding:8px 12px;font-size:13px;font-family:var(--font-sans);"></div>' +
+    (rowsH || '<div style="padding:14px 16px;border-top:1px solid rgba(10,27,46,.07);font-size:13px;color:#44576b;">' + (q ? "Nessun articolo trovato." : "Nessun articolo in questa corsia.") + '</div>') + '</div>';
+  return '<div style="display:flex;flex-direction:column;gap:14px;margin:4px 0 18px;">' +
+    '<div style="display:flex;align-items:center;gap:10px;"><div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:#44576b;">RADAR DELLA NAVE</div><button class="btn btn-sm" style="margin-left:auto;" onclick="window.pvSetMode(\'classic\')" title="Torna a fasce di età + pipeline REQ/RFQ/PO/DN">Vista classica</button></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px;">' + head + movesCard + '</div>' + radar + listCard + '</div>';
+}
+window.pvHTML = pvHTML;
+function pvRepaint(vid){ const h = document.getElementById("pv-root"); if(h) h.innerHTML = pvHTML(vid); }
+window.pvLane = function(vid, id){ window._pv.lane[vid] = id; window._pv.q = ""; pvRepaint(vid); };
+window.pvQ = function(vid, v){ window._pv.q = v; clearTimeout(window._pvT); window._pvT = setTimeout(() => { pvRepaint(vid); const i = document.getElementById("pv-q"); if(i){ i.focus(); const n = i.value.length; try { i.setSelectionRange(n, n); } catch(e) {} } }, 180); };
+
 
 
 // ============================================================================
