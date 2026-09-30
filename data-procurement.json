@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-09-30T14:45:19.211Z",
+  "lastSync": "2026-09-30T14:50:18.024Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -2396,9 +2396,9 @@
           "poNumber": "2026-MDT-HQPO-00083",
           "dnNumber": "2026-MDT-HQDN-00119",
           "dnInfoshipId": "HQS000000007509",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 5,
+          "rfqClosed": 3,
+          "rfqPct": 60,
           "rfqDays": 71,
           "rfqStatus": "RFQ Refused",
           "poStatus": "PO Finalized",
@@ -2408,9 +2408,68 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
-          "dnDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00132",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-21",
+              "deadline": "2026-07-26"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00131",
+              "supplier": "SUNJIN ENTECH Co.,Ltd.",
+              "code": "SSS0011",
+              "status": "RFQ Refused",
+              "date": "2026-07-21",
+              "deadline": "2026-08-05"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00130",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-21",
+              "deadline": "2026-09-04"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00129",
+              "supplier": "DUBHE CO., LTD.",
+              "code": "SSS0006",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-21",
+              "deadline": "2026-09-01"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00128",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "RFQ Refused",
+              "date": "2026-07-21",
+              "deadline": "2026-08-05"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00083",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "PO Finalized",
+              "date": "2026-07-28",
+              "deadline": "2026-08-12"
+            }
+          ],
+          "dnDetails": [
+            {
+              "number": "2026-MDT-HQDN-00119",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-08-19",
+              "deadline": "2026-09-03"
+            }
+          ],
           "poSplit": null,
           "reqDate": "2026-07-06",
           "poDate": "2026-07-28",
@@ -2881,7 +2940,7 @@
         {
           "id": "med toscana::navigation light control panel",
           "description": "Navigation light Control Panel",
-          "supplier": "G&P TECH CO.",
+          "supplier": "Dongjin Intec Co., Ltd.",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00067",
           "rfqNumbers": [
@@ -2948,8 +3007,26 @@
               "deadline": "2026-07-21"
             }
           ],
-          "poDetails": [],
-          "dnDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00084",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "PO Finalized",
+              "date": "2026-07-28",
+              "deadline": "2026-08-12"
+            }
+          ],
+          "dnDetails": [
+            {
+              "number": "2026-MDT-HQDN-00120",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-08-19",
+              "deadline": "2026-09-03"
+            }
+          ],
           "poSplit": null,
           "reqDate": "2026-07-05",
           "poDate": "2026-07-28",
@@ -3030,7 +3107,16 @@
               "deadline": "2026-07-21"
             }
           ],
-          "dnDetails": [],
+          "dnDetails": [
+            {
+              "number": "2026-MDT-HQDN-00121",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-08-19",
+              "deadline": "2026-09-03"
+            }
+          ],
           "poSplit": null,
           "reqDate": "2026-07-05",
           "poDate": "2026-07-13",
@@ -13935,9 +14021,9 @@
           "poNumber": "2026-MLG-HQPO-00054",
           "dnNumber": "2026-MLG-HQDN-00037",
           "dnInfoshipId": "HQS000000007446",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 65,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
@@ -13946,9 +14032,36 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
-          "dnDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00136",
+              "supplier": "Wilhelmsen Ships Service",
+              "code": "SSS0037",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MLG-HQPO-00054",
+              "supplier": "Wilhelmsen Ships Service",
+              "code": "SSS0037",
+              "status": "PO Finalized",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            }
+          ],
+          "dnDetails": [
+            {
+              "number": "2026-MLG-HQDN-00037",
+              "supplier": "Wilhelmsen Ships Service",
+              "code": "SSS0037",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-08-12",
+              "deadline": "2026-08-27"
+            }
+          ],
           "poSplit": null,
           "reqDate": "2026-07-16",
           "poDate": "2026-07-27",
@@ -14183,9 +14296,9 @@
           "poNumber": "2026-MLG-HQPO-00078",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 5,
+          "rfqClosed": 3,
+          "rfqPct": 60,
           "rfqDays": 65,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -14196,8 +14309,58 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00142",
+              "supplier": "GEORGE MENABONI SRL",
+              "code": "SSS0008",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00141",
+              "supplier": "MAS MARINE SHIPPING SUPPLIES",
+              "code": "SSS0002",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00140",
+              "supplier": "HAKEPA SRL",
+              "code": "SSS0001",
+              "status": "RFQ Refused",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00139",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00138",
+              "supplier": "FUJI TRADING JAPAN",
+              "code": "",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-08-11"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MLG-HQPO-00078",
+              "supplier": "FUJI TRADING JAPAN",
+              "code": "",
+              "status": "PO Published",
+              "date": "2026-08-13",
+              "deadline": "2026-08-28"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-07-13",
@@ -14481,9 +14644,9 @@
           "poNumber": "2026-MLG-HQPO-00053",
           "dnNumber": "2026-MLG-HQDN-00036",
           "dnInfoshipId": "HQS000000007445",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 2,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 65,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
@@ -14493,9 +14656,44 @@
             "RFQ Cancelled",
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
-          "dnDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00143",
+              "supplier": "Gulf Oil Marine Ltd.",
+              "code": "SSS0045",
+              "status": "RFQ Cancelled",
+              "date": "2026-07-27",
+              "deadline": ""
+            },
+            {
+              "number": "2026-MLG-HQRQ-00121",
+              "supplier": "Gulf Oil Marine Ltd.",
+              "code": "SSS0045",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-07-27",
+              "deadline": "2026-07-29"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MLG-HQPO-00053",
+              "supplier": "Gulf Oil Marine Ltd.",
+              "code": "SSS0045",
+              "status": "PO Finalized",
+              "date": "2026-07-27",
+              "deadline": "2026-07-29"
+            }
+          ],
+          "dnDetails": [
+            {
+              "number": "2026-MLG-HQDN-00036",
+              "supplier": "Gulf Oil Marine Ltd.",
+              "code": "SSS0045",
+              "status": "DN Shipped to Vessel",
+              "date": "2026-08-12",
+              "deadline": "2026-08-27"
+            }
+          ],
           "poSplit": null,
           "reqDate": "2026-07-15",
           "poDate": "2026-07-27",
