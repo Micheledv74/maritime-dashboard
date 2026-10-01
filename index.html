@@ -28795,9 +28795,9 @@ function m6Fleet(){
   try { (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { const p = mpOf(it); if(p && p.stale) stale++; })); } catch(e) {}
   try { ifx = ifxList().length; } catch(e) {}
   const also = ['<button onclick="mgo(\'email\')">Posta' + (emN ? " · " + emN : "") + '</button>', '<button onclick="maGoCert(\'all\')">Certificati</button>', stale ? '<button onclick="m3DnStart()">Pulizia DN · ' + stale + '</button>' : "", '<button onclick="maOpenAltro()">Impostazioni e altro</button>'].join("");
+  const tiles = typeof m7Tiles === "function" ? m7Tiles() : "";
   return '<div class="m6"><div class="m6-hd"><div class="m6-when">' + esc(when) + '</div><div class="m6-h1">Flotta</div></div>' +
-    '<div class="m6-lead">' + lead + '</div>' +
-    '<div class="m6-list">' + list + '</div>' +
+    (tiles || '<div class="m6-lead">' + lead + '</div><div class="m6-list">' + list + '</div>') +
     '<div class="m6-sec"><div class="m6-eb">ANCHE</div><div class="m6-also">' + also + '</div></div>' +
     '<div class="m6-foot">Posizioni dai noon e dal viaggio · stessi dati del PC' + (ifx ? " · " + ifx + " DN da far chiudere alla nave" : "") + '</div></div>';
 }
@@ -28869,6 +28869,12 @@ function m6Vessel(vid){
   const master = cfg.masterEmail && !/example\.com|_{2,}/.test(cfg.masterEmail) ? cfg.masterEmail : "";
   const who = m6WhoRow("Comandante", master ? master : "email mancante", "", master, null) +
     (agName ? m6WhoRow(agName, "Agenzia" + (port ? " · " + port : ""), agPhone, agEmail, "m6OpenContact('agency','" + m3E(agName) + "')") : port ? '<div class="m6-kv"><span>Agenzia di ' + esc(port) + ' non indicata</span></div>' : "");
+  const P7 = (() => { try { return pvModel(vid); } catch(e) { return null; } })(), top7 = P7 && P7.open ? m7Top(vid, P7, tds.length) : "";
+  if(top7) return '<div class="m6">' + top7 + box +
+    '<div class="m6-sec"><div class="m6-eb">DOVE</div>' + dove + noonLink + '</div>' +
+    '<div class="m6-sec" id="m7-todo"><div class="m6-eb">DA FARE' + (tds.length ? " · " + tds.length : "") + '</div>' + fare + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">CERTIFICATI · PROSSIMI 60 GIORNI</div>' + cert + '</div>' +
+    '<div class="m6-sec"><div class="m6-eb">CHI CHIAMARE</div>' + who + '</div></div>';
   return '<div class="m6"><div class="m6-hd"><button class="m6-back" onclick="maBack()">‹ Flotta</button><div class="m6-h1">' + esc(cfg.displayName || vid) + '</div>' + (meta ? '<div class="m6-meta">' + meta + '</div>' : "") + '</div>' +
     '<div class="m6-lead' + (info.tone === "red" ? "" : "") + '">' + esc(info.lead) + '</div>' + box +
     '<div class="m6-sec"><div class="m6-eb">DOVE</div>' + dove + noonLink + '</div>' +
@@ -28933,12 +28939,6 @@ function qdItems(){
       if(ad != null && ad <= 7) return;
       out.push({ key: "ifx:" + vid, score: ad != null ? 50 : 38, tone: ad != null ? "a" : "s", kind: "Infoship", who: vn(vid), title: (ad != null ? "Sollecita " : "Chiedi a ") + vn(vid) + " di chiudere " + L.length + " DN in Infoship",
         why: ad != null ? "chiesto " + ad + " gg fa, ancora aperte" : "merce a bordo, DN ancora aperte", acts: [{ l: "✉ " + (ad != null ? "Sollecita" : "Chiedi alla nave"), go: "ifxAskShip('" + ea(vid) + "');qdPaint()", pri: 1 }] }); }); } catch(e) {}
-  // certificati entro 14 giorni
-  try { (VESSELS || []).forEach(cfg => { ((state.certificates && state.certificates[cfg.vesselId]) || []).forEach(c => { if(c.isPermanent || !c.expiry) return;
-    const x = typeof applyCertExtra === "function" ? applyCertExtra(cfg.vesselId, c) || c : c, d = daysToExpiry(x.expiry); if(d == null || d > 14) return;
-    out.push({ key: "cert:" + cfg.vesselId + "|" + certKey(c), score: 66 + Math.min(20, 14 - d), tone: d <= 7 ? "r" : "a", kind: "Certificato", who: cfg.displayName,
-      title: (x.name || "Certificato") + (d < 0 ? " · scaduto" : " · scade tra " + d + " gg"), why: "scadenza " + mpFD(x.expiry) + (x.place ? " · " + x.place : ""),
-      acts: [{ l: "Apri", go: "openCertEditor('" + ea(cfg.vesselId) + "','" + ea(certKey(c)) + "')", pri: 1 }] }); }); }); } catch(e) {}
   const snz = qdSnz();
   return out.filter(x => !(snz[x.key] && snz[x.key] > today)).sort((a, b) => b.score - a.score);
 }
@@ -29012,6 +29012,108 @@ function m6Flow(vid){
       (s.n > lim ? '<button class="m6-more" onclick="mstate.m6FlowAll=true;renderMobileApp()">Mostra tutti (' + s.n + ')</button>' : "") + '</div>'; };
   return sum + '<div style="border-bottom:1px solid #e3e7ec">' + P.S.map(st).join("") + '</div>' +
     (P.stale ? '<button class="m6-row" onclick="m3DnStart(\'' + m3E(vid) + '\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + P.stale + ' DN vecchie da verificare</b><small>in viaggio da oltre 30 gg: probabilmente già a bordo</small></span><span class="chev">›</span></button>' : "");
+}
+// === v1.14 MOBILE v7 — Flotta a tessere colore-nave (7c) + scheda nave a strumenti (7a) con KPI cliccabili (7b) ===
+(function(){ try { const s = document.createElement("style"); s.id = "m7-css"; s.textContent = `
+.m7-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:-8px; }
+.m7-tile{ border:0; border-radius:18px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; gap:8px; text-align:left; font:inherit; cursor:pointer; min-height:128px; min-width:0; }
+.m7-tile.big{ grid-column:span 2; min-height:152px; }
+.m7-tile.wide{ grid-column:span 2; min-height:84px; }
+.m7-tile .r1{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.m7-tile .r1 b{ font-size:14.5px; font-weight:800; letter-spacing:.01em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.m7-tile .r1 span{ font:700 12px var(--font-mono); white-space:nowrap; }
+.m7-tile .lt{ font:700 12px var(--font-mono); letter-spacing:.04em; opacity:.92; }
+.m7-tile .r3{ display:flex; align-items:flex-end; justify-content:space-between; gap:8px; }
+.m7-tile .bg{ display:flex; align-items:baseline; gap:8px; }
+.m7-tile .bg em{ font:700 64px var(--font-mono); font-style:normal; line-height:.85; }
+.m7-tile:not(.big) .bg em{ font-size:42px; }
+.m7-tile.wide .bg em{ font-size:28px; }
+.m7-tile .bg i{ font-style:normal; font-size:14px; font-weight:700; }
+.m7-tile .sm{ font-size:12.5px; font-weight:600; opacity:.92; text-align:right; }
+.m7-tile .cb{ display:inline-flex; align-items:center; gap:4px; background:#fff; color:#c0261c; border-radius:999px; padding:3px 9px; font:800 12px var(--font-sans); }
+.m7-hd{ display:flex; flex-direction:column; gap:3px; }
+.m7-hd .h1{ font-size:28px; font-weight:800; letter-spacing:-.025em; line-height:1.1; margin-top:2px; }
+.m7-hd .ln{ font:700 13px var(--font-mono); color:#0a1b2e; }
+.m7-hd .lt{ display:inline-flex; align-self:flex-start; align-items:center; gap:8px; margin-top:6px; border-radius:10px; padding:6px 10px; font:700 13px var(--font-mono); }
+.m7-top{ display:flex; align-items:center; gap:18px; }
+.m7-ring{ width:118px; height:118px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; }
+.m7-ring > div{ width:92px; height:92px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.m7-ring b{ font:700 28px var(--font-mono); line-height:1; }
+.m7-ring span{ font-size:10px; font-weight:800; letter-spacing:.06em; color:#6a7d90; }
+.m7-kpi{ display:grid; grid-template-columns:1fr 1fr; gap:6px; flex:1; min-width:0; }
+.m7-kpi button{ border:0; background:none; text-align:left; padding:6px 8px; margin:-2px -4px; border-radius:10px; font:inherit; color:inherit; cursor:pointer; display:flex; flex-direction:column; min-height:52px; justify-content:center; }
+.m7-kpi button.on{ background:#f3f7ff; box-shadow:inset 0 0 0 2px #1553d8; }
+.m7-kpi em{ font:700 26px var(--font-mono); font-style:normal; line-height:1; }
+.m7-kpi span{ font-size:12px; color:#44576b; }
+.m7-flow{ display:flex; flex-direction:column; gap:2px; }
+.m7-bar{ display:grid; grid-template-columns:96px minmax(0,1fr) 28px; gap:10px; align-items:center; border:0; background:none; padding:7px 6px; margin:0 -6px; border-radius:8px; font:inherit; color:inherit; cursor:pointer; text-align:left; min-height:36px; }
+.m7-bar.on{ background:#f3f7ff; box-shadow:inset 0 0 0 2px #1553d8; }
+.m7-bar > span{ font-size:13.5px; font-weight:600; }
+.m7-bar .tr{ display:flex; height:14px; border-radius:4px; overflow:hidden; gap:2px; }
+.m7-bar .n{ font:700 14px var(--font-mono); text-align:right; }
+.m7-det{ display:flex; flex-direction:column; }
+.m7-det .h{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding-bottom:6px; }
+.m7-det .h b{ font:700 11px var(--font-mono); letter-spacing:.08em; }
+.m7-det .h span{ font-size:12px; color:#6a7d90; }
+.m7-it{ display:flex; gap:10px; align-items:center; width:100%; padding:11px 0; border:0; border-top:1px solid #eef1f4; background:none; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+.m7-it > i{ width:10px; height:10px; border-radius:50%; flex:none; }
+.m7-it .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.m7-it .tx b{ font-size:14.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.m7-it .tx small{ font-size:12px; color:#6a7d90; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.m7-it .ag{ font:700 13px var(--font-mono); flex:none; }
+.m7-btns{ display:flex; gap:8px; }
+.m7-btns button{ flex:1; height:52px; border-radius:14px; border:0; background:#f2f4f7; color:#0a1b2e; font:700 14px var(--font-sans); cursor:pointer; }
+.m7-btns button.pri{ background:#0a1b2e; color:#fff; }
+`; document.head.appendChild(s); } catch(e) {} })();
+function m7Local(vid){ try { const p = getLastKnownPosition(vid); return p && p.coords ? shipLocalTimeFromLon(p.coords.lon) : null; } catch(e) { return null; } }
+function m7Cd(P){ if(!P || !P.call) return null; const c = P.call, cut = c.its[0] ? c.its[0].cut : c.etd - 1, v = Math.max(0, cut), d = Math.floor(v); return { port: m3Cap(c.port), d, h: Math.floor((v - d) * 24), past: cut < 0 }; }
+function m7Ink(vid){ return vid === "vegauno" ? "#2a1c00" : "#fff"; }
+function m7Tiles(){
+  const esc = escapeHTML, T = (VESSELS || []).map(c => { const vid = c.vesselId; let P = null; try { P = pvModel(vid); } catch(e) {}
+    const has = !!(P && P.open), cd = m7Cd(P), W = (() => { try { return mpWhere(vid); } catch(e) { return null; } })(), lt = m7Local(vid);
+    const tds = (state.todos || []).filter(t => (typeof todoActive !== "function" || todoActive(t)) && !t.done && t.vessel === vid).length;
+    const port = cd ? cd.port.toUpperCase() + " " + (cd.past ? "limite passato" : cd.d + "g") : W && W.port && !W.old ? m3Cap(W.port).toUpperCase() : has ? "SCALO ?" : "";
+    const big = has ? P.red : tds || "✓", lab = has ? "fermi" : tds ? "to-do" : "niente in corso";
+    const sm = has ? [P.open + " aperti", tds ? tds + " to-do" : ""].filter(Boolean).join(" · ") : "";
+    return { vid, has, html: (cls) => '<button class="m7-tile ' + cls + '" style="background:' + m6VCol(vid) + ';color:' + m7Ink(vid) + '" onclick="maOpenVessel(\'' + m3E(vid) + '\')">' +
+      '<div class="r1"><b>' + esc(String(c.displayName || vid).replace(/^M\/V\s*/i, "")) + '</b><span>' + esc(port) + '</span></div>' +
+      (lt ? '<div class="lt">ORA A BORDO ' + esc(lt.text) + ' <span style="opacity:.75">' + esc(lt.off) + '</span></div>' : "") +
+      '<div class="r3"><div class="bg"><em>' + esc(String(big)) + '</em><i>' + esc(lab) + '</i></div>' +
+      (has && P.critBad ? '<span class="cb">' + P.critBad + ' critic' + (P.critBad === 1 ? "o" : "i") + '</span>' : sm && cls === "big" ? '<span class="sm">' + esc(sm) + '</span>' : "") + '</div></button>' }; });
+  const bigs = T.filter(x => x.has), small = T.filter(x => !x.has);
+  return '<div class="m7-grid">' + bigs.map(x => x.html("big")).join("") + small.map((x, i) => x.html(small.length % 2 && i === small.length - 1 ? "wide" : "")).join("") + '</div>';
+}
+window.m7K = function(vid, k){ mstate.m7k = mstate.m7k || {}; mstate.m7k[vid] = mstate.m7k[vid] === k ? "" : k; mstate.m7All = false; renderMobileApp(); };
+function m7Top(vid, P, nTodo){
+  const esc = escapeHTML, cfg = (VESSELS || []).find(v => v.vesselId === vid) || {}, C = FC_C, TX = { g: "#14794e", a: "#b06a00", r: "#c0261c", s: "#6a7d90" };
+  const sel = (mstate.m7k || {})[vid] || "", cd = m7Cd(P), lt = m7Local(vid);
+  const W = (() => { try { return mpWhere(vid); } catch(e) { return null; } })();
+  const judged = P.open - P.grey, ok = judged ? Math.round(P.green / judged * 100) : 100, aP = judged ? Math.round(P.amb / judged * 100) : 0;
+  const ln = cd ? cd.port.toUpperCase() + " · " + (cd.past ? "limite passato" : cd.d + "g " + String(cd.h).padStart(2, "0") + "h al limite") : W && W.port && !W.old ? m3Cap(W.port).toUpperCase() + " · ETD da inserire" : "SCALO DA INSERIRE";
+  const head = '<div class="m7-hd"><button class="m6-back" onclick="maBack()">‹ Flotta</button><div class="h1" style="color:' + (vid === "vegauno" ? "#8a6508" : m6VCol(vid)) + '">' + esc(cfg.displayName || vid) + '</div><div class="ln">' + esc(ln) + '</div>' +
+    (lt ? '<div class="lt" style="background:' + m6VCol(vid) + ';color:' + m7Ink(vid) + '">ORA A BORDO ' + esc(lt.text) + ' <span style="opacity:.8;font-weight:500">' + esc(lt.off) + ' ~</span></div>' : "") + '</div>';
+  const ring = '<div class="m7-ring" style="background:conic-gradient(#14794e 0 ' + ok + '%,#c07800 ' + ok + '% ' + (ok + aP) + '%,#c0261c ' + (ok + aP) + '% 100%)"><div><b style="color:' + (ok >= 75 ? "#14794e" : ok >= 50 ? "#b06a00" : "#c0261c") + '">' + ok + '%</b><span>NEI TEMPI</span></div></div>';
+  const kb = (k, n, l, c, go) => '<button class="' + (sel === k ? "on" : "") + '" onclick="' + (go || "m7K('" + m3E(vid) + "','" + k + "')") + '"><em style="color:' + c + '">' + n + '</em><span>' + l + '</span></button>';
+  const kpi = '<div class="m7-kpi">' + kb("red", P.red, "fermi", P.red ? "#c0261c" : "#c9d3de") + kb("crit", P.critBad, "critici", P.critBad ? "#c0261c" : "#c9d3de") + kb("open", P.open, "aperti", "#0a1b2e") +
+    kb("stale", P.stale, "DN vecchie", P.stale ? "#6a7d90" : "#c9d3de", P.stale ? "m3DnStart('" + m3E(vid) + "')" : "void 0") + '</div>';
+  const mx = Math.max(1, ...P.S.map(s => s.n)), w = x => (x / mx * 100).toFixed(1) + "%";
+  const bars = '<div class="m6-sec"><div class="m6-eb">FLUSSO ACQUISTI</div><div class="m7-flow">' + P.S.map(s => { const g = s.its.filter(x => x.k === "g").length, gr = s.its.filter(x => x.k === "s").length;
+    return '<button class="m7-bar' + (sel === s.id ? " on" : "") + '" onclick="m7K(\'' + m3E(vid) + '\',\'' + s.id + '\')"><span>' + esc(s.nm) + '</span><div class="tr"><i style="width:' + w(s.r) + ';background:#c0261c"></i><i style="width:' + w(s.a) + ';background:#c07800"></i><i style="width:' + w(g) + ';background:#14794e"></i><i style="width:' + w(gr) + ';background:#aab6c3"></i></div><span class="n" style="color:' + (s.n ? "#0a1b2e" : "#c9d3de") + '">' + s.n + '</span></button>'; }).join("") + '</div></div>';
+  let det = "";
+  if(sel){
+    const all = P.S.flatMap(s => s.its.map(x => Object.assign({ sn: s.nm }, x)));
+    const st = P.S.find(s => s.id === sel);
+    const L = sel === "red" ? all.filter(x => x.k === "r") : sel === "crit" ? all.filter(x => x.crit && (x.k === "r" || x.k === "a")) : sel === "open" ? all : st ? st.its : [];
+    const ttl = sel === "red" ? "FERMI OLTRE IL DOPPIO" : sel === "crit" ? "CRITICI IN RITARDO" : sel === "open" ? "TUTTI GLI ARTICOLI APERTI" : (st.nm.toUpperCase() + (st.id === P.bott ? " · COLLO DI BOTTIGLIA" : ""));
+    const lim = mstate.m7All ? 999 : 8, nr = L.filter(x => x.k === "r").length;
+    det = '<div class="m7-det"><div class="h"><b style="color:' + (nr ? "#c0261c" : "#44576b") + '">' + esc(ttl) + '</b><span>' + (st && !["red","crit","open"].includes(sel) ? nr + " di " + L.length + " fermi" : L.length + " articoli") + '</span></div>' +
+      (L.length ? L.slice(0, lim).map(x => '<button class="m7-it" onclick="m3Po(\'' + m3E(x.it.id) + '\')"><i style="background:' + C[x.k] + ';' + (x.crit ? "border-radius:2px;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px #c0261c;" : "") + '"></i><span class="tx"><b>' + esc(x.it.description || "—") + '</b><small>' + esc([["red","crit","open"].includes(sel) ? x.sn : "", x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "", m3Short(pvDoc(x.it))].filter(Boolean).join(" · ")) + '</small></span><span class="ag" style="color:' + TX[x.k] + '">' + (x.hold ? "apposta" : x.fixed && !x.age ? "ok" : x.age + " gg") + '</span></button>').join("") +
+        (L.length > lim ? '<button class="m6-more" onclick="mstate.m7All=true;renderMobileApp()">Mostra tutti (' + L.length + ')</button>' : "")
+      : '<div class="m6-kv"><span>Niente qui.</span></div>') + '</div>';
+  }
+  const req = P.S.find(s => s.id === "req");
+  const btns = '<div class="m7-btns"><button class="pri" onclick="m7K(\'' + m3E(vid) + '\',\'req\')">Richieste · ' + (req ? req.n : 0) + '</button><button onclick="var e=document.getElementById(\'m7-todo\');if(e)window.scrollTo({top:e.getBoundingClientRect().top+window.scrollY-70,behavior:\'smooth\'})">To-do · ' + (nTodo || 0) + '</button></div>';
+  return head + '<div class="m7-top">' + ring + kpi + '</div>' + bars + det + btns;
 }
 function m6WhoRow(n, r, phone, email, open){
   const esc = escapeHTML;
