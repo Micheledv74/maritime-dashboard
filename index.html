@@ -15021,10 +15021,10 @@ function renderManualOrders(vid){
       <h2>Registro ordini <span class="mo-manual-tag">manuale</span></h2>
       <span class="section-meta">${arr.length} totali · ${open} aperti</span>
     </div>
-    <p class="mo-intro">Traccia a mano RFQ, PO e consegne per questa nave. I dati restano solo qui (niente Infoship). Gli ordini con una data compaiono nel Carico settimana.</p>
+    <p class="mo-intro">Traccia a mano RFQ, PO e consegne per questa nave. I dati restano solo qui (niente Infoship). Gli ordini con una data compaiono nel Carico settimana; quelli in stato <b>PO</b> entrano nel Radar scali al primo scalo futuro del viaggio, con la data come «pronto dal fornitore» (poi trasporto e dogana come per gli altri).</p>
     <div class="mo-table-wrap">
       <table class="mo-table">
-        <thead><tr><th>N° doc</th><th>Descrizione</th><th>Fornitore</th><th>Stato</th><th>Consegna</th><th>Importo</th><th></th></tr></thead>
+        <thead><tr><th>N° doc</th><th>Descrizione</th><th>Fornitore</th><th>Stato</th><th>Pronto / consegna</th><th>Importo</th><th></th></tr></thead>
         <tbody>${rows || `<tr><td colspan="7" class="mo-empty">Nessun ordine. Aggiungi il primo qui sotto.</td></tr>`}</tbody>
       </table>
     </div>
@@ -27115,13 +27115,18 @@ function rdModel(){
     const vs = (typeof getVoyageSummaryForCard === "function") ? getVoyageSummaryForCard(cfg.vesselId) : null;
     lane.state = vs && vs.status && typeof VOYAGE_STATUS_LABELS !== "undefined" ? (VOYAGE_STATUS_LABELS[vs.status] || "") : "";
     const assigned = new Set();
+    // v1.15b — ordini del registro manuale (VEGA UNO): i PO entrano nel primo scalo futuro; "Consegna" = pronto dal fornitore
+    const moIts = (typeof manualOrdersFor === "function" ? manualOrdersFor(cfg.vesselId) : []).filter(o => o.status === "po").map(o => ({ id: "mo::" + cfg.vesselId + "::" + o.id, _manual: true,
+      description: o.description || "(ordine manuale)", supplier: o.supplier || "", poNumber: o.docNum || "PO manuale", poStatus: "PO Manual", poDate: "", poDeliveryDate: o.date || "", dnStatus: "", dnNumber: "", rfqNumbers: [], origin: o.origin || "" }));
+    let moLeg = null;
+    ["current", "next"].forEach(w => { const l = voy[w]; if(moLeg || !l || !l.to) return; const e = rdDD(l.etd, now), b = rdDD(l.etb || l.eta, now), d = e != null ? e : b != null ? b + 1 : null; if(d != null && d >= 0) moLeg = w; });
     ["current", "next"].forEach(w => {
       const leg = voy[w]; if(!leg || !leg.to) return;
       const eta0 = rdDD(leg.eta, now), etb0 = rdDD(leg.etb, now);
       const eta = eta0 != null ? eta0 : etb0; if(eta == null) return;
       const etb = etb0 != null ? etb0 : eta;
       const etdR = rdDD(leg.etd, now); const etd = etdR != null ? etdR : etb + 1;
-      const its = (() => { try { return itemsForLeg(cfg.vesselId, w) || []; } catch(e) { return []; } })().filter(it => !rdCancelled(it));
+      const its = (() => { try { return itemsForLeg(cfg.vesselId, w) || []; } catch(e) { return []; } })().filter(it => !rdCancelled(it)).concat(w === moLeg ? moIts : []);
       its.forEach(it => assigned.add(it.id));
       if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length };
         const pc = rdPastCall(cfg, leg, its, now, leg.id || w); if(pc){ lane.past.push(pc); if(leg.id) seenP.add(leg.id); } return; }
@@ -27156,6 +27161,8 @@ function rdModel(){
 }
 
 window._rd = window._rd || { sel: null, open: null, undo: null };
+// ordini manuali nel radar: il clic apre il registro della nave invece della scheda articolo Infoship
+setTimeout(() => { const o = window.openItemDetailPopover; if(o && !o._mo){ const f = function(id){ if(String(id).indexOf("mo::") === 0){ state.detailTab = "procurement"; goVessel(String(id).split("::")[1]); return; } return o.apply(this, arguments); }; f._mo = 1; window.openItemDetailPopover = f; } }, 0);
 function rdAlts(x, M){
   if(x.onb) return [];
   return M.allCalls.filter(c => c.vid === x.c.vid).map(c => ({ c, r: rdCalc(x.it, c, M.now, M.basis), cur: c.id === x.c.id, pr: rdProfile(c.port) }));
