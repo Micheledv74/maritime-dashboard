@@ -8784,9 +8784,6 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       <button class="icon-btn desktop-only" id="btn-delivery-archive" title="Storico consegne (flotta)" aria-label="Storico consegne">
         <svg class="icon icon-md"><use href="#i-truck"/></svg>
       </button>
-      <button class="icon-btn desktop-only" id="btn-report-ihm" title="Report IHM mensile (Excel)" aria-label="Report IHM">
-        <svg class="icon icon-md"><use href="#i-download"/></svg>
-      </button>
       <button class="icon-btn desktop-only" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">
         <svg class="icon icon-md"><use href="#i-settings"/></svg>
       </button>
@@ -13096,10 +13093,11 @@ function renderOverview() {
 
     ${_ovRadar ? '<section id="radar-root" class="rd-root"></section>' : crStripHTML.replace('<span class="section-meta">', '<span class="section-meta"><button class="btn btn-sm" style="margin-right:8px" onclick="window.setOverviewMode(\'radar\')">Radar scali →</button>')}
 
-    <section>
+    ${(typeof qdOn === "function" && qdOn()) ? qdSection() : ""}
+    <section id="ov-fleet" style="${(typeof qdOn === "function" && qdOn()) ? "display:none;" : ""}">
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Flotta</h2>
-        <span class="section-meta">${(() => {
+        <span class="section-meta"><button class="btn btn-sm" style="margin-right:8px" onclick="window.qdSet(true)">Cosa fare oggi →</button>${(() => {
           // v0.15 — conteggio per stato per dare contesto immediato
           let crit = 0, warn = 0;
           for (const cfg of VESSELS) {
@@ -28483,7 +28481,7 @@ window.remDone = function(tid, vid){ remMark(tid, vid, { sentAt: new Date().toIS
 window.remSkip = function(tid, vid){ remMark(tid, vid, { skipped: true }); remPaint(); };
 window.remUndo = function(tid, vid){ remMark(tid, vid, null); remPaint(); };
 window.remOpen = function(){ window._rem = { edit: null }; remEnsureTodos(); remPaint(); };
-window.remClose = function(){ const h = document.getElementById("rem-host"); if(h) h.innerHTML = ""; try { render(); } catch(e) { try { renderMobileApp(); } catch(_) {} } };
+window.remClose = function(){ window._rem = null; const h = document.getElementById("rem-host"); if(h) h.innerHTML = ""; try { render(); } catch(e) { try { renderMobileApp(); } catch(_) {} } };
 function remFreqText(t){
   if(t.freq === "weekly") return "ogni settimana, il " + REM_WD[+t.weekday || 0];
   const d = t.firstWd ? "il primo giorno lavorativo" : "il " + (+t.day || 1);
@@ -28856,6 +28854,8 @@ function m6Vessel(vid){
     (stale ? '<button class="m6-row" onclick="m3DnStart(\'' + m3E(vid) + '\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + stale + ' DN vecchie da verificare</b><small>in viaggio da oltre 30 gg: probabilmente già a bordo</small></span><span class="chev">›</span></button>' : "") +
     (reqs ? '<button class="m6-row" onclick="m3List(\'pos\',\'' + m3E(vid) + '\',\'route\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + reqs + ' richieste senza PO</b><small>in attesa di rotta</small></span><span class="chev">›</span></button>' : "");
   const arriva = arr || extra ? arr + extra : '<div class="m6-kv"><span>' + (items.length ? "Tutto a bordo." : cfg.manual ? "Nessun ordine da Infoship per questa nave." : "Nessun ordine aperto.") + '</span></div>';
+  const flow = m6Flow(vid), nLate = rows.filter(r => r.rank === 0).length, nRisk = rows.filter(r => r.rank === 1).length;
+  const callLine = call && (nLate || nRisk) ? "Scalo di <b>" + esc(m3Cap(call.port)) + "</b>: " + [nLate ? '<b class="red">' + nLate + " non arriva" + (nLate === 1 ? "" : "no") + " in tempo</b>" : "", nRisk ? '<b class="amber">' + nRisk + " a rischio</b>" : ""].filter(Boolean).join(" · ") : "";
   // DA FARE
   const tds = (state.todos || []).filter(t => todoActive(t) && t.vessel === vid).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
   const fare = (tds.length ? tds.slice(0, 8).map(t => m6TodoRow(t, false)).join("") + (tds.length > 8 ? '<button class="m6-more" onclick="mgo(\'todo\')">Tutte le ' + tds.length + ' to-do ›</button>' : "") : '<div class="m6-kv"><span>Niente da fare per questa nave.</span></div>') +
@@ -28872,10 +28872,146 @@ function m6Vessel(vid){
   return '<div class="m6"><div class="m6-hd"><button class="m6-back" onclick="maBack()">‹ Flotta</button><div class="m6-h1">' + esc(cfg.displayName || vid) + '</div>' + (meta ? '<div class="m6-meta">' + meta + '</div>' : "") + '</div>' +
     '<div class="m6-lead' + (info.tone === "red" ? "" : "") + '">' + esc(info.lead) + '</div>' + box +
     '<div class="m6-sec"><div class="m6-eb">DOVE</div>' + dove + noonLink + '</div>' +
-    '<div class="m6-sec"><div class="m6-eb">COSA ARRIVA' + (rows.length ? " · " + rows.length + " PO" : "") + '</div>' + arriva + '</div>' +
+    (flow ? '<div class="m6-sec"><div class="m6-eb">ACQUISTI · DOVE SI TROVA OGNI ARTICOLO</div>' + flow + (callLine ? '<div class="m6-kv" style="border-bottom:0"><span>' + callLine + '</span></div>' : "") + '</div>'
+      : '<div class="m6-sec"><div class="m6-eb">COSA ARRIVA' + (rows.length ? " · " + rows.length + " PO" : "") + '</div>' + arriva + '</div>') +
     '<div class="m6-sec"><div class="m6-eb">DA FARE' + (tds.length ? " · " + tds.length : "") + '</div>' + fare + '</div>' +
     '<div class="m6-sec"><div class="m6-eb">CERTIFICATI · PROSSIMI 60 GIORNI</div>' + cert + '</div>' +
     '<div class="m6-sec"><div class="m6-eb">CHI CHIAMARE</div>' + who + '</div></div>';
+}
+// === v1.13 COSA FARE OGGI (Overview, al posto di Flotta) ======================================
+// Non aggiunge informazioni: mette in fila le mosse che la dashboard già conosce (avvisi, to-do, flusso
+// acquisti per nave, certificati, DN da far chiudere, pulizia DN). Max 7, un pulsante per riga, «Rimanda a
+// domani» le nasconde fino al giorno dopo (mpd.qdSnooze). Le mosse degli scali restano nel Radar.
+function qdOn(){ try { return localStorage.getItem("mpd.ovQueue") !== "fleet"; } catch(e) { return true; } }
+window.qdOn = qdOn;
+window.qdSet = function(on){ try { localStorage.setItem("mpd.ovQueue", on ? "queue" : "fleet"); } catch(e) {} render(); };
+function qdSnz(){ return rdLoadJSON("mpd.qdSnooze"); }
+window.qdSnooze = function(k){ const o = qdSnz(), d = new Date(); d.setDate(d.getDate() + 1); o[k] = remIso(d);
+  Object.keys(o).forEach(x => { if(o[x] < remIso(new Date())) delete o[x]; }); rdSaveJSON("mpd.qdSnooze", o); showToast("Rimandata a domani"); qdPaint(); };
+window.qdGoFlow = function(vid, st){ window._pv = window._pv || { st: {}, q: "" }; window._pv.st[vid] = st; state.detailTab = "procurement"; goVessel(vid); };
+window.qdTodoDone = function(id){ updateTodo(id, { done: true, doneAt: new Date().toISOString() }); try { if(typeof ghSetDirty === "function") ghSetDirty(); } catch(e) {} showToast("To-do completata"); qdPaint(); };
+window.qdRem = function(tid, v, mode){ if(mode === "send") window.remSend(tid, v); else window.remDone(tid, v); qdPaint(); };
+function qdItems(){
+  const out = [], today = remIso(new Date()), ea = s => String(s == null ? "" : s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const vn = v => m3VName(v);
+  // avvisi periodici
+  try { const o = remLoad(); remTpls(o).filter(t => t.active !== false).forEach(t => { const c = remCycle(t); if(!c) return;
+    const due = remTargets(t).filter(v => remState(o, t, v, c).s === "due"), late0 = Math.round((new Date(today) - new Date(c.due)) / 864e5);
+    if(due.length > 1){ out.push({ key: "rem:" + t.id + "|*|" + c.key, score: 72 + Math.min(20, late0 * 3), tone: late0 > 3 ? "r" : "a", kind: "Avviso", who: due.length + " navi",
+      title: t.name + " · da inviare a " + due.length + " navi", why: due.map(v => m3VName(v)).join(", ") + " · " + c.label + (late0 > 0 ? " · da " + late0 + " gg" : " · scade oggi"),
+      acts: [{ l: "Apri gli avvisi", go: "remOpen()", pri: 1 }] }); return; }
+    due.forEach(v => {
+      const late = Math.round((new Date(today) - new Date(c.due)) / 864e5), mail = remHasMail(t, v);
+      out.push({ key: "rem:" + t.id + "|" + v + "|" + c.key, score: 72 + Math.min(20, late * 3), tone: late > 3 ? "r" : "a", kind: "Avviso", who: v === "_office" ? "Ufficio" : vn(v),
+        title: remFill(t.subject, t, v, c), why: t.name + " · " + c.label + (late > 0 ? " · da " + late + " gg" : " · scade oggi"),
+        acts: [t.tool === "ihm" ? { l: "⬇ Report IHM", go: "remTool('" + ea(t.id) + "')" } : null,
+          mail ? { l: "✉ Invia", go: "qdRem('" + ea(t.id) + "','" + ea(v) + "','send')", pri: 1 } : { l: "✓ Fatto", go: "qdRem('" + ea(t.id) + "','" + ea(v) + "','done')", pri: 1 }].filter(Boolean) }); }); }); } catch(e) { console.warn("[coda] avvisi", e); }
+  // to-do scadute / di oggi (le più importanti una per una, le altre in un'unica riga)
+  try { const P = { alta: 15, media: 5, bassa: 0 };
+    const tds = (state.todos || []).filter(t => !t.done && !t.remKey && (typeof todoActive !== "function" || todoActive(t)) && t.dueDate && String(t.dueDate).slice(0, 10) <= today)
+      .map(t => { const d = Math.round((new Date(today) - new Date(String(t.dueDate).slice(0, 10))) / 864e5); return { t, d, s: (d > 0 ? 58 + Math.min(12, d) : 55) + (P[t.priority] || 0) }; }).sort((a, b) => b.s - a.s);
+    tds.slice(0, 3).forEach(x => { const t = x.t, cfg = (VESSELS || []).find(v => v.vesselId === t.vessel);
+      out.push({ key: "td:" + t.id, score: x.s, tone: x.d > 0 ? "r" : "a", kind: "To-do", who: cfg ? cfg.displayName : (t.category || "Ufficio"),
+        title: t.reference || t.action || "To-do", why: (x.d > 0 ? "scaduta da " + x.d + " gg" : "scade oggi") + (t.priority === "alta" ? " · priorità alta" : ""),
+        acts: [{ l: "Apri", go: "openTodoModal('" + ea(t.id) + "')" }, { l: "✓ Fatto", go: "qdTodoDone('" + ea(t.id) + "')", pri: 1 }] }); });
+    if(tds.length > 3) out.push({ key: "td:rest", score: 45, tone: "a", kind: "To-do", who: "Tutte", title: "Altre " + (tds.length - 3) + " to-do scadute o di oggi", why: "le trovi in ordine nella pagina To-do",
+      acts: [{ l: "Apri le to-do", go: "state.view='todos';render();", pri: 1 }] }); } catch(e) { console.warn("[coda] todo", e); }
+  // flusso acquisti di ogni nave: stazioni con articoli fermi oltre il doppio
+  const TXT = { req: n => "Manda le RFQ per " + n + (n === 1 ? " richiesta ferma" : " richieste ferme"), rfq: n => "Sollecita " + n + (n === 1 ? " RFQ senza risposta" : " RFQ senza risposta"),
+    ord: n => "Emetti " + n + " PO: " + (n === 1 ? "offerta ricevuta" : "offerte ricevute") + " e ferm" + (n === 1 ? "a" : "e"), rdy: n => "Organizza la spedizione di " + n + (n === 1 ? " PO pronto" : " PO pronti") };
+  (VESSELS || []).forEach(cfg => { const vid = cfg.vesselId; let P = null; try { P = pvModel(vid); } catch(e) {} if(!P) return;
+    P.S.filter(s => TXT[s.id] && s.r).forEach(s => { const reds = s.its.filter(x => x.k === "r"), cr = reds.filter(x => x.crit).length, old = reds.slice().sort((a, b) => b.age - a.age)[0];
+      out.push({ key: "pv:" + vid + "|" + s.id, score: 48 + Math.min(14, s.r * 2) + (cr ? 16 : 0), tone: "r", kind: "Acquisti", who: cfg.displayName,
+        title: TXT[s.id](s.r) + (cr ? " · " + cr + " critic" + (cr === 1 ? "o" : "i") : ""),
+        why: old ? "il più vecchio: " + String(old.it.description || "").slice(0, 60) + " · " + old.age + " gg (tempo giusto " + (s.tgt || 1) + ")" : "",
+        acts: [{ l: "Apri il flusso", go: "qdGoFlow('" + ea(vid) + "','" + s.id + "')", pri: 1 }] }); });
+    if(P.stale >= 5) out.push({ key: "dnold:" + vid, score: 24, tone: "s", kind: "Dati", who: cfg.displayName, title: "Verifica " + P.stale + " DN vecchie", why: "spedite da oltre 30 gg senza tracking: probabilmente già a bordo",
+      acts: [{ l: "Pulizia DN", go: "m3DnStart('" + ea(vid) + "')", pri: 1 }] }); });
+  // DN da far chiudere alla nave
+  try { const by = {}; ifxList().forEach(x => { (by[x.vid] = by[x.vid] || []).push(x); });
+    Object.keys(by).forEach(vid => { const L = by[vid], asked = L.map(x => x.m.ifxAskedAt).filter(Boolean).sort().pop(), ad = asked ? mpDaysSince(asked) : null;
+      if(ad != null && ad <= 7) return;
+      out.push({ key: "ifx:" + vid, score: ad != null ? 50 : 38, tone: ad != null ? "a" : "s", kind: "Infoship", who: vn(vid), title: (ad != null ? "Sollecita " : "Chiedi a ") + vn(vid) + " di chiudere " + L.length + " DN in Infoship",
+        why: ad != null ? "chiesto " + ad + " gg fa, ancora aperte" : "merce a bordo, DN ancora aperte", acts: [{ l: "✉ " + (ad != null ? "Sollecita" : "Chiedi alla nave"), go: "ifxAskShip('" + ea(vid) + "');qdPaint()", pri: 1 }] }); }); } catch(e) {}
+  // certificati entro 14 giorni
+  try { (VESSELS || []).forEach(cfg => { ((state.certificates && state.certificates[cfg.vesselId]) || []).forEach(c => { if(c.isPermanent || !c.expiry) return;
+    const x = typeof applyCertExtra === "function" ? applyCertExtra(cfg.vesselId, c) || c : c, d = daysToExpiry(x.expiry); if(d == null || d > 14) return;
+    out.push({ key: "cert:" + cfg.vesselId + "|" + certKey(c), score: 66 + Math.min(20, 14 - d), tone: d <= 7 ? "r" : "a", kind: "Certificato", who: cfg.displayName,
+      title: (x.name || "Certificato") + (d < 0 ? " · scaduto" : " · scade tra " + d + " gg"), why: "scadenza " + mpFD(x.expiry) + (x.place ? " · " + x.place : ""),
+      acts: [{ l: "Apri", go: "openCertEditor('" + ea(cfg.vesselId) + "','" + ea(certKey(c)) + "')", pri: 1 }] }); }); }); } catch(e) {}
+  const snz = qdSnz();
+  return out.filter(x => !(snz[x.key] && snz[x.key] > today)).sort((a, b) => b.score - a.score);
+}
+function qdInner(){
+  const esc = escapeHTML, L = qdItems(), n = window._qdAll ? L.length : Math.min(7, L.length), d = new Date();
+  const TONE = { r: "#c0261c", a: "#c07800", s: "#8a99a8" };
+  const btn = "border:1px solid rgba(10,27,46,.14);background:#fff;border-radius:10px;padding:0 12px;min-height:38px;font-size:12.5px;font-weight:700;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);white-space:nowrap;";
+  const pri = "border:0;background:#1553d8;color:#fff;border-radius:10px;padding:0 14px;min-height:38px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;";
+  const row = (x, i) => '<div style="display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 18px;border-top:' + (i ? "1px solid rgba(10,27,46,.08)" : "0") + ';">' +
+    '<span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#8a99a8;text-align:right;">' + (i + 1) + '</span>' +
+    '<div style="min-width:0;display:flex;flex-direction:column;gap:4px;"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><i style="width:8px;height:8px;border-radius:50%;background:' + TONE[x.tone] + ';flex:none;"></i>' +
+      '<span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#6a7d90;">' + esc(x.kind) + ' · ' + esc(x.who) + '</span></div>' +
+      '<div style="font-size:14.5px;font-weight:700;color:#0a1b2e;line-height:1.3;text-wrap:pretty;">' + esc(x.title) + '</div>' + (x.why ? '<div style="font-size:12.5px;color:#44576b;line-height:1.35;">' + esc(x.why) + '</div>' : "") + '</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' + x.acts.map(a => '<button style="' + (a.pri ? pri : btn) + '" onclick="' + a.go.replace(/"/g, "&quot;") + '">' + esc(a.l) + '</button>').join("") +
+      '<button title="Nascondi fino a domani" style="' + btn + 'color:#6a7d90;" onclick="qdSnooze(\'' + String(x.key).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, "&quot;") + '\')">Domani</button></div></div>';
+  const head = '<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:16px 18px 12px;border-bottom:1px solid rgba(10,27,46,.08);">' +
+    '<div style="flex:1;min-width:220px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#6a7d90;">' + esc((REM_WD[d.getDay()] + " " + d.getDate() + " " + REM_MON_IT[d.getMonth()]).toUpperCase()) + '</div>' +
+    '<div style="font-size:19px;font-weight:800;color:#0a1b2e;margin-top:2px;">Cosa fare oggi</div></div>' +
+    '<span style="font-size:12.5px;color:#44576b;">' + (L.length ? (L.length > 7 && !window._qdAll ? "le prime 7 di " + L.length : L.length + (L.length === 1 ? " mossa" : " mosse")) + " · gli scali sono nel Radar" : "") + '</span>' +
+    '<button class="btn btn-sm" onclick="window.qdSet(false)">Vista Flotta</button></div>';
+  const body = L.length ? L.slice(0, n).map(row).join("") + (L.length > 7 ? '<div style="padding:10px 18px;border-top:1px solid rgba(10,27,46,.08);"><button style="background:none;border:0;color:#1553d8;font-weight:700;font-size:13px;cursor:pointer;padding:4px 0;" onclick="window._qdAll=!window._qdAll;qdPaint()">' + (window._qdAll ? "Mostra solo le prime 7" : "Mostra tutte (" + L.length + ")") + '</button></div>' : "")
+    : '<div style="padding:28px 18px;display:flex;flex-direction:column;gap:4px;"><b style="font-size:17px;color:#14794e;">Finito per oggi.</b><span style="font-size:13px;color:#44576b;">Niente in coda: avvisi inviati, nessuna to-do scaduta, nessun articolo fermo oltre il doppio.</span></div>';
+  return '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;overflow:hidden;">' + head + body + '</div>';
+}
+function qdSection(){ let inner = ""; try { inner = qdInner(); } catch(e) { console.warn("[coda]", e); } return '<section id="qd-root">' + inner + '</section>'; }
+window.qdSection = qdSection;
+function qdPaint(){ const h = document.getElementById("qd-root"); if(h) try { h.innerHTML = qdInner(); } catch(e) { console.warn("[coda]", e); } }
+window.qdPaint = qdPaint;
+
+// === v1.13 MOBILE — Cruscotto acquisti nella scheda nave (le 7 stazioni in verticale) ==========
+(function(){ try { const s = document.createElement("style"); s.id = "m6f-css"; s.textContent = `
+.m6f-sum{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; padding:2px 0 10px; }
+.m6f-sum b{ font:700 22px var(--font-mono); color:#14794e; } .m6f-sum b.amber{ color:#b06a00; } .m6f-sum b.red{ color:#c0261c; }
+.m6f-sum span{ font-size:14px; color:#44576b; }
+.m6f-st{ display:grid; grid-template-columns:40px minmax(0,1fr) auto 14px; align-items:center; gap:10px; width:100%; padding:12px 0 10px; border:0; border-top:1px solid #e3e7ec; background:none; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+.m6f-st.on{ background:#f3f7ff; margin:0 -8px; padding-left:8px; padding-right:8px; width:calc(100% + 16px); border-radius:10px; border-top-color:transparent; }
+.m6f-st .n{ font:700 22px var(--font-mono); line-height:1; text-align:right; }
+.m6f-st .tx{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+.m6f-st .tx b{ font-size:15px; font-weight:700; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.m6f-st .tx small{ font-size:12.5px; color:#6a7d90; }
+.m6f-st .bt{ font:800 9px var(--font-sans); font-style:normal; letter-spacing:.06em; color:#fff; background:#c0261c; border-radius:999px; padding:2px 7px; }
+.m6f-st .dots{ display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-end; max-width:96px; }
+.m6f-st .dots i{ width:9px; height:9px; border-radius:50%; display:block; }
+.m6f-st .dots i.c{ border-radius:2px; box-shadow:0 0 0 1.5px #fff, 0 0 0 2.5px #c0261c; }
+.m6f-st .chev{ color:#c9d3de; font-size:18px; }
+.m6f-bar{ grid-column:2 / 4; display:flex; height:4px; border-radius:2px; overflow:hidden; gap:1px; background:#eef2f6; margin-top:6px; }
+.m6f-list{ display:flex; flex-direction:column; padding:2px 0 8px 50px; }
+.m6f-it{ display:flex; gap:10px; align-items:flex-start; width:100%; padding:10px 0; border:0; border-bottom:1px solid #eef1f4; background:none; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+.m6f-it > i{ width:9px; height:9px; border-radius:50%; flex:none; margin-top:5px; }
+.m6f-it .tx{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.m6f-it .tx b{ font-size:14.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.m6f-it .tx small{ font-size:12.5px; color:#6a7d90; }
+.m6f-it .tx em{ font-style:normal; font-size:12.5px; font-weight:600; }
+`; document.head.appendChild(s); } catch(e) {} })();
+window.m6FlowSt = function(vid, id){ mstate.m6St = mstate.m6St || {}; mstate.m6St[vid] = mstate.m6St[vid] === id ? "" : id; mstate.m6FlowAll = false; renderMobileApp(); };
+function m6Flow(vid){
+  let P = null; try { P = pvModel(vid); } catch(e) {} if(!P || !P.open) return "";
+  const esc = escapeHTML, C = FC_C, TX = { g: "#14794e", a: "#b06a00", r: "#c0261c", s: "#6a7d90" };
+  mstate.m6St = mstate.m6St || {}; const sel = vid in mstate.m6St ? mstate.m6St[vid] : (P.bott || "");
+  const judged = P.open - P.grey, ok = judged ? Math.round(P.green / judged * 100) : 100;
+  const sum = '<div class="m6f-sum"><b class="' + (ok >= 75 ? "" : ok >= 50 ? "amber" : "red") + '">' + ok + '% nei tempi</b><span>' + P.open + ' aperti · ' + P.red + ' fermi' + (P.critBad ? ' · <b style="font:700 14px var(--font-sans);color:#c0261c">' + P.critBad + ' critici in ritardo</b>' : "") + '</span></div>';
+  const st = s => { const on = s.id === sel, g = s.its.filter(x => x.k === "g").length, gr = s.its.filter(x => x.k === "s").length;
+    const head = '<button class="m6f-st' + (on ? " on" : "") + '" onclick="m6FlowSt(\'' + m3E(vid) + '\',\'' + s.id + '\')"><span class="n" style="color:' + (s.r ? "#c0261c" : s.a ? "#b06a00" : s.n ? "#0a1b2e" : "#c9d3de") + '">' + s.n + '</span>' +
+      '<span class="tx"><b>' + esc(s.nm) + (s.id === P.bott ? '<i class="bt">COLLO DI BOTTIGLIA</i>' : "") + '</b><small>' + esc(s.sub) + (s.r ? ' · <span style="color:#c0261c;font-weight:700">' + s.r + ' fermi</span>' : s.a ? ' · <span style="color:#b06a00;font-weight:700">' + s.a + ' oltre il tempo</span>' : "") + '</small></span>' +
+      '<span class="dots">' + s.its.slice(0, 16).map(x => '<i class="' + (x.crit ? "c" : "") + '" style="background:' + C[x.k] + '"></i>').join("") + (s.n > 16 ? '<span style="font-size:10.5px;color:#6a7d90">+' + (s.n - 16) + '</span>' : "") + '</span>' +
+      '<span class="chev">' + (s.n ? (on ? "⌃" : "⌄") : "") + '</span>' +
+      (s.n ? '<span class="m6f-bar"><i style="flex:' + g + ';background:#14794e"></i><i style="flex:' + s.a + ';background:#c07800"></i><i style="flex:' + s.r + ';background:#c0261c"></i><i style="flex:' + gr + ';background:#aab6c3"></i></span>' : "") + '</button>';
+    if(!on || !s.n) return head;
+    const lim = mstate.m6FlowAll ? 999 : 8;
+    return head + '<div class="m6f-list">' + s.its.slice(0, lim).map(x => '<button class="m6f-it" onclick="m3Po(\'' + m3E(x.it.id) + '\')"><i style="background:' + C[x.k] + ';' + (x.crit ? "border-radius:2px;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px #c0261c;" : "") + '"></i><span class="tx"><b>' + esc(x.it.description || "—") + '</b><small>' + esc([x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "", m3Short(pvDoc(x.it))].filter(Boolean).join(" · ")) + '</small><em style="color:' + TX[x.k] + '">' + esc(x.note || "") + '</em></span></button>').join("") +
+      (s.n > lim ? '<button class="m6-more" onclick="mstate.m6FlowAll=true;renderMobileApp()">Mostra tutti (' + s.n + ')</button>' : "") + '</div>'; };
+  return sum + '<div style="border-bottom:1px solid #e3e7ec">' + P.S.map(st).join("") + '</div>' +
+    (P.stale ? '<button class="m6-row" onclick="m3DnStart(\'' + m3E(vid) + '\')"><span class="tx"><b style="font-size:15px;font-weight:600">' + P.stale + ' DN vecchie da verificare</b><small>in viaggio da oltre 30 gg: probabilmente già a bordo</small></span><span class="chev">›</span></button>' : "");
 }
 function m6WhoRow(n, r, phone, email, open){
   const esc = escapeHTML;
