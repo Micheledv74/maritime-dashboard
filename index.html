@@ -9868,6 +9868,21 @@ async function fetchJSON(url) {
   return res.json();
 }
 
+// v1.12 — Notion tiene a volte la vecchia pagina "RFQ Sent to Vendor" accanto a quella col PO (stesso articolo):
+// la copia senza PO/DN è superata e falsava solleciti e flusso. Via se ha lo stesso id di una voce con PO,
+// oppure (senza REQ) condivide una RFQ con una voce che ha già il PO.
+function dedupeProcItems(proc){
+  try { (proc && proc.vessels || []).forEach(v => {
+    const items = v.items || [], withPO = items.filter(i => i.poNumber || i.dnNumber); let n = 0;
+    v.items = items.filter(i => {
+      if(i.poNumber || i.dnNumber) return true;
+      const r = (i.rfqNumbers || []).filter(Boolean);
+      const sup = withPO.some(p => p.id === i.id || (!i.reqNumber && r.length && r.some(x => (p.rfqNumbers || []).includes(x))));
+      if(sup) n++; return !sup; });
+    if(n) console.info("[dati] " + v.vesselId + ": " + n + " voci superate (RFQ già passate a PO) nascoste");
+  }); } catch(e) { console.warn("[dati] dedupe", e); }
+  return proc;
+}
 async function loadData() {
   state.loading = true;
   state.error = null;
@@ -9885,7 +9900,7 @@ async function loadData() {
   // Cache-first: serve cache if present, then revalidate
   const cached = readCache();
   if (cached) {
-    state.data = cached.procurement;
+    state.data = dedupeProcItems(cached.procurement);
     state.tracking = cached.tracking;
     state.loading = false;
     mergeAndPrepare();
@@ -9905,7 +9920,7 @@ async function loadData() {
       fetchJSON(DATA_URLS.agencyProfiles).catch(() => null),  // v0.37: rubrica agenzie Notion opzionale
       fetchJSON(DATA_URLS.recentEmails).catch(() => null)  // v0.48: feed esteso posta recente opzionale
     ]);
-    state.data = proc;
+    state.data = dedupeProcItems(proc);
     state.tracking = trk;
     state.outlookTasks = outlookData;
     state.outlookCalendar = calData;  // {events:[{title,start,end,location,vesselId?}]} o null
@@ -26986,7 +27001,7 @@ function rdPrefs(){ const p = rdLoadJSON("mpd.radarPrefs"); return { H: [14,21,3
 function rdSetPref(k, v){ const p = rdLoadJSON("mpd.radarPrefs"); p[k] = v; try{ localStorage.setItem("mpd.radarPrefs", JSON.stringify(p)); }catch(e){} }
 function overviewMode(){ try{ return localStorage.getItem("mpd.overviewMode") === "classic" ? "classic" : "radar"; }catch(e){ return "radar"; } }
 window.setOverviewMode = function(m){ try{ localStorage.setItem("mpd.overviewMode", m === "classic" ? "classic" : "radar"); }catch(e){} render(); };
-function rdCancelled(it){ return /cancel/i.test(it.poStatus||"") || /cancel/i.test(it.reqStatus||""); }
+function rdCancelled(it){ return /cancel|reject/i.test(it.poStatus||"") || /cancel/i.test(it.reqStatus||""); }
 function rdStaleDN(it, now){
   if(!/Shipped to Vessel|Ready for Shipment/.test(it.dnStatus||"")) return false;
   const d = new Date(String(it.dnDate||"").slice(0,10)+"T12:00:00").getTime();
@@ -27431,7 +27446,7 @@ const FC_ST = [
   { id: "prod", nm: "In produzione", sub: "PO emesso", tgt: 0, act: "Chiedi data" },
   { id: "rdy", nm: "Pronto", sub: "da spedire", tgt: 5, act: "Organizza" },
   { id: "go", nm: "In viaggio", sub: "DN · tracking · dogana", tgt: 10, act: "Verifica" },
-  { id: "dn", nm: "A bordo", sub: "DN da chiudere", tgt: 7, act: "Chiedi alla nave" }
+  { id: "dn", nm: "A bordo", sub: "consegnato · DN da chiudere", tgt: 7, act: "Chiedi alla nave" }
 ];
 const FC_C = { g: "#14794e", a: "#c07800", r: "#c0261c", s: "#aab6c3" };
 function pvStage(it){ return it.dnNumber ? 4 : it.poNumber ? 3 : (Array.isArray(it.rfqNumbers) && it.rfqNumbers.filter(Boolean).length) ? 2 : 1; }
@@ -27441,10 +27456,18 @@ function fcClass(it, now, thr, co){
   const p = typeof mpOf === "function" ? mpOf(it, now) : null;
   const ds = s => mpDaysSince(s);
   if(it.dnStatus === "DN Received on Board") return null;
-  if(p && p.pos === "onboard"){ const a = ds((mpManual(it.id) || {}).since || (loadMatPos()[it.id] || {}).updatedAt) || 0; return { st: "dn", age: a, note: "a bordo da " + a + " gg · DN ancora aperta in Infoship" }; }
+  // A BORDO · DN da chiudere: segnato a bordo a mano, oppure Infoship "Delivery Tracking Open" (la nave ha firmato,
+  // manca la chiusura). Lavoro di carta, non un ritardo: mai rosso.
+  const dnAge = a => ({ st: "dn", age: a, fixed: a > 7 ? "a" : "g" });
+  if(p && p.pos === "onboard"){ const a = ds((mpManual(it.id) || {}).since || (loadMatPos()[it.id] || {}).updatedAt) || 0; return Object.assign(dnAge(a), { note: "a bordo da " + a + " gg · DN ancora aperta in Infoship" }); }
+  if(/Delivery Tracking Open/i.test(it.dnStatus || "")){ const a = ds(it.dnDeliveryDate || it.dnDate) || 0; return Object.assign(dnAge(a), { note: "consegnato" + (it.dnDeliveryDate ? " il " + mpFD(it.dnDeliveryDate) : "") + " · DN da chiudere in Infoship" }); }
   const hold = typeof mpIntentional === "function" && mpIntentional(it);
   if(it.poNumber){
     if(p && ["transit","customs","agency"].includes(p.pos) || /Shipped to Vessel/.test(it.dnStatus || "")){
+      // consegna prevista passata e nessun tracking attivo → probabilmente a bordo: va chiusa, non è "in viaggio"
+      const live = getItemShipments(it.id).some(s => s.status !== "delivered") || (p && (p.manual || p.viaShip) && ["transit","customs","agency"].includes(p.pos));
+      const dd = String(it.dnDeliveryDate || "").slice(0, 10), past = dd ? rdDD(dd, now) : null;
+      if(!live && past != null && past < 0 && !rdStaleDN(it, now)){ const a = Math.round(-past); return Object.assign(dnAge(a), { note: "consegna prevista il " + mpFD(dd) + " · chiedi alla nave di chiudere la DN" }); }
       const a = ds(it.dnDate || (p && p.since)) || 0;
       if(rdStaleDN(it, now)) return { stale: true, age: a };
       return { st: "go", age: a, note: p && p.pos === "customs" ? "in dogana" + (p.since ? " dal " + mpFD(p.since) : "") : p && p.pos === "agency" ? "all'agenzia del porto" : "in viaggio da " + a + " gg" };
@@ -27452,6 +27475,11 @@ function fcClass(it, now, thr, co){
     if(hold) return { st: "rdy", age: 0, hold: true, note: (p && MP_POS[p.pos] ? MP_POS[p.pos].l : "fermo apposta") + (p && p.since ? " dal " + mpFD(p.since) : "") };
     const rs = /Ready for Shipment/.test(it.dnStatus || "") ? String(it.dnDate || "").slice(0, 10) : (String(it.poDeliveryDate || "").slice(0, 10) || (typeof itemReadyDate === "function" ? (itemReadyDate(it) || "") : ""));
     const r = rdDD(rs, now);
+    // PO solo emesso (Published/Approved, non confermato): resta "in produzione" anche oltre la data — chiedi conferma
+    if(/Published|Approved/i.test(it.poStatus || "") && !/Ready for Shipment/.test(it.dnStatus || "")){
+      if(r != null && r <= 0.5){ const a = Math.max(0, Math.round(-r)); return { st: "prod", age: a, fixed: "a", note: "PO " + String(it.poStatus || "").replace(/^PO\s*/, "").toLowerCase() + " · data di pronto " + mpFD(rs) + " passata da " + a + " gg · chiedi conferma al fornitore" }; }
+      if(r != null) return { st: "prod", age: 0, fixed: "g", note: "pronto previsto " + mpFD(rs) + " · tra " + Math.round(r) + " gg" };
+    }
     if(r != null && r <= 0.5){ const a = Math.max(0, Math.round(-r)); return { st: "rdy", age: a, note: "pronto dal " + mpFD(rs) + " · " + a + " gg senza spedizione" }; }
     if(r != null) return { st: "prod", age: 0, fixed: "g", note: "pronto previsto " + mpFD(rs) + " · tra " + Math.round(r) + " gg" };
     const a = ds(it.poDate || it.orderDate) || 0;
