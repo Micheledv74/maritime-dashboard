@@ -28390,6 +28390,7 @@ function remFill(s, t, vid, cyc){
 }
 function remOkMail(e){ return e && !/example\.com|_{2,}/.test(e) ? e : ""; }
 function remTo(t, vid){ if(t.scope === "office") return String(t.to || "").split(/[;,\s]+/).map(remOkMail).filter(Boolean).join(";"); const c = (VESSELS || []).find(v => v.vesselId === vid) || {}; return [t.toMaster !== false ? remOkMail(c.masterEmail) : "", t.toCE ? remOkMail(c.chiefEngEmail) : ""].filter(Boolean).join(";"); }
+function remHasMail(t, v){ return v !== "_office" || !!remTo(t, v) || !!String(t.body || "").trim(); }
 function remTargets(t){ return t.scope === "office" ? ["_office"] : (t.vessels || []); }
 function remTodoId(t, vid, cyc){ return ("td_rem_" + t.id + "_" + vid + "_" + cyc.key).replace(/[^a-z0-9_]/gi, "_"); }
 function remState(o, t, vid, cyc){
@@ -28408,7 +28409,7 @@ function remEnsureTodos(){
   remTpls(o).filter(t => t.active !== false && t.todo).forEach(t => { const c = remCycle(t); if(!c) return;
     remTargets(t).forEach(v => { const id = remTodoId(t, v, c);
       if(tombs[id] || state.todos.some(x => x.id === id) || remState(o, t, v, c).s !== "due") return;
-      const ofc = v === "_office", mail = !ofc || !!remTo(t, v);
+      const ofc = v === "_office", mail = remHasMail(t, v);
       const td = addTodo({ category: ofc ? "Ufficio" : "Nave", priority: "media", vessel: ofc ? "" : v, action: mail ? "Inviare email" : "Altro", reference: remFill(t.subject, t, v, c), dueDate: c.due, tags: [ofc ? "promemoria" : "avviso"],
         note: (ofc ? "Promemoria ufficio «" : "Avviso periodico «") + t.name + "» · " + c.label + "." + (t.tool === "ihm" ? " «⬇ Report IHM» scarica l'Excel del periodo." : "") + (mail ? " Invialo col pulsante ✉ Invia avviso: la to-do si chiude da sola." : " Spuntala quando l'hai fatto.") });
       td.id = id; td.remKey = { tpl: t.id, vid: v, cyc: c.key }; added++; }); });
@@ -28440,7 +28441,7 @@ window.remTool = function(tid){
 };
 window.remTodoInfo = function(td){
   if(!td || !td.remKey) return { mail: false, tool: "" }; const t = remLoad()["t:" + td.remKey.tpl]; if(!t) return { mail: true, tool: "" };
-  return { mail: t.scope !== "office" || !!remTo(t, td.remKey.vid), tool: t.tool || "" };
+  return { mail: remHasMail(t, td.remKey.vid), tool: t.tool || "" };
 };
 window.remTodoTool = function(todoId){ const td = (state.todos || []).find(x => x.id === todoId); if(td && td.remKey) window.remTool(td.remKey.tpl); };
 window.remSendFromTodo = function(todoId){
@@ -28474,7 +28475,7 @@ function remPaint(){
   const tplCard = t => {
     const c = remCycle(t), off = t.active === false;
     const rows = remTargets(t).map(v => {
-      const cfg = (VESSELS || []).find(x => x.vesselId === v) || {}, to = remTo(t, v), ofc = v === "_office", noMail = ofc && !to;
+      const cfg = (VESSELS || []).find(x => x.vesselId === v) || {}, to = remTo(t, v), ofc = v === "_office", noMail = !remHasMail(t, v);
       if(!c) return "";
       const toolB = t.tool === "ihm" ? '<button style="' + btn + '" onclick="remTool(\'' + ea(t.id) + '\')" title="Scarica l\'Excel degli ordini del periodo">⬇ Report IHM ' + esc(REM_MON_IT[c.ref.getMonth()].slice(0, 3) + " " + c.ref.getFullYear()) + '</button>' : "";
       const st = remState(o, t, v, c), late = Math.round((new Date(today) - new Date(c.due)) / 86400000);
@@ -28490,7 +28491,7 @@ function remPaint(){
         : st.s === "due" ? "" : '<button style="' + btn + '" onclick="remSend(\'' + ea(t.id) + '\',\'' + ea(v) + '\')" title="Riapre la stessa email (es. per sollecitare di nuovo)">✉ Di nuovo</button><button style="' + btn + 'color:#6a7d90;" onclick="remUndo(\'' + ea(t.id) + '\',\'' + ea(v) + '\')" title="Rimetti da inviare">↩</button>');
       return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid rgba(10,27,46,.08);">' +
         '<div style="min-width:0;"><div style="display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;line-height:1.3;"><span style="display:inline-flex;align-items:center;font-size:11.5px;font-weight:800;letter-spacing:.02em;background:' + (ofc ? "#6b3fa0" : "#0a1b2e") + ';color:#fff;border-radius:6px;padding:3px 8px;white-space:nowrap;line-height:1.3;">' + esc(ofc ? "UFFICIO" : (cfg.displayName || v)) + '</span>' + pill.replace('<span style="', '<span style="white-space:nowrap;line-height:1.3;') + (st.td && !st.td.done ? '<span style="font-size:11px;color:#1553d8;font-weight:700;white-space:nowrap;line-height:1.3;">· to-do aperta</span>' : "") + '</div>' +
-        '<div style="font-size:11.5px;color:' + (to || ofc ? "#6a7d90" : "#c0261c") + ';margin-top:5px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(to ? "a " + to.replace(/;/g, ", ") : ofc ? "promemoria per te · nessuna email" : "email della nave mancante (Impostazioni nave)") + '</div></div>' +
+        '<div style="font-size:11.5px;color:' + (to || ofc ? "#6a7d90" : "#c0261c") + ';margin-top:5px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(to ? "a " + to.replace(/;/g, ", ") : ofc ? (noMail ? "promemoria per te · nessuna email" : "destinatario da scegliere nella bozza") : "email della nave mancante (Impostazioni nave)") + '</div></div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' + acts + '</div></div>';
     }).join("");
     const nDue = c ? remTargets(t).filter(v => remState(o, t, v, c).s === "due").length : 0;
@@ -28499,7 +28500,7 @@ function remPaint(){
       '<div style="flex:1;min-width:220px;"><div style="font-size:15px;font-weight:800;color:#0a1b2e;">' + esc(t.name || "Avviso") + (off ? ' <span style="font-size:11px;color:#6a7d90;">· in pausa</span>' : "") + '</div>' +
       '<div style="font-size:12px;color:#44576b;margin-top:3px;">' + esc(remFreqText(t)) + (c ? " · ciclo attuale: <b>" + esc(c.label) + "</b> (dal " + mpFD(c.due) + ")" : "") + (c && c.next ? " · prossimo " + mpFD(c.next) : "") + (t.scope === "office" ? " · ufficio" : "") + (t.todo ? " · crea la to-do" : "") + '</div>' +
       (c && v0 ? '<div style="font-size:12px;color:#6a7d90;margin-top:6px;font-family:var(--font-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(remFill(t.subject, t, v0, c)) + '</div>' : "") + '</div>' +
-      '<div style="display:flex;gap:6px;align-items:center;">' + (nDue && !off ? '<span style="font-size:11px;font-weight:800;background:#c0261c;color:#fff;border-radius:999px;padding:3px 9px;">' + nDue + (t.scope === "office" && !remTo(t, "_office") ? " da fare" : " da inviare") + '</span>' : "") +
+      '<div style="display:flex;gap:6px;align-items:center;">' + (nDue && !off ? '<span style="font-size:11px;font-weight:800;background:#c0261c;color:#fff;border-radius:999px;padding:3px 9px;">' + nDue + (!remHasMail(t, "_office") && t.scope === "office" ? " da fare" : " da inviare") + '</span>' : "") +
       '<button style="' + btn + '" onclick="remEdit(\'' + ea(t.id) + '\')">✎ Modifica</button></div></div>' +
       (rows || '<div style="padding:12px 14px;border-top:1px solid rgba(10,27,46,.08);font-size:12.5px;color:#6a7d90;">' + (c ? "Nessuna nave selezionata." : "Primo invio il " + mpFD((remCycle(t, new Date(Date.now() + 400 * 86400000)) || {}).due || "") + ".") + '</div>') + '</div>';
   };
