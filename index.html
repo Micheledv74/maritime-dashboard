@@ -27103,11 +27103,14 @@ function rdModel(){
   const now = Date.now();
   const lanes = [], calls = [], past = []; let staleDN = 0, unTot = 0;
   for(const cfg of VESSELS){
-    const v = (state.data && state.data.vessels || []).find(x => x.vesselId === cfg.vesselId);
+    let v = (state.data && state.data.vessels || []).find(x => x.vesselId === cfg.vesselId);
     const lane = { vid: cfg.vesselId, name: cfg.displayName, calls: [], past: [], pastMore: 0, un: 0, stale: null, state: "" };
     const seenP = new Set();
     lanes.push(lane);
-    if(!v || !v.items){ lane.state = cfg.manual ? "Gestione manuale" : "Nessun dato"; continue; }
+    // v1.15 — navi senza dati Infoship (VEGA UNO, ATLAS): il viaggio inserito a mano va comunque nel radar
+    if(!v || !v.items){ const vy = getVoyage(cfg.vesselId) || {};
+      if(!(vy.current && vy.current.to) && !(vy.next && vy.next.to) && !(vy.history || []).length){ lane.state = cfg.manual ? "Gestione manuale" : "Nessun dato"; continue; }
+      v = { vesselId: cfg.vesselId, items: [] }; lane.manual = true; }
     const voy = getVoyage(cfg.vesselId) || {};
     const vs = (typeof getVoyageSummaryForCard === "function") ? getVoyageSummaryForCard(cfg.vesselId) : null;
     lane.state = vs && vs.status && typeof VOYAGE_STATUS_LABELS !== "undefined" ? (VOYAGE_STATUS_LABELS[vs.status] || "") : "";
@@ -27118,7 +27121,7 @@ function rdModel(){
       const eta = eta0 != null ? eta0 : etb0; if(eta == null) return;
       const etb = etb0 != null ? etb0 : eta;
       const etdR = rdDD(leg.etd, now); const etd = etdR != null ? etdR : etb + 1;
-      const its = itemsForLeg(cfg.vesselId, w).filter(it => !rdCancelled(it));
+      const its = (() => { try { return itemsForLeg(cfg.vesselId, w) || []; } catch(e) { return []; } })().filter(it => !rdCancelled(it));
       its.forEach(it => assigned.add(it.id));
       if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length };
         const pc = rdPastCall(cfg, leg, its, now, leg.id || w); if(pc){ lane.past.push(pc); if(leg.id) seenP.add(leg.id); } return; }
