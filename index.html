@@ -10913,11 +10913,12 @@ function renderSwitcher() {
     ${emailCount > 0 ? `<span class="tab-alert-dot" title="${emailCount} in attesa di risposta"></span>` : ""}
     <span class="pill-key">${emailCount > 0 ? emailCount : ""}</span>
   </button>`);
-  row.appendChild(emailPill);
-  const emailOpt = document.createElement("option");
-  emailOpt.value = "__email"; emailOpt.textContent = `📧 Email${emailCount > 0 ? " (" + emailCount + ")" : ""}`;
-  if (state.view === "email") emailOpt.selected = true;
-  select.appendChild(emailOpt);
+  // v1.16 — niente più casella Email separata: la posta sta nella pratica (scheda articolo). La vista resta raggiungibile solo se già aperta.
+  if (state.view === "email") { row.appendChild(emailPill);
+    const emailOpt = document.createElement("option");
+    emailOpt.value = "__email"; emailOpt.textContent = `📧 Email${emailCount > 0 ? " (" + emailCount + ")" : ""}`;
+    emailOpt.selected = true;
+    select.appendChild(emailOpt); }
 
   // v0.11 — Pill Certificati (badge con scaduti+urgenti)
   const certGlobalStats = getCertStatsGlobal();
@@ -13722,10 +13723,13 @@ function getEmailThreads(){
     const out = [];
     for (const t of state.recentEmails.threads){
       if (dismissed.has(t.conversationId)) continue;
-      const msgs = Array.isArray(t.messages) ? t.messages : [];
+      // v1.16 — la direzione la decido qui: il feed n8n non sapeva il mio indirizzo e segnava tutto "in"
+      const msgs = (Array.isArray(t.messages) ? t.messages : []).map(m => isOwnAddr(m.from) ? Object.assign({}, m, { direction: "out", fromName: "Michele" }) : m)
+        .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
       const last = msgs.length ? msgs[msgs.length-1] : {};
       const p = pendingByConv[t.conversationId];
-      const waiting = !!(p || t.waitingReply);
+      const lastMine = last.direction === "out";
+      const waiting = !lastMine && !!(p || t.waitingReply);
       const days = p ? p.days : (t.waitingDays != null ? t.waitingDays : 0);
       out.push(enrich({
         id: t.conversationId,
@@ -13746,10 +13750,61 @@ function getEmailThreads(){
   }
 
   // fallback: nessun feed esteso collegato ancora — mostro solo le email in attesa (comportamento storico)
-  return getPendingReplies().map(p=>enrich(Object.assign({}, p, { waiting: true, categories: Array.isArray(p.categories)?p.categories:[], messages: [{ from:p.fromEmail, fromName:p.fromName, date:p.receivedDate, preview:p.preview, direction:"in" }] })));
+  return getPendingReplies().filter(p=>!isOwnAddr(p.fromEmail)).map(p=>enrich(Object.assign({}, p, { waiting: true, categories: Array.isArray(p.categories)?p.categories:[], messages: [{ from:p.fromEmail, fromName:p.fromName, date:p.receivedDate, preview:p.preview, direction:"in" }] })));
 }
 
 function vNameSafe(id){ const v = VESSELS.find(v=>v.vesselId===id); return v ? v.displayName : ""; }
+// v1.16 — POSTA PER PRATICA: le email che citano i numeri REQ/RFQ/PO/DN dell'articolo (o del fornitore, sulla stessa nave)
+function itemMailKeys(it){
+  const nums = [it.reqNumber, it.poNumber, it.dnNumber].concat(it.rfqNumbers || [])
+    .concat((it.poDetails || []).map(p => p && (p.n || p.number || p.po)), (it.dnDetails || []).map(d => d && (d.n || d.number || d.dn))).filter(Boolean);
+  const keys = new Map();
+  nums.forEach(n => { const s = String(n).toUpperCase(), short = s.replace(/^\d{4}-/, "");
+    keys.set(s.replace(/[^A-Z0-9]/g, ""), short);
+    const m = s.match(/^(\d{4})-([A-Z]{2,4})-([A-Z]{3,5})-(\d{4,6})$/);
+    if(m){ keys.set(m[3] + m[4], short); keys.set(m[1] + m[2] + m[4], short); } });
+  return [...keys.entries()].filter(([k]) => k.length >= 8);
+}
+function itemMailThreads(it, vid){
+  let th = []; try { th = getEmailThreads(); } catch(e) { return []; }
+  const keys = itemMailKeys(it), vName = String(vNameSafe(vid) || "").toUpperCase().replace(/^M\/?V\s*/, "");
+  let dom = ""; try { const em = rfqSupplierEmail(it.supplier, it.supplierCode); dom = (String(em).split("@")[1] || "").toLowerCase(); } catch(e) {}
+  if(/^(gmail|outlook|hotmail|yahoo|libero|sssdam)\./.test(dom)) dom = "";
+  // per fornitore solo se con lui c'è UNA sola pratica aperta su questa nave, altrimenti non so a quale va
+  if(dom){ const v = ((state.data && state.data.vessels) || []).find(x => x.vesselId === vid);
+    const same = ((v && v.items) || []).filter(x => x.supplier === it.supplier && x.dnStatus !== "DN Received on Board" && !(typeof rdCancelled === "function" && rdCancelled(x))).length;
+    if(same > 1) dom = ""; }
+  const out = [];
+  th.forEach(t => {
+    const txt = (t.subject + " " + (t.messages || []).map(m => m.preview || "").join(" ")).toUpperCase();
+    const flat = txt.replace(/[^A-Z0-9]/g, "");
+    const hit = keys.find(([k]) => flat.includes(k));
+    if(hit){ out.push({ t, why: hit[1], strong: true }); return; }
+    if(dom && (t.messages || []).some(m => String(m.from || "").toLowerCase().endsWith("@" + dom) || String(m.from || "").toLowerCase().endsWith("." + dom)) && (t.vesselId === vid || (vName && txt.includes(vName))))
+      out.push({ t, why: "fornitore", strong: false });
+  });
+  return out.sort((a, b) => (b.strong - a.strong) || String(b.t.receivedDate).localeCompare(String(a.t.receivedDate))).slice(0, 6);
+}
+function itemMailHTML(it, vessel){
+  const vid = (vessel && vessel.vesselId) || vesselIdOfItem(it.id);
+  const L = itemMailThreads(it, vid); if(!L.length) return "";
+  const esc = escapeHTML;
+  const rows = L.map(({ t, why, strong }) => {
+    const msgs = t.messages || [], last = msgs[msgs.length - 1] || {}, mine = last.direction === "out";
+    const who = mine ? "tu" : (last.fromName || t.fromName || last.from || "—");
+    const st = t.waiting ? '<span style="font-size:11.5px;font-weight:800;color:#fff;background:#c0261c;border-radius:999px;padding:2px 9px;white-space:nowrap;">tocca a te' + (t.days ? " · " + t.days + " gg" : "") + '</span>'
+      : mine ? '<span style="font-size:11.5px;font-weight:700;color:#14794e;white-space:nowrap;">✓ hai risposto</span>' : '<span style="font-size:11.5px;color:#6a7d90;white-space:nowrap;">informativa</span>';
+    const open = t.webLink ? '<a href="' + escapeAttr(t.webLink) + '" target="_blank" rel="noopener" class="btn btn-sm">Apri in Outlook</a>' : "";
+    return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid rgba(10,27,46,.08);">' +
+      '<div style="min-width:0;display:flex;flex-direction:column;gap:3px;"><b style="font-size:13.5px;color:#0a1b2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(String(t.subject || "").replace(/^((re|r|i|fw|fwd|rif)\s*:\s*)+/i, "")) + '</b>' +
+        '<span style="font-size:12px;color:#44576b;">ultima: ' + esc(who) + (last.date ? " · " + esc(formatDate(String(last.date).slice(0, 10))) : "") + ' · <span style="color:' + (strong ? "#1553d8" : "#6a7d90") + ';font-weight:700;">' + (strong ? "cita " + esc(why) : "stesso fornitore e nave") + '</span></span>' +
+        (last.preview ? '<span style="font-size:12px;color:#6a7d90;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(String(last.preview).slice(0, 160)) + '</span>' : "") + '</div>' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">' + st + open + '</div></div>';
+  }).join("");
+  const n = L.filter(x => x.t.waiting).length;
+  return '<div class="detail-section"><div class="idx-h"><h4>Posta della pratica</h4><span class="mp-src">' + L.length + (L.length === 1 ? " conversazione" : " conversazioni") + (n ? " · " + n + " tocca a te" : "") + '</span></div>' + rows + '</div>';
+}
+window.itemMailThreads = itemMailThreads;
 
 // Render della PAGINA dedicata "Assistente Email" (v0.48 — triage su tutta la posta + workspace strumenti scrittura)
 window._emailFilter = window._emailFilter || "all";
@@ -15295,9 +15350,6 @@ function renderVesselDetail() {
     <div class="vd-panel" data-tab="panoramica" style="display:${_vtab==='panoramica'?'':'none'};">
       ${renderVoyageWidget(v.vesselId)}
 
-      <div class="section-title"><h2>Pipeline procurement</h2></div>
-      ${kpiHTML}
-
       <section class="panel-card">
         <div class="panel-card-head"><span>To-do aperte</span><button class="vd-link" onclick="window.setVesselDetailTab('todo')">tutte →</button></div>
         <div class="panel-card-body">${_todoPrevHTML}</div>
@@ -16620,6 +16672,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
         ${typeof mpDetailHTML === "function" ? mpDetailHTML(it) : ""}
         ${offersHTML}
         ${ordersHTML}
+        ${typeof itemMailHTML === "function" ? itemMailHTML(it, vessel) : ""}
         ${shipmentSection(it, vessel)}
         ${deliveryPlannerHTML(it, vessel && vessel.vesselId)}
         <div class="idx-grid2">
@@ -21537,9 +21590,10 @@ async function parseCertificateExcel(file) {
     const r = rows[i];
     if (!r) continue;
     const cellsNorm = r.map(c => normHdr(c));
+    // v1.16 — il modello DOC F01 ha "Expiry Date" e "Issue↵Date": accetto l'etichetta seguita da "DATE"
     const hasN = cellsNorm.some(t => t === "N" || t === "NR" || /^NUM/.test(t));
-    const hasExpiry = cellsNorm.some(t => t === "SCADENZA" || t === "EXPIRY");
-    const hasIssue = cellsNorm.some(t => t === "DATA" || t === "ISSUE");
+    const hasExpiry = cellsNorm.some(t => /^(SCADENZA|EXPIRY)(\s+DATE)?$/.test(t));
+    const hasIssue = cellsNorm.some(t => /^(DATA|ISSUE)(\s+DATE)?$/.test(t));
     if (hasN && (hasExpiry || hasIssue)) {
       headerRowIdx = i;
       break;
@@ -21559,7 +21613,7 @@ async function parseCertificateExcel(file) {
     if (cols.place == null && /RILASCIATO|ISSUED\s*BY|ISSUER|PLACE/.test(t)) cols.place = idx;
     else if (cols.expiry == null && /SCADENZA|EXPIRY/.test(t)) cols.expiry = idx;
     else if (cols.intermediate == null && /INTERMEDI/.test(t)) cols.intermediate = idx;
-    else if (cols.issue == null && (/^DATA$/.test(t) || /ISSUE/.test(t))) cols.issue = idx;
+    else if (cols.issue == null && (/^DATA$/.test(t) || /^ISSUE/.test(t))) cols.issue = idx;
     else if (cols.certNum == null && /CERT.*NUM|NUMERO\s*CERT/.test(t)) cols.certNum = idx;
     else if (cols.notes == null && /NOTE|NOTA|ANNOTAZ/.test(t)) cols.notes = idx;
     else if (cols.n == null && /^N$|^NR$|^NUM/.test(t)) cols.n = idx;
