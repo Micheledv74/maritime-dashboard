@@ -21708,7 +21708,7 @@ async function parseCertificateExcel(file) {
     const flagUnparsed = (raw, parsed, label) => {
       if (parsed || raw === null || raw === undefined || raw === "") return "";
       const s = String(raw).trim();
-      if (!s || /^vari$/i.test(s)) return "";
+      if (!s || /^(vari|n\.?\s?\/?\s?a\.?|-+|tba|tbc|na)$/i.test(s)) return "";
       return `${label} non riconosciuta nel file: "${s}" — verificare a mano.`;
     };
     const flags = [
@@ -21718,6 +21718,8 @@ async function parseCertificateExcel(file) {
     if (intermediateDate) flags.push(`Ann. intermedia: ${intermediateDate}`);
     if (flags.length) notes = [notes, ...flags].filter(Boolean).join(" · ");
 
+    // v1.17 — righe del modello non compilate (nessuna data, n° certificato, luogo): non applicabili a questa nave
+    if (!issueDate && !expiryDate && !intermediateDate && !place && !certNum && !(!n && /survey|annual|intermedi/i.test(name))) { items._skipped = (items._skipped || 0) + 1; continue; }
     items.push({
       n: n,
       name: name,
@@ -21731,6 +21733,34 @@ async function parseCertificateExcel(file) {
       isPermanent: !expiryDate && (notes.toLowerCase().includes("permanent") || /permanente|permanent/i.test(notes))
     });
   }
+  // v1.17 — visite annuali/intermedie (righe figlie senza N°): nel DOC F01 la scadenza spesso è copiata dal certificato
+  // padre (5 anni) o manca. La scadenza vera è la finestra della visita: anniversario della scadenza del padre ± 3 mesi.
+  let parent = null;
+  const addM = (iso, m) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + m); return d.toISOString().slice(0, 10); };
+  for (const it of items) {
+    if (!it.isChild) { parent = it; continue; }
+    if (!parent || !parent.expiry || !/survey|annual|intermedi/i.test(it.name)) continue;
+    if (it.expiry && it.expiry !== parent.expiry) continue;
+    // visita intermedia "pura" (SMC, ISSC, MLC): tra il 2° e il 3° anno dal rilascio
+    if (/intermedi/i.test(it.name) && !/annual/i.test(it.name)) {
+      if (!parent.issue || (it.issue && it.issue >= addM(parent.issue, 24))) { if (it.issue) it.expiry = ""; continue; }
+      it.windowFrom = addM(parent.issue, 24); it.expiry = addM(parent.issue, 36); it.anniversary = "";
+      it.notes = [it.notes, "Finestra visita intermedia: " + it.windowFrom + " → " + it.expiry].filter(Boolean).join(" · ");
+      continue;
+    }
+    const last = it.issue || "";
+    const [py, pm, pd] = parent.expiry.split("-");
+    let y = parseInt((last || new Date().toISOString()).slice(0, 4), 10) - (last ? 0 : 1), ann = "";
+    const tIso = new Date().toISOString().slice(0, 10);
+    for (let k = 0; k < 4 && !ann; k++, y++) { const c = y + "-" + pm + "-" + pd; if (last ? addM(c, -3) > last : addM(c, 3) >= tIso) ann = c; }
+    if (!ann || ann >= parent.expiry) { it.expiry = ""; continue; }
+    it.expiry = addM(ann, 3);
+    it.windowFrom = addM(ann, -3); it.anniversary = ann;
+    it.notes = [it.notes, "Finestra visita: " + it.windowFrom + " → " + it.expiry + " (anniversario " + ann + ")"].filter(Boolean).join(" · ");
+  }
+  // data più recente scritta nel file (non futura): dice quanto è aggiornato il file
+  const todayIso = new Date().toISOString().slice(0, 10);
+  items._lastDate = items.map(i => i.issue).filter(d => d && d <= todayIso).sort().pop() || "";
   // v0.11.1 — Diagnostica: log distribuzione date parsate
   const withExpiry = items.filter(it => it.expiry).length;
   const permanent = items.filter(it => !it.expiry).length;
@@ -21770,11 +21800,15 @@ window.openCertImport = function(vesselId) {
       state.certificatesMeta[vesselId] = {
         fileName: file.name,
         importedAt: new Date().toISOString(),
-        count: items.length
+        count: items.length,
+        skipped: items._skipped || 0,
+        lastDate: items._lastDate || ""
       };
       saveCertificates();
       const vName = (VESSELS.find(v => v.vesselId === vesselId) || {}).displayName || vesselId;
-      showToast(`✓ Importati ${items.length} certificati per ${vName}`);
+      const expN = items.filter(i => i.expiry && i.expiry < new Date().toISOString().slice(0, 10)).length;
+      const age = items._lastDate ? Math.round((Date.now() - new Date(items._lastDate + "T12:00:00")) / 864e5) : null;
+      showToast(`✓ ${vName}: ${items.length} certificati${items._skipped ? " (" + items._skipped + " righe vuote escluse)" : ""} · ${expN} scaduti` + (age != null && age > 60 ? ` · ⚠ ultima data nel file ${formatDate(items._lastDate)}: il file sembra vecchio` : ""));
       render();
     } catch (err) {
       console.error("[Cert] errore parsing:", err);
@@ -22126,7 +22160,7 @@ function renderCertificatesView() {
     const count = ((state.certificates || {})[v.vesselId] || []).length;
     return `<div class="cert-import-card">
       <div class="cert-import-vessel">${escapeHTML(v.displayName)}</div>
-      <div class="cert-import-status muted">${count > 0 ? `${count} voci · ${meta ? formatRelative(new Date(meta.importedAt)) : ""}` : "<em>nessun file importato</em>"}</div>
+      <div class="cert-import-status muted">${count > 0 ? `${count} voci · ${meta ? formatRelative(new Date(meta.importedAt)) : ""}` : "<em>nessun file importato</em>"}${meta && meta.lastDate ? (d => `<div style="font-size:11.5px;margin-top:2px;color:${d > 60 ? "#b06a00" : "#6a7d90"};font-weight:${d > 60 ? 700 : 400};">ultima data nel file ${formatDate(meta.lastDate)}${d > 60 ? " · file vecchio" : ""}</div>`)(Math.round((Date.now() - new Date(meta.lastDate + "T12:00:00")) / 864e5)) : ""}</div>
       <button class="btn btn-sm" onclick="window.openCertImport('${escapeAttr(v.vesselId)}')">${count > 0 ? "↻ aggiorna file" : "📁 importa file"}</button>
     </div>`;
   }).join("");
