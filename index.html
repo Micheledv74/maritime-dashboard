@@ -13107,7 +13107,7 @@ function renderOverview() {
     <section id="ov-fleet" style="${(typeof qdOn === "function" && qdOn()) ? "display:none;" : ""}">
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Flotta</h2>
-        <span class="section-meta"><button class="btn btn-sm" style="margin-right:8px" onclick="window.qdSet(true)">Cosa fare oggi →</button>${(() => {
+        <span class="section-meta">${(() => {
           // v0.15 — conteggio per stato per dare contesto immediato
           let crit = 0, warn = 0;
           for (const cfg of VESSELS) {
@@ -15385,7 +15385,7 @@ function renderVesselDetail() {
     <div class="vd-panel" data-tab="diario" style="display:${_vtab==='diario'?'':'none'};">
       <div class="section-title">
         <h2>Diario di bordo</h2>
-        <span class="section-meta">storico posizioni e porti dai noon report</span>
+        <span class="section-meta">storico posizioni e porti · noon report e voci a mano <button class="btn btn-sm" style="margin-left:8px" onclick="window.lbOpen('${escapeAttr(cfg.vesselId)}')">+ Aggiungi voce</button></span>
       </div>
       ${renderNoonDiario(cfg.vesselId)}
     </div>
@@ -19212,8 +19212,58 @@ function formatVoyageDate(dateStr) {
 }
 
 // === NOON REPORTS (estratti via AI da n8n) — posizione giornaliera, proposta Voyage, storico ===
+// v1.14 — Diario di bordo scritto a mano (navi senza noon report, es. VEGA UNO). Chiave mpd.logbook
+// {id:{vid,date,type,place,coords,next,eta,etd,note,updatedAt,deleted}} — sync per voce, la cancellazione è un segno.
+function lbLoad(){ try{ const o = JSON.parse(localStorage.getItem("mpd.logbook") || "{}"); return (o && typeof o === "object") ? o : {}; }catch(e){ return {}; } }
+function lbSave(o){ try{ localStorage.setItem("mpd.logbook", JSON.stringify(o)); if(typeof driveSchedulePush === "function") driveSchedulePush(); if(typeof ghSetDirty === "function") ghSetDirty(); }catch(e){} }
+const LB_TYPES = { port: "In porto", anchor: "In rada", sea: "In navigazione", yard: "In cantiere" };
+function lbFmt(s){ if(!s) return ""; const d = String(s).slice(0,10).split("-"), t = String(s).slice(11,16); return d.length === 3 ? d[2] + "." + d[1] + (t ? " " + t : "") : s; }
+function lbToNoon(e){
+  const c = String(e.coords || "").split("/").map(x => x.trim());
+  return { date: e.date, type: e.type === "yard" ? "port" : (e.type || "port"), status: (LB_TYPES[e.type] || "") + (e.place ? " · " + e.place : ""), port: e.place || "",
+    positionText: e.coords || e.place || "", lat: c[0] || "", lon: c[1] || "", to: e.next || "", nextPort: e.next || "",
+    etaText: lbFmt(e.eta), etaISO: e.eta || "", etdText: lbFmt(e.etd), remarks: e.note || "", _manual: true, _lbId: e.id };
+}
+function lbNoons(vid){ return Object.values(lbLoad()).filter(e => e && !e.deleted && e.vid === vid && e.date).map(lbToNoon); }
+window.lbOpen = function(vid, id){
+  const e = (id && lbLoad()[id]) || { vid, date: new Date().toISOString().slice(0,10), type: "port" };
+  if(!id){ const last = lbNoons(vid).sort((a,b) => String(b.date).localeCompare(String(a.date)))[0]; if(last){ const p = lbLoad()[last._lbId] || {}; e.type = p.type || "port"; e.place = p.place || ""; e.next = p.next || ""; } }
+  let h = document.getElementById("lb-host"); if(!h){ h = document.createElement("div"); h.id = "lb-host"; document.body.appendChild(h); }
+  const inp = "border:1px solid #d5dbe3;border-radius:9px;padding:9px 10px;font-size:13.5px;font-family:var(--font-sans);background:#fff;width:100%;box-sizing:border-box;color:#0a1b2e;";
+  const lab = (t, f) => '<label style="display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#6a7d90;">' + t + f + '</label>';
+  const v = k => escapeAttr(e[k] || "");
+  h.innerHTML = '<div onclick="if(event.target===this)document.getElementById(\'lb-host\').innerHTML=\'\'" style="position:fixed;inset:0;background:rgba(10,27,46,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">' +
+    '<div style="background:#fff;border-radius:16px;width:min(520px,100%);max-height:92vh;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(10,27,46,.3);">' +
+    '<div style="display:flex;align-items:baseline;gap:10px;"><b style="font-size:18px;color:#0a1b2e;flex:1;">' + (id ? "Modifica voce" : "Nuova voce") + ' · diario di bordo</b><button class="btn btn-sm" onclick="document.getElementById(\'lb-host\').innerHTML=\'\'">✕</button></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">' +
+      lab("Data", '<input id="lb-date" type="date" value="' + v("date") + '" style="' + inp + '">') +
+      lab("Stato", '<select id="lb-type" style="' + inp + '">' + Object.keys(LB_TYPES).map(k => '<option value="' + k + '"' + (e.type === k ? " selected" : "") + '>' + LB_TYPES[k] + '</option>').join("") + '</select>') +
+      lab("Porto / posizione", '<input id="lb-place" value="' + v("place") + '" placeholder="es. LA SPEZIA" style="' + inp + '">') +
+      lab("Coordinate (facoltative)", '<input id="lb-coords" value="' + v("coords") + '" placeholder="44-06N / 009-49E" style="' + inp + '">') +
+      lab("Prossimo porto", '<input id="lb-next" value="' + v("next") + '" placeholder="es. GENOVA" style="' + inp + '">') +
+      '<span></span>' +
+      lab("ETA", '<input id="lb-eta" type="datetime-local" value="' + v("eta") + '" style="' + inp + '">') +
+      lab("ETD", '<input id="lb-etd" type="datetime-local" value="' + v("etd") + '" style="' + inp + '">') +
+    '</div>' +
+    lab("Note", '<textarea id="lb-note" rows="3" placeholder="es. campagna di rilievi, rientro previsto venerdì" style="' + inp + 'resize:vertical;">' + escapeHTML(e.note || "") + '</textarea>') +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + (id ? '<button class="btn btn-sm" style="color:#c0261c;" onclick="window.lbDelete(\'' + escapeAttr(id) + '\')">Elimina</button>' : "") + '<span style="flex:1"></span>' +
+      '<button class="btn btn-sm" onclick="document.getElementById(\'lb-host\').innerHTML=\'\'">Annulla</button><button class="btn btn-sm btn-primary" onclick="window.lbSaveForm(\'' + escapeAttr(vid) + '\',\'' + escapeAttr(id || "") + '\')">Salva nel diario</button></div>' +
+    '</div></div>';
+};
+window.lbSaveForm = function(vid, id){
+  const g = k => (document.getElementById("lb-" + k) || {}).value || "";
+  if(!g("date")){ showToast("Indica la data"); return; }
+  const all = lbLoad(); id = id || ("lb_" + Date.now().toString(36) + Math.random().toString(36).slice(2,5));
+  all[id] = { id, vid, date: g("date"), type: g("type"), place: g("place").trim().toUpperCase(), coords: g("coords").trim(), next: g("next").trim().toUpperCase(), eta: g("eta"), etd: g("etd"), note: g("note").trim(), updatedAt: new Date().toISOString() };
+  lbSave(all); document.getElementById("lb-host").innerHTML = ""; showToast("Voce salvata nel diario"); state.detailTab = "diario"; render();
+};
+window.lbDelete = function(id){
+  if(!confirm("Eliminare questa voce del diario?")) return;
+  const all = lbLoad(); if(all[id]){ all[id] = { id, vid: all[id].vid, deleted: true, updatedAt: new Date().toISOString() }; lbSave(all); }
+  document.getElementById("lb-host").innerHTML = ""; state.detailTab = "diario"; render();
+};
 function getNoonReports(vesselId){
-  const all = (state.noonReports && state.noonReports[vesselId]) || [];
+  const all = ((state.noonReports && state.noonReports[vesselId]) || []).concat(lbNoons(vesselId));
   // ordino per data crescente
   return all.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
 }
@@ -19678,7 +19728,8 @@ function renderNoonDiario(vesselId){
   if(!arr.length){
     return `<div class="vd-empty" style="padding:40px;text-align:center">
       <p style="margin:0 0 6px;font-weight:600;color:#5b6470">Nessun noon report ancora archiviato</p>
-      <p style="margin:0;font-size:12.5px;color:#9aa3af">I report estratti dalle email compariranno qui, uno per giorno, come diario di bordo.</p>
+      <p style="margin:0 0 14px;font-size:12.5px;color:#9aa3af">I report estratti dalle email compariranno qui, uno per giorno. Se la nave non manda noon report, scrivi tu le voci.</p>
+      <button class="btn btn-sm btn-primary" onclick="window.lbOpen('${escapeAttr(vesselId)}')">+ Aggiungi voce a mano</button>
     </div>`;
   }
   const rows = arr.map(n=>{
@@ -19687,16 +19738,20 @@ function renderNoonDiario(vesselId){
     const eta = n.etaText?`ETA ${escapeHTML(n.etaText)}`:"";
     const etd = n.etdText?`ETD ${escapeHTML(n.etdText)}`:"";
     const sched = [eta,etd].filter(Boolean).join(" · ");
+    const src = n._manual
+      ? `<button class="btn btn-sm" onclick="window.lbOpen('${escapeAttr(vesselId)}','${escapeAttr(n._lbId)}')" title="Modifica la voce">✎ a mano</button>`
+      : `<span style="font-size:11.5px;color:#6a7d90;">noon report</span>`;
     return `<tr>
       <td class="diario-date">${noonDateLabel(n.date)}<span class="diario-yr">${(n.date||'').slice(0,4)}</span></td>
       <td class="diario-pos mono">${pos?escapeHTML(pos):"—"}</td>
-      <td class="diario-where">${where}</td>
+      <td class="diario-where">${where}${n._manual && n.remarks ? `<div style="font-size:12px;color:#44576b;margin-top:3px;">${escapeHTML(n.remarks)}</div>` : ""}</td>
       <td class="diario-sched">${sched||"—"}</td>
+      <td style="text-align:right;">${src}</td>
     </tr>`;
   }).join("");
   return `<div class="diario-wrap">
     <table class="diario-table">
-      <thead><tr><th>Data</th><th>Posizione</th><th>Porto / Stato</th><th>ETA / ETD</th></tr></thead>
+      <thead><tr><th>Data</th><th>Posizione</th><th>Porto / Stato</th><th>ETA / ETD</th><th style="text-align:right;">Fonte</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   </div>`;
@@ -24859,6 +24914,7 @@ function buildStatePayload() {
     rfqChases: (typeof loadRfqChases === "function" ? loadRfqChases() : {}),
     rfqVendors: (typeof loadRfqVendors === "function" ? loadRfqVendors() : {}),
     portProfiles: (typeof loadPortProfiles === "function" ? loadPortProfiles() : {}),
+    logbook: (typeof lbLoad === "function" ? lbLoad() : {}),
     critFlags: (typeof loadCritFlags === "function" ? loadCritFlags() : {}),
     matPos: (typeof loadMatPos === "function" ? loadMatPos() : {}),
     delivGoal: (typeof loadDelivGoal === "function" ? loadDelivGoal() : {}),
@@ -25344,7 +25400,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -25471,6 +25527,7 @@ function collSnapshot(){
     rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{}),
     rfqVendors: f(typeof loadRfqVendors==="function"?loadRfqVendors():{}),
     portProfiles: f(typeof loadPortProfiles==="function"?loadPortProfiles():{}),
+    logbook: f(typeof lbLoad==="function"?lbLoad():{}),
     critFlags: f(typeof loadCritFlags==="function"?loadCritFlags():{}),
     matPos: f(typeof loadMatPos==="function"?loadMatPos():{}),
     delivGoal: f(typeof loadDelivGoal==="function"?loadDelivGoal():{}),
@@ -25615,7 +25672,7 @@ function mpdMergeRemote(remote, force){
       }
     }
     // v0.96 — profili porto e flag critico: unione per voce, vince updatedAt più recente
-    ["portProfiles", "critFlags", "matPos", "delivGoal", "reminders", "chaseOff"].forEach(cn => {
+    ["portProfiles", "critFlags", "matPos", "delivGoal", "reminders", "chaseOff", "logbook"].forEach(cn => {
       const rv = remote[cn]; if (!rv || typeof rv !== "object") return;
       const lk = "mpd." + cn;
       let local = {}; try { local = JSON.parse(localStorage.getItem(lk) || "{}") || {}; } catch {}
@@ -27130,7 +27187,7 @@ function rdCalc(it, c, now, basis){
   } else if(it.dnStatus){
     st = "attesa"; segs.push({ k: "f", a: 0, lo: 0.2, hi: 1 }); lo = 0.2; hi = 1; chain.push("DN pronta, da spedire");
     push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl);
-  } else if(typeof mpManual === "function" && mpManual(it.id) && ["supplier","hub","repair"].includes(mpManual(it.id).pos)){
+  } else if(typeof mpManual === "function" && mpManual(it.id) && ["supplier","hub","office","repair"].includes(mpManual(it.id).pos)){
     const m = mpManual(it.id);
     if(m.pos === "repair"){
       const b = rdDD(m.back, now);
@@ -27139,7 +27196,7 @@ function rdCalc(it, c, now, basis){
     } else {
       st = "attesa"; segs.push({ k: "f", a: 0, lo: 0.5, hi: 1.5 }); lo = 0.5; hi = 1.5;
       const hb = m.pos === "hub" ? mpHub(m.hub) : null;
-      chain.push(m.pos === "hub" ? "all'hub " + (hb ? hb.name : "TML") + (mpDaysSince(m.since) != null ? " da " + mpDaysSince(m.since) + " gg" : "") : "fermo apposta dal fornitore, pronto");
+      chain.push(m.pos === "hub" ? "all'hub " + (hb ? hb.name : "TML") + (mpDaysSince(m.since) != null ? " da " + mpDaysSince(m.since) + " gg" : "") : m.pos === "office" ? "in ufficio" + (mpDaysSince(m.since) != null ? " da " + mpDaysSince(m.since) + " gg" : "") + ", da smistare alla nave" : "fermo apposta dal fornitore, pronto");
       push("t", TR[0], TR[1], trLbl); push("d", cust[0], cust[1], custLbl);
     }
   } else {
@@ -27250,6 +27307,36 @@ window.rdMove = function(itemId, callId){
   window._rd.undo = { itemId, prev: prev ? JSON.parse(JSON.stringify(prev)) : null, label: (it.description || "") + " → " + c.port };
   window._rd.sel = callId; window._rd.open = itemId;
   if(typeof showToast === "function") showToast("Consegna spostata a " + c.port + " (" + c.vname + ")");
+  radarPaint();
+};
+function rdSetPlanUndo(itemId, plan, label, toast){
+  const prev = getDeliveryPlan(itemId);
+  setDeliveryPlan(itemId, plan);
+  window._rd.undo = { itemId, prev: prev ? JSON.parse(JSON.stringify(prev)) : null, label };
+  window._rd.open = null;
+  if(typeof ghSetDirty === "function") ghSetDirty();
+  if(typeof showToast === "function") showToast(toast);
+  radarPaint();
+}
+window.rdRelease = function(itemId){
+  const it = faFindItem(itemId) || {};
+  rdSetPlanUndo(itemId, { mode: "none", released: true, updatedAt: new Date().toISOString() }, (it.description || "") + " svincolato", "Svincolato dallo scalo: ora è tra i PO senza scalo");
+};
+window.rdOtherPort = function(itemId){
+  const it = faFindItem(itemId) || {}, cur = getDeliveryPlan(itemId) || {};
+  const port = prompt("Porto di consegna:", cur.mode === "manual" ? (cur.port || "") : ""); if(port === null || !port.trim()) return;
+  const date = prompt("Data di consegna (gg.mm.aaaa, vuota se non nota):", ""); if(date === null) return;
+  let iso = ""; const m = String(date).trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+  if(m){ const y = m[3].length === 2 ? "20" + m[3] : m[3]; iso = y + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0"); }
+  else if(/^\d{4}-\d{2}-\d{2}$/.test(String(date).trim())) iso = String(date).trim();
+  const P = port.trim().toUpperCase();
+  rdSetPlanUndo(itemId, { mode: "manual", port: P, date: iso, updatedAt: new Date().toISOString() }, (it.description || "") + " → " + P, "Consegna a " + P + (iso ? " il " + mpFD(iso) : "") + ". Nel radar compare quando lo scalo è nel viaggio.");
+};
+window.rdToOffice = function(itemId){
+  const on = (mpManual(itemId) || {}).pos === "office";
+  mpSet(itemId, { pos: on ? "" : "office" });
+  if(typeof ghSetDirty === "function") ghSetDirty();
+  if(typeof showToast === "function") showToast(on ? "Posizione: torna automatica" : "Segnato: arriva in ufficio, lo smisti tu");
   radarPaint();
 };
 window.rdUndo = function(){
@@ -27447,9 +27534,14 @@ function radarPaint(){
               '<div><span class="rd-pill" style="color:' + COL[a.r.k] + ';border-color:' + COL[a.r.k] + '">' + (a.r.k === "ok" ? "in tempo" : a.r.k === "risk" ? "a rischio" : "non arriva") + '</span><em style="color:' + COL[a.r.k] + '">' + a.r.margin + '</em></div>' +
               '<div style="color:' + relC + '" class="rd-rel">' + rel + '</div>' +
               '<div class="rd-alt-n">' + esc(a.pr.note || (a.pr.set ? "" : "Profilo porto non compilato: dogana e preavviso sono valori standard.")) + '</div>' +
-              '<div class="rd-alt-b">' + (a.cur ? '<span>scalo attuale</span>' : a.r.k !== "late" ? '<button class="btn btn-sm btn-primary" onclick="window.rdMove(\'' + ea(x.it.id) + '\',\'' + ea(a.c.id) + '\')">Sposta qui</button>' : "") + '</div></div>';
+              '<div class="rd-alt-b">' + (a.cur ? '<span>scalo attuale</span>' : '<button class="btn btn-sm' + (a.r.k !== "late" ? " btn-primary" : "") + '" onclick="window.rdMove(\'' + ea(x.it.id) + '\',\'' + ea(a.c.id) + '\')">' + (a.r.k !== "late" ? "Sposta qui" : "Sposta comunque") + '</button>') + '</div></div>';
           }).join("") +
-          (rdAlts(x, M).length < 2 ? '<div class="rd-sub">Il viaggio di ' + esc(x.c.vname) + ' ha un solo scalo impostato: aggiungi il successivo per vedere le alternative.</div>' : "") + '</div>';
+          (rdAlts(x, M).length < 2 ? '<div class="rd-sub">Il viaggio di ' + esc(x.c.vname) + ' ha un solo scalo impostato: aggiungi il successivo per vedere le alternative.</div>' : "") +
+          '<div class="rd-alt-r" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;"><div class="rd-alt-p" style="flex:1;min-width:180px;"><b>Altra destinazione</b><em>se non arriva in tempo o cambia il piano</em></div>' +
+            '<button class="btn btn-sm" onclick="window.rdRelease(\'' + ea(x.it.id) + '\')" title="Toglie il PO da questo scalo: torna tra i PO senza scalo">Svincola dallo scalo</button>' +
+            '<button class="btn btn-sm" onclick="window.rdOtherPort(\'' + ea(x.it.id) + '\')" title="Porto e data scritti a mano">Altro porto…</button>' +
+            '<button class="btn btn-sm" onclick="window.rdToOffice(\'' + ea(x.it.id) + '\')" title="Lo fai arrivare in ufficio e poi lo smisti tu">' + ((mpManual(x.it.id) || {}).pos === "office" ? "✓ In ufficio" : "Fai arrivare in ufficio") + '</button>' +
+            '<button class="btn btn-sm" onclick="window.openVoyageEditor(\'' + ea(x.c.vid) + '\')">+ Scalo al viaggio</button></div>' + '</div>';
       }
       return '<div class="rd-row' + (open ? " open" : "") + (x.k === "late" ? " late" : "") + '"><div class="rd-rg" onclick="window.rdOpen(\'' + ea(x.it.id) + '\')">' +
         '<div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(x.it.poNumber || x.it.dnNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (x.crit ? '<span class="rd-crit"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:#c0261c;color:#fff;font:800 11px/1 var(--font-sans);vertical-align:-2px;">C</span> CRITICO</span>' : "") + (x.noCust ? '<span class="rd-eu">UE</span>' : "") + '</div>' +
@@ -27691,14 +27783,15 @@ const MP_POS = {
   route:    { l:"In attesa di rotta",  s:"in attesa di rotta",  c:"#1553d8" },
   supplier: { l:"Fermo dal fornitore", s:"presso il fornitore", c:"#c07800" },
   hub:      { l:"All'hub TML",         s:"all'hub TML",         c:"#b06a00" },
+  office:   { l:"In ufficio",          s:"in ufficio",          c:"#3d4f66" },
   repair:   { l:"In riparazione",      s:"in riparazione",      c:"#6b4fc4" },
   transit:  { l:"In viaggio",          s:"in viaggio",          c:"#14794e" },
   customs:  { l:"In dogana",           s:"fermi in dogana",      c:"#b3246b" },
   agency:   { l:"Gestito dall'agenzia", s:"all'agenzia",         c:"#0f7b8a" },
   onboard:  { l:"A bordo",             s:"a bordo",             c:"#6a7d90" }
 };
-const MP_ORDER = ["route","supplier","hub","repair","transit","customs","agency","onboard"];
-const MP_OPTS_PO = ["supplier","hub","repair","transit","customs","agency","onboard"];
+const MP_ORDER = ["route","supplier","hub","office","repair","transit","customs","agency","onboard"];
+const MP_OPTS_PO = ["supplier","hub","office","repair","transit","customs","agency","onboard"];
 // v1.06 — dogana / agenzia dedotte dal tracking
 const MP_CUST_RX = /custom|dogan|clearance|held|hold\b|detain|inspection|examination|sdogan|import (?:hold|control)|awaiting (?:documents|release)/i;
 const MP_CLEAR_RX = /cleared|released|svincolat|clearance complete|customs ok|delivered|consegnat/i;
@@ -27795,7 +27888,7 @@ function mpIntentional(it){
   const m = mpManual(it.id);
   if(!m){ const s = getItemShipments(it.id), l = s[s.length - 1]; return !!(l && (l.route === "supplier-hub" || mpToPort(l)) && s.every(x => x.status === "delivered")) || !!mpCustomsFromShip(s); }
   if(m.pos === "route") return !mpRouteKnown(it);
-  return ["supplier","hub","repair","customs","agency"].includes(m.pos);
+  return ["supplier","hub","office","repair","customs","agency"].includes(m.pos);
 }
 window.mpIntentional = mpIntentional;
 function mpRefresh(id){
@@ -27832,6 +27925,11 @@ function mpDetailHTML(it){
     extra = '<div class="mp-row"><label>Hub<select onchange="window.mpSetField(\'' + id + '\',\'hub\',this.value)">' + TML_HUBS.map(hb => '<option value="' + hb.id + '"' + (hb.id === p.hub ? " selected" : "") + '>' + escapeHTML(hb.name + " · " + hb.city) + '</option>').join("") + '</select></label>' +
       '<label>Arrivato il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
       '<span class="mp-note">' + (d != null ? "all'hub da " + d + " gg" : "") + (mpHub(p.hub) ? ' · <a href="mailto:' + escapeAttr(mpHub(p.hub).email) + '">' + escapeHTML(mpHub(p.hub).email) + '</a>' : "") + '</span></div>';
+  } else if(p.pos === "office" && p.manual){
+    const d = mpDaysSince(p.since);
+    extra = '<div class="mp-row"><label>Arrivato in ufficio il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
+      '<label class="mp-wide">Note / come lo smisti<input value="' + escapeAttr(p.note || "") + '" placeholder="es. parte con il corriere per Genova insieme ad altri PO" onchange="window.mpSetField(\'' + id + '\',\'note\',this.value)"></label>' +
+      '<span class="mp-note">' + (d != null ? "in ufficio da " + d + " gg. " : "") + 'Il radar lo considera pronto da qui: conta solo il trasporto verso lo scalo. Non compare in rosso.</span></div>';
   } else if(p.pos === "repair" && p.manual){
     extra = '<div class="mp-row"><label>Sbarcato il<input type="date" value="' + escapeAttr(p.since || "") + '" onchange="window.mpSetField(\'' + id + '\',\'since\',this.value)"></label>' +
       '<label>Rientro previsto<input type="date" value="' + escapeAttr(p.back || "") + '" onchange="window.mpSetField(\'' + id + '\',\'back\',this.value)"></label>' +
@@ -28179,7 +28277,7 @@ window.m3Po = function(id){
   const gS = getItemShipments(id).find(s => s.gid && s.status !== "delivered"), gN = gS ? (((shipGroups()[gS.gid] || {}).items) || []).length : 0;
   const btn = k => { const on = p.pos === k, ded = on && !p.manual, c = MP_POS[k].c; return '<button class="m3-pos' + (on ? (ded ? " ded" : " on") : "") + '" style="--c:' + c + '" onclick="m3SetPos(\'' + eid + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>'; };
   const notes = { supplier: p.manual ? "Fermo apposta dal fornitore: non compare più tra gli ordini in ritardo." : "Dedotto: PO emesso, nessuna DN. Se lo tieni lì apposta, toccalo per confermare.",
-    hub: "Il radar calcola l'arrivo dall'hub.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : gN > 1 ? "AWB " + gS.number + " · spedizione unica con " + (gN - 1) + " altri PO." : p.partial ? "Parzialmente a bordo: il resto è ancora in viaggio." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", customs: p.manual ? "In dogana" + (p.port ? " a " + p.port : "") + (p.note ? ": " + p.note : "") + ". Il radar usa lo svincolo previsto." : "Dedotto dal tracking (evento doganale). Toccalo per confermare.", agency: "Pronto" + (p.agent ? " da " + p.agent : " all'agenzia") + (p.port ? " · " + p.port : "") + ": imbarca a sua discrezione.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
+    hub: "Il radar calcola l'arrivo dall'hub.", office: "In ufficio: lo smisti tu alla nave. Il radar conta solo il trasporto.", repair: "Indica il rientro previsto: il radar lo usa come data di pronto.", transit: p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo." : gN > 1 ? "AWB " + gS.number + " · spedizione unica con " + (gN - 1) + " altri PO." : p.partial ? "Parzialmente a bordo: il resto è ancora in viaggio." : "Aggiungi AWB o tracking dal PC per l'arrivo reale.", customs: p.manual ? "In dogana" + (p.port ? " a " + p.port : "") + (p.note ? ": " + p.note : "") + ". Il radar usa lo svincolo previsto." : "Dedotto dal tracking (evento doganale). Toccalo per confermare.", agency: "Pronto" + (p.agent ? " da " + p.agent : " all'agenzia") + (p.port ? " · " + p.port : "") + ": imbarca a sua discrezione.", onboard: "Consegnato: esce dal radar.", route: "Richiesta senza PO: la emetti quando sai dove va la nave." };
   let extra = "";
   if(p.pos === "hub" && p.manual) extra = '<div class="m3-fields"><select onchange="m3Field(\'' + eid + '\',\'hub\',this.value)">' + TML_HUBS.map(hb => '<option value="' + hb.id + '"' + (hb.id === p.hub ? " selected" : "") + '>' + escapeHTML(hb.name + " · " + hb.city) + '</option>').join("") + '</select><input type="date" value="' + escapeAttr(p.since || "") + '" onchange="m3Field(\'' + eid + '\',\'since\',this.value)"></div>';
   if(p.pos === "hub") extra += '<button class="m3-pill" style="margin-top:10px" onclick="maCloseSheet();window.shipHubBoard(\'' + m3E(p.hub || "") + '\',\'' + m3E(vid) + '\')">Spedisci insieme ad altri PO →</button>';
@@ -28971,7 +29069,7 @@ function m6Vessel(vid){
 // Non aggiunge informazioni: mette in fila le mosse che la dashboard già conosce (avvisi, to-do, flusso
 // acquisti per nave, certificati, DN da far chiudere, pulizia DN). Max 7, un pulsante per riga, «Rimanda a
 // domani» le nasconde fino al giorno dopo (mpd.qdSnooze). Le mosse degli scali restano nel Radar.
-function qdOn(){ try { return localStorage.getItem("mpd.ovQueue") !== "fleet"; } catch(e) { return true; } }
+function qdOn(){ return false; } // v1.15 — tolta: duplicava le altre sezioni
 window.qdOn = qdOn;
 window.qdSet = function(on){ try { localStorage.setItem("mpd.ovQueue", on ? "queue" : "fleet"); } catch(e) {} render(); };
 function qdSnz(){ return rdLoadJSON("mpd.qdSnooze"); }
