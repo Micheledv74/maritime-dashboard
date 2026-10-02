@@ -7380,6 +7380,14 @@ header.vessel-detail-banner[data-vid="vegauno"] .vdb-name{ color:#8a6508 !import
 .mo-status-rfq{ color:#9a4a00; }
 .mo-status-po{ color:#0a3f93; }
 .mo-status-delivered{ color:#1f5a2c; }
+.mo-status-offer{ color:#14794e; }
+.mo-status-shipped{ color:#1553d8; }
+.mo-status-cancelled{ color:#8a93a0; }
+.mo-row[data-mo-status="cancelled"]{ opacity:.5; }
+.mo-open{ border:1px solid #d7dee7; background:#fff; cursor:pointer; padding:5px 9px; border-radius:6px; font-size:12px; font-weight:700; color:#1553d8; white-space:nowrap; }
+.mo-open:hover{ background:#eef3fd; }
+.mo-hint{ font-size:11px; color:#c07800; font-weight:700; padding:0 8px; }
+.idx-manual{ margin:0 0 10px; padding:9px 12px; border-radius:10px; background:var(--c-vega-soft); border:1px solid #e8d7a4; color:#6b4e05; font-size:12.5px; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
 .mo-row[data-mo-status="delivered"]{ opacity:.6; }
 .mo-del{ border:none; background:none; cursor:pointer; padding:6px; border-radius:6px; font-size:14px; }
 .mo-del:hover{ background:#fdecec; }
@@ -9981,6 +9989,7 @@ function mergeAndPrepare() {
     }
     v.tracking = trackingMap[v.vesselId] || null;
   }
+  moInject();  // v1.13 — ordini manuali (VEGA UNO, ATLAS) dentro la pipeline come item veri
 }
 
 // Traduzione codici ITU navStatus AIS in stringhe leggibili
@@ -10800,6 +10809,7 @@ function beep() {
 // ============================================================================
 
 function render() {
+  try { moInject(); } catch(e) { console.warn("[ordini manuali]", e); }
   applySettings();
   renderSyncInfo();
   renderSwitcher();
@@ -14799,7 +14809,7 @@ function collectWeekEvents(fromISO, toISO, opts) {
   }
   // 1b) Ordini manuali con data (navi a gestione manuale VEGA UNO, o navi con registro manuale attivo es. NORRBOTTEN)
   for (const cfg of VESSELS) {
-    if (!cfg.manual && !cfg.allowManual) continue;
+    if (true) continue;  // v1.13 — già inclusi come item
     for (const o of manualOrdersFor(cfg.vesselId)) {
       if (!o.date || o.status === "delivered") continue;
       push(o.date, { type: "delivery", vesselId: cfg.vesselId, label: truncate((o.docNum ? o.docNum + " " : "") + (o.description || "Ordine"), 40), sub: o.supplier || "", sort: 2 });
@@ -14970,62 +14980,124 @@ window.toggleCalTodos = function() {
 function loadAllManualOrders(){ try{ const o=JSON.parse(localStorage.getItem("mpd.manualOrders")||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function saveAllManualOrders(o){ try{ localStorage.setItem("mpd.manualOrders", JSON.stringify(o)); if(typeof driveSchedulePush==="function") driveSchedulePush(); }catch{} }
 function manualOrdersFor(vid){ const all=loadAllManualOrders(); return Array.isArray(all[vid])?all[vid]:[]; }
-function manualOrdersOpen(vid){ return manualOrdersFor(vid).filter(o=>o.status!=="delivered").length; }
+function manualOrdersOpen(vid){ return manualOrdersFor(vid).filter(o=>o.status!=="delivered"&&o.status!=="cancelled").length; }
+// v1.13 — PROCUREMENT MANUALE INTEGRATO: ogni riga del registro diventa un item della pipeline
+// (id "mo::<nave>::<id>") con gli stessi campi di Infoship → Radar, solleciti RFQ, Pronto per PO,
+// posizioni del materiale, spedizioni, critici, scheda articolo, mobile. La fonte resta il registro.
+const MO_STATUS = [["rfq","RFQ inviata"],["offer","Offerta ricevuta"],["po","PO emesso"],["shipped","In viaggio"],["delivered","A bordo"],["cancelled","Annullato"]];
+function moRank(s){ return ["rfq","offer","po","shipped","delivered"].indexOf(s); }
+function moRfqNum(o){ return String(o.rfqNum != null ? o.rfqNum : (moRank(o.status) < 2 || o.status === "cancelled" ? o.docNum || "" : "")).trim(); }
+function moPoNum(o){ return String(o.poNum != null ? o.poNum : (moRank(o.status) >= 2 ? o.docNum || "" : "")).trim(); }
+function moToItem(cfg, o){
+  let st = o.status || "rfq";
+  const canc = st === "cancelled";
+  const rfqN = moRfqNum(o) || (o.status === "rfq" || o.status === "offer" ? "RFQ-" + String(o.id).slice(-4).toUpperCase() : "");
+  try { if(st === "rfq" && rfqN && (loadRfqVendors()[rfqN] || {}).answered) st = "offer"; } catch(e) {}
+  const r = moRank(st), hasPO = r >= 2 && !canc, poN = moPoNum(o);
+  const sent = o.rfqDate || String(o.createdAt || "").slice(0, 10) || (/^mo_(\d{12,})/.test(o.id) ? new Date(+o.id.split("_")[1]).toISOString().slice(0, 10) : "");
+  const days = sent ? Math.max(0, Math.floor((Date.now() - new Date(sent + "T00:00:00").getTime()) / 864e5)) : 0;
+  const rfqSt = canc ? "RFQ Cancelled" : r <= 0 ? "RFQ Sent to Vendor" : "RFQ Offer Acknowledged";
+  return { id: "mo::" + cfg.vesselId + "::" + o.id, _manual: true, _moId: o.id, _moStatus: st, vesselId: cfg.vesselId,
+    description: o.description || "(ordine manuale)", supplier: o.supplier || "—",
+    reqNumber: o.reqNum || "", reqStatus: canc ? "REQ Cancelled" : hasPO ? "REQ Ordered" : "REQ Price Sourcing", reqDate: sent,
+    rfqNumbers: rfqN ? [rfqN] : [], rfqIssued: rfqN ? 1 : 0, rfqClosed: r >= 1 ? 1 : 0, rfqStatus: rfqN ? rfqSt : "", rfqStatusSummary: rfqN ? [rfqSt] : [],
+    rfqDate: sent, rfqDays: days,
+    poNumber: hasPO ? (poN || "PO manuale") : "", poStatus: canc && poN ? "PO Cancelled" : hasPO ? "PO Published" : "", poDate: hasPO ? (o.poDate || "") : "",
+    poDeliveryDate: hasPO ? (o.date || "") : "", deliveryDate: o.date || "",
+    dnNumber: "", dnStatus: st === "shipped" ? "DN Shipped to Vessel" : st === "delivered" ? "DN Received on Board" : "",
+    dnDeliveryDate: st === "shipped" ? (o.eta || o.date || "") : "", dnDate: st === "delivered" ? (o.deliveredAt || o.date || "") : "",
+    amount: o.amount || "", currency: o.currency || "EUR", origin: o.origin || "", updatedAt: o.updatedAt || "" };
+}
+function moInject(){
+  if(!state.data || !Array.isArray(state.data.vessels)) return;
+  const trk = (state.tracking && state.tracking.vessels) || {};
+  for(const cfg of VESSELS){
+    if(!cfg.manual && !cfg.allowManual) continue;
+    const list = manualOrdersFor(cfg.vesselId).filter(o => o && o.id && (o.description || o.docNum || o.rfqNum || o.poNum || o.supplier));
+    let v = state.data.vessels.find(x => x.vesselId === cfg.vesselId);
+    if(!v){ if(!list.length) continue; v = { vesselId: cfg.vesselId, vesselName: cfg.displayName, items: [], _synthetic: true, tracking: trk[cfg.vesselId] || null }; state.data.vessels.push(v); }
+    v.items = (v.items || []).filter(i => !i._manual).concat(list.map(o => moToItem(cfg, o)));
+    if(v._synthetic){ const its = v.items, sent = its.filter(i => i.rfqStatus === "RFQ Sent to Vendor");
+      v.rfqOpen = sent.length; v.rfqOverdue7 = sent.filter(i => i.rfqDays > 7).length;
+      v.readyForPO = its.filter(i => i.rfqStatus === "RFQ Offer Acknowledged" && !i.poNumber && i.reqStatus !== "REQ Cancelled").length;
+      v.orders = its.filter(i => i.poNumber && i.poStatus !== "PO Cancelled").length; v.dnPending = its.filter(i => i.dnStatus === "DN Shipped to Vessel").length; }
+  }
+}
+function moRefresh(vid, full){ try { moInject(); } catch(e) {} if(full) render(); else renderManualOrdersInto(vid); }
+window.moOpenItem = function(vid, id){ moInject(); if(typeof window.openItemDetailPopover === "function") window.openItemDetailPopover("mo::" + vid + "::" + id); };
 window.addManualOrder = function(vid){
   const all=loadAllManualOrders();
   const arr=Array.isArray(all[vid])?all[vid]:[];
-  arr.push({ id:"mo_"+Date.now()+"_"+Math.random().toString(36).slice(2,6), docNum:"", description:"", supplier:"", status:"rfq", date:"", amount:"", currency:"EUR" });
+  const now=new Date().toISOString();
+  arr.push({ id:"mo_"+Date.now()+"_"+Math.random().toString(36).slice(2,6), rfqNum:"", poNum:"", description:"", supplier:"", status:"rfq", rfqDate:now.slice(0,10), date:"", amount:"", currency:"EUR", createdAt:now, updatedAt:now });
   all[vid]=arr; saveAllManualOrders(all);
-  renderManualOrdersInto(vid);
+  moRefresh(vid);
 };
 window.updateManualOrder = function(vid,id,field,value){
   const all=loadAllManualOrders(); const arr=all[vid]||[]; const o=arr.find(x=>x.id===id);
   if(!o){ renderManualOrdersInto(vid); showToast("Ordine non trovato: ricaricato il registro"); return; }
+  if(field==="status" && value!==o.status){ const t=new Date().toISOString().slice(0,10);
+    if(value==="po" && !o.poDate) o.poDate=t;
+    if(value==="delivered" && !o.deliveredAt) o.deliveredAt=t;
+    if(moRank(value)>=2 && o.poNum==null){ o.rfqNum=moRfqNum(o); o.poNum=""; }
+    // a bordo dal registro = a bordo anche nelle posizioni del materiale
+    if(value==="delivered" && typeof mpSetPos==="function"){ try{ const m=loadMatPos(); m["mo::"+vid+"::"+id]={ pos:"onboard", since:t, updatedAt:new Date().toISOString() }; localStorage.setItem("mpd.matPos", JSON.stringify(m)); }catch(e){} } }
   o[field]=value; o.updatedAt=new Date().toISOString(); all[vid]=arr; saveAllManualOrders(all);
-  // aggiorno solo i badge di stato senza ri-renderizzare tutto (mantiene focus input)
-  if(field==="status"){ renderManualOrdersInto(vid); }
+  if(typeof ghSetDirty==="function") ghSetDirty();
+  // testo: aggiorno i dati senza ri-renderizzare (mantiene il focus); stato/date: tutto il sistema
+  if(field==="status" || field==="date" || field==="rfqDate") moRefresh(vid, true); else { try{ moInject(); }catch(e){} }
 };
 window.deleteManualOrder = function(vid,id){
+  if(!confirm("Eliminare questo ordine dal registro?")) return;
   const all=loadAllManualOrders(); all[vid]=(all[vid]||[]).filter(x=>x.id!==id); saveAllManualOrders(all);
-  renderManualOrdersInto(vid);
+  moRefresh(vid, true);
 };
 function renderManualOrdersInto(vid){
   const host=document.getElementById("manual-orders-host");
   if(host) host.innerHTML=renderManualOrders(vid);
 }
 function renderManualOrders(vid){
-  const arr=manualOrdersFor(vid);
-  const open=arr.filter(o=>o.status!=="delivered").length;
-  const stOpt=(v)=>`
-    <option value="rfq" ${v==="rfq"?"selected":""}>RFQ</option>
-    <option value="po" ${v==="po"?"selected":""}>PO</option>
-    <option value="delivered" ${v==="delivered"?"selected":""}>Consegnato</option>`;
-  const rows=arr.map(o=>`
-    <tr class="mo-row" data-mo-status="${o.status}">
-      <td><input class="mo-in mo-doc" value="${escapeAttr(o.docNum||"")}" placeholder="N° RFQ/PO" oninput="window.updateManualOrder('${vid}','${o.id}','docNum',this.value)"></td>
-      <td><input class="mo-in mo-desc" value="${escapeAttr(o.description||"")}" placeholder="Descrizione" oninput="window.updateManualOrder('${vid}','${o.id}','description',this.value)"></td>
-      <td><input class="mo-in mo-supp" value="${escapeAttr(o.supplier||"")}" placeholder="Fornitore" oninput="window.updateManualOrder('${vid}','${o.id}','supplier',this.value)"></td>
-      <td><select class="mo-in mo-status mo-status-${o.status}" onchange="window.updateManualOrder('${vid}','${o.id}','status',this.value)">${stOpt(o.status)}</select></td>
-      <td><input type="date" class="mo-in mo-date" value="${escapeAttr(o.date||"")}" oninput="window.updateManualOrder('${vid}','${o.id}','date',this.value)"></td>
+  const all=loadAllManualOrders(), arr=Array.isArray(all[vid])?all[vid]:[];
+  let mig=false; arr.forEach(o=>{ if(o.rfqNum==null && o.poNum==null){ o.rfqNum=moRfqNum(o); o.poNum=moPoNum(o); mig=true; } if(!o.rfqDate && !o.createdAt && /^mo_(\d{12,})/.test(o.id||"")){ o.rfqDate=new Date(+o.id.split("_")[1]).toISOString().slice(0,10); mig=true; } });
+  if(mig){ all[vid]=arr; try{ localStorage.setItem("mpd.manualOrders", JSON.stringify(all)); }catch(e){} }
+  const open=arr.filter(o=>o.status!=="delivered"&&o.status!=="cancelled").length;
+  const thr=(state.settings&&state.settings.overdueDays)||7;
+  const sups=[...new Set((state.data&&state.data.vessels||[]).flatMap(v=>(v.items||[]).map(i=>i.supplier)).concat((typeof loadSuppliers==="function"?(loadSuppliers()||[]).map(s=>s&&s.name):[])).filter(s=>s&&s!=="—"))].sort();
+  const stOpt=v=>MO_STATUS.map(([k,l])=>`<option value="${k}" ${v===k?"selected":""}>${l}</option>`).join("");
+  const A=(o,f)=>`oninput="window.updateManualOrder('${vid}','${o.id}','${f}',this.value)"`;
+  const rows=arr.map(o=>{
+    const st=o.status||"rfq", r=moRank(st);
+    const d=o.rfqDate?Math.floor((Date.now()-new Date(o.rfqDate+"T00:00:00").getTime())/864e5):null;
+    const hint = st==="rfq" && d!=null && d>thr ? `<div class="mo-hint">da sollecitare · ${d} g</div>` : st==="offer" ? `<div class="mo-hint" style="color:#14794e">pronta per PO</div>` : r>=2 && r<4 && !o.date ? `<div class="mo-hint">manca la data pronto</div>` : "";
+    return `
+    <tr class="mo-row" data-mo-status="${st}">
+      <td><input class="mo-in mo-doc" value="${escapeAttr(o.rfqNum!=null?o.rfqNum:moRfqNum(o))}" placeholder="N° RFQ" ${A(o,"rfqNum")}></td>
+      <td><input class="mo-in mo-desc" value="${escapeAttr(o.description||"")}" placeholder="Descrizione" ${A(o,"description")}></td>
+      <td><input class="mo-in mo-supp" list="mo-sup-dl" value="${escapeAttr(o.supplier||"")}" placeholder="Fornitore" ${A(o,"supplier")}></td>
+      <td><input type="date" class="mo-in mo-date" value="${escapeAttr(o.rfqDate||"")}" onchange="window.updateManualOrder('${vid}','${o.id}','rfqDate',this.value)"></td>
+      <td><select class="mo-in mo-status mo-status-${st}" onchange="window.updateManualOrder('${vid}','${o.id}','status',this.value)">${stOpt(st)}</select>${hint}</td>
+      <td><input class="mo-in mo-doc" value="${escapeAttr(o.poNum!=null?o.poNum:moPoNum(o))}" placeholder="${r>=2?"N° PO":"—"}" ${A(o,"poNum")}></td>
+      <td><input type="date" class="mo-in mo-date" value="${escapeAttr(o.date||"")}" onchange="window.updateManualOrder('${vid}','${o.id}','date',this.value)"></td>
       <td><div style="display:flex;gap:4px;align-items:center;">
-        <input class="mo-in mo-amt" value="${escapeAttr(o.amount||"")}" placeholder="Importo" inputmode="decimal" style="flex:1;min-width:0;" oninput="window.updateManualOrder('${vid}','${o.id}','amount',this.value)">
+        <input class="mo-in mo-amt" value="${escapeAttr(o.amount||"")}" placeholder="Importo" inputmode="decimal" style="flex:1;min-width:0;" ${A(o,"amount")}>
         <select class="mo-in mo-cur" style="flex:none;width:74px;" onchange="window.updateManualOrder('${vid}','${o.id}','currency',this.value)">
           <option value="EUR" ${(o.currency||'EUR')==='EUR'?'selected':''}>€ EUR</option>
           <option value="USD" ${o.currency==='USD'?'selected':''}>$ USD</option>
         </select>
       </div></td>
-      <td><button class="mo-del" title="Elimina" onclick="window.deleteManualOrder('${vid}','${o.id}')">🗑</button></td>
-    </tr>`).join("");
+      <td><div style="display:flex;gap:2px;align-items:center;"><button class="mo-open" title="Scheda: solleciti, scalo, posizione, spedizione" onclick="window.moOpenItem('${vid}','${o.id}')">Scheda ›</button><button class="mo-del" title="Elimina" onclick="window.deleteManualOrder('${vid}','${o.id}')">🗑</button></div></td>
+    </tr>`; }).join("");
   return `
     <div class="section-title">
       <h2>Registro ordini <span class="mo-manual-tag">manuale</span></h2>
       <span class="section-meta">${arr.length} totali · ${open} aperti</span>
     </div>
-    <p class="mo-intro">Traccia a mano RFQ, PO e consegne per questa nave. I dati restano solo qui (niente Infoship). Gli ordini con una data compaiono nel Carico settimana; quelli in stato <b>PO</b> entrano nel Radar scali al primo scalo futuro del viaggio, con la data come «pronto dal fornitore» (poi trasporto e dogana come per gli altri).</p>
+    <p class="mo-intro">Scrivi qui RFQ e PO di questa nave: ogni riga entra nel sistema come gli ordini Infoship — solleciti RFQ (oltre ${thr} gg), «Pronto per PO» quando segni l'offerta ricevuta, Radar scali, posizione del materiale, spedizioni. <b>Pronto</b> = data in cui il fornitore ha la merce pronta. Per scalo, tracking e solleciti apri la <b>Scheda</b>.</p>
+    <datalist id="mo-sup-dl">${sups.map(s=>`<option value="${escapeAttr(s)}"></option>`).join("")}</datalist>
     <div class="mo-table-wrap">
-      <table class="mo-table">
-        <thead><tr><th>N° doc</th><th>Descrizione</th><th>Fornitore</th><th>Stato</th><th>Pronto / consegna</th><th>Importo</th><th></th></tr></thead>
-        <tbody>${rows || `<tr><td colspan="7" class="mo-empty">Nessun ordine. Aggiungi il primo qui sotto.</td></tr>`}</tbody>
+      <table class="mo-table" style="min-width:1080px">
+        <thead><tr><th>N° RFQ</th><th>Descrizione</th><th>Fornitore</th><th>RFQ inviata</th><th>Stato</th><th>N° PO</th><th>Pronto</th><th>Importo</th><th></th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="9" class="mo-empty">Nessun ordine. Aggiungi il primo qui sotto.</td></tr>`}</tbody>
       </table>
     </div>
     <button class="btn btn-primary mo-add" onclick="window.addManualOrder('${vid}')">+ Aggiungi ordine</button>
@@ -15245,8 +15317,8 @@ function renderVesselDetail() {
     </div>
 
     <div class="vd-panel" data-tab="procurement" style="display:${_vtab==='procurement'?'':'none'};">
-      ${cfg.manual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : `
-      ${cfg.allowManual ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : ``}
+      ${(cfg.manual && !(v.items || []).length) ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : `
+      ${(cfg.allowManual || cfg.manual) ? `<div id="manual-orders-host">${renderManualOrders(cfg.vesselId)}</div>` : ``}
       ${(typeof pvMode === "function" && pvMode() === "flow") ? `<div id="pv-root">${(() => { try { return pvHTML(cfg.vesselId); } catch(e) { console.warn("[radar nave]", e); return ""; } })()}</div>` : `<div style="display:flex;justify-content:flex-end;margin:4px 0 -4px;"><button class="btn btn-sm" onclick="window.pvSetMode('flow')">Cruscotto acquisti →</button></div>`}
       ${(typeof pvMode === "function" && pvMode() === "flow") ? "" : ageBandsHTML}
       <div class="section-title" style="${(typeof pvMode === "function" && pvMode() === "flow") ? "display:none;" : ""}"><h2>Pipeline procurement</h2></div>
@@ -16454,7 +16526,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
     nx = { tone: "blue", t: "In attesa delle offerte", d: `${openRows.length} RFQ inviat${openRows.length > 1 ? "e" : "a"}${fmtD(it.rfqDate) ? " il " + fmtD(it.rfqDate) : ""}${due && !isNaN(due) ? " · primo sollecito dal " + fmtD(due.toISOString()) : ""}.` };
   }
   else nx = { tone: "slate", t: "Da mettere in quotazione", d: `REQ ${short(it.reqStatus) || "aperta"}: nessuna RFQ ancora inviata.` };
-  const nextHTML = `<div class="idx-next tone-${nx.tone}">
+  const nextHTML = (it._manual ? `<div class="idx-manual"><span><b>Ordine manuale</b> · registro ${escapeHTML(vName)} — numeri, stato e data pronto si cambiano nel registro.</span><button class="mo-open" onclick="window.closeItemDetailPopover(); state.detailTab='procurement'; window.goVessel('${escapeAttr(it.vesselId||"")}')">Apri registro ›</button></div>` : "") + `<div class="idx-next tone-${nx.tone}">
       <div><div class="idx-eyebrow">Prossimo passo</div><div class="idx-next-t">${escapeHTML(nx.t)}</div><div class="idx-next-d">${nx.d}</div></div>
       ${nx.a ? `<div class="idx-next-a">${nx.a}</div>` : ""}
     </div>`;
@@ -20953,6 +21025,7 @@ function collectArchiveOrders() {
   for (const cfg of VESSELS) {
     for (const o of manualOrdersFor(cfg.vesselId)) {
       if (o.status !== "delivered" && !o.date) continue;
+      if (o.status === "delivered" || o.status === "cancelled" || moRank(o.status) < 2 || getDeliveryPlan("mo::" + cfg.vesselId + "::" + o.id)) continue;  // v1.13 — a bordo/pianificati: già dalla sezione 1
       const delivered = o.status === "delivered";
       out.push({
         date: o.date || "", vesselId: cfg.vesselId,
@@ -20962,7 +21035,7 @@ function collectArchiveOrders() {
         supplier: o.supplier || "", port: "",
         amount: o.amount ? (o.amount + " " + (o.currency || "EUR")) : "",
         status: delivered ? "delivered" : "planned",
-        itemId: null
+        itemId: "mo::" + cfg.vesselId + "::" + o.id
       });
     }
   }
@@ -27116,7 +27189,7 @@ function rdModel(){
     lane.state = vs && vs.status && typeof VOYAGE_STATUS_LABELS !== "undefined" ? (VOYAGE_STATUS_LABELS[vs.status] || "") : "";
     const assigned = new Set();
     // v1.15b — ordini del registro manuale (VEGA UNO): i PO entrano nel primo scalo futuro; "Consegna" = pronto dal fornitore
-    const moIts = (typeof manualOrdersFor === "function" ? manualOrdersFor(cfg.vesselId) : []).filter(o => o.status === "po").map(o => ({ id: "mo::" + cfg.vesselId + "::" + o.id, _manual: true,
+    const moIts = (v.items || []).filter(it => it._manual && it.poNumber && !rdCancelled(it) && !getDeliveryPlan(it.id)); const _moOld = [].map(o => ({ id: "mo::" + cfg.vesselId + "::" + o.id, _manual: true,
       description: o.description || "(ordine manuale)", supplier: o.supplier || "", poNumber: o.docNum || "PO manuale", poStatus: "PO Manual", poDate: "", poDeliveryDate: o.date || "", dnStatus: "", dnNumber: "", rfqNumbers: [], origin: o.origin || "" }));
     let moLeg = null;
     ["current", "next"].forEach(w => { const l = voy[w]; if(moLeg || !l || !l.to) return; const e = rdDD(l.etd, now), b = rdDD(l.etb || l.eta, now), d = e != null ? e : b != null ? b + 1 : null; if(d != null && d >= 0) moLeg = w; });
@@ -27126,7 +27199,7 @@ function rdModel(){
       const eta = eta0 != null ? eta0 : etb0; if(eta == null) return;
       const etb = etb0 != null ? etb0 : eta;
       const etdR = rdDD(leg.etd, now); const etd = etdR != null ? etdR : etb + 1;
-      const its = (() => { try { return itemsForLeg(cfg.vesselId, w) || []; } catch(e) { return []; } })().filter(it => !rdCancelled(it)).concat(w === moLeg ? moIts : []);
+      const its = (() => { try { return itemsForLeg(cfg.vesselId, w) || []; } catch(e) { return []; } })().filter(it => !rdCancelled(it)).concat(w === moLeg ? moIts : []).filter((it, i, a) => a.findIndex(x => x.id === it.id) === i);
       its.forEach(it => assigned.add(it.id));
       if(etd < 0){ if(!lane.stale || eta > lane.stale.eta) lane.stale = { port: leg.to, eta, n: its.length };
         const pc = rdPastCall(cfg, leg, its, now, leg.id || w); if(pc){ lane.past.push(pc); if(leg.id) seenP.add(leg.id); } return; }
@@ -27162,7 +27235,7 @@ function rdModel(){
 
 window._rd = window._rd || { sel: null, open: null, undo: null };
 // ordini manuali nel radar: il clic apre il registro della nave invece della scheda articolo Infoship
-setTimeout(() => { const o = window.openItemDetailPopover; if(o && !o._mo){ const f = function(id){ if(String(id).indexOf("mo::") === 0){ state.detailTab = "procurement"; goVessel(String(id).split("::")[1]); return; } return o.apply(this, arguments); }; f._mo = 1; window.openItemDetailPopover = f; } }, 0);
+// v1.13 — gli ordini manuali hanno la loro scheda articolo (non più il rimando al registro)
 function rdAlts(x, M){
   if(x.onb) return [];
   return M.allCalls.filter(c => c.vid === x.c.vid).map(c => ({ c, r: rdCalc(x.it, c, M.now, M.basis), cur: c.id === x.c.id, pr: rdProfile(c.port) }));
