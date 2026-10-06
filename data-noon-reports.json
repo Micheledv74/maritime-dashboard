@@ -2363,6 +2363,32 @@
         "to": "RICHARDS BAY",
         "_loose": true,
         "current": "Based on current congestion , our vessel is expecting a 7-9 day berthing delay."
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-10-06",
+        "bunkers": {
+          "lsfo": "302.333",
+          "lsmgo": "56.981"
+        },
+        "course": "177",
+        "speed": "11.92",
+        "wind": "NE/4",
+        "sea": "NE/2.2 MTR",
+        "swell": "E/ABT 1.8 MTR",
+        "etaText": "10.10.2026 2000lt AGW WP, RICHARDS BAY",
+        "etaISO": "2026-10-10T20:00",
+        "consumption": {
+          "lsfo": "20.48",
+          "lsmgo": "0.10"
+        },
+        "vesselId": "medtoscana",
+        "lat": "11-10.9S",
+        "lon": "041-01.8E",
+        "positionText": "11-10.9S / 041-01.8E",
+        "milesToGo": "1203",
+        "to": "RICHARDS BAY"
       }
     ],
     "medliguria": [
@@ -5116,6 +5142,40 @@
         "wind": "SE/20.0 KTS",
         "sea": "SE/2.5 M",
         "current": "SSW/0.3 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "SINGAPORE",
+        "to": "TANGA",
+        "date": "2026-10-06",
+        "lat": "06-07.8S",
+        "lon": "042-03.4E",
+        "positionText": "06-07.8S / 042-03.4E",
+        "speed": "12.16",
+        "milesToGo": "193",
+        "consumption": {
+          "lsfo": "20.26",
+          "lsmgo": "0.00",
+          "fw": "6"
+        },
+        "bunkers": {
+          "lsfo": "1109.19",
+          "lsmgo": "45.57",
+          "fw": "282"
+        },
+        "cylinderOil": {
+          "daily": "312",
+          "rob": "22227",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 07 OCT 2026 0500LT WP AGW",
+        "etaISO": "2026-10-07T05:00",
+        "wind": "SSE/13.0 KTS",
+        "sea": "SSE/1.5 M",
+        "current": "SW/0.2 KTS",
         "vesselId": "medliguria"
       }
     ],
@@ -8264,5 +8324,5 @@
       }
     ]
   },
-  "syncedAt": "2026-10-06T09:04:02.677Z"
+  "syncedAt": "2026-10-06T10:04:57.378Z"
 }
