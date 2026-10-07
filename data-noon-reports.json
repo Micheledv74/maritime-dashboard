@@ -2389,6 +2389,32 @@
         "positionText": "11-10.9S / 041-01.8E",
         "milesToGo": "1203",
         "to": "RICHARDS BAY"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "date": "2026-10-07",
+        "bunkers": {
+          "lsfo": "282.303",
+          "lsmgo": "56.881"
+        },
+        "course": "209",
+        "speed": "15.0",
+        "wind": "NE/4",
+        "sea": "NE/2.0 MTR",
+        "swell": "ENE/ABT 1.4 MTR",
+        "etaText": "10.10.2026 1700lt AGW WP, RICHARDS BAY",
+        "etaISO": "2026-10-10T17:00",
+        "consumption": {
+          "lsfo": "20.03",
+          "lsmgo": "0.10"
+        },
+        "vesselId": "medtoscana",
+        "lat": "16-56.6S",
+        "lon": "040-10.5E",
+        "positionText": "16-56.6S / 040-10.5E",
+        "milesToGo": "843",
+        "to": "RICHARDS BAY"
       }
     ],
     "medliguria": [
@@ -5185,7 +5211,13 @@
         "sea": "Arrival Draft : Fwd 11.17 Aft 11.42",
         "current": "Cargo to be Discharged:5057 MT",
         "vesselId": "medliguria",
-        "date": "2026-10-07"
+        "date": "2026-10-07",
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "1096.24",
+          "lsmgo": "45.57",
+          "fw": "284"
+        }
       }
     ],
     "peppino": [
@@ -8357,5 +8389,5 @@
       }
     ]
   },
-  "syncedAt": "2026-10-07T09:04:42.698Z"
+  "syncedAt": "2026-10-07T10:05:17.768Z"
 }
