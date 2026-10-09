@@ -9990,6 +9990,7 @@ function mergeAndPrepare() {
     v.tracking = trackingMap[v.vesselId] || null;
   }
   moInject();  // v1.13 — ordini manuali (VEGA UNO, ATLAS) dentro la pipeline come item veri
+  try { isxApply(); } catch(e) { console.warn("[storico Infoship]", e); }  // v1.18 — LT della RFQ → pronto del PO
 }
 
 // Traduzione codici ITU navStatus AIS in stringhe leggibili
@@ -10810,6 +10811,7 @@ function beep() {
 
 function render() {
   try { moInject(); } catch(e) { console.warn("[ordini manuali]", e); }
+  try { isxApply(); } catch(e) {}
   applySettings();
   renderSyncInfo();
   renderSwitcher();
@@ -11983,14 +11985,17 @@ function computePeriodStats(from, to, opts) {
       if (d >= from && d <= to) { const s = (bySup[it.supplier] = bySup[it.supplier] || { count: 0, cycleSum: 0, cycleN: 0, refused: 0 }); s.refused++; }
     }
   });
+  // v1.18 — voto calibrato: il fornitore risponde di ciò che dipende da lui (risposte, rifiuti dallo storico
+  // Infoship). Il ciclo REQ→DN non entra più nel voto: comprende le attese volute (nave lontana, hub, rada).
+  const _isx = typeof isxSupStats === "function" ? isxSupStats(from, to) : {};
   const suppliers = Object.entries(bySup).map(([name, s]) => {
     const avgDays = s.cycleN ? Math.round(s.cycleSum / s.cycleN) : null;
+    const x = _isx[typeof isxNorm === "function" ? isxNorm(name) : name] || null;
     let score = 100;
-    if (avgDays != null && avgCycle) score -= Math.max(0, (avgDays / Math.max(avgCycle, 1)) - 1) * 40;
-    const refRatio = (s.count + s.refused) ? s.refused / (s.count + s.refused) : 0;
-    score -= refRatio * 50;
+    if (x && x.dec >= 3) { score -= (1 - x.resp) * 50; score -= x.refR * 30; }
+    else { const refRatio = (s.count + s.refused) ? s.refused / (s.count + s.refused) : 0; score -= refRatio * 50; }
     score = Math.max(5, Math.min(100, Math.round(score)));
-    return { name, count: s.count, avgDays, refused: s.refused, score };
+    return { name, count: s.count, avgDays, refused: x ? x.ref : s.refused, score, isx: x };
   }).sort((a, b) => b.count - a.count);
 
   return { avgCycle, volume, monthly, suppliers, from, to };
@@ -12457,7 +12462,7 @@ function renderPerformanceSection() {
     return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')">
       <td class="pp-sup-name">${escapeHTML(s.name)}</td>
       <td class="mono">${s.count}</td>
-      <td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td>
+      ${typeof isxSupCells === "function" ? isxSupCells(s.isx) : ""}
       <td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td>
       <td>${starsPickHTML("supplier", s.name, entityRating("supplier", s.name), Math.max(1, Math.round(s.score / 20)))}</td>
       <td>${flag}</td>
@@ -12574,7 +12579,7 @@ function renderPerformanceSection() {
           ${period.suppliers.length > 10 ? `<button class="pp-sup-all" onclick="window.openAllSuppliers()">Vedi tutti (${period.suppliers.length}) →</button>` : ""}
         </div>
         <table class="pp-sup-table">
-          <thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th title="Punteggio calcolato da tempi, rifiuti e puntualità">Dai dati</th><th title="Le stesse stelle della Rubrica: cambiarle qui le cambia anche lì">Tuo voto</th><th></th></tr></thead>
+          <thead><tr><th>Fornitore</th><th>Ordini</th><th title="Offerte ricevute su RFQ decise (offerta, rifiuto o scadenza passata) — dallo storico Infoship">Risponde</th><th title="Mediana del LT dichiarato nelle offerte">LT dich.</th><th title="Quota di offerte segnate originali">Orig.</th><th title="Punteggio da risposte e rifiuti: il tempo fino a bordo non conta">Dai dati</th><th title="Le stesse stelle della Rubrica: cambiarle qui le cambia anche lì">Tuo voto</th><th></th></tr></thead>
           <tbody>${supplierRows}</tbody>
         </table>
       </div>` : ""}
@@ -12830,9 +12835,9 @@ function renderAllSuppliersList(query) {
   const rows = arr.map(s => {
     const scoreTier = s.score >= 75 ? "good" : s.score >= 50 ? "mid" : "bad";
     const flag = s.refused > 0 ? `<span class="pp-sup-flag">⚠ ${s.refused} rifiutate</span>` : "";
-    return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')"><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td><td class="mono">${s.avgDays != null ? s.avgDays + "g" : "—"}</td><td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${starsPickHTML("supplier", s.name, entityRating("supplier", s.name), Math.max(1, Math.round(s.score / 20)))}</td><td>${flag}</td></tr>`;
+    return `<tr class="pp-sup-clickable" onclick="window.openSupplierCard('${escapeAttr(s.name)}')"><td class="pp-sup-name">${escapeHTML(s.name)}</td><td class="mono">${s.count}</td>${typeof isxSupCells === "function" ? isxSupCells(s.isx) : ""}<td><span class="pp-score pp-score-${scoreTier}">${s.score}</span></td><td>${starsPickHTML("supplier", s.name, entityRating("supplier", s.name), Math.max(1, Math.round(s.score / 20)))}</td><td>${flag}</td></tr>`;
   }).join("");
-  document.getElementById("all-suppliers-body").innerHTML = `<table class="pp-sup-table"><thead><tr><th>Fornitore</th><th>Ordini</th><th>Tempo medio</th><th>Dai dati</th><th>Tuo voto</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="mo-empty">Nessun fornitore trovato.</td></tr>`}</tbody></table>`;
+  document.getElementById("all-suppliers-body").innerHTML = `<table class="pp-sup-table"><thead><tr><th>Fornitore</th><th>Ordini</th><th>Risponde</th><th>LT dich.</th><th>Orig.</th><th>Dai dati</th><th>Tuo voto</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="mo-empty">Nessun fornitore trovato.</td></tr>`}</tbody></table>`;
   document.getElementById("all-suppliers-count").textContent = `${arr.length} fornitori`;
 }
 
@@ -13991,7 +13996,7 @@ function paixSaveMuted(set){ try{ localStorage.setItem("mpd.emailMuted", JSON.st
 function paixIsMuted(r){ return paixLoadMuted().has(paixDomain(r.fromEmail)); }
 // v0.68 — Indirizzi che sono ME (Michele): non vanno mai proposti come destinatario di risposta.
 const OWN_ADDRS = new Set(["purchasing@sssdam.com","mdelvecchio@sssdam.com"]);
-function isOwnAddr(e){ return OWN_ADDRS.has(String(e||"").toLowerCase().trim()); }
+function isOwnAddr(e){ const s = String(e||"").toLowerCase().trim(); return OWN_ADDRS.has(s) || /^\/o=exchangelabs\/.*\/cn=recipients\/cn=27252c2cda894ab4901ab578919e6d31/.test(s); }
 // Destinatario corretto per una risposta: la controparte esterna del thread, mai un mio indirizzo.
 function paixReplyTo(r){
   const cand=[];
@@ -15736,6 +15741,12 @@ function renderItemsTable(v) {
     if (_bt) logBadges.push(`<span class="log-badge log-transport" title="Trasporto: ${escapeAttr(_bt)}">✈️ ${escapeHTML(_bt)}</span>`);
     const _ready = itemReadyBadgeHTML(it);
     if (_ready) logBadges.push(_ready);
+    // v1.18 — offerte da confrontare (storico Infoship), solo finché il PO non è emesso
+    if (typeof isxOffers === "function" && !itemAlreadyOrdered(it) && !reqIsClosed(it)) {
+      const _of = isxOffers(it);
+      if (_of.length >= 2) { const _x = _of[_of.length - 1].usd / _of[0].usd;
+        logBadges.push(`<span class="log-badge" onclick="window.openItemDetailPopover('${escapeAttr(it.id)}'); event.stopPropagation();" style="cursor:pointer;background:#eaf0fd;color:#1553d8;font-weight:600" title="Apri la scheda: prezzi, LT e originale/non originale a confronto">⚖ ${_of.length} offerte da confrontare${_x >= 3 ? " · ×" + Math.round(_x) : ""}</span>`); }
+    }
     const _eff = getEffectiveDelivery(it);
     const _delivCell = _eff.date
       ? `<span class="deliv-cell-date deliv-${_eff.source}" title="${escapeAttr((_eff.legLabel||"") + (_eff.port? " · "+_eff.port : ""))}">${formatDate(_eff.date)}${_eff.source==="voyage"?" ⚓":_eff.source==="manual"?" ✎":_eff.source==="infoship"?" ~":""}</span>`
@@ -16545,7 +16556,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
     const vend = rfqVendorOf(n, it);
     const si = idxRfqStatus(n, it);
     const prof = vend.supplier ? (getEntityProfile("supplier", vend.supplier) || {}) : {};
-    return { n, vend, si, prof, lvl: rfqChaseLevel(n), last: rfqChaseLast(n), wait: rfqChaseWaitLeft(n) };
+    return { n, vend, si, prof, lvl: rfqChaseLevel(n), last: rfqChaseLast(n), wait: rfqChaseWaitLeft(n), ix: (typeof isxRfq === "function" ? isxRfq(n) : null) };
   });
   const okRows = rfqRows.filter(r => r.si.k === "ok");
   const openRows = rfqRows.filter(r => r.si.k === "wait" || r.si.k === "unk");
@@ -16603,14 +16614,40 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
       <div class="idx-sd">${escapeHTML([fmtD(st.d), st.x].filter(Boolean).join(" · "))}</div>
     </div>`; }).join("")}</div>`;
 
-  // --- Fornitori e offerte ---
+  // --- Fornitori e offerte (v1.18: prezzo ≈$, LT dichiarato, originale/non originale dallo storico Infoship) ---
+  const _ordered = itemAlreadyOrdered(it);
+  const _offs = typeof isxOffers === "function" ? isxOffers(it) : [];
+  const _cheap = _offs.length > 1 ? _offs[0] : null;
+  const _withLt = _offs.filter(o => o.lt != null);
+  const _fast = _offs.length > 1 && _withLt.length ? _withLt.slice().sort((a, b) => a.lt - b.lt || a.usd - b.usd)[0] : null;
+  const _ltPo = typeof isxItemLt === "function" ? isxItemLt(it) : null;
+  const _today = new Date().toISOString().slice(0, 10);
+  const offNotes = [];
+  if (_ltPo && it.poDate) offNotes.push(`LT ${isxLtTxt(_ltPo.lt)} dalla ${escapeHTML(_ltPo.rfq)} (${escapeHTML(_ltPo.holder)}) → <b>pronto ${escapeHTML(formatDate(isxAdd(it.poDate, _ltPo.lt)))}</b>: è la data che usa il Radar.`);
+  if (!_ordered && _offs.length >= 2) {
+    const x = _offs[_offs.length - 1].usd / _offs[0].usd;
+    if (x >= 3) offNotes.push(`Tra la più cara e la più economica c'è un fattore <b>×${Math.round(x)}</b>: verifica che quotino la stessa cosa (quantità, originale o no).`);
+    if (_fast && _fast !== _offs[0] && _offs[0].lt != null) offNotes.push(`La più economica (${escapeHTML(_offs[0].r.h)}) è pronta in ${isxLtTxt(_offs[0].lt)}; ${escapeHTML(_fast.r.h)} costa +${Math.round((_fast.usd / _offs[0].usd - 1) * 100)}% ma è pronta ${_offs[0].lt - _fast.lt} gg prima.`);
+    else if (_offs[0].lt == null && _withLt.length) offNotes.push(`La più economica (${escapeHTML(_offs[0].r.h)}) non ha indicato il LT.`);
+  }
+  if (!_ordered && _offs.length && typeof critInfo === "function" && critInfo(it.id)) {
+    const ng = _offs.filter(o => o.g === "NG").length, unk = _offs.filter(o => !o.g).length;
+    offNotes.push(`<b style="color:#c0261c">Ricambio critico</b>: ${unk ? `segna quali offerte sono originali (${unk} da indicare).` : ng ? `${ng} offert${ng > 1 ? "e" : "a"} non original${ng > 1 ? "i" : "e"}: scegli con attenzione.` : "tutte le offerte sono originali."}`);
+  }
+  const genBtns = (n) => { const g = typeof isxGenuine === "function" ? isxGenuine(n) : ""; const b = (val, lbl, col) => `<button onclick="window.isxSetGenuine('${escapeAttr(n)}','${val}','${escapeAttr(it.id)}'); event.stopPropagation();" style="border:1px solid ${g === val ? col : "rgba(10,27,46,.18)"};background:${g === val ? col : "#fff"};color:${g === val ? "#fff" : "#44576b"};border-radius:6px;padding:2px 7px;font-weight:600;font-size:11.5px;cursor:pointer;white-space:nowrap">${lbl}</button>`;
+    return `<div style="display:flex;gap:4px">${b("G", "Originale", "#14794e")}${b("NG", "Non orig.", "#b06a00")}</div>`; };
   const offersHTML = rfqRows.length ? `
     <div class="detail-section">
       <div class="idx-h"><h4>Fornitori e offerte · ${rfqRows.length} RFQ</h4>
         ${openRows.length ? chaseBtn(openRows, "Registro solleciti", false) : ""}</div>
+      ${offNotes.map(t => `<div style="background:#fdf3e2;border-radius:8px;padding:7px 11px;margin:0 0 8px;font-size:12.5px;line-height:1.45">${t}</div>`).join("")}
       <div class="idx-tblwrap"><table class="idx-tbl">
-        <thead><tr><th>RFQ</th><th>Fornitore</th><th>Stato</th><th>Solleciti</th></tr></thead>
+        <thead><tr><th>RFQ</th><th>Fornitore</th><th>Stato</th><th>Offerta</th><th title="LT dichiarato nella scheda di quotazione Infoship: quando la merce è pronta dal fornitore">LT</th><th>Originale?</th><th>Solleciti</th></tr></thead>
         <tbody>${rfqRows.map(r => {
+          const ix = r.ix, isOff = typeof isxIsOffer === "function" && isxIsOffer(ix), lt = ix ? isxLt(ix) : null;
+          const tags = [_cheap && _cheap.n === r.n ? '<span style="font-size:10px;font-weight:700;color:#14794e;border:1px solid #14794e;border-radius:4px;padding:0 4px;white-space:nowrap">PIÙ ECONOMICA</span>' : "", _fast && _fast.n === r.n ? '<span style="font-size:10px;font-weight:700;color:#1553d8;border:1px solid #1553d8;border-radius:4px;padding:0 4px;white-space:nowrap">PIÙ RAPIDA</span>' : ""].filter(Boolean).join(" ");
+          const offerCell = isOff ? `<span class="mono">${escapeHTML(isxMoney(ix.v, ix.cu))}</span>${ix.cu === "EUR" ? `<div class="idx-sub">≈ $ ${Math.round(isxUsd(ix)).toLocaleString("it-IT")}</div>` : ""}${tags ? `<div style="margin-top:3px">${tags}</div>` : ""}` : '<span class="idx-sub">—</span>';
+          const ltCell = isOff ? (lt == null ? '<span class="idx-sub">non indicato</span>' : `<span class="mono">${isxLtTxt(lt)}</span>${!_ordered ? `<div class="idx-sub">pronto ${escapeHTML(formatDate(isxAdd(_today, lt)))} se ordini oggi</div>` : ""}`) : '<span class="idx-sub">—</span>';
           const mail = r.vend.email || "";
           const contact = [r.prof.contact, r.prof.phone, r.prof.country].filter(Boolean).map(x => escapeHTML(x)).join(" · ");
           const lang = r.vend.supplier && state.supplierLanguages ? state.supplierLanguages[r.vend.supplier] : "";
@@ -16621,6 +16658,9 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
             <td>${r.vend.supplier ? `<div class="idx-sup">${escapeHTML(r.vend.supplier)}${lang ? ` <span class="lang-badge lang-${lang}">${lang.toUpperCase()}</span>` : ""}</div>` : '<div class="idx-sup unknown">Fornitore da indicare</div>'}
               <div class="idx-sub">${mail ? `<a href="mailto:${escapeAttr(mail)}">${escapeHTML(mail)}</a>` : "email non in rubrica"}${contact ? " · " + contact : ""}</div></td>
             <td><span class="idx-st ${r.si.k}">${escapeHTML(r.si.t)}</span>${r.vend.fromInfoship ? '<div class="idx-sub">da Infoship</div>' : ""}</td>
+            <td>${offerCell}</td>
+            <td>${ltCell}</td>
+            <td>${isOff ? genBtns(r.n) : '<span class="idx-sub">—</span>'}</td>
             <td>${chase}</td>
           </tr>`; }).join("")}</tbody>
       </table></div>
@@ -17560,7 +17600,7 @@ function renderTodosPage() {
       </div>
       <div class="fleet-search-row">
         <input type="search" class="search-input" id="fleet-action-search" placeholder="Cerca RFQ: numero, fornitore, articolo, nave, marca o modello…" value="${escapeAttr(state._fleetActionQ||"")}">
-        <label class="btn btn-sm" title="Carica l'Excel esportato da Infoship: ogni RFQ prende il suo fornitore e il suo stato" style="cursor:pointer;white-space:nowrap;">⇧ Excel Infoship<input type="file" accept=".xlsx,.xls" style="display:none" onchange="window.importInfoshipRfqExcel(this.files[0]); this.value='';"></label>
+        <label class="btn btn-sm" title="Excel RFQ e PO esportati da Infoship (anche più file insieme, o trascinali ovunque): fornitore, stato, prezzo e LT di ogni documento" style="cursor:pointer;white-space:nowrap;">⇧ Excel Infoship<input type="file" accept=".xlsx,.xls" multiple style="display:none" onchange="window.importInfoshipRfqExcel(this.files); this.value='';"></label>
         ${window.chaseOffCount && window.chaseOffCount() ? `<button class="btn btn-sm" onclick="window.chaseOffList()" title="Solleciti che hai annullato a mano: si possono ripristinare" style="white-space:nowrap;">⊘ Solleciti annullati · ${window.chaseOffCount()}</button>` : ""}
         ${(state._fleetActionQ||"").trim() ? `<button class="fleet-search-clear" onclick="window.clearFleetActionQuery()">✕ Azzera ricerca</button>` : `<span class="fleet-search-hint">Le righe già diventate PO o DN non compaiono: non si sollecita ciò che è già ordinato.</span>`}
       </div>
@@ -18173,34 +18213,55 @@ function rfqSupplierEmail(sup, code){
 }
 // v0.93 — Import diretto dell'Excel Infoship (lista documenti): ogni riga HQRQ porta
 // il SUO fornitore (Holder/Code) e il SUO stato. Riempie il registro RFQ→fornitore.
-window.importInfoshipRfqExcel = async function(file){
-  if(!file) return;
+// v1.18 — accetta più file insieme (RFQ e PO): oltre al registro RFQ→fornitore riempie lo
+// STORICO INFOSHIP (mpd.infoshipLedger): prezzo, valuta, data, LT dichiarato, stato. Chiave = numero doc.
+window.importInfoshipRfqExcel = async function(fileOrList){
+  const files = (fileOrList && typeof fileOrList.length === "number" && !(fileOrList instanceof Blob)) ? Array.from(fileOrList) : [fileOrList].filter(Boolean);
+  if(!files.length) return;
   try{
     await loadSheetJS();
+    const xd = v => { if(typeof v === "number"){ const d = new Date(Date.UTC(1899,11,30) + v*86400000); return d.toISOString().slice(0,10); } return String(v||"").slice(0,10); };
+    const all = loadRfqVendors(); const L = isxLoad(); let n = 0, closed = 0, nP = 0, add = 0, chg = 0; const bad = [];
+    const now = new Date().toISOString();
+    for(const file of files){
     const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
-    const xd = v => { if(typeof v === "number"){ const d = new Date(Date.UTC(1899,11,30) + v*86400000); return d.toISOString().slice(0,10); } return String(v||"").slice(0,10); };
-    const all = loadRfqVendors(); let n = 0, closed = 0;
-    const now = new Date().toISOString();
+    const keys = rows.length ? Object.keys(rows[0]) : [];
+    const dk = keys.find(k => /delivery/i.test(k)), qk = keys.find(k => /quotation\s*limit/i.test(k)) || (keys.includes("LD") ? "LD" : null);
+    let any = false;
     rows.forEach(r => {
-      const num = String(r.Number || "").trim();
-      if(!/HQRQ/i.test(num) && !/quotation/i.test(String(r["Document Type"]||""))) return;
-      const k = rfqChaseKey(num); if(!k) return;
-      const cur = all[k] || {};
+      const num = String(r.Number || "").trim(); const dt = String(r["Document Type"]||"");
+      const isR = /HQRQ/i.test(num) || /quotation/i.test(dt), isP = !isR && (/HQPO/i.test(num) || /purchase order/i.test(dt));
+      if(!isR && !isP) return;
+      const k = rfqChaseKey(num); if(!k) return; any = true;
       const status = String(r.Status || "").trim();
       const holder = String(r.Holder || "").trim();
+      const lrec = { n: num, s: String(r.Ship||"").trim(), ds: String(r.Description||"").trim(), st: status, d: xd(r.Dates), dl: dk ? xd(r[dk]) : "", h: holder, c: String(r.Code||"").trim(), v: +(parseFloat(r.Total)||0).toFixed(2), cu: /€|EUR/i.test(String(r.VASIMBOL||"")) ? "EUR" : "USD", u: now };
+      if(isR) lrec.ql = qk ? xd(r[qk]) : "";
+      const bucket = isR ? L.rfq : L.po, old = bucket[k];
+      if(!old) add++; else if(old.st !== lrec.st || old.v !== lrec.v || old.dl !== lrec.dl || old.h !== lrec.h) chg++; else lrec.u = old.u || now;
+      bucket[k] = lrec;
+      if(isP){ nP++; return; }
+      const cur = all[k] || {};
       const rec = Object.assign({}, cur, {
         source: cur.source === "manual" ? "manual" : "infoship",
         infoshipSupplier: holder, code: String(r.Code || "").trim(), status,
-        issuedAt: xd(r.Dates), deadline: xd(r.LD), importedAt: now, updatedAt: now
+        issuedAt: xd(r.Dates), deadline: lrec.ql || xd(r.LD), importedAt: now
       });
       if(cur.source !== "manual") rec.supplier = holder || cur.supplier || "";
       if(!rec.email && holder) rec.email = rfqSupplierEmail(holder, rec.code) || "";
+      if(cur.status !== status || cur.infoshipSupplier !== holder || !cur.updatedAt) rec.updatedAt = now;
       if(RFQ_CLOSED_RE.test(status)) closed++;
       all[k] = rec; n++;
     });
-    saveRfqVendors(all);
-    if(typeof showToast === "function") showToast(n ? `Infoship: ${n} RFQ con fornitore e stato (${closed} già chiuse/quotate)` : "Nessuna RFQ (HQRQ) trovata nel file");
+    if(!any) bad.push(file.name);
+    }
+    L.meta = { importedAt: now, lastDate: Object.values(L.rfq).concat(Object.values(L.po)).map(x => x.d).filter(Boolean).sort().pop() || "" };
+    isxSave(L);
+    if(n) saveRfqVendors(all);
+    const old = L.meta.lastDate && (Date.now() - new Date(L.meta.lastDate + "T00:00:00").getTime()) / 864e5 > 14;
+    if(typeof showToast === "function") showToast((n || nP) ? `Infoship: ${n} RFQ e ${nP} PO letti · ${add} nuovi, ${chg} aggiornati · dati fino al ${formatDate(L.meta.lastDate)}${old ? " (vecchi: esporta l'ultimo periodo)" : ""}${bad.length ? " · non riconosciuti: " + bad.join(", ") : ""}` : "Nessuna RFQ o PO Infoship trovata nel file");
+    try { isxApply(); } catch(e) {}
     if(window._rfqPanel) renderRfqChaseBody();
     if(typeof render === "function") render();
   }catch(e){
@@ -18208,6 +18269,103 @@ window.importInfoshipRfqExcel = async function(file){
     if(typeof showToast === "function") showToast("Import non riuscito: " + (e.message || e));
   }
 };
+// ============================================================================
+// v1.18 — STORICO INFOSHIP: offerte con prezzo e LT, originale/non originale, LT → pronto del PO
+// mpd.infoshipLedger {rfq:{NUM:{n,s,ds,st,d,dl,ql,h,c,v,cu,u}}, po:{...}, meta}  ·  mpd.rfqGenuine {NUM:{g:"G"|"NG"|"",updatedAt}}
+// LT dichiarato = Delivery Date − data RFQ, SOLO se la Delivery Date è diversa dal Quotation Limit
+// (Infoship mette di default la scadenza offerta; la casella LT è usata da luglio 2026).
+// ============================================================================
+function isxLoad(){ try{ const o = JSON.parse(localStorage.getItem("mpd.infoshipLedger") || "{}") || {}; return { rfq: o.rfq || {}, po: o.po || {}, meta: o.meta || {} }; }catch(e){ return { rfq: {}, po: {}, meta: {} }; } }
+function isxSave(o){ try{ localStorage.setItem("mpd.infoshipLedger", JSON.stringify(o)); }catch(e){ if(typeof showToast === "function") showToast("Spazio del browser esaurito: storico Infoship non salvato"); }
+  window._isxCache = null; if(typeof driveSchedulePush === "function") driveSchedulePush(); if(typeof ghSetDirty === "function") ghSetDirty(); }
+function isxData(){ return window._isxCache || (window._isxCache = isxLoad()); }
+function isxGenLoad(){ try{ const o = JSON.parse(localStorage.getItem("mpd.rfqGenuine") || "{}"); return (o && typeof o === "object") ? o : {}; }catch(e){ return {}; } }
+function isxGenSave(o){ try{ localStorage.setItem("mpd.rfqGenuine", JSON.stringify(o)); }catch(e){} if(typeof driveSchedulePush === "function") driveSchedulePush(); if(typeof ghSetDirty === "function") ghSetDirty(); }
+function isxGenuine(n){ const r = isxGenLoad()[rfqChaseKey(n)]; return (r && r.g) || ""; }
+window.isxSetGenuine = function(n, g, itemId){
+  const all = isxGenLoad(), k = rfqChaseKey(n); if(!k) return;
+  all[k] = { g: (all[k] && all[k].g === g) ? "" : g, updatedAt: new Date().toISOString() };
+  isxGenSave(all);
+  if(itemId && typeof window.openItemDetailPopover === "function") window.openItemDetailPopover(itemId);
+};
+function isxDD(a, b){ return Math.round((new Date(String(a).slice(0,10) + "T00:00:00Z") - new Date(String(b).slice(0,10) + "T00:00:00Z")) / 864e5); }
+function isxAdd(s, n){ return new Date(new Date(String(s).slice(0,10) + "T00:00:00Z").getTime() + n * 864e5).toISOString().slice(0,10); }
+function isxLt(r){ return (r && r.d && r.dl && r.ql && r.dl !== r.ql) ? isxDD(r.dl, r.d) : null; }
+function isxFx(){ const n = parseFloat(localStorage.getItem("mpd.isxFx")); return n > 0 ? n : 1.16; }
+function isxUsd(r){ return r ? (r.cu === "EUR" ? r.v * isxFx() : r.v) : 0; }
+function isxLtTxt(n){ return n == null ? "—" : (n >= 14 && n % 7 === 0 ? (n / 7) + " sett." : n + " gg"); }
+function isxMoney(v, cu){ v = Number(v) || 0; return (cu === "EUR" ? "€ " : "$ ") + v.toLocaleString("it-IT", { maximumFractionDigits: v < 100 ? 2 : 0 }); }
+function isxNorm(s){ return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+function isxRfq(n){ return isxData().rfq[rfqChaseKey(n)] || null; }
+function isxPo(n){ return isxData().po[rfqChaseKey(n)] || null; }
+function isxIsOffer(r){ return !!(r && /acknowledged/i.test(r.st) && r.v > 0); }
+// Offerte con prezzo di un item, dalla più economica
+function isxOffers(it){
+  const nums = (it && Array.isArray(it.rfqNumbers)) ? it.rfqNumbers.filter(Boolean) : [];
+  return nums.map(n => ({ n, r: isxRfq(n) })).filter(x => isxIsOffer(x.r)).map(x => Object.assign(x, { usd: isxUsd(x.r), lt: isxLt(x.r), g: isxGenuine(x.n) })).sort((a, b) => a.usd - b.usd);
+}
+// LT della RFQ da cui nasce il PO (stesso fornitore); serve a fissare il "pronto" del PO
+function isxItemLt(it){
+  if(!it || !it.poNumber || it._manual) return null;
+  const p = isxPo(it.poNumber), h = isxNorm((p && p.h) || it.supplier);
+  const rs = ((it.rfqNumbers || []).filter(Boolean)).map(n => ({ n, r: isxRfq(n) })).filter(x => x.r);
+  const m = rs.find(x => h && isxNorm(x.r.h) === h) || (rs.length === 1 ? rs[0] : null);
+  const lt = m ? isxLt(m.r) : null;
+  return lt == null ? null : { lt, rfq: m.n, holder: m.r.h };
+}
+// Il LT (manuale o dalla RFQ) diventa la data di pronto del PO, che usano Radar, card nave e mobile.
+// La Delivery Date Infoship del PO resta in it._poDelivInfoship.
+function isxApply(){
+  if(!state.data || !Array.isArray(state.data.vessels) || typeof itemLeadTime !== "function") return;
+  state.data.vessels.forEach(v => (v.items || []).forEach(it => {
+    if(!it.poNumber || it._manual) return;
+    if(it._poDelivInfoship === undefined) it._poDelivInfoship = it.poDeliveryDate || "";
+    const lt = itemLeadTime(it), base = itemOrderBaseDate(it);
+    it.poDeliveryDate = (lt != null && base) ? isxAdd(base, lt) : it._poDelivInfoship;
+  }));
+}
+// Statistiche fornitore dallo storico (periodo from–to su data RFQ)
+function isxSupStats(from, to){
+  const f = from ? new Date(from).toISOString().slice(0,10) : "0000", t = to ? new Date(to).toISOString().slice(0,10) : "9999";
+  const today = new Date().toISOString().slice(0,10), gen = isxGenLoad(), out = {};
+  Object.entries(isxData().rfq).forEach(([k, r]) => {
+    if(!r.d || r.d < f || r.d > t) return;
+    const s = out[isxNorm(r.h)] || (out[isxNorm(r.h)] = { n: 0, ack: 0, ref: 0, sil: 0, lts: [], G: 0, NG: 0 });
+    s.n++;
+    if(/acknowledged/i.test(r.st)) s.ack++; else if(/refused/i.test(r.st)) s.ref++; else if(/sent/i.test(r.st) && r.ql && r.ql < today) s.sil++;
+    const lt = isxLt(r); if(lt != null) s.lts.push(lt);
+    const g = gen[k] && gen[k].g; if(g === "G") s.G++; else if(g === "NG") s.NG++;
+  });
+  Object.values(out).forEach(s => { const dec = s.ack + s.ref + s.sil; s.dec = dec; s.resp = dec ? s.ack / dec : null; s.refR = s.n ? s.ref / s.n : 0;
+    s.lt = s.lts.length ? s.lts.slice().sort((a, b) => a - b)[Math.floor(s.lts.length / 2)] : null; s.gen = (s.G + s.NG) ? Math.round(s.G / (s.G + s.NG) * 100) : null; });
+  return out;
+}
+function isxSupCells(x){
+  if(!x) return '<td class="mono muted">—</td><td class="mono muted">—</td><td class="mono muted">—</td>';
+  const rc = x.resp == null ? "" : x.resp < .6 ? "color:#c0261c;font-weight:700" : x.resp < .8 ? "color:#b06a00;font-weight:700" : "";
+  return `<td class="mono" style="${rc}" title="${x.ack} offerte · ${x.ref} rifiuti · ${x.sil} senza risposta su ${x.n} RFQ">${x.resp == null ? "—" : Math.round(x.resp * 100) + "%"}</td>`
+    + `<td class="mono" title="Mediana dei LT dichiarati (${x.lts.length} offerte con LT)">${x.lt == null ? "—" : isxLtTxt(x.lt)}</td>`
+    + `<td class="mono" title="Offerte segnate originali su quelle segnate">${x.gen == null ? "—" : x.gen + "%"}</td>`;
+}
+// Drag & drop degli Excel Infoship ovunque nella dashboard
+(function(){
+  if(window._isxDropWired) return; window._isxDropWired = true;
+  let depth = 0, ov = null;
+  const hasFiles = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files");
+  const show = on => {
+    if(!ov){ ov = document.createElement("div"); ov.id = "isx-drop";
+      ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(10,27,46,.5);display:none;align-items:center;justify-content:center;pointer-events:none";
+      ov.innerHTML = '<div style="background:#fff;border:2px dashed #1553d8;border-radius:16px;padding:26px 34px;text-align:center;color:#0a1b2e"><div style="font-weight:700;font-size:18px">Rilascia gli Excel di Infoship</div><div style="font-size:13px;color:#44576b;margin-top:6px">RFQ e PO, anche più file e periodi sovrapposti: nessun doppione</div></div>';
+      document.body.appendChild(ov); }
+    ov.style.display = on ? "flex" : "none"; };
+  window.addEventListener("dragenter", e => { if(!hasFiles(e)) return; depth++; show(true); });
+  window.addEventListener("dragleave", e => { if(!hasFiles(e)) return; depth = Math.max(0, depth - 1); if(!depth) show(false); });
+  window.addEventListener("dragover", e => { if(hasFiles(e)) e.preventDefault(); });
+  window.addEventListener("drop", e => { if(!hasFiles(e)) return; depth = 0; show(false); if(e.defaultPrevented) return; e.preventDefault();
+    const fl = Array.from(e.dataTransfer.files || []).filter(f => /\.xlsx?$/i.test(f.name));
+    if(fl.length) window.importInfoshipRfqExcel(fl); else if(typeof showToast === "function") showToast("Trascina gli Excel (.xlsx) esportati da Infoship"); });
+})();
+
 window.openRfqChasePanel = function(ctxJson){
   let ctx;
   try{ ctx = JSON.parse(decodeURIComponent(ctxJson)); }
@@ -18325,7 +18483,7 @@ function renderRfqChaseBody(){
     ${dl}
     <div class="rc-head">
       <span class="muted" style="font-size:11.5px;">Ogni RFQ parte verso il <b>suo</b> fornitore. Dopo l'apertura, il testo con i grassetti \u00e8 negli appunti.</span>
-      <label class="btn btn-sm" style="cursor:pointer;white-space:nowrap;" title="Excel esportato da Infoship: fornitore e stato di ogni RFQ">\u21e7 Excel Infoship<input type="file" accept=".xlsx,.xls" style="display:none" onchange="window.importInfoshipRfqExcel(this.files[0]); this.value='';"></label>
+      <label class="btn btn-sm" style="cursor:pointer;white-space:nowrap;" title="Excel esportato da Infoship: fornitore e stato di ogni RFQ">\u21e7 Excel Infoship<input type="file" accept=".xlsx,.xls" multiple style="display:none" onchange="window.importInfoshipRfqExcel(this.files); this.value='';"></label>
       <span class="rc-lang">
         <button class="${st.lang==="it"?"on":""}" onclick="window.rfqChaseSetLang('it')">IT</button>
         <button class="${st.lang==="en"?"on":""}" onclick="window.rfqChaseSetLang('en')">EN</button>
@@ -20653,7 +20811,7 @@ function isPerfExcluded(it){ const o = getItemOverride(it && it.id); return !!(o
 function itemOrigin(it){ const o = getItemOverride(it && it.id); return (o && o.origin) || (it && it.origin) || ""; }
 function itemTransport(it){ const o = getItemOverride(it && it.id); return (o && o.transportMode) || (it && it.transportMode) || ""; }
 // v0.75 — Lead time (giorni per ordine pronto), inserito a mano; la data "pronto" è calcolata dalla data ordine.
-function itemLeadTime(it){ const o=getItemOverride(it&&it.id)||{}; const n=parseInt(o.leadTimeDays,10); return isNaN(n)?null:n; }
+function itemLeadTime(it){ const o=getItemOverride(it&&it.id)||{}; const n=parseInt(o.leadTimeDays,10); if(!isNaN(n)) return n; const x=(typeof isxItemLt==="function")?isxItemLt(it):null; return x?x.lt:null; }
 function itemOrderBaseDate(it){ const o=getItemOverride(it&&it.id)||{}; return (o.orderDateManual||"").slice(0,10) || (it&&(it.poDate||it.orderDate||it.rfqDate||it.reqDate)||"").slice(0,10) || ""; }
 function itemReadyDate(it){ const lt=itemLeadTime(it); const base=itemOrderBaseDate(it); if(lt==null||!base) return null; const d=new Date(base.length>10?base:base+"T00:00:00"); if(isNaN(d)) return null; d.setDate(d.getDate()+lt); return d.toISOString().slice(0,10); }
 // Chip compatto "pronto ~ data · LT N gg" per la tabella Items (verde se già pronto)
@@ -25003,6 +25161,8 @@ function buildStatePayload() {
     shipments: (typeof loadShipments === "function" ? loadShipments() : {}),
     rfqChases: (typeof loadRfqChases === "function" ? loadRfqChases() : {}),
     rfqVendors: (typeof loadRfqVendors === "function" ? loadRfqVendors() : {}),
+    infoshipLedger: (typeof isxLoad === "function" ? isxLoad() : {}),
+    rfqGenuine: (typeof isxGenLoad === "function" ? isxGenLoad() : {}),
     portProfiles: (typeof loadPortProfiles === "function" ? loadPortProfiles() : {}),
     logbook: (typeof lbLoad === "function" ? lbLoad() : {}),
     critFlags: (typeof loadCritFlags === "function" ? loadCritFlags() : {}),
@@ -25490,7 +25650,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","infoshipLedger","rfqGenuine","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -25616,6 +25776,8 @@ function collSnapshot(){
     shipments: f(typeof loadShipments==="function"?loadShipments():{}),
     rfqChases: f(typeof loadRfqChases==="function"?loadRfqChases():{}),
     rfqVendors: f(typeof loadRfqVendors==="function"?loadRfqVendors():{}),
+    infoshipLedger: f(typeof isxLoad==="function"?isxLoad():{}),
+    rfqGenuine: f(typeof isxGenLoad==="function"?isxGenLoad():{}),
     portProfiles: f(typeof loadPortProfiles==="function"?loadPortProfiles():{}),
     logbook: f(typeof lbLoad==="function"?lbLoad():{}),
     critFlags: f(typeof loadCritFlags==="function"?loadCritFlags():{}),
@@ -25786,6 +25948,22 @@ function mpdMergeRemote(remote, force){
         lMeta["rfqVendors"] = rMeta["rfqVendors"] || new Date().toISOString();
         changed = true;
       }
+    }
+    // v1.18 — storico Infoship (per riga, vince l'import più recente) e originale/non originale (per RFQ)
+    if (remote.infoshipLedger && typeof remote.infoshipLedger==="object" && typeof isxLoad==="function") {
+      const L = isxLoad(); let touched=false;
+      ["rfq","po"].forEach(b => { const rb = remote.infoshipLedger[b] || {}; for (const k of Object.keys(rb)) { const rv=rb[k], lv=L[b][k]; if(!rv) continue;
+        if (!lv || force || String(rv.u||"") > String(lv.u||"")) { if(JSON.stringify(lv)!==JSON.stringify(rv)){ L[b][k]=rv; touched=true; } } } });
+      if (touched) { const rm=remote.infoshipLedger.meta||{}; if(String(rm.lastDate||"")>String(L.meta.lastDate||"")) L.meta=rm;
+        try{ localStorage.setItem("mpd.infoshipLedger", JSON.stringify(L)); }catch{} window._isxCache=null;
+        lMeta["infoshipLedger"] = rMeta["infoshipLedger"] || new Date().toISOString(); changed = true; }
+    }
+    if (remote.rfqGenuine && typeof remote.rfqGenuine==="object" && typeof isxGenLoad==="function") {
+      const local = isxGenLoad(); let touched=false;
+      for (const k of Object.keys(remote.rfqGenuine)) { const rv=remote.rfqGenuine[k], lv=local[k]; if(!rv) continue;
+        if (!lv || force || String(rv.updatedAt||"") > String(lv.updatedAt||"")) { if(JSON.stringify(lv)!==JSON.stringify(rv)){ local[k]=rv; touched=true; } } }
+      if (touched) { try{ localStorage.setItem("mpd.rfqGenuine", JSON.stringify(local)); }catch{}
+        lMeta["rfqGenuine"] = rMeta["rfqGenuine"] || new Date().toISOString(); changed = true; }
     }
     // email "fatte": UNIONE additiva (un "fatto" non deve mai essere annullato da un altro device),
     // quindi la applico sempre se il remoto porta qualcosa di nuovo, non solo per timestamp.
