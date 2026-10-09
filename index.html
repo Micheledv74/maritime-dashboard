@@ -15404,6 +15404,7 @@ function renderVesselDetail() {
             ${ports.map(p => `<option value="${escapeHTML(p)}" ${p === state.portFilter ? "selected" : ""}>📍 ${escapeHTML(p)}</option>`).join("")}
           </select>` : ""; })()}
           ${state.pipelineFilter || state._kpiFilter || state.portFilter ? `<button class="btn btn-sm" onclick="clearPipelineFilter()">Pulisci filtri</button>` : ""}
+          <label class="btn btn-sm" style="cursor:pointer;white-space:nowrap;margin-left:auto;" title="Excel RFQ e PO esportati da Infoship (anche più file insieme, o trascinali in qualunque punto della pagina)">⇧ Excel Infoship${(() => { try { const m = isxData().meta || {}; return m.lastDate ? ` <span class="muted" style="font-weight:500;">· dati al ${escapeHTML(formatDate(m.lastDate))}</span>` : ""; } catch(e) { return ""; } })()}<input type="file" accept=".xlsx,.xls" multiple style="display:none" onchange="window.importInfoshipRfqExcel(this.files); this.value='';"></label>
         </div>
         <div class="items-visibility-toggles" id="items-visibility-toggles"></div>
         <div class="items-table-wrap as-cards">
