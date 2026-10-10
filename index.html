@@ -9659,6 +9659,7 @@ const DATA_URLS = {
   outlookCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-outlook-calendar.json",  // v0.18 — appuntamenti calendario (opzionale, via n8n)
   noonReports: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-noon-reports.json",  // v0.19 — noon report estratti via AI (opzionale, via n8n)
   pendingReplies: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-pending-replies.json",  // v0.21 — email in attesa di tua risposta (opzionale, via n8n)
+  morningBrief: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-morning-brief.json",  // v1.19 — riepilogo del mattino (n8n + Mistral)
   recentEmails: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-recent-emails.json",  // v0.48 — feed esteso posta recente con thread multi-messaggio (opzionale, via n8n "Recent Emails Sync")
   personalCalendar: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-personal-calendar.json",  // v0.34 — calendario personale Apple/iCloud (opzionale, via n8n ICS)
   supplierProfiles: "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-supplier-profiles.json",  // v0.37 — rubrica fornitori da Notion (opzionale, via n8n)
@@ -9932,6 +9933,7 @@ async function loadData() {
     state.personalCalendar = personalCalData;  // {events:[{title,start,location}]} o null
     state.noonReports = (noonData && noonData.vessels) ? noonData.vessels : (noonData || null);  // {vesselId:[report,...]}
     state.pendingReplies = (pendingData && Array.isArray(pendingData.items)) ? pendingData.items : (Array.isArray(pendingData) ? pendingData : null);
+    fetchJSON(DATA_URLS.morningBrief).then(d => { state.morningBrief = d; try { mbRepaint(); } catch(e) {} }).catch(() => {});  // v1.19
     state.recentEmails = (recentEmailsData && Array.isArray(recentEmailsData.threads)) ? recentEmailsData : null;  // v0.48: {threads:[{conversationId,subject,messages:[...],waitingReply,waitingDays,webLink,hasAttachments}]}
     // v0.37 — Rubriche Notion: Notion vince sui conflitti (merge nei profili locali)
     mergeNotionProfiles("supplier", supProfiles);
@@ -13106,6 +13108,8 @@ function renderOverview() {
   root.innerHTML = `
     ${lastVisitHTML}
     ${whatsNewHTML}
+
+    ${typeof mbSectionHTML === "function" ? mbSectionHTML() : ""}
 
     ${_ovRadar ? '<section id="radar-root" class="rd-root"></section>' : crStripHTML.replace('<span class="section-meta">', '<span class="section-meta"><button class="btn btn-sm" style="margin-right:8px" onclick="window.setOverviewMode(\'radar\')">Radar scali →</button>')}
 
@@ -29248,6 +29252,7 @@ function m6Fleet(){
   const tiles = typeof m7Tiles === "function" ? m7Tiles() : "";
   return '<div class="m6"><div class="m6-hd"><div class="m6-when">' + esc(when) + '</div><div class="m6-h1">Flotta</div></div>' +
     (tiles || '<div class="m6-lead">' + lead + '</div><div class="m6-list">' + list + '</div>') +
+    (typeof mbMobileHTML === "function" ? mbMobileHTML() : "") +
     '<div class="m6-sec"><div class="m6-eb">ANCHE</div><div class="m6-also">' + also + '</div></div>' +
     '<div class="m6-foot">Posizioni dai noon e dal viaggio · stessi dati del PC' + (ifx ? " · " + ifx + " DN da far chiudere alla nave" : "") + '</div></div>';
 }
@@ -29685,6 +29690,110 @@ function m6Badge(){
   try { const n = (state.todos || []).filter(t => todoActive(t) && t.dueDate && classifyDueDate(t.dueDate) === "today").length; const tab = document.querySelector('#mobile-tabbar .mtab[data-mtab="todo"]'); if(!tab) return; let b = tab.querySelector(".mtab-n"); if(!n){ if(b) b.remove(); return; } if(!b){ b = document.createElement("span"); b.className = "mtab-n"; tab.appendChild(b); } b.textContent = n; } catch(e) {}
 }
 window.m6Fleet = m6Fleet;
+
+// === v1.19 RIEPILOGO DEL MATTINO ============================================
+// File data-morning-brief.json scritto da n8n "Riepilogo del Mattino (Mistral)" alle 06:45 lun-ven:
+// finestra 24 h (lunedì dal venerdì 06:00), urgent / updates / rest, link Outlook per voce.
+// Locale: mpd.mbDone {conversationId|chiave: ts} = voce sbrigata; mpd.mbOpen = data del brief aperto/chiuso.
+function mbData(){ const b = state.morningBrief; if(!b || !b.generatedAt) return null;
+  const age = (Date.now() - new Date(b.generatedAt).getTime()) / 864e5; return age > 4 ? null : b; }
+function mbKey(x){ return x.conversationId || ((x.from || "") + "|" + (x.subject || x.text || "")).slice(0, 160); }
+function mbDoneMap(){ try { return JSON.parse(localStorage.getItem("mpd.mbDone") || "{}"); } catch(e) { return {}; } }
+function mbSetDone(k, v){ const o = mbDoneMap(); if(v) o[k] = new Date().toISOString(); else delete o[k];
+  const ent = Object.entries(o).sort((a, b) => String(b[1]).localeCompare(String(a[1]))).slice(0, 600);
+  try { localStorage.setItem("mpd.mbDone", JSON.stringify(Object.fromEntries(ent))); } catch(e) {} }
+function mbWhen(b){ const d = new Date(b.since), g = new Date(b.generatedAt), t = new Date();
+  const day = x => x.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "short" });
+  const hm = x => String(x.getHours()).padStart(2, "0") + ":" + String(x.getMinutes()).padStart(2, "0");
+  return { from: day(d) + " " + hm(d), at: (g.toDateString() === t.toDateString() ? "oggi " : day(g) + " ") + hm(g), today: g.toDateString() === t.toDateString() }; }
+function mbItemIndex(){
+  if(window._mbIdx && window._mbIdx.d === state.data) return window._mbIdx.m;
+  const m = new Map();
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { try { itemMailKeys(it).forEach(([k, s]) => { if(!m.has(k)) m.set(k, { it, s }); }); } catch(e) {} }));
+  window._mbIdx = { d: state.data, m }; return m;
+}
+function mbFindItem(x){ const flat = String((x.subject || "") + " " + (x.action || "") + " " + (x.text || "") + " " + (x.why || "")).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if(flat.length < 8) return null; for(const [k, r] of mbItemIndex()) if(flat.includes(k)) return r; return null; }
+function mbVes(x){ const id = x.vesselId || ""; if(id) return { id, n: vNameSafe(id) || id };
+  const n = String(x.vessel || "").trim(); if(!n) return null; const v = (VESSELS || []).find(v => v.displayName.toUpperCase().includes(n.toUpperCase().replace(/^M\/?V\s*/, "")));
+  return { id: v ? v.vesselId : "", n: v ? v.displayName : n }; }
+function mbCss(){ if(document.getElementById("mb-css")) return; const s = document.createElement("style"); s.id = "mb-css"; s.textContent = `
+.mb{background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:16px;padding:18px 20px;margin:0 0 18px;color:#0a1b2e}
+.mb-hd{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;cursor:pointer}
+.mb-t{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.mb-m{font-size:12px;color:#44576b}
+.mb-hd .mb-sp{flex:1}
+.mb-n{display:flex;gap:6px}
+.mb-n span{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid}
+.mb-hl{font-size:14px;margin:10px 0 2px;text-wrap:pretty}
+.mb-g{margin-top:16px}
+.mb-gh{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#44576b;margin-bottom:6px;display:flex;gap:8px}
+.mb-r{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid #eef0f3}
+.mb-r.done{opacity:.45}.mb-r.done .mb-a{text-decoration:line-through}
+.mb-ck{width:18px;height:18px;border-radius:5px;border:1.5px solid #8a9bb0;background:#fff;cursor:pointer;margin-top:2px;padding:0;display:grid;place-items:center;color:#fff;font-size:12px}
+.mb-r.done .mb-ck{background:#14794e;border-color:#14794e}
+.mb-a{font-size:14px;font-weight:700;text-wrap:pretty}
+.mb-s{font-size:12px;color:#44576b;margin-top:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mb-s i{font-style:normal}
+.mb-tag{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid currentColor}
+.mb-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mb-u{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;padding:8px 0;border-top:1px solid #eef0f3;font-size:13px;align-items:baseline}
+.mb-u .k{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1553d8}
+.mb-u small{color:#44576b;font-size:12px}
+.mb-rest{margin:0;padding-left:18px;font-size:13px;color:#44576b;display:grid;gap:4px}
+.mb-err{background:#fdf3e2;border:1px solid #c07800;color:#6b3f00;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:10px}
+.m6 .mb{border-radius:14px;padding:14px;margin:14px 0 0}
+.m6 .mb-r{grid-template-columns:24px minmax(0,1fr)}
+.m6 .mb-b{justify-content:flex-start;grid-column:2;margin-top:6px}
+.m6 .mb-ck{width:22px;height:22px}
+@media (max-width:760px){.mb-r{grid-template-columns:22px minmax(0,1fr)}.mb-b{grid-column:2;justify-content:flex-start}.mb-u{grid-template-columns:minmax(0,1fr)}}
+`; document.head.appendChild(s); }
+function mbRows(b){ const done = mbDoneMap(); const R = [];
+  (b.urgent || []).forEach(x => R.push({ x, g: "u", k: mbKey(x), done: !!done[mbKey(x)] }));
+  (b.updates || []).forEach(x => R.push({ x, g: "p", k: mbKey(x), done: !!done[mbKey(x)] }));
+  window._mbRows = R; return R; }
+function mbUrgentRow(r, i, mobile){ const x = r.x, esc = escapeHTML, v = mbVes(x), hit = mobile ? null : mbFindItem(x);
+  const cat = x.category && x.category !== "altro" ? '<span class="mb-tag" style="color:#44576b">' + esc(x.category) + '</span>' : "";
+  const meta = [ '<b>' + esc(x.from || x.fromEmail || "") + '</b>', v ? '<span class="mb-tag" style="color:#1553d8">' + esc(v.n) + '</span>' : "", cat,
+    x.due ? '<span class="mb-tag" style="color:#c0261c">entro ' + esc(x.due) + '</span>' : "", x.answered ? '<span class="mb-tag" style="color:#14794e">hai già risposto</span>' : "",
+    '<i>' + esc(x.subject || "") + '</i>' ].filter(Boolean).join("");
+  const btn = [ x.webLink ? '<a class="btn btn-sm" href="' + esc(x.webLink) + '" target="_blank" rel="noopener">Apri in Outlook</a>' : "",
+    hit ? '<button class="btn btn-sm" onclick="window.openItemDetailPopover(\'' + esc(String(hit.it.id).replace(/[\\']/g, "\\$&")) + '\')" title="' + esc(hit.s) + '">Scheda ' + esc(hit.s) + ' ›</button>' : "",
+    '<button class="btn btn-sm" onclick="mbTodo(' + i + ')">+ To-do</button>' ].join("");
+  return '<div class="mb-r' + (r.done ? " done" : "") + '"><button class="mb-ck" aria-label="Sbrigata" onclick="mbToggle(' + i + ')">' + (r.done ? "✓" : "") + '</button>' +
+    '<div style="min-width:0"><div class="mb-a">' + esc(x.action || x.subject || "") + '</div>' + (x.why ? '<div class="mb-s">' + esc(x.why) + '</div>' : "") + '<div class="mb-s">' + meta + '</div></div><div class="mb-b">' + btn + '</div></div>'; }
+function mbBody(b, mobile){ const esc = escapeHTML, R = mbRows(b);
+  if(!b.ok){ const raw = (b.emails || []).slice(0, 40).map(e => '<li>' + (e.webLink ? '<a href="' + esc(e.webLink) + '" target="_blank" rel="noopener">' : "") + '<b>' + esc(e.from) + '</b> · ' + esc(e.subject) + (e.webLink ? "</a>" : "") + (e.answered ? " · risposto" : "") + '</li>').join("");
+    return '<div class="mb-err">Il riepilogo non è stato generato' + (b.error ? " (" + esc(b.error) + ")" : "") + '. Qui sotto l\'elenco delle email della finestra.</div>' + (raw ? '<ul class="mb-rest" style="margin-top:10px">' + raw + '</ul>' : ""); }
+  const U = R.map((r, i) => [r, i]).filter(([r]) => r.g === "u").sort((a, c) => a[0].done - c[0].done);
+  const P = R.map((r, i) => [r, i]).filter(([r]) => r.g === "p");
+  let h = '<div class="mb-g"><div class="mb-gh"><span style="color:#c0261c">Da fare</span><span>' + U.filter(([r]) => !r.done).length + ' aperte</span></div>' +
+    (U.length ? U.map(([r, i]) => mbUrgentRow(r, i, mobile)).join("") : '<div class="mb-s" style="padding:6px 0">Nessuna email chiede una tua azione.</div>') + '</div>';
+  if(mobile) return h;
+  if(P.length) h += '<div class="mb-g"><div class="mb-gh"><span style="color:#1553d8">Aggiornamenti</span><span>' + P.length + '</span></div>' + P.map(([r]) => { const x = r.x, v = mbVes(x);
+    return '<div class="mb-u"><span class="k">' + esc(x.kind || "info") + '</span><span>' + esc(x.text || x.subject || "") + ' <small>· ' + esc(x.from || "") + (v ? " · " + esc(v.n) : "") + '</small></span>' + (x.webLink ? '<a class="btn btn-sm" href="' + esc(x.webLink) + '" target="_blank" rel="noopener">Apri</a>' : "<span></span>") + '</div>'; }).join("") + '</div>';
+  const rest = (b.rest || []).map(x => '<li>' + esc(x.text || x.subject || "") + '</li>').join("");
+  if(rest || b.ignored) h += '<div class="mb-g"><div class="mb-gh"><span>Il resto</span></div><ul class="mb-rest">' + rest + (b.ignored ? '<li>' + b.ignored + ' newsletter / notifiche ignorate</li>' : "") + '</ul></div>';
+  return h; }
+function mbIsOpen(b){ try { const o = JSON.parse(localStorage.getItem("mpd.mbOpen") || "{}"); return o.at === b.generatedAt ? !!o.open : mbWhen(b).today; } catch(e) { return true; } }
+function mbSectionHTML(){ const b = mbData(); if(!b) return '<div id="mb-root"></div>'; mbCss();
+  const esc = escapeHTML, w = mbWhen(b), R = mbRows(b), open = mbIsOpen(b);
+  const nU = R.filter(r => r.g === "u" && !r.done).length, c = b.counts || {};
+  const pills = '<span style="color:' + (nU ? "#c0261c" : "#14794e") + '">' + (nU ? nU + " da fare" : "niente da fare") + '</span>' + ((b.updates || []).length ? '<span style="color:#1553d8">' + b.updates.length + ' aggiornamenti</span>' : "");
+  return '<section id="mb-root" class="mb"><div class="mb-hd" onclick="mbOpenToggle()"><span class="mb-t">Posta del mattino</span><span class="mb-m">dal ' + esc(w.from) + ' · ' + (c.considered || 0) + ' conversazioni' + (c.noise ? " · " + c.noise + " automatiche scartate" : "") + ' · fatto ' + esc(w.at) + '</span>' +
+    (w.today ? "" : '<span class="mb-tag" style="color:#b06a00">non è di oggi</span>') + '<span class="mb-sp"></span><span class="mb-n">' + pills + '</span><span class="mb-m">' + (open ? "▾" : "▸") + '</span></div>' +
+    (b.headline ? '<div class="mb-hl">' + esc(b.headline) + '</div>' : "") + (open ? mbBody(b, false) : "") + '</section>'; }
+function mbMobileHTML(){ const b = mbData(); if(!b) return ""; mbCss(); const w = mbWhen(b);
+  return '<div class="mb"><div class="m6-eb">POSTA DEL MATTINO · ' + escapeHTML(w.at) + '</div>' + (b.headline ? '<div class="mb-hl" style="margin-top:6px">' + escapeHTML(b.headline) + '</div>' : "") + mbBody(b, true) + '</div>'; }
+function mbRepaint(){ if(typeof maIsMobile === "function" && maIsMobile()){ try { renderMobileApp(); } catch(e) {} return; }
+  const el = document.getElementById("mb-root"); if(el) el.outerHTML = mbSectionHTML(); }
+window.mbOpenToggle = function(){ const b = mbData(); if(!b) return; try { localStorage.setItem("mpd.mbOpen", JSON.stringify({ at: b.generatedAt, open: !mbIsOpen(b) })); } catch(e) {} mbRepaint(); };
+window.mbToggle = function(i){ const r = (window._mbRows || [])[i]; if(!r) return; mbSetDone(r.k, !r.done); mbRepaint(); };
+window.mbTodo = function(i){ const r = (window._mbRows || [])[i]; if(!r) return; const x = r.x, v = mbVes(x);
+  addTodo({ category: v && v.id ? "Nave" : "Ufficio", vessel: v ? v.id : "", priority: x.due ? "alta" : "media", action: String(x.action || x.subject || "Email").slice(0, 140),
+    reference: x.from || "", dueDate: new Date().toISOString().slice(0, 10), note: (x.subject || "") + (x.why ? " — " + x.why : ""),
+    ...(x.webLink ? { outlookWebUrl: x.webLink, outlookLinkedName: x.subject || "" } : {}) });
+  mbSetDone(r.k, true); try { showToast("To-do creata per oggi"); } catch(e) {} mbRepaint(); };
 
 // === v0.96 BACKUP COMPLETO ==================================================
 // Scarica TUTTE le chiavi salvate da questa app nel browser (to-do, note, registri,
