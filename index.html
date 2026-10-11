@@ -27288,6 +27288,7 @@ function saveTodoFromModal() {
   editingTodoId = null;
   modalCurrentTags = [];
   modalEmailLink = null; modalEmailLinkedName = "";
+  window._mbM = null;
   render();
 }
 
@@ -29769,7 +29770,7 @@ function mbModel(b){
     const k = "pos|" + vid + "|" + e.port, isDone = !!done[k];
     if(same && W.etd && !W.old) return;
     const dash = W ? "Scalo " + (W.port || "?") + (W.eta ? " · ETA " + mbFmtD(W.eta) : "") + (W.etd ? " · ETD " + mbFmtD(W.etd) : " · senza ETD") + (W.old ? " (passato)" : "") : "Nessuno scalo registrato";
-    D.push({ k, done: isDone, tone: same ? "amber" : (free ? "red" : "amber"), vid, vname: e.v.n, ctx: (e.kind === "posizione" ? "posizione" : "viaggio") + " · " + e.port,
+    D.push({ k, done: isDone || mbHasTodo(L.map(x => x.webLink)), tone: same ? "amber" : (free ? "red" : "amber"), vid, vname: e.v.n, ctx: (e.kind === "posizione" ? "posizione" : "viaggio") + " · " + e.port,
       title: same ? "A " + e.port + " come previsto, ma lo scalo non ha ETD: il radar non sa entro quando consegnare."
                   : (e.kind === "posizione" ? "È a " + e.port + " e la dashboard ha ancora " + (W && W.port ? W.port : "nessuno scalo") + "." : "Il viaggio porta a " + e.port + ", la dashboard ha ancora " + (W && W.port ? W.port : "nessuno scalo") + ".") + (free ? " " + free + " PO aperti senza scalo." : ""),
       says: L.slice(0, 3).map(x => x.fact || x.subject).join(" · ") + (e.date ? " · " + mbFmtD(e.date) : ""),
@@ -29782,18 +29783,18 @@ function mbModel(b){
   live.forEach(e => { if(used.has(e.id)) return; const hit = mbFindItem({ subject: e.subject, text: (e.docs || []).join(" ") + " " + (e.fact || "") }); if(!hit) return;
     used.add(e.id); const it = hit.it, st = it.dnStatus || (it.poNumber ? "PO " + (it.poStatus || "emesso") : it.rfqStatus || "REQ");
     const so = { conferma_ordine: "Segna la conferma e la data di pronto nella scheda.", spedizione: "Registra AWB/spedizione nella scheda: il radar ricalcola il margine.", consegna: "Verifica la consegna e chiudi la DN.", offerta: "Confronta l'offerta con le altre prima del PO.", fattura: "Controlla la fattura contro il PO." }[e.kind] || (e.action || "Aggiorna la scheda.");
-    D.push({ k: e.k, done: !!done[e.k], tone: e.reply && !e.answered ? "amber" : "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "", ctx: hit.s + " · " + (e.from || ""),
+    D.push({ k: e.k, done: !!done[e.k] || mbHasTodo([e.webLink]), tone: e.reply && !e.answered ? "amber" : "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "", ctx: hit.s + " · " + (e.from || ""),
       title: (e.fact || e.subject), says: e.subject, dash: (mbItemName(it) ? mbItemName(it) + " · " : "") + st + (it.poDeliveryDate ? " · pronto " + mbFmtD(it.poDeliveryDate) : ""), so,
       acts: [{ l: "Scheda " + hit.s + " ›", fn: "openItemDetailPopover('" + String(it.id).replace(/['\\]/g, "\\$&") + "')", p: 1 }, { l: "+ To-do", fn: "mbTodoE(" + e.id + ")" }],
       links: e.webLink ? [e.webLink] : [], ids: [e.id] });
   });
   // 3) richieste nuove dalla nave senza pratica
   live.forEach(e => { if(used.has(e.id) || e.kind !== "richiesta_nave") return; used.add(e.id);
-    D.push({ k: e.k, done: !!done[e.k], tone: "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "", ctx: "richiesta dalla nave", title: (e.fact || e.subject) + ": non c'è ancora una pratica in Infoship.",
+    D.push({ k: e.k, done: !!done[e.k] || mbHasTodo([e.webLink]), tone: "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "", ctx: "richiesta dalla nave", title: (e.fact || e.subject) + ": non c'è ancora una pratica in Infoship.",
       says: e.subject, dash: "Nessuna REQ/RFQ trovata con questi riferimenti", so: e.action || "Apri la REQ in Infoship.", acts: [{ l: "+ To-do: apri REQ", fn: "mbTodoE(" + e.id + ")", p: 1 }], links: e.webLink ? [e.webLink] : [], ids: [e.id] }); });
   const R = { red: 0, amber: 1, blue: 2 }; D.sort((x, y) => (x.done - y.done) || (R[x.tone] - R[y.tone]));
   // 4) risposte da dare (non già coperte)
-  const Q = live.filter(e => !used.has(e.id) && e.reply && !e.answered).map(e => Object.assign(e, { done: !!done[e.k] })).sort((x, y) => x.done - y.done);
+  const Q = live.filter(e => !used.has(e.id) && e.reply && !e.answered).map(e => Object.assign(e, { done: !!done[e.k] || mbHasTodo([e.webLink]) })).sort((x, y) => x.done - y.done);
   Q.forEach(e => used.add(e.id));
   const rest = live.filter(e => !used.has(e.id));
   const cnt = k => rest.filter(e => e.kind === k).length;
@@ -29813,6 +29814,28 @@ function mbModel(b){
   const m = { E, D, Q, rest, fleet, head, openD, openQ, spam: E.filter(e => e.kind === "spam").length, noon: cnt("noon"), routine: rest.length - cnt("noon") };
   window._mbM = { b, d: state.data, m }; return m;
 }
+function mbVesPanel(M){ const id = window._mbVes; if(!id) return ""; const f = M.fleet.find(x => x.id === id); if(!f) return ""; const esc = escapeHTML;
+  const L = M.E.filter(e => e.v && e.v.id === id && e.kind !== "spam").sort((a, b) => String(b.receivedAt).localeCompare(String(a.receivedAt)));
+  const W = typeof mpWhere === "function" ? mpWhere(id) : null, legN = (itemsForLeg(id, "current") || []).length, free = mbOpenNoPlan(id);
+  const dec = M.D.filter(d => d.vid === id && !d.done);
+  const KL = { noon: "noon", posizione: "posizione", viaggio: "viaggio", richiesta_nave: "richiesta", offerta: "offerta", conferma_ordine: "conferma", spedizione: "spedizione", consegna: "consegna", fattura: "fattura", pagamento: "pagamento", domanda: "domanda", routine: "routine", altro: "—" };
+  const st = (l, v, c) => '<div style="min-width:0"><div class="mb-eb" style="font-size:9.5px">' + l + '</div><div style="font-size:14px;font-weight:700;margin-top:2px;' + (c ? "color:" + c : "") + '">' + v + '</div></div>';
+  const rows = L.map(e => { const hit = mbFindItem({ subject: e.subject, text: (e.docs || []).join(" ") + " " + (e.fact || "") }); const td = mbHasTodo([e.webLink]);
+    return '<div style="display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #eef0f3;font-size:12.5px">' +
+      '<span style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:' + (e.kind === "noon" || e.kind === "routine" || e.kind === "altro" ? "#6a7d90" : "#1553d8") + '">' + esc(KL[e.kind] || e.kind) + '</span>' +
+      '<div style="min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">' + esc(e.fact || e.subject) + '</div><div style="color:#44576b;overflow:hidden;text-overflow:ellipsis">' + esc(e.from) + (e.fact ? " · " + esc(e.subject) : "") + (e.answered ? " · hai risposto" : "") + '</div></div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + (hit ? '<button class="mb-bt" onclick="openItemDetailPopover(\'' + esc(String(hit.it.id).replace(/['\\]/g, "\\$&")) + '\')">' + esc(hit.s) + ' ›</button>' : "") +
+      (td ? '<span style="font-size:12px;color:#14794e;font-weight:700;padding:7px 4px">✓ in To-do</span>' : '<button class="mb-bt" onclick="mbTodoE(' + e.id + ')">+ To-do</button>') + (e.webLink ? '<a class="mb-bt" href="' + esc(e.webLink) + '" target="_blank" rel="noopener">Outlook</a>' : "") + '</div></div>'; }).join("");
+  return '<div style="border:1px solid #1553d8;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:12px">' +
+    '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="mb-vn">' + esc(f.n) + '</span><span style="font-size:12px;color:#44576b">cosa sa la dashboard · cosa dice la posta della notte</span><span style="flex:1"></span><button class="mb-bt" onclick="mbVesOpen(\'' + esc(id) + '\')">Chiudi</button></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px">' +
+      st("Scalo", W && W.port ? esc(W.port) : "non noto", W && W.port ? "" : "#c0261c") + st("ETA", W && W.eta ? mbFmtD(W.eta) : "—") + st("ETD", W && W.etd ? mbFmtD(W.etd) : "mancante", W && W.etd ? "" : "#b06a00") +
+      st("PO legati allo scalo", String(legN)) + st("PO senza scalo", String(free), free ? "#c0261c" : "#14794e") + '</div>' +
+    (dec.length ? '<div class="mb-warn">' + dec.map(d => esc(d.title)).join("<br>") + '</div>' : "") +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="mb-bt p" onclick="openVoyageEditor(\'' + esc(id) + '\')">Aggiorna il viaggio</button>' +
+      (typeof window.openVoyageMsg === "function" ? '<button class="mb-bt" onclick="openVoyageMsg(\'' + esc(id) + '\',\'current\')">Scrivi all\'agenzia</button>' : "") +
+      '<button class="mb-bt" onclick="openTodoModal(null,\'' + esc(id) + '\')">+ To-do nave</button><button class="mb-bt" onclick="goVessel(\'' + esc(id) + '\')">Procurement nave ›</button></div>' +
+    (L.length ? '<div><div class="mb-eb" style="margin-bottom:2px">Email della notte (' + L.length + ')</div>' + rows + '</div>' : '<div style="font-size:12.5px;color:#44576b">Nessuna email da questa nave stanotte.</div>') + '</div>'; }
 function mbToneC(t){ return t === "red" ? ["#c0261c", "#fdeceb"] : t === "amber" ? ["#c07800", "#fdf3e2"] : ["#1553d8", "#eaf0fd"]; }
 function mbCardHTML(d, i, mobile){ const esc = escapeHTML, [c, bg] = mbToneC(d.tone);
   const box = (l, t, hi) => '<div style="background:' + (hi ? bg : "#f4f6f8") + ';border-radius:10px;padding:9px 11px;min-width:0"><div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:' + (hi ? c : "#6a7d90") + '">' + l + '</div><div style="margin-top:3px;text-wrap:pretty">' + esc(t) + '</div></div>';
@@ -29823,7 +29846,7 @@ function mbCardHTML(d, i, mobile){ const esc = escapeHTML, [c, bg] = mbToneC(d.t
     '<div style="display:flex;flex-direction:column;gap:8px;min-width:0"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + (d.vname ? '<span class="mb-vn">' + esc(d.vname) + '</span>' : "") + '<span style="font-size:12px;color:#44576b">' + esc(d.ctx) + '</span></div>' +
     '<div class="mb-ti">' + esc(d.title) + '</div>' +
     '<div class="mb-3">' + box("Le email dicono", d.says) + box("La dashboard dice", d.dash) + box("Quindi", d.so, 1) + '</div></div>' +
-    '<div class="mb-ac">' + acts + ol + '<button class="mb-bt" onclick="mbDoneK(\'' + esc(d.k.replace(/['\\]/g, "")) + '\')">' + (d.done ? "↩ Riapri" : "✓ Fatto") + '</button></div></div>'; }
+    '<div class="mb-ac">' + acts + ol + (d.done && mbHasTodo(d.links) ? '<span style="font-size:12px;color:#14794e;text-align:center;font-weight:700">✓ in To-do</span>' : '<button class="mb-bt" onclick="mbDoneK(\'' + esc(d.k.replace(/['\\]/g, "")) + '\')">' + (d.done ? "↩ Riapri" : "✓ Fatto") + '</button>') + '</div></div>'; }
 function mbQHTML(e){ const esc = escapeHTML;
   return '<div class="mb-q' + (e.done ? " done" : "") + '"><button class="mb-ck" onclick="mbDoneK(\'' + esc(e.k.replace(/['\\]/g, "")) + '\')">' + (e.done ? "✓" : "") + '</button>' +
     '<div style="min-width:0"><div style="font-weight:700;font-size:13.5px">' + esc(e.action || e.fact || e.subject) + '</div><div style="font-size:12px;color:#44576b">' + esc(e.from) + (e.v ? " · " + esc(e.v.n) : "") + " · " + esc(e.subject) + '</div></div>' +
@@ -29859,9 +29882,9 @@ function mbSectionHTML(){ const b = mbData(); if(!b) return '<div id="mb-root"><
   h += warn;
   if(M.D.length) h += '<div style="display:flex;flex-direction:column;gap:9px"><div class="mb-eb" style="color:#c0261c">Da decidere · email incrociate con viaggio, radar e pratiche</div>' + M.D.map((d, i) => mbCardHTML(d, i)).join("") + '</div>';
   if(M.Q.length) h += '<div><div class="mb-eb" style="color:#b06a00;margin-bottom:4px">Da rispondere</div>' + M.Q.map(mbQHTML).join("") + '</div>';
-  h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="mb-eb">Flotta stanotte</div><div class="mb-f">' + M.fleet.map(f => '<div onclick="goVessel(\'' + esc(f.id) + '\')"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(f.n) + '</b>' +
+  h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="mb-eb">Flotta stanotte</div><div class="mb-f">' + M.fleet.map(f => '<div onclick="mbVesOpen(\'' + esc(f.id) + '\')" style="' + (window._mbVes === f.id ? "border-color:#1553d8;box-shadow:0 0 0 1px #1553d8" : "") + '"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(f.n) + '</b>' +
     (f.dec ? '<span style="font-size:11px;font-weight:700;color:#c0261c">vedi ' + String(f.dec).padStart(2, "0") + '</span>' : (f.nMail ? "" : '<span style="font-size:11px;font-weight:700;color:#14794e">silenzio</span>')) + '</div>' +
-    '<div>' + esc(f.where) + '</div><div style="color:#44576b">' + (f.nMail ? f.nMail + " email · " + esc(f.kinds) : "Nessuna email") + '</div></div>').join("") + '</div></div>';
+    '<div>' + esc(f.where) + '</div><div style="color:#44576b">' + (f.nMail ? f.nMail + " email · " + esc(f.kinds) : "Nessuna email") + '</div></div>').join("") + '</div>' + mbVesPanel(M) + '</div>';
   const restTxt = M.rest.filter(e => e.kind !== "noon").slice(0, 6).map(e => esc(e.from)).join(", ");
   h += '<div class="mb-ft"><span><b style="color:#0a1b2e">Senza conseguenze:</b> ' + (M.noon ? M.noon + " noon report (già nel diario) · " : "") + M.routine + " altre" + (restTxt ? " (" + restTxt + (M.routine > 6 ? "…" : "") + ")" : "") + '</span>' +
     '<span><b style="color:#0a1b2e">Ignorate:</b> ' + M.spam + ' spam · ' + (c.noise || 0) + ' automatiche</span></div>';
@@ -29875,9 +29898,21 @@ function mbRepaint(){ window._mbM = null; if(typeof maIsMobile === "function" &&
 window.mbDoneK = function(k){ const o = mbDoneMap(); mbSetDone(k, !o[k]); window._mbM = null; mbRepaint(); };
 window.mbOpenToggle = function(){ const b = mbData(); if(!b) return; try { localStorage.setItem("mpd.mbOpen", JSON.stringify({ at: b.generatedAt, open: !mbIsOpen(b) })); } catch(e) {} mbRepaint(); };
 window.mbTodoE = function(id){ const b = mbData(); const e = b && (b.emails || []).find(x => x.id === id); if(!e) return; const v = mbVes(e);
-  addTodo({ category: v && v.id ? "Nave" : "Ufficio", vessel: v ? v.id : "", priority: "media", action: String(e.action || e.fact || e.subject || "Email").slice(0, 140),
-    reference: e.from || "", dueDate: new Date().toISOString().slice(0, 10), note: e.subject || "", ...(e.webLink ? { outlookWebUrl: e.webLink, outlookLinkedName: e.subject || "" } : {}) });
-  mbSetDone(mbKey(e), true); window._mbM = null; try { showToast("To-do creata per oggi"); } catch(x) {} mbRepaint(); };
+  openTodoModal(null, v && v.id ? v.id : "");
+  const set = (i, val) => { const el = document.getElementById(i); if(el != null && val != null) el.value = val; };
+  try { document.getElementById("modal-todo-title").textContent = "Nuova to-do dalla posta"; } catch(x) {}
+  const act = document.getElementById("todo-action"); const want = e.kind === "richiesta_nave" ? ["Emettere REQ", "Aprire REQ", "Altro"] : e.reply ? ["Rispondere", "Rispondere email", "Altro"] : ["Altro"];
+  if(act){ const o = [...act.options].find(o => want.some(w => o.value.toLowerCase() === w.toLowerCase())); if(o) act.value = o.value; }
+  set("todo-category", v && v.id ? "Nave" : "Ufficio"); set("todo-priority", e.reply ? "alta" : "media");
+  set("todo-reference", String(e.action || e.fact || e.subject || "").slice(0, 160));
+  set("todo-note", [e.subject, e.from ? "da " + e.from : "", e.fact && e.fact !== e.action ? e.fact : "", (e.docs || []).join(" ")].filter(Boolean).join(" · "));
+  set("todo-when", "custom"); set("todo-date", new Date().toISOString().slice(0, 10));
+  try { document.getElementById("todo-date-row").style.display = ""; } catch(x) {}
+  try { modalEmailLink = e.webLink || ""; modalEmailLinkedName = e.subject || ""; modalCurrentTags = ["posta"]; renderCurrentTags(); updateVesselRowVisibility(); } catch(x) {}
+};
+function mbHasTodo(links){ const L = (links || []).filter(Boolean); if(!L.length) return false;
+  return (state.todos || []).some(t => t && !t.deleted && t.outlookWebUrl && L.includes(t.outlookWebUrl)); }
+window.mbVesOpen = function(id){ window._mbVes = window._mbVes === id ? "" : id; mbRepaint(); };
 
 // === v0.96 BACKUP COMPLETO ==================================================
 // Scarica TUTTE le chiavi salvate da questa app nel browser (to-do, note, registri,
