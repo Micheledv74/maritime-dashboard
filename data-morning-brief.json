@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "generatedAt": "2026-10-11T10:43:45.593Z",
-  "since": "2026-10-10T10:43:01.476Z",
-  "until": "2026-10-11T10:43:01.476Z",
+  "generatedAt": "2026-10-11T10:56:11.693Z",
+  "since": "2026-10-10T10:55:29.319Z",
+  "until": "2026-10-11T10:55:29.319Z",
   "monday": false,
-  "model": "mistral-small-latest",
+  "model": "open-mistral-nemo",
   "counts": {
     "read": 60,
     "mine": 1,
@@ -12,13 +12,11 @@
     "considered": 26
   },
   "ai": {
-    "calls": 1,
-    "failed": 1,
-    "errors": [
-      "{\"id\":\"2a0492a7cc2d425599dabd99dcee98ce\",\"created\":1791715409,\"model\":\"ministral-8b-2512\",\"usage\":{\"prompt_tokens\":7388,\"total_tokens\":9731,\"completion_tokens\":2343,\"prompt_tokens_details\":{\"cached_tokens\":0},\"service_ti"
-    ]
+    "calls": 2,
+    "failed": 0,
+    "errors": []
   },
-  "ok": false,
+  "ok": true,
   "emails": [
     {
       "id": 1,
@@ -31,15 +29,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
       "kind": "spam",
-      "port": "",
+      "port": "FUJAIRAH/DIEGO GARCIA ISLAND",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Proposta spam per 324 container SOC, 900k USD, UAE a Diego Garcia"
     },
     {
       "id": 2,
@@ -52,15 +50,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED TOSCANA",
       "kind": "posizione",
-      "port": "",
-      "date": "",
+      "port": "RICHARDS BAY",
+      "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Nave in ancoraggio a Richards Bay, 13:20 LT"
     },
     {
       "id": 3,
@@ -73,15 +71,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "richiesta_nave",
+      "kind": "domanda",
       "port": "",
       "date": "",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": ""
+      "reply": true,
+      "action": "Rispondere richiesta gru provvisorie",
+      "fact": "Ch. Eng. richiede informazioni su gru provvisorie"
     },
     {
       "id": 4,
@@ -94,15 +92,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
-      "kind": "spam",
-      "port": "",
-      "date": "",
+      "kind": "offerta",
+      "port": "MARTAS (TURKEY)/PORT SAID (EGYPT)",
+      "date": "2026-10-13",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Proposta carico PTA 4.5k-5.5k MT, 2.5% commissione"
     },
     {
       "id": 5,
@@ -115,15 +113,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "altro",
-      "port": "",
+      "kind": "conferma_ordine",
+      "port": "TROMBETAS",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "LBH Brasil conferma assistenza per chiamata Trombetas"
     },
     {
       "id": 6,
@@ -136,15 +134,15 @@
       "answered": false,
       "thread": 2,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "noon",
-      "port": "",
-      "date": "",
+      "kind": "viaggio",
+      "port": "TEMA (GHANA)/JURUTI (BRASILE)",
+      "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Nave in navigazione, 286 nm percorsi, 528 nm rimanenti"
     },
     {
       "id": 7,
@@ -157,15 +155,15 @@
       "answered": false,
       "thread": 2,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "altro",
+      "kind": "routine",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Documenti iniziali inviati per chiamata Trombetas"
     },
     {
       "id": 8,
@@ -178,15 +176,15 @@
       "answered": false,
       "thread": 2,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "altro",
-      "port": "",
+      "kind": "routine",
+      "port": "TROMBETAS",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Equipaggiamento navigazione e AC confermato funzionante"
     },
     {
       "id": 9,
@@ -199,15 +197,15 @@
       "answered": false,
       "thread": 2,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "altro",
-      "port": "",
+      "kind": "domanda",
+      "port": "TROMBETAS",
       "date": "",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": ""
+      "reply": true,
+      "action": "Rispondere con piano carico/stivaggio",
+      "fact": "Chiede conferma istruzioni carico e piano stivaggio"
     },
     {
       "id": 10,
@@ -220,15 +218,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "posizione",
+      "port": "TANGA",
+      "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Istruzioni per procedere a PS alle 21:30 LT"
     },
     {
       "id": 11,
@@ -241,15 +239,15 @@
       "answered": false,
       "thread": 2,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "posizione",
-      "port": "",
-      "date": "",
+      "kind": "arrivo",
+      "port": "FAZENDINHA (JURUTI)",
+      "date": "2026-10-12",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "ETA Fazendinha 12:00 agw/wp, carico bauxite 46k MT"
     },
     {
       "id": 12,
@@ -262,15 +260,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "posizione",
+      "port": "TANGA",
+      "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Rapporto ormeggio inviato, operazioni carico non iniziate"
     },
     {
       "id": 13,
@@ -283,15 +281,15 @@
       "answered": false,
       "thread": 9,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
+      "kind": "domanda",
+      "port": "TANGA",
       "date": "",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": ""
+      "reply": true,
+      "action": "Confermare possibilità inizio scarico",
+      "fact": "Chiede conferma per iniziare scarico senza BoL/LOI"
     },
     {
       "id": 14,
@@ -304,15 +302,15 @@
       "answered": false,
       "thread": 2,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "PEPPINO",
-      "kind": "altro",
-      "port": "",
+      "kind": "domanda",
+      "port": "FAZENDINHA",
       "date": "",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": ""
+      "reply": true,
+      "action": "Inviare foto comfort termico",
+      "fact": "Chiede foto comfort termico al mattino"
     },
     {
       "id": 15,
@@ -325,15 +323,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
-      "kind": "altro",
+      "kind": "routine",
       "port": "",
-      "date": "",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Line-up aggiornato porti carbone Corea, 10:00 LT"
     },
     {
       "id": 16,
@@ -346,15 +344,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
-      "kind": "altro",
+      "kind": "routine",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Inviato aggiornamento linea portuale carbone Corea (2026-10-11)."
     },
     {
       "id": 17,
@@ -367,15 +365,15 @@
       "answered": false,
       "thread": 4,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "posizione",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Scarico cargo iniziato alle 10:45 LT."
     },
     {
       "id": 18,
@@ -388,15 +386,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "domanda",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": ""
+      "reply": true,
+      "action": "Verifica con proprietari per scarico senza BoL/LOI.",
+      "fact": "LOI emesso per scarico senza BL originali."
     },
     {
       "id": 19,
@@ -409,15 +407,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "domanda",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": ""
+      "reply": true,
+      "action": "Conferma scarico senza OBLs al Master.",
+      "fact": "Richiesta conferma per avvio operazioni scarico."
     },
     {
       "id": 20,
@@ -430,15 +428,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "conferma_ordine",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Confermato scarico secondo LOI ricevuto."
     },
     {
       "id": 21,
@@ -451,15 +449,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "conferma_ordine",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Confermata ricezione istruzioni per scarico."
     },
     {
       "id": 22,
@@ -472,15 +470,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "posizione",
+      "port": "TANGA",
+      "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Nave ormeggiata in sicurezza al molo 02."
     },
     {
       "id": 23,
@@ -493,15 +491,15 @@
       "answered": false,
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
-      "kind": "altro",
+      "kind": "offerta",
       "port": "",
-      "date": "",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Tre Panamax in vendita: M/V NEW HARVE (DWT 77.834)."
     },
     {
       "id": 24,
@@ -514,15 +512,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "routine",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Confermata ricezione report scarico precedente."
     },
     {
       "id": 25,
@@ -535,15 +533,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "noon",
-      "port": "",
-      "date": "",
+      "kind": "routine",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Scarico totale: 5083.9 MT, avanzamento 142 MT."
     },
     {
       "id": 26,
@@ -556,15 +554,15 @@
       "answered": false,
       "thread": 3,
       "hasAttachments": true,
-      "ai": false,
+      "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "altro",
-      "port": "",
-      "date": "",
+      "kind": "routine",
+      "port": "TANGA",
+      "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Inviato report scarico dettagliato."
     }
   ]
 }
