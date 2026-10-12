@@ -17408,7 +17408,7 @@ function renderTodosPage() {
   const lastExcel = localStorage.getItem(LS_KEYS.lastExcelDate);
 
   // v0.22 — Modalità pagina: "todos" (le mie to-do) | "actions" (azioni flotta cross-nave)
-  const pageMode = state._todoPageMode === "actions" ? "actions" : "todos";
+  const pageMode = state._todoPageMode === "actions" ? "actions" : state._todoPageMode === "mail" ? "mail" : "todos";
   const fleetActionsCount = (() => {
     try { return generateAllActions().length + (state.todos||[]).filter(todoActive).length; }
     catch(e){ return 0; }
@@ -17430,7 +17430,7 @@ function renderTodosPage() {
   document.getElementById("view-root").innerHTML = `
     <header class="todo-page-header">
       <div>
-        <h1>${pageMode === "actions" ? "Azioni flotta" : "Le mie to-do"}</h1>
+        <h1>${pageMode === "actions" ? "Azioni flotta" : pageMode === "mail" ? "Posta del mattino" : "Le mie to-do"}</h1>
         <div class="todo-page-stats">
           ${pageMode === "actions" ? `
             <span class="stat ${faStats.late > 0 ? "crit" : ""}">${faStats.late > 0 ? "⚠ " : ""}<strong>${faStats.late}</strong> scadute</span>
@@ -17477,6 +17477,10 @@ function renderTodosPage() {
       <button class="tms-btn ${pageMode==='actions'?'active':''}" role="tab" onclick="window.setTodoPageMode('actions')">
         <svg class="icon icon-sm"><use href="#i-anchor"/></svg> Azioni flotta
         ${fleetActionsCount>0?`<span class="tms-badge">${fleetActionsCount}</span>`:""}
+      </button>
+      <button class="tms-btn ${pageMode==='mail'?'active':''}" role="tab" onclick="window.setTodoPageMode('mail')" title="Email della notte incrociate con viaggi, radar e pratiche">
+        ✉ Posta del mattino
+        ${(() => { const n = window.mbOpenCount ? window.mbOpenCount() : 0; return n > 0 ? `<span class="tms-badge">${n}</span>` : ""; })()}
       </button>
       <button class="tms-btn" onclick="window.remOpen && window.remOpen()" title="Email periodiche precompilate alle navi (es. TEKOMAR XPERT)">
         ✉ Avvisi navi
@@ -17596,6 +17600,8 @@ function renderTodosPage() {
         `<div class="todo-list">${completate.slice(0, 30).map(todoRowHTML).join("")}</div>`}
     </div>
     </div><!-- /todo-mode-todos -->
+
+    ${pageMode === "mail" ? '<div id="todo-mode-mail">' + (typeof mbSectionHTML === "function" ? mbSectionHTML(true) : "") + '</div>' : ""}
 
     <div id="todo-mode-actions" style="display:${pageMode==='actions'?'':'none'};">
       ${state._fleetActionCat ? `<div class="fleet-cat-banner"><span>Filtro attivo: <strong>${{rfq:"RFQ da sollecitare",po:"Pronte a PO",dn:"Consegne (DN)"}[state._fleetActionCat]}</strong></span><button class="btn-mini-link" onclick="window.clearFleetActionCat()">✕ mostra tutte</button></div>` : ""}
@@ -24454,7 +24460,7 @@ function goEmail() {
 }
 
 window.setTodoPageMode = function(mode){
-  state._todoPageMode = (mode === "actions") ? "actions" : "todos";
+  state._todoPageMode = (mode === "actions" || mode === "mail") ? mode : "todos";
   if (mode !== "actions") state._fleetActionCat = null;
   renderTodosPage();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -24469,6 +24475,7 @@ function goFleetActions(cat){
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 window.goFleetActions = goFleetActions;
+window.goMailBrief = function(){ state.view = "todos"; state._todoPageMode = "mail"; state._fleetActionCat = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
 window.clearFleetActionCat = function(){ state._fleetActionCat = null; render(); };
 window.clearFleetActionQuery = function(){ state._fleetActionQ = ""; renderTodosPage(); };
 
@@ -29886,16 +29893,17 @@ function mbCss2(){ if(document.getElementById("mb-css2")) return; const s = docu
   '@media (max-width:860px){.mb-c{grid-template-columns:30px minmax(0,1fr)}.mb-ac{grid-column:2;flex-direction:row;flex-wrap:wrap}}' +
   '.m6 .mb2{padding:14px;border-radius:14px;margin:14px 0 0;gap:12px}.m6 .mb-h{font-size:17px}.m6 .mb-c{grid-template-columns:minmax(0,1fr);padding:12px}.m6 .mb-num{display:none}.m6 .mb-ac{grid-column:1;flex-direction:row;flex-wrap:wrap}.m6 .mb-3{grid-template-columns:minmax(0,1fr)}';
   document.head.appendChild(s); }
-function mbSectionHTML(){ const b = mbData(); if(!b) return '<div id="mb-root"></div>'; mbCss2(); const esc = escapeHTML, w = mbWhen(b);
+window.mbOpenCount = function(){ try { const b = mbData(); if(!b || b.version !== 2) return 0; const M = mbModel(b); return M.openD + M.openQ; } catch(e) { return 0; } };
+function mbSectionHTML(full){ const b = mbData(); if(!b) return full ? '<div id="mb-root" class="mb2"><div class="mb-eb">Posta del mattino</div><div style="font-size:13px;color:#44576b">Nessun riepilogo ancora: il workflow n8n «Riepilogo del Mattino» non ha scritto il file.</div></div>' : '<div id="mb-root"></div>'; mbCss2(); const esc = escapeHTML, w = mbWhen(b);
   if(b.version !== 2) return '<section id="mb-root" class="mb2"><div class="mb-eb">Posta del mattino</div><div class="mb-warn">Il file della posta è della versione vecchia (elenco). Reimporta il workflow «Riepilogo del Mattino (Mistral) v2» in n8n e premi «Prova a mano».</div></section>';
-  const M = mbModel(b), c = b.counts || {}, open = mbIsOpen(b);
+  const M = mbModel(b), c = b.counts || {}, open = !!full;
   const warn = b.ai && b.ai.failed ? '<div class="mb-warn">Mistral non ha risposto per ' + b.ai.failed + ' pacchett' + (b.ai.failed > 1 ? "i" : "o") + ' su ' + b.ai.calls + (b.ai.errors && b.ai.errors[0] ? ' (' + esc(String(b.ai.errors[0]).slice(0, 90)) + ')' : "") + ': per quelle email uso solo oggetto e mittente.</div>' : "";
-  let h = '<section id="mb-root" class="mb2"><div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;cursor:pointer" onclick="mbOpenToggle()"><div style="flex:1;min-width:260px">' +
-    '<div class="mb-eb">Posta della notte · dal ' + esc(w.from) + ' · ' + (c.considered || 0) + ' conversazioni · fatto ' + esc(w.at) + (w.today ? "" : ' · <span style="color:#b06a00">non è di oggi</span>') + ' ' + (open ? "▾" : "▸") + '</div>' +
+  let h = '<section id="mb-root" class="mb2"' + (full ? "" : ' data-mb-compact="1"') + '><div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;' + (full ? "" : "cursor:pointer") + '"' + (full ? "" : ' onclick="goMailBrief()" title="Apri la Posta del mattino nelle To-do"') + '><div style="flex:1;min-width:260px">' +
+    '<div class="mb-eb">Posta della notte · dal ' + esc(w.from) + ' · ' + (c.considered || 0) + ' conversazioni · fatto ' + esc(w.at) + (w.today ? "" : ' · <span style="color:#b06a00">non è di oggi</span>') + (full ? "" : ' · <span style="color:#1553d8">apri in To-do ›</span>') + '</div>' +
     '<div class="mb-h">' + esc(M.head) + '</div></div>' +
     '<div class="mb-k"><div><b style="color:' + (M.openD ? "#c0261c" : "#14794e") + '">' + M.openD + '</b><span>da decidere</span></div><div><b style="color:#c07800">' + M.openQ + '</b><span>da rispondere</span></div><div><b style="color:#6a7d90">' + (M.rest.length + M.spam + (c.noise || 0)) + '</b><span>da non leggere</span></div></div></div>';
-  if(!open) return h + '</section>';
   h += warn;
+  if(!open) return h + '</section>';
   if(M.D.length) h += '<div style="display:flex;flex-direction:column;gap:9px"><div class="mb-eb" style="color:#c0261c">Da decidere · email incrociate con viaggio, radar e pratiche</div>' + M.D.map((d, i) => mbCardHTML(d, i)).join("") + '</div>';
   if(M.Q.length) h += '<div><div class="mb-eb" style="color:#b06a00;margin-bottom:4px">Da rispondere' + (M.E.some(e => e.addr != null) ? ' · scritte a te per nome' : '') + '</div>' + M.Q.map(mbQHTML).join("") + '</div>';
   h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="mb-eb">Flotta stanotte</div><div class="mb-f">' + M.fleet.map(f => '<div onclick="mbVesOpen(\'' + esc(f.id) + '\')" style="' + (window._mbVes === f.id ? "border-color:#1553d8;box-shadow:0 0 0 1px #1553d8" : "") + '"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(f.n) + '</b>' +
@@ -29910,7 +29918,7 @@ function mbMobileHTML(){ const b = mbData(); if(!b || b.version !== 2) return ""
     M.D.filter(d => !d.done).slice(0, 3).map((d, i) => mbCardHTML(d, i, true)).join("") + (M.Q.length ? '<div>' + M.Q.filter(e => !e.done).map(mbQHTML).join("") + '</div>' : "") + '</div>'; }
 function mbIsOpen(b){ try { const o = JSON.parse(localStorage.getItem("mpd.mbOpen") || "{}"); return o.at === b.generatedAt ? !!o.open : true; } catch(e) { return true; } }
 function mbRepaint(){ window._mbM = null; if(typeof maIsMobile === "function" && maIsMobile()){ try { renderMobileApp(); } catch(e) {} return; }
-  const el = document.getElementById("mb-root"); if(el) el.outerHTML = mbSectionHTML(); }
+  const el = document.getElementById("mb-root"); if(el) el.outerHTML = mbSectionHTML(!el.hasAttribute("data-mb-compact") && state.view === "todos"); }
 window.mbDoneK = function(k){ const o = mbDoneMap(); mbSetDone(k, !o[k]); window._mbM = null; mbRepaint(); };
 window.mbOpenToggle = function(){ const b = mbData(); if(!b) return; try { localStorage.setItem("mpd.mbOpen", JSON.stringify({ at: b.generatedAt, open: !mbIsOpen(b) })); } catch(e) {} mbRepaint(); };
 window.mbTodoE = function(id){ const b = mbData(); const e = b && (b.emails || []).find(x => x.id === id); if(!e) return; const v = mbVes(e);
