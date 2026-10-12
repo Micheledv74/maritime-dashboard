@@ -10827,6 +10827,7 @@ function render() {
   else if (state.view === "supplier") renderSupplierPulse();
   else if (state.view === "performance") renderPerformancePage();
   else if (state.view === "rubrica") renderRubricaPage();
+  else if (state.view === "budget") renderBudgetPage();
   else if (state.view === "debug") renderDebug();
   else if (state.view === "todos") renderTodosPage();
 }
@@ -10961,6 +10962,10 @@ function renderSwitcher() {
   rubOpt.value = "__rubrica"; rubOpt.textContent = "📇 Rubrica";
   if (state.view === "rubrica") rubOpt.selected = true;
   select.appendChild(rubOpt);
+  // v1.22 — Budget
+  row.appendChild(makeEl(`<button class="pill ${state.view === "budget" ? "active" : ""}" data-view="budget" role="tab"><span>Budget</span></button>`));
+  const budOpt = document.createElement("option"); budOpt.value = "__budget"; budOpt.textContent = "💲 Budget";
+  if (state.view === "budget") budOpt.selected = true; select.appendChild(budOpt);
 
   VESSELS.forEach((v, idx) => {
     const dataVessel = state.data ? state.data.vessels.find(x => x.vesselId === v.vesselId) : null;
@@ -24475,6 +24480,167 @@ function goFleetActions(cat){
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 window.goFleetActions = goFleetActions;
+
+// ============================================================================
+// === v1.22 BUDGET PER NAVE (Infoship «Budget vs Cost», PDF) ================
+// Solo le voci del purchasing: Repair & Maintenance (13,2,3,4,5,6,7) + Drydock + Extra budget (21/22).
+// Equipaggio/cambusa (300/400) esclusi. Nessun totale di flotta: armatori diversi.
+// mpd.budget {reports:{vid:[{date,year,cur,L:[[code,desc,budget,ordered,delivered]],file,at}]}}
+// ============================================================================
+const BD_GN = { "13": "Logistic & packing", "2": "Stores", "3": "Spare parts", "4": "Luboil / fuel analysis", "5": "Equipment maintenance", "6": "Communication", "7": "Navigation · Certificates", "DD": "Drydock" };
+const BD_SEED = {
+  peppino: [["1301","Logistic and packing",18000,0,1660],["2010","Stores",61920,1130.36,71931.47],["2020","Paints",18144,0,12998.58],["2050","Chemical / Gases",22176,0,10914.27],["3010","M/E System",39600,0,1493.51],["3060","Varius Machinery",30960,13340.80,43235.02],["3080","A/E System",46800,0,24948.57],["4010","Luboil",103500,0,158667.39],["4020","Fuel Quality Analysis",3600,0,0],["5010","Machinery Services",48874,0,0],["6010","VSAT + Starlink",23866,0,0],["6020","Radio SBD",9557,0,0],["7010","Class Block Fee",18444,0,1049.90],["7020","Certificate & Service",12240,0,13342.18],["7030","IHM Inventory",2606,0,0],["7040","PMS licence",9120,0,1.16],["7070","Nautical Charts",16500,0,2974.79],["2110","extra service",0,0,9176.51],["2120","extra spares",0,0,152544.59],["2210","extra deck stores",0,692.60,19727.30],["2220","extra eng stores",0,5957.03,12894.62],["2230","extra mooring ropes",0,0,6340],["2250","extra safety",0,0,15654.93]],
+  medtoscana: [["1301","Logistic and packing",15600,0,0],["2010","Stores",100800,5962.99,93065.99],["2020","Paints",25200,0,10899.34],["2050","Chemical / Gases",25200,0,13382.40],["3010","M/E System",37000,0,0],["3060","Varius Machinery",63000,11416.23,18473.65],["3080","A/E System",60000,0,31448.21],["4010","Luboil",99600,0,79374.30],["4020","Fuel Quality Analysis",2400,0,0],["5010","Machinery Services",49200,0,0],["6010","VSAT + Starlink",28200,0,2354.73],["6020","Radio SBD",26950,0,1736],["7010","Class Block Fee",18700,228.25,725.06],["7020","Certificate & Service",24550,0,12155.38],["7030","IHM Inventory",2200,0,0],["7040","PMS licence",7200,0,1.16],["7070","Nautical Charts",13800,0,349.29],["2110","extra service",0,0,16813.83],["2120","extra spares",0,0,90761.99],["2230","extra mooring ropes",0,0,28653.60],["2250","extra safety",0,1723.74,10670.68]],
+  medliguria: [["1301","Logistic and packing",15600,0,0],["2010","Stores",100800,0,53345.35],["2020","Paints",25200,0,22818.14],["2050","Chemical / Gases",25200,0,8714.14],["3010","M/E System",37800,1734.25,12637.68],["3060","Varius Machinery",63000,1422.44,14304.62],["3080","A/E System",60000,0,4197.51],["4010","Luboil",99600,0,183841.70],["4020","Fuel Quality Analysis",2400,0,0],["5010","Machinery Services",49200,2577.84,12959.68],["6010","VSAT + Starlink",25200,0,0],["6020","Radio SBD",26950,0,0.01],["7010","Class Block Fee",17600,0,732.06],["7020","Certificate & Service",26400,0,17670],["7030","IHM Inventory",2200,0,0],["7040","PMS licence",7200,0,0],["7070","Nautical Charts",13800,0,780.43],["2110","extra service",0,0,7900.01],["2120","extra spares",0,0,3681.60],["2210","extra deck stores",0,0,124539.34],["2230","extra mooring ropes",0,0,11954.13],["2250","extra safety",0,0,515]]
+};
+function bdLoad(){ let o = {}; try { o = JSON.parse(localStorage.getItem("mpd.budget") || "{}"); } catch(e) {}
+  if(!o.reports){ o.reports = {}; Object.keys(BD_SEED).forEach(v => o.reports[v] = [{ date: "2026-10-12", year: 2026, cur: "USD", L: BD_SEED[v], file: "Budget vs Cost (12.10.2026)", at: "seed" }]); }
+  return o; }
+function bdSave(o){ try { localStorage.setItem("mpd.budget", JSON.stringify(o)); } catch(e) {} }
+function bdVessels(){ const o = bdLoad(); return VESSELS.filter(v => (o.reports[v.vesselId] || []).length); }
+function bdGroupOf(c, d){ if(/dry\s*-?\s*dock/i.test(d)) return "DD"; if(/^2[12]\d\d$/.test(c)) return "X"; if(/^13\d\d$/.test(c)) return "13"; if(/^[2-7]\d{3}$/.test(c)) return c[0]; return null; }
+function bdDoy(iso){ const d = new Date(iso + "T12:00:00"), s = new Date(d.getFullYear(), 0, 1, 12); return Math.round((d - s) / 864e5) + 1; }
+function bdDy(y){ return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365; }
+function bdK(n){ const a = Math.abs(n), s = n < 0 ? "−" : ""; return a >= 1e6 ? s + (a / 1e6).toFixed(2).replace(".", ",") + "M $" : a >= 1000 ? s + Math.round(a / 1000) + "k $" : s + Math.round(a) + " $"; }
+function bdKd(n){ return "$ " + Math.round(n).toLocaleString("it-IT"); }
+function bdP(p){ return Math.round(p * 100) + "%"; }
+function bdTot(rep){ let B = 0, S = 0, X = 0; (rep.L || []).forEach(([c, d, b, o, dl]) => { const g = bdGroupOf(c, d); if(!g) return; if(g === "X") X += o + dl; else { B += b; S += o + dl; } }); return { B, S, X, tot: S + X }; }
+function bdModel(vid){
+  const reps = (bdLoad().reports[vid] || []).slice().sort((a, b) => a.date.localeCompare(b.date)); if(!reps.length) return null;
+  const rep = reps[reps.length - 1], DY = bdDy(rep.year || +rep.date.slice(0, 4)), DAY = bdDoy(rep.date), YF = DAY / DY, LEFTD = Math.max(1, DY - DAY), thr = 0.10;
+  const G = {}, xs = [];
+  (rep.L || []).forEach(([c, d, b, o, dl]) => { const g = bdGroupOf(c, d); if(!g) return; const x = { c, n: d, b, s: o + dl };
+    if(g === "X") xs.push(x); else (G[g] = G[g] || { c: g, n: BD_GN[g] || g, b: 0, s: 0, subs: [] }).subs.push(x); });
+  const groups = ["13","2","3","4","5","6","7","DD"].filter(g => G[g]).map(g => { const o = G[g]; o.b = o.subs.reduce((a, x) => a + x.b, 0); o.s = o.subs.reduce((a, x) => a + x.s, 0); return o; });
+  const B = groups.reduce((a, g) => a + g.b, 0), SP = groups.reduce((a, g) => a + g.s, 0), XT = xs.reduce((a, x) => a + x.s, 0), tot = SP + XT;
+  // proiezione: ritmo delle ultime settimane se c'è un report di almeno 14 giorni prima (stesso anno), altrimenti media dell'anno
+  const prev = reps.slice(0, -1).reverse().find(r => r.date.slice(0, 4) === rep.date.slice(0, 4) && DAY - bdDoy(r.date) >= 14);
+  let proj = tot / YF, method = "media dell'anno";
+  if(prev){ const pt = bdTot(prev).tot, dd = DAY - bdDoy(prev.date), rate = Math.max(0, (tot - pt) / dd); proj = tot + rate * LEFTD; method = "ritmo dal " + mpFD(prev.date) + " (" + bdKd(rate) + "/giorno)"; }
+  const hist = reps.filter(r => r.date.slice(0, 4) === rep.date.slice(0, 4)).map(r => ({ d: bdDoy(r.date), t: bdTot(r).tot, x: bdTot(r).X }));
+  return { vid, rep, reps, DY, DAY, YF, LEFTD, thr, groups, xs, B, SP, XT, tot, proj, method, hist, prev };
+}
+function bdChart(M, tone){
+  const top = Math.max(M.B, M.proj, M.tot) * 1.12, X = d => (d / M.DY * 1000).toFixed(1), Y = v => (1000 - v / top * 1000).toFixed(1);
+  const pts = [{ d: 0, t: 0, x: 0 }].concat(M.hist);
+  const act = "M" + pts.map(p => X(p.d) + "," + Y(p.t)).join(" L");
+  const exA = M.XT ? "M" + pts.map(p => X(p.d) + "," + Y(p.t)).join(" L") + " L" + pts.slice().reverse().map(p => X(p.d) + "," + Y(p.t - p.x)).join(" L") + " Z" : "";
+  const dots = M.hist.map(p => '<circle cx="' + X(p.d) + '" cy="' + Y(p.t) + '" r="5" fill="' + tone + '" vector-effect="non-scaling-stroke"></circle>').join("");
+  const l = (v) => (Y(v) / 10) + "%";
+  return '<div style="position:relative;height:250px;border-left:1px solid #d5dce4;border-bottom:1px solid #d5dce4;margin:6px 0 0 56px">' +
+    '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">' +
+    (exA ? '<path d="' + exA + '" fill="#f6c9c5"></path>' : "") +
+    '<line x1="0" y1="' + Y(M.B) + '" x2="1000" y2="' + Y(M.B) + '" stroke="#c0261c" stroke-width="1.5" vector-effect="non-scaling-stroke" opacity=".6"></line>' +
+    '<path d="M0,1000 L1000,' + Y(M.B) + '" fill="none" stroke="#8a9bb0" stroke-width="2" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"></path>' +
+    '<path d="' + act + '" fill="none" stroke="' + tone + '" stroke-width="3" vector-effect="non-scaling-stroke"></path>' +
+    '<path d="M' + X(M.DAY) + ',' + Y(M.tot) + ' L1000,' + Y(M.proj) + '" fill="none" stroke="' + tone + '" stroke-width="3" stroke-dasharray="7 6" vector-effect="non-scaling-stroke"></path>' +
+    '<line x1="' + X(M.DAY) + '" y1="0" x2="' + X(M.DAY) + '" y2="1000" stroke="#0a1b2e" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".35"></line></svg>' +
+    '<div style="position:absolute;left:-56px;width:50px;text-align:right;top:' + l(M.B) + ';transform:translateY(-50%);font:500 11px var(--font-mono,monospace);color:#c0261c">' + bdK(M.B) + '</div>' +
+    '<div style="position:absolute;left:-56px;width:50px;text-align:right;bottom:-6px;font:500 11px var(--font-mono,monospace);color:#6a7d90">0</div>' +
+    '<div style="position:absolute;left:' + (X(M.DAY) / 10) + '%;top:' + l(M.tot) + ';transform:translate(-50%,-150%);background:#0a1b2e;color:#fff;font:600 11px var(--font-mono,monospace);padding:3px 7px;border-radius:6px;white-space:nowrap">' + mpFD(M.rep.date) + ' · ' + bdK(M.tot) + '</div>' +
+    '<div style="position:absolute;right:0;top:' + l(M.proj) + ';transform:translate(0,-150%);color:' + tone + ';font:600 11px var(--font-mono,monospace);white-space:nowrap">31.12 ≈ ' + bdK(M.proj) + '</div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(12,1fr);margin-left:56px;font-size:10.5px;color:#6a7d90">' + ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"].map(m => '<span>' + m + '</span>').join("") + '</div>';
+}
+function bdHTML(){
+  const L = bdVessels(); if(!L.length) return '<div class="bd"><p>Nessun report budget. Carica il PDF «Budget vs Cost» di Infoship.</p>' + bdUpBtn() + '</div>';
+  let vid = state._budgetVid; if(!L.some(v => v.vesselId === vid)) vid = L[0].vesselId;
+  const V = L.find(v => v.vesselId === vid), M = bdModel(vid), RED = "#c0261c", AMB = "#c07800", GRN = "#14794e", GRY = "#6a7d90", esc = escapeHTML;
+  const { B, tot, proj, XT, YF, DAY, LEFTD, thr } = M, pct = tot / B, left = B - tot;
+  const tone = pct > 1 ? RED : proj > B * (1 + thr) ? AMB : GRN;
+  const head = pct > 1 ? "Budget già superato del " + bdP(pct - 1) + ", con " + LEFTD + " giorni ancora da fare: a questo ritmo chiude a " + bdK(proj) + "."
+    : proj > B ? "A questo ritmo chiude al " + bdP(proj / B) + ": per restare dentro devi scendere a " + bdKd(left / LEFTD) + " al giorno."
+    : "Chiude sotto budget, al " + bdP(proj / B) + ": hai " + bdKd(left / LEFTD) + " al giorno fino al 31.12.";
+  const dNow = tot / DAY, dLeft = left / LEFTD, slow = left > 0 && dNow > dLeft;
+  const dc = left <= 0 ? RED : slow ? AMB : GRN, dbg = left <= 0 ? "#fdeceb" : slow ? "#fdf3e2" : "#e8f4ee";
+  const box = (lab, big, sub, c, bg, bc) => '<div style="border:1px solid ' + (bc || "rgba(10,27,46,.12)") + ';background:' + (bg || "#fff") + ';border-radius:12px;padding:12px 14px"><div class="bd-eb" style="color:' + (bc ? c : "#6a7d90") + '">' + lab + '</div><div style="font:600 26px var(--font-mono,monospace);margin-top:4px;color:' + (c || "#0a1b2e") + '">' + big + '</div><div style="font-size:12.5px;color:#44576b">' + sub + '</div></div>';
+  // conti fuori linea (compatto)
+  const A = [], zeros = [];
+  M.groups.forEach(g => g.subs.forEach(x => { if(!x.b) return; const pr = x.s / YF, pc = x.s / x.b;
+    if(x.b >= 5000 && pc < 0.05) { zeros.push(x); return; }
+    if(pc > 1 || pr > x.b * (1 + thr)) A.push({ w: pr - x.b, c: pc > 1 ? RED : AMB, t: x.c + " · " + x.n, s: "budget " + bdK(x.b) + " · speso " + bdK(x.s), a: "+" + bdK(pr - x.b), l: "a fine anno" }); }));
+  A.sort((a, b) => b.w - a.w);
+  if(XT > 0){ const big = M.xs.slice().sort((a, b) => b.s - a.s).filter(x => x.s > 1000); A.unshift({ c: RED, t: "Extra budget", s: big.map(x => x.n + " " + bdK(x.s)).join(" · "), a: bdK(XT), l: "fuori budget" }); }
+  if(zeros.length) A.push({ c: GRY, t: zeros.length + " conti quasi a zero", s: zeros.map(x => x.c + " " + x.n).join(" · ") + " · margine vero o fatture fuori Infoship?", a: bdK(zeros.reduce((a, x) => a + x.b, 0)), l: "da verificare" });
+  // tabella
+  const row = (x, lvl, bg) => { const pr = x.s / YF, pc = x.b ? x.s / x.b : null, lf = x.b - x.s;
+    const c = pc == null ? RED : pc > 1 ? RED : pr > x.b * (1 + thr) ? AMB : x.b >= 5000 && pc < 0.05 ? GRY : GRN;
+    const td = 'style="padding:7px 8px;border-top:1px solid ' + (lvl ? "#eef0f3" : "rgba(10,27,46,.12)") + ';background:' + (bg || (lvl ? "#fff" : "#f7f9fb")) + ';font-weight:' + (lvl ? 400 : 700);
+    return '<div ' + td + ';padding-left:' + (lvl ? 26 : 8) + 'px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="font-family:var(--font-mono,monospace);color:#6a7d90;margin-right:8px">' + esc(x.c) + '</span>' + esc(x.n) + '</div>' +
+      '<div ' + td + ';text-align:right;font-family:var(--font-mono,monospace)">' + (x.b ? bdK(x.b) : "—") + '</div>' +
+      '<div ' + td + ';text-align:right;font-family:var(--font-mono,monospace)">' + bdK(x.s) + '</div>' +
+      '<div ' + td + ';display:flex;align-items:center;gap:6px"><div style="position:relative;flex:1;max-width:70px;height:6px;background:#eef1f5;border-radius:999px"><div style="position:absolute;left:0;top:0;bottom:0;width:' + (pc == null ? 100 : Math.min(pc, 1.5) / 1.5 * 100) + '%;background:' + c + ';border-radius:999px"></div><div style="position:absolute;left:' + (YF / 1.5 * 100) + '%;top:-2px;bottom:-2px;width:1px;background:#0a1b2e"></div></div><span style="font-family:var(--font-mono,monospace);font-weight:600;color:' + c + '">' + (pc == null ? "extra" : bdP(pc)) + '</span></div>' +
+      '<div ' + td + ';text-align:right;font-family:var(--font-mono,monospace);color:' + (x.b && pr > x.b ? RED : "#0a1b2e") + '">' + bdK(pr) + '</div>' +
+      '<div ' + td + ';text-align:right;font-family:var(--font-mono,monospace);color:' + (!x.b || lf <= 0 ? RED : "#0a1b2e") + '">' + (!x.b ? "—" : lf > 0 ? bdKd(lf / LEFTD) : "oltre") + '</div>'; };
+  let rows = ""; M.groups.forEach(g => { rows += row(g, 0); g.subs.forEach(x => rows += row(x, 1)); });
+  rows += row({ c: "20", n: "Extra budget (fuori budget)", b: 0, s: XT }, 0, "#fdeceb"); M.xs.forEach(x => rows += row(x, 1));
+  rows += row({ c: "Σ", n: "Totale R&M" + (M.groups.some(g => g.c === "DD") ? " + Drydock" : "") + " + extra", b: B, s: tot }, 0, "#eef1f5");
+  // 2027
+  const map = { "2110": "5", "2120": "3", "2210": "2", "2220": "2", "2230": "2", "2250": "2" }; let tb = 0, tp = 0, tn = 0;
+  const b27 = M.groups.map(g => { const e2 = M.xs.filter(x => (map[x.c] || "2") === g.c).reduce((a, x) => a + x.s, 0), pr = (g.s + e2) / YF, nb = Math.ceil(Math.max(g.b, pr) / 500) * 500;
+    tb += g.b; tp += pr; tn += nb; return [g.n, bdK(g.b), bdK(pr), pr > g.b ? RED : "#0a1b2e", bdK(nb), 400]; });
+  b27.push(["Totale", bdK(tb), bdK(tp), tp > tb ? RED : "#0a1b2e", bdK(tn) + " (" + (tn >= tb ? "+" : "") + bdP(tn / tb - 1) + ")", 700]);
+  const hasDD = M.groups.some(g => g.c === "DD");
+  const nextR = new Date(M.rep.date + "T12:00:00"); nextR.setDate(nextR.getDate() + 15);
+  return '<div class="bd">' +
+    '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="bd-tabs">' + L.map(v => '<button class="' + (v.vesselId === vid ? "on" : "") + '" onclick="bdPick(\'' + v.vesselId + '\')">' + esc(v.displayName) + '</button>').join("") + '</div>' +
+      '<span style="font-size:12px;color:#44576b">Solo le tue voci: Repair &amp; Maintenance · Drydock · Extra budget. Equipaggio, cambusa e altri costi esclusi.</span><span style="flex:1"></span>' + bdUpBtn() + '</div>' +
+    '<section class="bd-card"><div><div class="bd-eb">' + esc(V.displayName) + ' · budget ' + (M.rep.year || "") + ' · report del ' + mpFD(M.rep.date) + (M.rep.at === "seed" ? " (caricato da me)" : "") + ' · siamo al ' + bdP(YF) + ' dell\'anno · prossimo report ~' + mpFD(nextR.toISOString().slice(0, 10)) + '</div><div class="bd-h">' + esc(head) + '</div></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">' +
+        box("Speso", bdP(pct), bdK(tot) + " su " + bdK(B), tone) + box("A fine anno · " + esc(M.method), bdK(proj), (proj >= B ? "+" : "") + bdP(proj / B - 1) + " sul budget", tone) +
+        box("Spesa media al giorno · finora", bdKd(dNow), DAY + " giorni dal 1° gennaio · budget al giorno " + bdKd(B / M.DY)) +
+        box("Da spendere al giorno · fino al 31.12", left > 0 ? bdKd(dLeft) : "$ 0", left > 0 ? LEFTD + " giorni · restano " + bdK(left) + (slow ? " · devi rallentare del " + bdP(1 - dLeft / dNow) : "") : "budget finito · sforamento " + bdK(-left) + " già fatto", dc, dbg, dc) + '</div>' +
+      '<div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#44576b;align-items:center"><b class="bd-eb" style="color:#0a1b2e">Andamento</b>' +
+        '<span style="display:flex;gap:6px;align-items:center"><i style="width:18px;height:3px;background:' + tone + ';display:inline-block"></i>speso (cumulato)</span><span style="display:flex;gap:6px;align-items:center"><i style="width:18px;border-top:3px dashed ' + tone + ';display:inline-block"></i>proiezione</span><span style="display:flex;gap:6px;align-items:center"><i style="width:18px;border-top:2px dashed #8a9bb0;display:inline-block"></i>ritmo del budget</span><span style="display:flex;gap:6px;align-items:center"><i style="width:18px;height:10px;background:#f6c9c5;display:inline-block"></i>di cui extra budget</span></div>' +
+        bdChart(M, tone) + '<div style="font-size:12px;color:#6a7d90;margin-top:6px">' + (M.hist.length < 2 ? "Un solo report: dal 1° gennaio la linea è una retta. Con un report ogni 15 giorni diventa l'andamento vero e la proiezione usa il ritmo delle ultime settimane." : M.hist.length + " report caricati quest'anno.") + '</div></div>' +
+      '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:#44576b;border-top:1px solid #eef0f3;padding-top:12px"><span>Extra budget: ' + bdK(XT) + ' (compreso nel totale: sforamento a carico nostro)</span><span>' + (hasDD ? "Drydock compreso nel totale" : "Drydock: nessuna voce nel report " + (M.rep.year || "") + " · compare quando Infoship la riporta") + '</span></div></section>' +
+    (A.length ? '<section class="bd-card" style="gap:4px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div class="bd-eb" style="color:#c0261c">Conti fuori linea</div><div style="font-size:12px;color:#44576b">proiezione oltre +10% sul budget del conto</div></div>' +
+      A.map(a => '<div style="display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #eef0f3;font-size:13px"><i style="width:8px;height:8px;border-radius:50%;background:' + a.c + ';display:block"></i><div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>' + esc(a.t) + '</b> <span style="color:#44576b">· ' + esc(a.s) + '</span></div><div style="font:600 13px var(--font-mono,monospace);color:' + a.c + ';white-space:nowrap">' + a.a + ' <span style="font:400 11px inherit;font-family:inherit;color:#6a7d90">' + a.l + '</span></div></div>').join("") + '</section>' : "") +
+    '<section class="bd-card"><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="bd-eb">Conto per conto · ' + esc(V.displayName) + '</div><span style="flex:1"></span><span style="font-size:12px;color:#44576b">Al giorno = quanto puoi ancora spendere ogni giorno fino al 31.12</span></div>' +
+      '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:minmax(200px,2.4fr) repeat(5,minmax(90px,1fr));font-size:12.5px">' + ["Conto","Budget","Speso","%","A fine anno","Al giorno"].map((t, i) => '<div class="bd-eb" style="padding:6px 8px;' + (i && i !== 3 ? "text-align:right" : "") + '">' + t + '</div>').join("") + rows + '</div></div></section>' +
+    '<section class="bd-card"><div class="bd-eb">Budget ' + ((M.rep.year || 2026) + 1) + ' dai dati · ' + esc(V.displayName) + '</div><div style="font-size:12.5px;color:#44576b">Reale ' + (M.rep.year || "") + ' proiettato a fine anno, con gli extra riportati nella loro categoria (extra spares → Spare parts, extra stores → Stores, extra service → Equipment). Proposta: mai sotto il budget attuale, arrotondata a 500 $.</div>' +
+      '<div style="display:grid;grid-template-columns:minmax(0,1.8fr) repeat(3,minmax(0,1fr));font-size:12.5px;max-width:760px">' + ["Categoria", String(M.rep.year || ""), "Reale (proiez.)", "Proposta"].map((t, i) => '<div class="bd-eb" style="padding:6px 8px;' + (i ? "text-align:right" : "") + (i === 3 ? ";color:#1553d8" : "") + '">' + t + '</div>').join("") +
+      b27.map(q => '<div style="padding:7px 8px;border-top:1px solid #eef0f3;font-weight:' + q[5] + '">' + esc(q[0]) + '</div><div style="padding:7px 8px;border-top:1px solid #eef0f3;text-align:right;font-family:var(--font-mono,monospace);font-weight:' + q[5] + '">' + q[1] + '</div><div style="padding:7px 8px;border-top:1px solid #eef0f3;text-align:right;font-family:var(--font-mono,monospace);color:' + q[3] + ';font-weight:' + q[5] + '">' + q[2] + '</div><div style="padding:7px 8px;border-top:1px solid #eef0f3;text-align:right;font-family:var(--font-mono,monospace);color:#1553d8;font-weight:700">' + q[4] + '</div>').join("") + '</div></section>' +
+    '<div style="font-size:12px;color:#6a7d90">Report di ' + esc(V.displayName) + ': ' + M.reps.map(r => mpFD(r.date) + "." + String(r.date).slice(2, 4)).join(" · ") + ' · <a href="javascript:void 0" onclick="bdDelLast(\'' + vid + '\')">togli l\'ultimo</a></div>' +
+  '</div>';
+}
+function bdUpBtn(){ return '<label class="btn btn-primary btn-sm" style="cursor:pointer">⇧ Carica report Infoship (PDF)<input type="file" accept=".pdf" multiple style="display:none" onchange="bdImport(this.files);this.value=\'\'"></label>'; }
+function bdCss(){ if(document.getElementById("bd-css")) return; const s = document.createElement("style"); s.id = "bd-css"; s.textContent =
+  '.bd{display:flex;flex-direction:column;gap:16px;color:#0a1b2e}.bd-card{background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:16px}' +
+  '.bd-eb{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#44576b}.bd-h{font-size:22px;font-weight:700;letter-spacing:-.015em;line-height:1.3;margin-top:6px;text-wrap:pretty}' +
+  '.bd-tabs{display:flex;gap:4px;background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:12px;padding:4px}.bd-tabs button{font:600 13px inherit;font-family:inherit;border:0;border-radius:8px;padding:8px 16px;cursor:pointer;background:transparent;color:#44576b}.bd-tabs button.on{background:#0a1b2e;color:#fff}';
+  document.head.appendChild(s); }
+function renderBudgetPage(){ bdCss(); const root = document.getElementById("view-root"); if(root) root.innerHTML = bdHTML(); }
+window.goBudget = function(){ state.view = "budget"; render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+window.bdPick = function(v){ state._budgetVid = v; renderBudgetPage(); };
+window.bdDelLast = function(vid){ const o = bdLoad(); const L = (o.reports[vid] || []).sort((a, b) => a.date.localeCompare(b.date)); if(!L.length || !confirm("Tolgo il report del " + mpFD(L[L.length - 1].date) + "?")) return; L.pop(); o.reports[vid] = L; bdSave(o); renderBudgetPage(); };
+function bdNum(s){ return parseFloat(String(s).replace(/\./g, "").replace(",", ".")) || 0; }
+function bdShipOf(name, text){ const t = (name + " " + text.slice(0, 400)).toUpperCase();
+  if(/PEP|PEPPINO/.test(t)) return "peppino"; if(/MDT|TOSCANA/.test(t)) return "medtoscana"; if(/MLG|LIGURIA/.test(t)) return "medliguria"; if(/ATLAS|NORR/.test(t)) return "norrbotten"; if(/VEGA/.test(t)) return "vegauno"; return ""; }
+function bdParse(text){
+  const L = [], dm = text.match(/(\d{2})-(\d{2})-(\d{4})\s+\d{2}:\d{2}/), ym = text.match(/\b(20\d\d)\s+(USD|EUR)\b/);
+  const rx = /^(\S+)\s+(.*?)\s+(-?[\d.]+,\d{2})\s+(-?[\d.]+,\d{2})\s+(-?[\d.]+,\d{2})\s+(-?[\d.]+,\d{2})\s*$/;
+  text.split(/\r?\n/).forEach(line => { const m = line.trim().match(rx); if(!m) return; const c = m[1].replace(/-$/, ""), d = m[2].replace(/^\d+-\s*/, "").trim();
+    if(bdGroupOf(c, d)) L.push([c, d, bdNum(m[3]), bdNum(m[4]), bdNum(m[5])]); });
+  return { L, date: dm ? dm[3] + "-" + dm[2] + "-" + dm[1] : new Date().toISOString().slice(0, 10), year: ym ? +ym[1] : null, cur: ym ? ym[2] : "USD" };
+}
+window.bdImport = async function(files){
+  files = [...(files || [])]; if(!files.length) return;
+  let lib; try { lib = await import("https://cdn.jsdelivr.net/npm/pdf-parse@2.4.5/dist/pdf-parse/web/pdf-parse.es.js"); lib.PDFParse.setWorker("https://cdn.jsdelivr.net/npm/pdf-parse@2.4.5/dist/pdf-parse/web/pdf.worker.min.mjs"); }
+  catch(e){ alert("Non riesco a caricare il lettore PDF (serve la connessione)."); return; }
+  const o = bdLoad(), done = [];
+  for(const f of files){
+    try { const p = new lib.PDFParse({ data: new Uint8Array(await f.arrayBuffer()) }); const text = (await p.getText()).text;
+      const r = bdParse(text); if(!r.L.length){ alert(f.name + ": non trovo righe di budget. È il report «Budget vs Cost»?"); continue; }
+      let vid = bdShipOf(f.name, text);
+      if(!vid){ const n = prompt(f.name + ": di quale nave è? Scrivi " + VESSELS.map(v => v.displayName).join(" / ")); const v = VESSELS.find(v => n && v.displayName.toUpperCase().includes(n.trim().toUpperCase())); if(!v) continue; vid = v.vesselId; }
+      const L = (o.reports[vid] || []).filter(x => x.date !== r.date && x.at !== "seed" || (x.at === "seed" && x.date !== r.date));
+      L.push({ date: r.date, year: r.year, cur: r.cur, L: r.L, file: f.name, at: new Date().toISOString() });
+      o.reports[vid] = L.sort((a, b) => a.date.localeCompare(b.date)); done.push((VESSELS.find(v => v.vesselId === vid) || {}).displayName + " " + mpFD(r.date)); state._budgetVid = vid;
+    } catch(e){ alert(f.name + ": errore nella lettura del PDF (" + e.message + ")"); }
+  }
+  bdSave(o); if(typeof showToast === "function" && done.length) showToast("Budget caricato: " + done.join(", ")); if(state.view === "budget") renderBudgetPage(); else window.goBudget();
+};
+
 window.goMailBrief = function(){ state.view = "todos"; state._todoPageMode = "mail"; state._fleetActionCat = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
 window.clearFleetActionCat = function(){ state._fleetActionCat = null; render(); };
 window.clearFleetActionQuery = function(){ state._fleetActionQ = ""; renderTodosPage(); };
@@ -26793,6 +26959,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (pill.dataset.view === "certificates") window.goCertificates();
     else if (pill.dataset.view === "performance") goPerformance();
     else if (pill.dataset.view === "rubrica") { state.view = "rubrica"; render(); window.scrollTo({top:0,behavior:"smooth"}); }
+    else if (pill.dataset.view === "budget") window.goBudget();
     else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
   document.getElementById("vessel-select").addEventListener("change", e => {
@@ -26803,6 +26970,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (v === "__certificates") window.goCertificates();
     else if (v === "__performance") goPerformance();
     else if (v === "__rubrica") { state.view = "rubrica"; render(); }
+    else if (v === "__budget") window.goBudget();
     else goVessel(v);
   });
 
