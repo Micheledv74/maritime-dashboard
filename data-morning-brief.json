@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "generatedAt": "2026-10-12T13:58:18.656Z",
+  "generatedAt": "2026-10-12T14:03:01.778Z",
   "since": "2026-10-09T04:00:00.000Z",
-  "until": "2026-10-12T13:55:27.005Z",
+  "until": "2026-10-12T14:00:08.798Z",
   "monday": true,
   "model": "open-mistral-nemo",
   "counts": {
@@ -13,8 +13,9 @@
   },
   "ai": {
     "calls": 8,
-    "failed": 1,
+    "failed": 2,
     "errors": [
+      "tempo esaurito",
       "tempo esaurito"
     ]
   },
@@ -41,7 +42,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Risposta cortese al capitano per risposta precedente."
+      "fact": "Risposta di cortesia da capitano Vitaliy Poklad."
     },
     {
       "id": 2,
@@ -79,15 +80,15 @@
       "greet": "",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
-      "kind": "spam",
+      "kind": "altro",
       "port": "",
-      "date": "2026-10-09",
+      "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email vuota con oggetto bunker price report."
+      "fact": ""
     },
     {
       "id": 4,
@@ -110,7 +111,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email identica vuota con oggetto bunker price report."
+      "fact": "Email pubblicitaria su ricambi Kongsberg/NOR-CONTROL."
     },
     {
       "id": 5,
@@ -127,13 +128,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "MED TOSCANA",
-      "kind": "routine",
+      "kind": "domanda",
       "port": "",
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Verifica e aggiorna criteri vetting RightShip versione 4.0",
-      "fact": "E-form per vetting RightShip versione 4.0 disponibile per aggiornamento."
+      "action": "Verificare aggiornamento criteri vetting RightShip 4.0",
+      "fact": "Capitano chiede azione per aggiornamento vetting RightShip."
     },
     {
       "id": 6,
@@ -178,8 +179,8 @@
       "date": "2026-10-10",
       "docs": [],
       "reply": true,
-      "action": "Conferma disponibilità voli e SWIFT per alloggio eventuale",
-      "fact": "Chiede conferma voli e SWIFT per possibile pernottamento a Richards Bay."
+      "action": "Confermare SWIFT per alloggiamenti e voli.",
+      "fact": "Richiede conferma SWIFT per alloggiamenti e voli."
     },
     {
       "id": 8,
@@ -202,7 +203,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Ricezione confermata di particolari nave per Richards Bay."
+      "fact": "Conferma ricezione particolari nave da parte agenzia."
     },
     {
       "id": 9,
@@ -219,7 +220,7 @@
       "hasAttachments": true,
       "ai": true,
       "vessel": "PEPPINO",
-      "kind": "conferma_ordine",
+      "kind": "consegna",
       "port": "",
       "date": "",
       "docs": [
@@ -250,7 +251,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta di ricambi Kongsberg/NOR-CONTROL per navi oltre 15 anni."
+      "fact": "Email promozionale su ricambi Kongsberg/NOR-CONTROL."
     },
     {
       "id": 11,
@@ -267,13 +268,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "noon",
+      "kind": "posizione",
       "port": "TANGA",
-      "date": "2026-10-09",
+      "date": "2026-10-14",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto ancoraggio: ETD 14 ottobre, carburanti a bordo specificati."
+      "fact": "ETA prevista per Tanga il 14 ottobre."
     },
     {
       "id": 12,
@@ -296,7 +297,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Confermata ricezione aumento MGO a 150 MT per Yalova Dry Dock."
+      "fact": "Conferma aumento carico MGO a 150 MT."
     },
     {
       "id": 13,
@@ -313,13 +314,13 @@
       "hasAttachments": true,
       "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "noon",
+      "kind": "routine",
       "port": "TANGA",
       "date": "2026-10-09",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto giornaliero ancoraggio inviato senza dati operativi specifici."
+      "fact": "Rapporto ancoraggio giornaliero inviato."
     },
     {
       "id": 14,
@@ -341,8 +342,8 @@
       "date": "seconda metà ottobre 2026",
       "docs": [],
       "reply": true,
-      "action": "Rispondere con offerta firmata per 50,000 mts bulk",
-      "fact": "Chiede offerta per 50,000 mts bulk via BEM, 2nd half Oct."
+      "action": "Rispondere offerta per 50,000 mts bulk.",
+      "fact": "Offerta per 50,000 mts bulk via BEM."
     },
     {
       "id": 15,
@@ -364,8 +365,8 @@
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Decidere aumento MGO a 150 MT per Yalova Dry Dock",
-      "fact": "Chiede conferma aumento MGO da 130 a 150 MT per 3 settimane."
+      "action": "Confermare aumento carico MGO a 150 MT.",
+      "fact": "Chiede conferma aumento carico MGO a 150 MT."
     },
     {
       "id": 16,
@@ -387,8 +388,8 @@
       "date": "2026-10-09",
       "docs": [],
       "reply": true,
-      "action": "Confermare quantità massima MGO intaken",
-      "fact": "Richiesta conferma max 150 MT MGO intaken per NORRBOTTEN"
+      "action": "confermare quantità massima carburante",
+      "fact": "Richiede conferma max 150 MT MGO per NORRBOTTEN a Yalova"
     },
     {
       "id": 17,
@@ -411,7 +412,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Offerta servizi di rifornimento per PEPPINO in porti West Africa"
+      "fact": "Zenderrick offre servizi di rifornimento per PEPPINO in Africa Occidentale"
     },
     {
       "id": 18,
@@ -433,8 +434,8 @@
       "date": "2026-10-19",
       "docs": [],
       "reply": true,
-      "action": "Verificare tempi visto per ispezione sicurezza",
-      "fact": "Visto per ispezione sicurezza richiede 10 giorni"
+      "action": "verificare tempistica visto sicurezza",
+      "fact": "Visto sicurezza per ispezione necessita 10 giorni a Richards Bay"
     },
     {
       "id": 19,
@@ -457,7 +458,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Confermata quantità MGO intaken da 130 a 150 MT"
+      "fact": "Confermata quantità 150 MT MGO per NORRBOTTEN a Yalova"
     },
     {
       "id": 20,
@@ -480,7 +481,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "MED TOSCANA in rotta verso Richards Bay, arrivo 10.10.2026"
+      "fact": "MED TOSCANA in rotta a Richards Bay, arrivo 10.10.2026 1330 LT"
     },
     {
       "id": 21,
@@ -503,7 +504,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto posizione MED TOSCANA alle 1000 UTC"
+      "fact": "Rapporto posizione MED TOSCANA alle 1000 UTC, 2553S 03445E"
     },
     {
       "id": 22,
@@ -518,7 +519,7 @@
       "greet": "",
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
       "kind": "spam",
       "port": "",
@@ -526,7 +527,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Email promozionale su sistemi anti-drone"
     },
     {
       "id": 23,
@@ -549,7 +550,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Messaggi promozionali su sistemi anti-drone"
+      "fact": "Email promozionale su sistemi anti-drone (ripetizione)"
     },
     {
       "id": 24,
@@ -572,7 +573,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione messaggio su certificato MLC"
+      "fact": "Conferma ricezione messaggio su certificato MLC 2026"
     },
     {
       "id": 25,
@@ -587,15 +588,15 @@
       "greet": "",
       "thread": 1,
       "hasAttachments": false,
-      "ai": false,
+      "ai": true,
       "vessel": "",
-      "kind": "altro",
+      "kind": "routine",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": ""
+      "fact": "Aggiornamento conflitto Medio Oriente da Neptune P2P"
     },
     {
       "id": 26,
@@ -618,7 +619,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Circolare su nuova area di controllo emissioni IMO"
+      "fact": "Comunicazione RINA su nuova area di controllo emissioni IMO"
     },
     {
       "id": 27,
@@ -644,7 +645,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "Confermata spedizione con costo spese di 21 euro"
+      "fact": "Gia confermato costo spedizione a Genova per MED TOSCANA"
     },
     {
       "id": 28,
@@ -661,13 +662,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "NORRBOTTEN",
-      "kind": "routine",
+      "kind": "conferma_ordine",
       "port": "YALOVA",
       "date": "2026-10-09",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Confermata coordinazione consegna MGO con agenzia locale"
+      "fact": "Confermata quantità 150 MT MGO e coordinamento con agenzia"
     },
     {
       "id": 29,
@@ -686,7 +687,7 @@
       "vessel": "NORRBOTTEN",
       "kind": "fattura",
       "port": "",
-      "date": "2026-09-17 e 2026-09-28",
+      "date": "",
       "docs": [
         "267528",
         "267529",
@@ -695,8 +696,8 @@
         "267732"
       ],
       "reply": true,
-      "action": "Definire piano di pagamento per fatture",
-      "fact": "Inviate fatture per €30.908,00 da SAN COLOMBANO BULK SRL"
+      "action": "definire piano pagamenti fatture",
+      "fact": "Richiesta piano di pagamento per 5 fatture NORRBOTTEN"
     },
     {
       "id": 30,
@@ -711,15 +712,15 @@
       "greet": "",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
-      "kind": "spam",
+      "kind": "altro",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Invito a conferenza di sicurezza a bordo"
+      "fact": ""
     },
     {
       "id": 31,
@@ -741,8 +742,8 @@
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "coordinare con CP e agenzia DI.AR.MARITIME per vidimazione verbale radio",
-      "fact": "Verbale ispezione radioelettrica MIMIT da vidimare con timbro"
+      "action": "coordinare con CP e agenzia DI.AR.MARITIME",
+      "fact": "Ispezione radioelettrica MIMIT: richiesta vidimazione timbro ultima pagina"
     },
     {
       "id": 32,
@@ -765,7 +766,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Noon report: posizione in viaggio Tema (Ghana) → Juruti (Brasile)"
+      "fact": "Noon report: viaggio Tema (Ghana) → Juruti (Brasile), 814nm rimanenti"
     },
     {
       "id": 33,
@@ -787,8 +788,8 @@
       "date": "2026-10-09",
       "docs": [],
       "reply": true,
-      "action": "confermare esame medico biennale durante call Alumar",
-      "fact": "Servizio medico biennale offerto con costi specificati (USD 80+750+150+150)"
+      "action": "confermare esame medico biennale",
+      "fact": "Servizio medico biennale offerto durante call Alumar: USD 80+750+300"
     },
     {
       "id": 34,
@@ -813,7 +814,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "Richiesta invio SSCEC con bandiera e IMO della nave"
+      "fact": "Richiesta invio documentazione flag e IMO numero per pilotaggio"
     },
     {
       "id": 35,
@@ -838,7 +839,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "SSCEC inviato come richiesto al portuale"
+      "fact": "Documentazione flag e IMO inviata per pilotaggio"
     },
     {
       "id": 36,
@@ -863,7 +864,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione SSCEC da parte del portuale"
+      "fact": "Conferma ricezione documentazione da parte di Orion Rodos"
     },
     {
       "id": 37,
@@ -909,7 +910,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Assistenza offerta per call Trombetas, documenti inviati separatamente"
+      "fact": "Assistenza offerta per call Trombetas, documenti in arrivo"
     },
     {
       "id": 39,
@@ -927,12 +928,12 @@
       "ai": true,
       "vessel": "",
       "kind": "spam",
-      "port": "",
+      "port": "KOCAYA (GUINEA) → QINGDAO (CINA)",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta per COA bauxite Guinea → Qingdao, 2 anni"
+      "fact": "Proposta COA bauxite metallurgica: 2.4M MT, 2 anni"
     },
     {
       "id": 40,
@@ -956,7 +957,7 @@
         "PSV260202"
       ],
       "reply": true,
-      "action": "verificare AC cabina pilota e acqua minerale",
+      "action": "verificare AC cabina e acqua minerale per piloti",
       "fact": "Richiesta conferma AC e acqua minerale per piloti (costi standby)"
     },
     {
@@ -973,7 +974,7 @@
       "thread": 2,
       "hasAttachments": false,
       "ai": true,
-      "vessel": "PEPPINHA",
+      "vessel": "PEPPINO",
       "kind": "conferma_ordine",
       "port": "FAZENDINHA",
       "date": "",
@@ -981,7 +982,7 @@
         "PSV260202"
       ],
       "reply": true,
-      "action": "chiedere istruzioni per pilotaggio (ancoraggio o diretto)",
+      "action": "chiedere istruzioni per pilotaggio (ancoraggio/area)",
       "fact": "AC funzionante e acqua minerale pronta per piloti"
     },
     {
@@ -1000,12 +1001,12 @@
       "ai": true,
       "vessel": "",
       "kind": "spam",
-      "port": "",
-      "date": "",
+      "port": "BANDAR LAMPUNG/TARAKAN (INDONESIA) → QUANG BINH (VIETNAM)",
+      "date": "2026-10-12/17",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta per COA carbone Indonesia → Vietnam, 3 spedizioni"
+      "fact": "Proposta COA carbone: 70k-90k MT, 3 spedizioni, commissione 2.5%"
     },
     {
       "id": 43,
@@ -1023,12 +1024,12 @@
       "ai": true,
       "vessel": "",
       "kind": "spam",
-      "port": "",
+      "port": "TAICANG (CINA) → KOLKATA (INDIA)",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta per spedizione containerizzata Taicang → Kolkata"
+      "fact": "Proposta spedizione containerizzata: 19×40', commissione 3.75%"
     },
     {
       "id": 44,
@@ -1045,13 +1046,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "routine",
+      "kind": "posizione",
       "port": "TANGA",
-      "date": "2026-10-15",
+      "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "ETD Tanga prevista 15 ottobre 2026"
+      "fact": "Nave in ancoraggio, ETD 15 ottobre 2026"
     },
     {
       "id": 45,
@@ -1074,7 +1075,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto ancoraggio giornaliero inviato dal capitano"
+      "fact": "Rapporto ancoraggio inviato, nessun carico in corso"
     },
     {
       "id": 46,
@@ -1092,12 +1093,12 @@
       "ai": true,
       "vessel": "",
       "kind": "spam",
-      "port": "FUJAIRAH/DIEGO GARCIA ISLAND",
+      "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta spam per 324 container militari, 900k USD, UAE a Diego Garcia"
+      "fact": "Proposta spam per 324 container militari da Fujairah a Diego Garcia"
     },
     {
       "id": 47,
@@ -1120,7 +1121,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Nave ormeggiata con 232.713 MT VLSFO e 56.581 MT LSMGO"
+      "fact": "Nave ormeggiata in ancoraggio con 232.713 MT VLSFO e 56.581 MT LSMGO"
     },
     {
       "id": 48,
@@ -1143,7 +1144,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Messaggio inoltrato dal Capitano, richiesta attrezzature da parte dell'ingegnere"
+      "fact": "Messaggio già risposto: richiesta di gru per approvvigionamento"
     },
     {
       "id": 49,
@@ -1161,12 +1162,12 @@
       "ai": true,
       "vessel": "",
       "kind": "offerta",
-      "port": "MARTAS (TURKEY)/PORT SAID (EGYPT)",
+      "port": "MARTAS (TURKEY) TO PORT SAID (EGYPT)",
       "date": "2026-10-13",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Offerta per 4,500-5,500 MT PTA in sacchi, 2.5% commissione"
+      "fact": "Offerta per 4,500-5,500MT PTA in sacchi, 2.5% commissione"
     },
     {
       "id": 50,
@@ -1183,13 +1184,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "PEPPINO",
-      "kind": "viaggio",
-      "port": "TEMA (GHANA)/JURUTI (BRAZIL)",
+      "kind": "noon",
+      "port": "",
       "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Posizione attuale: Lat 01-23.8N, Long 042-59.4W, velocità 11.44 nodi"
+      "fact": "Posizione: Lat 01-23.8N Long 042-59.4W, velocità 11.44 nodi"
     },
     {
       "id": 51,
@@ -1212,7 +1213,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Documenti iniziali inviati come richiesto"
+      "fact": "Documenti iniziali inviati per viaggio PSV260202"
     },
     {
       "id": 52,
@@ -1235,7 +1236,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma attrezzature navigazionali e AC funzionanti correttamente"
+      "fact": "Conferma attrezzatura navigazionale e AC funzionante"
     },
     {
       "id": 53,
@@ -1252,13 +1253,13 @@
       "hasAttachments": true,
       "ai": true,
       "vessel": "PEPPINO",
-      "kind": "domanda",
-      "port": "JURUTI (BRAZIL)",
+      "kind": "richiesta_nave",
+      "port": "TROMBETAS",
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Richiedere aggiornamento piano di stivaggio per 9.95m",
-      "fact": "Dry season richiede aggiornamento piano stivaggio per 9.95m di immersione"
+      "action": "Aggiorna piano di stivaggio per pescaggio 9.95m",
+      "fact": "Chiarimenti richiesti su stivaggio e documenti per pescaggio 9.95m"
     },
     {
       "id": 54,
@@ -1281,7 +1282,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Istruzioni per procedere a PS alle 21:30 LT"
+      "fact": "Istruzioni per procedere a PS 21:30 LT"
     },
     {
       "id": 55,
@@ -1296,15 +1297,15 @@
       "greet": "",
       "thread": 2,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "PEPPINO",
-      "kind": "arrivo",
-      "port": "FAZENDINHA (BRAZIL)",
-      "date": "2026-10-12",
+      "kind": "posizione",
+      "port": "",
+      "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "ETA 12:00 LT, pronta per caricare 46.000 Mtons di bauxite"
+      "fact": ""
     },
     {
       "id": 56,
@@ -1327,7 +1328,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto di ormeggio allegato"
+      "fact": "Rapporto di ormeggio inviato"
     },
     {
       "id": 57,
@@ -1349,8 +1350,8 @@
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Confermare possibilità inizio scarico",
-      "fact": "Mancano BoL o LOI per iniziare operazioni di scarico"
+      "action": "Conferma inizio operazioni scarico con LOI",
+      "fact": "Charterer ha inviato LOI, conferma necessaria per iniziare scarico"
     },
     {
       "id": 58,
@@ -1368,12 +1369,12 @@
       "ai": true,
       "vessel": "PEPPINO",
       "kind": "viaggio",
-      "port": "FAZENDINHA (BRAZIL)",
+      "port": "FAZENDINHA",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Confermata destinazione Fazendinha PLT STN, foto cabina allegata"
+      "fact": "Confermata procedura diretta a Fazendinha PLT STN"
     },
     {
       "id": 59,
@@ -1396,7 +1397,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Aggiornamento linea porti carbone Corea, allegato Excel"
+      "fact": "Aggiornamento linea porti carbone Corea (file allegato)"
     },
     {
       "id": 60,
@@ -1419,7 +1420,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Identica email precedente, allegato Excel linea porti carbone Corea"
+      "fact": "Ripetizione aggiornamento linea porti carbone Corea (file allegato)"
     },
     {
       "id": 61,
@@ -1441,8 +1442,8 @@
       "date": "2026-10-11",
       "docs": [],
       "reply": true,
-      "action": "verifica istruzioni proprietari scarico senza OBL",
-      "fact": "LOI emesso per scarico senza BL originali, richiesta conferma proprietari"
+      "action": "richiedere istruzioni proprietari per scarico senza OBL",
+      "fact": "LOI emesso per scarico senza BL originali, attesa conferma proprietari"
     },
     {
       "id": 62,
@@ -1464,8 +1465,8 @@
       "date": "2026-10-11",
       "docs": [],
       "reply": true,
-      "action": "conferma scarico senza OBL al comandante",
-      "fact": "Chiamata telefonica, richiesta conferma immediata per scarico senza OBL"
+      "action": "confermare scarico senza OBL al comandante",
+      "fact": "Chiamata telefonica conferma necessità autorizzazione per scarico senza OBL"
     },
     {
       "id": 63,
@@ -1488,7 +1489,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma scarico autorizzato secondo LOI ricevuto da charterers"
+      "fact": "Confermata autorizzazione scarico secondo LOI ricevuto da charterers"
     },
     {
       "id": 64,
@@ -1511,7 +1512,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione messaggio, nota richiesta aggiornamento ETC/ETD"
+      "fact": "Confermata ricezione messaggio, scarico senza OBL autorizzato"
     },
     {
       "id": 65,
@@ -1528,13 +1529,13 @@
       "hasAttachments": true,
       "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "spedizione",
+      "kind": "posizione",
       "port": "TANGA",
       "date": "2026-10-10",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto arrivo e ormeggio nave, ormeggiata a banchina 02"
+      "fact": "Nave ormeggiata sicura al molo 02, pratica libera ottenuta"
     },
     {
       "id": 66,
@@ -1557,7 +1558,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta vendita tre Panamax, dettagli tecnici forniti"
+      "fact": "Tre Panamax in vendita: M/V NEW HARVE, dettagli tecnici forniti"
     },
     {
       "id": 67,
@@ -1580,7 +1581,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Richiesta aggiornamento ETC e ETD al comandante"
+      "fact": "Chiesa aggiornamento ETC e ETD per scarico in corso"
     },
     {
       "id": 68,
@@ -1597,13 +1598,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "noon",
+      "kind": "routine",
       "port": "TANGA",
       "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto giornaliero scarico: 142 MT scaricati, 4941.9 MT residui"
+      "fact": "Rapporto di scarico: 142 MT scaricati, 4941.9 MT residui"
     },
     {
       "id": 69,
@@ -1620,13 +1621,13 @@
       "hasAttachments": true,
       "ai": true,
       "vessel": "MED LIGURIA",
-      "kind": "spedizione",
+      "kind": "routine",
       "port": "TANGA",
       "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto scarico inviato al comandante"
+      "fact": "Rapporto scarico allegato, nessuna azione richiesta"
     },
     {
       "id": 70,
@@ -1644,12 +1645,12 @@
       "ai": true,
       "vessel": "PEPPINO",
       "kind": "viaggio",
-      "port": "TEMA (GHANA) → TROMBETAS (BRASILE)",
+      "port": "TEMA (GHANA)",
       "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto mezzogiorno: posizione, condizioni meteo, velocità e consumo"
+      "fact": "Posizione attuale: Lat 01-31.1N Long 047-44.2W, rotta per Trombetas"
     },
     {
       "id": 71,
@@ -1667,12 +1668,12 @@
       "ai": true,
       "vessel": "PEPPINO",
       "kind": "domanda",
-      "port": "FAZENDINHA (BRASILE)",
+      "port": "FAZENDINHA (BRASIL)",
       "date": "2026-10-11",
       "docs": [],
       "reply": true,
       "action": "confermare arrivo diretto stazione pilota",
-      "fact": "Richiesta conferma arrivo diretto stazione pilota senza ancoraggio"
+      "fact": "Chiesa foto seconda cabina pilota e conferma arrivo diretto"
     },
     {
       "id": 72,
@@ -1690,12 +1691,12 @@
       "ai": true,
       "vessel": "PEPPINO",
       "kind": "conferma_ordine",
-      "port": "FAZENDINHA (BRASILE)",
+      "port": "FAZENDINHA (BRASIL)",
       "date": "2026-10-11",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma nota e richiesta foto seconda cabina pilota"
+      "fact": "Confermata ricezione richiesta, arrivo diretto autorizzato"
     },
     {
       "id": 73,
@@ -1714,14 +1715,14 @@
       "vessel": "PEPPINO",
       "kind": "conferma_ordine",
       "port": "",
-      "date": "2026-10-27",
+      "date": "2026-10-11",
       "docs": [
         "HQPO-00156",
         "PEP-SHPR-00120"
       ],
       "reply": false,
       "action": "",
-      "fact": "Conferma annullamento ordine motori, scusa per impossibilità assistenza"
+      "fact": "Ordine cancellato, richiesta di Dubhe Co. confermata"
     },
     {
       "id": 74,
@@ -1744,7 +1745,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione SMS CHPT 12.2 e GMS NTVRP"
+      "fact": "Confermata ricezione SMS CHPT 12.2 e GMS NTVRP, allegato inviato"
     },
     {
       "id": 75,
@@ -1767,7 +1768,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Line-up aggiornato porti carbone Corea, allegato Excel inviato"
+      "fact": "Line-up aggiornato porti carbone Corea, allegato inviato"
     },
     {
       "id": 76,
@@ -1786,11 +1787,11 @@
       "vessel": "",
       "kind": "routine",
       "port": "",
-      "date": "",
+      "date": "2026-10-12",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Invio aggiornamento linea portuale carbone Corea (fino al 27/10/2026)"
+      "fact": "Aggiornamento linea portuale carbone Corea, allegato disponibile fino al 27/10/2026"
     },
     {
       "id": 77,
@@ -1812,8 +1813,8 @@
       "date": "2026-10-12",
       "docs": [],
       "reply": true,
-      "action": "verifica danni segnalati e risponde al capitano",
-      "fact": "Segnalato rapporto danni e foto a Tanga"
+      "action": "verifica danni nave e documentazione allegata",
+      "fact": "Rapporto danni e foto inviati dal capitano per nave a Tanga"
     },
     {
       "id": 78,
@@ -1836,7 +1837,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "News Lloyd's Register su nuovo framework IMO per ispezioni remote"
+      "fact": "Notifica informativa su nuovo framework IMO per ispezioni remote"
     },
     {
       "id": 79,
@@ -1859,7 +1860,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Labdhi Marine offre ricambi marittimi pronti alla spedizione"
+      "fact": "Proposta forniture pezzi di ricambio per macchine marine pronte alla spedizione"
     },
     {
       "id": 80,
@@ -1905,7 +1906,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto prezzi carburante bunker (duplicato, 12/10/2026)"
+      "fact": "Rapporto prezzi carburante bunker duplicato del 12/10/2026"
     },
     {
       "id": 82,
@@ -1926,9 +1927,9 @@
       "port": "ABIDJAN",
       "date": "",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": "Proposta per 45-60k ton di bauxite da Abidjan a Dongguan"
+      "reply": true,
+      "action": "valutare proposta bauxite 45-60k mt da Abidjan",
+      "fact": "Proposta carico bauxite 45-60k mt, loading Abidjan, rate 11k mt/semana"
     },
     {
       "id": 83,
@@ -1946,12 +1947,12 @@
       "ai": true,
       "vessel": "PEPPINO",
       "kind": "offerta",
-      "port": "NIGERIA, LOMÉ, COTONOU, GHANA, ABIDJAN, DOUALA",
+      "port": "NIGERIA/LOMÉ/ABIDJAN",
       "date": "",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": "Zenderrick offre supporto logistico rapido per PEPPINO in Africa Occidentale"
+      "reply": true,
+      "action": "contattare Zenderrick per forniture nave PEPPINO",
+      "fact": "Servizi di rifornimento affidabili per navi in porti West Africa, inclusa PEPPINO"
     },
     {
       "id": 84,
@@ -1974,7 +1975,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione messaggio e allegato da parte di MED LIGURIA"
+      "fact": "Conferma ricezione messaggio e allegato da parte della MED LIGURIA"
     },
     {
       "id": 85,
@@ -1993,11 +1994,11 @@
       "vessel": "",
       "kind": "offerta",
       "port": "N.CHINA/EAST AFRICA",
-      "date": "25-30/09/2026",
+      "date": "2026-09-25/30",
       "docs": [],
-      "reply": false,
-      "action": "",
-      "fact": "Proposta urgente per 6.5k ton di merce in sacchi (IMO)"
+      "reply": true,
+      "action": "valutare proposta carico imo cargo 6.5k mt",
+      "fact": "Proposta carico imo cargo 6.5k mt, part cargo ok, 25-30 settembre"
     },
     {
       "id": 86,
@@ -2021,8 +2022,8 @@
         "DD1263"
       ],
       "reply": true,
-      "action": "coordinare test funzionali durante FAT con RINA",
-      "fact": "Documentazione SOA approvata da RINA, occorre test finale"
+      "action": "coordinare test funzionali per certificazione RINA",
+      "fact": "Documentazione approvata RINA, necessari test durante FAT con surveyor"
     },
     {
       "id": 87,
@@ -2039,15 +2040,15 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "MED TOSCANA",
-      "kind": "domanda",
+      "kind": "spedizione",
       "port": "",
       "date": "",
       "docs": [
-        "1591525213"
+        "DHL 1591525213"
       ],
       "reply": false,
       "action": "",
-      "fact": "In attesa conferma ricezione pacco DHL per MED TOSCANA"
+      "fact": "Invio pacco tramite DHL in attesa conferma ricezione MED TOSCANA"
     },
     {
       "id": 88,
@@ -2070,7 +2071,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Scarico totale 5083.9 MT, 2768.891 MT residui, ETD 13/10"
+      "fact": "Rapporto scarico: 5083.9 mt totali, 2768.891 mt residui, ETD 13/10"
     },
     {
       "id": 89,
@@ -2093,7 +2094,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Invio rapporto scarico per MED LIGURIA (12/10/2026)"
+      "fact": "Rapporto scarico allegato per MED LIGURIA a Tanga"
     },
     {
       "id": 90,
@@ -2110,15 +2111,15 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "MED TOSCANA",
-      "kind": "routine",
+      "kind": "spedizione",
       "port": "",
       "date": "",
       "docs": [
-        "1591525213"
+        "DHL 1591525213"
       ],
       "reply": false,
       "action": "",
-      "fact": "Conferma nota su pacco DHL per MED TOSCANA"
+      "fact": "Conferma ricezione pacco DHL per MED TOSCANA"
     },
     {
       "id": 91,
@@ -2133,7 +2134,7 @@
       "greet": "GOOD DAY PLEASE PROPOSE SUITABLE ALDY FO",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
       "kind": "spam",
       "port": "",
@@ -2141,7 +2142,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta spam per 76 container 20FT da Haiphong a Koper"
+      "fact": ""
     },
     {
       "id": 92,
@@ -2156,7 +2157,7 @@
       "greet": "Dear Sir",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
       "kind": "spam",
       "port": "",
@@ -2164,7 +2165,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Offerte spam per navi Panamax in varie rotte spot"
+      "fact": ""
     },
     {
       "id": 93,
@@ -2179,15 +2180,15 @@
       "greet": "",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
-      "kind": "spam",
+      "kind": "altro",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email spam con aggiornamenti sulla sicurezza nel Medio Oriente"
+      "fact": ""
     },
     {
       "id": 94,
@@ -2202,7 +2203,7 @@
       "greet": "Dear Sir",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
       "kind": "spam",
       "port": "",
@@ -2210,7 +2211,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Ripetizione spam offerte navi Panamax spot"
+      "fact": ""
     },
     {
       "id": 95,
@@ -2225,15 +2226,15 @@
       "greet": "Good day Giuseppe",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
-      "kind": "spam",
+      "kind": "altro",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email promozionale su portale sicurezza Neptune P2P"
+      "fact": ""
     },
     {
       "id": 96,
@@ -2248,15 +2249,15 @@
       "greet": "Dear All",
       "thread": 1,
       "hasAttachments": true,
-      "ai": true,
+      "ai": false,
       "vessel": "NORRBOTTEN",
-      "kind": "richiesta_nave",
-      "port": "YALOVA",
+      "kind": "altro",
+      "port": "",
       "date": "",
       "docs": [],
-      "reply": true,
-      "action": "Verifica requisiti NORRBOTTEN per fornitori",
-      "fact": "Fornitore turco offre componenti per NORRBOTTEN in Yalova"
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 97,
@@ -2271,15 +2272,15 @@
       "greet": "Gentile Purchasing",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
-      "kind": "spam",
+      "kind": "altro",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Promozione pompe AODD di nuova generazione"
+      "fact": ""
     },
     {
       "id": 98,
@@ -2294,17 +2295,15 @@
       "greet": "Dear Michele",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "MED TOSCANA",
-      "kind": "routine",
+      "kind": "offerta",
       "port": "",
       "date": "",
-      "docs": [
-        "2026-MDT-HQRQ-00216"
-      ],
+      "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Richiesta conferma RFQ già risolta per MED TOSCANA"
+      "fact": ""
     },
     {
       "id": 99,
@@ -2319,15 +2318,15 @@
       "greet": "Dear Raquel",
       "thread": 1,
       "hasAttachments": true,
-      "ai": true,
+      "ai": false,
       "vessel": "NORRBOTTEN",
-      "kind": "domanda",
-      "port": "MADEIRA",
-      "date": "2026-10-09",
+      "kind": "altro",
+      "port": "",
+      "date": "",
       "docs": [],
-      "reply": true,
-      "action": "Risolvi discrepanza tonnellaggio NORRBOTTEN/ATLAS",
-      "fact": "Discrepanza tonnellaggio NORRBOTTEN/ATLAS blocca autorizzazione turca"
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 100,
@@ -2342,7 +2341,7 @@
       "greet": "Dear Sir",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "",
       "kind": "spam",
       "port": "",
@@ -2350,7 +2349,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Charterers cercano navi per grano nel Mar Nero"
+      "fact": ""
     },
     {
       "id": 101,
@@ -2365,15 +2364,15 @@
       "greet": "Dear Emmanuel",
       "thread": 2,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "MED LIGURIA",
-      "kind": "domanda",
-      "port": "TANGA",
+      "kind": "altro",
+      "port": "",
       "date": "",
       "docs": [],
-      "reply": true,
-      "action": "Conferma ricerca stowaways MED LIGURIA a Tanga",
-      "fact": "Costo ricerca stowaways confermato, da coordinare con Master"
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 102,
@@ -2388,15 +2387,15 @@
       "greet": "Dear Nicola",
       "thread": 2,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "NORRBOTTEN",
-      "kind": "domanda",
-      "port": "MADEIRA",
+      "kind": "altro",
+      "port": "",
       "date": "",
       "docs": [],
-      "reply": true,
-      "action": "Fornisci Blue Card aggiornata per NORRBOTTEN",
-      "fact": "Chiedono Blue Card con tonnellaggio aggiornato per NORRBOTTEN"
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 103,
@@ -2411,15 +2410,15 @@
       "greet": "Dear Russ",
       "thread": 2,
       "hasAttachments": true,
-      "ai": true,
+      "ai": false,
       "vessel": "NORRBOTTEN",
-      "kind": "domanda",
+      "kind": "altro",
       "port": "",
       "date": "",
       "docs": [],
-      "reply": true,
-      "action": "Trova manuale dispositivo ESD NORRBOTTEN/ATLAS",
-      "fact": "Chiedono manuale dispositivo Schneekluth WED per ATLAS"
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 104,
@@ -2434,19 +2433,15 @@
       "greet": "Dear Sirs",
       "thread": 3,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "PEPPINO",
-      "kind": "routine",
+      "kind": "altro",
       "port": "",
       "date": "",
-      "docs": [
-        "HQPO-00148",
-        "PEP-SHPR-00115",
-        "026-60929"
-      ],
-      "reply": true,
-      "action": "Verifica risposta Genuine Maker per PEPPINO",
-      "fact": "In attesa risposta fornitore per ordine PEPPINO"
+      "docs": [],
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 105,
@@ -2461,17 +2456,15 @@
       "greet": "Good Day Any feedback about damage",
       "thread": 1,
       "hasAttachments": false,
-      "ai": true,
+      "ai": false,
       "vessel": "MED LIGURIA",
-      "kind": "domanda",
-      "port": "TANGA",
+      "kind": "altro",
+      "port": "",
       "date": "",
-      "docs": [
-        "V.26342"
-      ],
-      "reply": true,
-      "action": "Rispondi su danni da stevedori MED LIGURIA",
-      "fact": "Chiedono feedback su danni da riparare prima partenza Tanga"
+      "docs": [],
+      "reply": false,
+      "action": "",
+      "fact": ""
     },
     {
       "id": 106,
