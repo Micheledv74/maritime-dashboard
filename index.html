@@ -28130,9 +28130,14 @@ function mpOf0(it, now){
   now = now || Date.now();
   if(rdCancelled(it)) return null;
   const m = mpManual(it.id);
+  // v1.21 — la TUA scelta vince sempre (anche su DN "Shipped", DN vecchia, tracking in corso), finché non arriva
+  // un evento di tracking PIÙ RECENTE del tuo segno. Riparazione vince anche su "DN Received on Board" (sbarcato dopo).
+  if(m && m.pos === "repair") return Object.assign({ manual:true }, m);
   if(it.dnStatus === "DN Received on Board") return { pos:"onboard" };
-  if(m && (m.pos === "onboard" || m.pos === "repair")) return Object.assign({ manual:true }, m);
+  if(m && m.pos === "onboard") return Object.assign({ manual:true }, m);
   const segs = getItemShipments(it.id), lastS = segs[segs.length - 1];
+  const shipAt = segs.reduce((a, s) => { const ev = (s.events || [])[0]; const t = String((ev && ev.ts) || s.updatedAt || ""); return t > a ? t : a; }, "");
+  if(m && m.pos && !(shipAt && shipAt > String(m.updatedAt || ""))) return Object.assign({ manual:true }, m);
   if(m && (m.pos === "customs" || m.pos === "agency")){
     // svincolata: il tracking verso il porto risulta consegnato DOPO il tuo segno "in dogana" → passa all'agenzia
     if(m.pos === "customs" && mpToPort(lastS) && lastS.status === "delivered" && String(lastS.updatedAt || "") > String(m.updatedAt || ""))
@@ -28191,7 +28196,7 @@ function mpDetailHTML(it){
   const ea = s => escapeAttr(String(s)).replace(/'/g, "\\'");
   const id = ea(it.id);
   const hasPO = !!(it.poNumber || it.dnStatus);
-  const opts = hasPO ? MP_OPTS_PO : ["route"];
+  const opts = hasPO ? MP_OPTS_PO : ["route", "office", "repair"];
   const btn = k => '<button class="mp-opt' + (p.pos === k ? (p.manual ? " on" : " auto") : "") + '" style="--mp:' + MP_POS[k].c + '" onclick="window.mpSetPos(\'' + id + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>';
   let extra = "";
   if(p.pos === "hub" && p.manual){
@@ -28229,7 +28234,7 @@ function mpDetailHTML(it){
     extra = '<div class="mp-row"><span class="mp-note">Fermo apposta dal ' + mpFD(p.since) + ': non compare più tra gli ordini "oltre la data di pronto".</span></div>';
   }
   if(p.pos === "hub") extra += '<div class="mp-row"><button class="btn btn-sm btn-primary" onclick="window.shipHubBoard(\'' + ea(p.hub || "") + '\',\'' + ea(mpVidOf(it.id)) + '\')">⇉ Spedisci insieme ad altri PO dell\'hub →</button>' + (p.viaShip ? '<span class="mp-note">arrivato all\'hub secondo il tracking' + (p.since ? " il " + mpFD(p.since) : "") + '</span>' : "") + '</div>';
-  const state_ = p.partial ? "parzialmente a bordo dal " + mpFD(p.partOn) + ": il resto è ancora da consegnare" : p.viaShip ? "dal tracking" : p.derived && p.pos === "supplier" ? "dedotta: PO emesso, nessuna DN. Se lo tieni lì apposta, conferma" : p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo" : p.derived ? "dedotta da Infoship, non ancora confermata" : p.manual ? "segnata da te il " + mpFD(p.updatedAt) : "da Infoship / tracking";
+  const state_ = p.partial ? "parzialmente a bordo dal " + mpFD(p.partOn) + ": il resto è ancora da consegnare" : p.viaShip ? "dal tracking" : p.derived && p.pos === "supplier" ? "dedotta: PO emesso, nessuna DN. Se lo tieni lì apposta, conferma" : p.stale ? "DN in viaggio da oltre 30 gg senza tracking: probabilmente già a bordo" : p.derived ? "dedotta da Infoship, non ancora confermata" : p.manual ? "segnata da te il " + mpFD(p.updatedAt) + ": vale finché il tracking non dà un evento più nuovo" : "da Infoship / tracking · tocca un'altra posizione per correggerla";
   const ci = typeof critInfo === "function" ? critInfo(it.id) : null;
   const critRow = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;">' + (ci ? '<span style="display:inline-flex;gap:6px;align-items:center;background:#c0261c;color:#fff;font-size:12px;font-weight:800;padding:3px 10px 3px 3px;border-radius:999px;"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#fff;color:#c0261c;font-size:11px;">C</span>CRITICO</span><span style="font-size:12.5px;color:#44576b;">' + escapeHTML(ci.sys) + (ci.src === "pms" ? " · dalla lista Critical Equipment" : ci.src === "manual" ? " · segnato da te" : "") + '</span>' : '<span style="font-size:12.5px;color:#6a7d90;">Non critico</span>') +
     '<button class="btn btn-sm" onclick="window.critToggle(\'' + id + '\')">' + (ci ? "Non è critico" : "Segna critico") + '</button></div>';
@@ -28547,7 +28552,7 @@ function m3ItemRow(it, vid, showV){
 window.m3Po = function(id){
   const it = faFindItem(id); if(!it) return;
   const vid = mpVidOf(id), p = mpOf(it) || { pos: "route" }, hasPO = !!(it.poNumber || it.dnStatus), eid = m3E(id);
-  const opts = hasPO ? MP_OPTS_PO : ["route"];
+  const opts = hasPO ? MP_OPTS_PO : ["route", "office", "repair"];
   const gS = getItemShipments(id).find(s => s.gid && s.status !== "delivered"), gN = gS ? (((shipGroups()[gS.gid] || {}).items) || []).length : 0;
   const btn = k => { const on = p.pos === k, ded = on && !p.manual, c = MP_POS[k].c; return '<button class="m3-pos' + (on ? (ded ? " ded" : " on") : "") + '" style="--c:' + c + '" onclick="m3SetPos(\'' + eid + '\',\'' + k + '\')"><i></i>' + MP_POS[k].l + '</button>'; };
   const notes = { supplier: p.manual ? "Fermo apposta dal fornitore: non compare più tra gli ordini in ritardo." : "Dedotto: PO emesso, nessuna DN. Se lo tieni lì apposta, toccalo per confermare.",
@@ -29760,6 +29765,8 @@ function mbModel(b){
   const done = mbDoneMap(), E = (b.emails || []).map(e => Object.assign({}, e, { k: mbKey(e), v: mbVes(e) }));
   const live = E.filter(e => e.kind !== "spam");
   const D = [], used = new Set();
+  // v1.21 — a chi è scritta (workflow v2.4): "Dear Michele" → Da rispondere; generali / in copia / incerte → Da decidere
+  const A = E.some(e => e.addr != null), toMe = e => A && e.addr === "me" && !e.answered && !["routine", "noon", "spam"].includes(e.kind);
   // 1) posizione / viaggio: confronto con lo scalo che la dashboard conosce
   const byV = {}; live.forEach(e => { if(e.v && e.v.id && (e.kind === "posizione" || e.kind === "viaggio") && e.port) (byV[e.v.id] = byV[e.v.id] || []).push(e); });
   Object.entries(byV).forEach(([vid, L]) => {
@@ -29780,7 +29787,7 @@ function mbModel(b){
       links: L.filter(x => x.webLink).map(x => x.webLink), ids });
   });
   // 2) email che toccano una pratica nota: cosa cambia nella scheda
-  live.forEach(e => { if(used.has(e.id)) return; const hit = mbFindItem({ subject: e.subject, text: (e.docs || []).join(" ") + " " + (e.fact || "") }); if(!hit) return;
+  live.forEach(e => { if(used.has(e.id) || toMe(e)) return; const hit = mbFindItem({ subject: e.subject, text: (e.docs || []).join(" ") + " " + (e.fact || "") }); if(!hit) return;
     used.add(e.id); const it = hit.it, st = it.dnStatus || (it.poNumber ? "PO " + (it.poStatus || "emesso") : it.rfqStatus || "REQ");
     const so = { conferma_ordine: "Segna la conferma e la data di pronto nella scheda.", spedizione: "Registra AWB/spedizione nella scheda: il radar ricalcola il margine.", consegna: "Verifica la consegna e chiudi la DN.", offerta: "Confronta l'offerta con le altre prima del PO.", fattura: "Controlla la fattura contro il PO." }[e.kind] || (e.action || "Aggiorna la scheda.");
     D.push({ k: e.k, done: !!done[e.k] || mbHasTodo([e.webLink]), tone: e.reply && !e.answered ? "amber" : "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "", ctx: hit.s + " · " + (e.from || ""),
@@ -29789,13 +29796,21 @@ function mbModel(b){
       links: e.webLink ? [e.webLink] : [], ids: [e.id] });
   });
   // 3) richieste nuove dalla nave senza pratica
-  live.forEach(e => { if(used.has(e.id) || e.kind !== "richiesta_nave") return; used.add(e.id);
+  live.forEach(e => { if(used.has(e.id) || toMe(e) || e.kind !== "richiesta_nave") return; used.add(e.id);
     D.push({ k: e.k, done: !!done[e.k] || mbHasTodo([e.webLink]), tone: "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "", ctx: "richiesta dalla nave", title: (e.fact || e.subject) + ": non c'è ancora una pratica in Infoship.",
       says: e.subject, dash: "Nessuna REQ/RFQ trovata con questi riferimenti", so: e.action || "Apri la REQ in Infoship.", acts: [{ l: "+ To-do: apri REQ", fn: "mbTodoE(" + e.id + ")", p: 1 }], links: e.webLink ? [e.webLink] : [], ids: [e.id] }); });
-  const R = { red: 0, amber: 1, blue: 2 }; D.sort((x, y) => (x.done - y.done) || (R[x.tone] - R[y.tone]));
-  // 4) risposte da dare (non già coperte)
-  const Q = live.filter(e => !used.has(e.id) && e.reply && !e.answered).map(e => Object.assign(e, { done: !!done[e.k] || mbHasTodo([e.webLink]) })).sort((x, y) => x.done - y.done);
+  // 4) risposte da dare: solo quelle scritte a te per nome (file vecchi: tutte quelle che chiedono risposta)
+  const Q = live.filter(e => !used.has(e.id) && (A ? toMe(e) : e.reply && !e.answered)).map(e => Object.assign(e, { done: !!done[e.k] || mbHasTodo([e.webLink]) })).sort((x, y) => x.done - y.done);
   Q.forEach(e => used.add(e.id));
+  // 5) generali / in copia / senza destinatario chiaro che chiedono qualcosa → da decidere chi risponde
+  if(A) live.forEach(e => { if(used.has(e.id) || !e.reply || e.answered) return; used.add(e.id);
+    const g = e.greet ? "«" + e.greet + "»" : "";
+    D.push({ k: e.k, done: !!done[e.k] || mbHasTodo([e.webLink]), tone: "blue", vid: e.v && e.v.id, vname: e.v ? e.v.n : "",
+      ctx: (e.addr === "cc" ? "sei in copia" : e.addr === "general" ? "a tutto l'ufficio" + (g ? " · " + g : "") : "destinatario incerto") + " · " + (e.from || ""),
+      title: e.fact || e.subject, says: e.subject + (e.action ? " · chiede: " + e.action : ""),
+      dash: e.addr === "cc" ? "Sei solo in copia: la risposta di solito tocca a un altro." : e.addr === "general" ? "Scritta all'ufficio" + (g ? " (" + g + ")" : "") + ", non a te per nome." : "Nessun saluto per nome: non è chiaro a chi tocchi.",
+      so: "Decidi: rispondi tu, girala a chi compete, oppure segnala fatta.", acts: [{ l: "+ To-do", fn: "mbTodoE(" + e.id + ")", p: 1 }], links: e.webLink ? [e.webLink] : [], ids: [e.id] }); });
+  const R = { red: 0, amber: 1, blue: 2 }; D.sort((x, y) => (x.done - y.done) || (R[x.tone] - R[y.tone]));
   const rest = live.filter(e => !used.has(e.id));
   const cnt = k => rest.filter(e => e.kind === k).length;
   const fleet = (VESSELS || []).map(V => { const mine = E.filter(e => e.v && e.v.id === V.vesselId && e.kind !== "spam"); const W = typeof mpWhere === "function" ? mpWhere(V.vesselId) : null;
@@ -29848,9 +29863,10 @@ function mbCardHTML(d, i, mobile){ const esc = escapeHTML, [c, bg] = mbToneC(d.t
     '<div class="mb-3">' + box("Le email dicono", d.says) + box("La dashboard dice", d.dash) + box("Quindi", d.so, 1) + '</div></div>' +
     '<div class="mb-ac">' + acts + ol + (d.done && mbHasTodo(d.links) ? '<span style="font-size:12px;color:#14794e;text-align:center;font-weight:700">✓ in To-do</span>' : '<button class="mb-bt" onclick="mbDoneK(\'' + esc(d.k.replace(/['\\]/g, "")) + '\')">' + (d.done ? "↩ Riapri" : "✓ Fatto") + '</button>') + '</div></div>'; }
 function mbQHTML(e){ const esc = escapeHTML;
+  const hit = mbFindItem({ subject: e.subject, text: (e.docs || []).join(" ") + " " + (e.fact || "") });
   return '<div class="mb-q' + (e.done ? " done" : "") + '"><button class="mb-ck" onclick="mbDoneK(\'' + esc(e.k.replace(/['\\]/g, "")) + '\')">' + (e.done ? "✓" : "") + '</button>' +
-    '<div style="min-width:0"><div style="font-weight:700;font-size:13.5px">' + esc(e.action || e.fact || e.subject) + '</div><div style="font-size:12px;color:#44576b">' + esc(e.from) + (e.v ? " · " + esc(e.v.n) : "") + " · " + esc(e.subject) + '</div></div>' +
-    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + (e.webLink ? '<a class="mb-bt" href="' + esc(e.webLink) + '" target="_blank" rel="noopener">Rispondi</a>' : "") + '<button class="mb-bt" onclick="mbTodoE(' + e.id + ')">+ To-do</button></div></div>'; }
+    '<div style="min-width:0"><div style="font-weight:700;font-size:13.5px">' + esc(e.action || e.fact || e.subject) + '</div><div style="font-size:12px;color:#44576b">' + (e.greet && e.addr === "me" ? '<span style="color:#b06a00;font-weight:700">«' + esc(e.greet) + '»</span> · ' : "") + esc(e.from) + (e.v ? " · " + esc(e.v.n) : "") + " · " + esc(e.subject) + '</div></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">' + (hit ? '<button class="mb-bt" onclick="openItemDetailPopover(\'' + esc(String(hit.it.id).replace(/['\\]/g, "\\$&")) + '\')">' + esc(hit.s) + ' ›</button>' : "") + (e.webLink ? '<a class="mb-bt" href="' + esc(e.webLink) + '" target="_blank" rel="noopener">Rispondi</a>' : "") + '<button class="mb-bt" onclick="mbTodoE(' + e.id + ')">+ To-do</button></div></div>'; }
 function mbCss2(){ if(document.getElementById("mb-css2")) return; const s = document.createElement("style"); s.id = "mb-css2"; s.textContent = '' +
   '.mb2{background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;padding:20px 22px;margin:0 0 18px;color:#0a1b2e;display:flex;flex-direction:column;gap:18px}' +
   '.mb-eb{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#44576b}' +
@@ -29881,7 +29897,7 @@ function mbSectionHTML(){ const b = mbData(); if(!b) return '<div id="mb-root"><
   if(!open) return h + '</section>';
   h += warn;
   if(M.D.length) h += '<div style="display:flex;flex-direction:column;gap:9px"><div class="mb-eb" style="color:#c0261c">Da decidere · email incrociate con viaggio, radar e pratiche</div>' + M.D.map((d, i) => mbCardHTML(d, i)).join("") + '</div>';
-  if(M.Q.length) h += '<div><div class="mb-eb" style="color:#b06a00;margin-bottom:4px">Da rispondere</div>' + M.Q.map(mbQHTML).join("") + '</div>';
+  if(M.Q.length) h += '<div><div class="mb-eb" style="color:#b06a00;margin-bottom:4px">Da rispondere' + (M.E.some(e => e.addr != null) ? ' · scritte a te per nome' : '') + '</div>' + M.Q.map(mbQHTML).join("") + '</div>';
   h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="mb-eb">Flotta stanotte</div><div class="mb-f">' + M.fleet.map(f => '<div onclick="mbVesOpen(\'' + esc(f.id) + '\')" style="' + (window._mbVes === f.id ? "border-color:#1553d8;box-shadow:0 0 0 1px #1553d8" : "") + '"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(f.n) + '</b>' +
     (f.dec ? '<span style="font-size:11px;font-weight:700;color:#c0261c">vedi ' + String(f.dec).padStart(2, "0") + '</span>' : (f.nMail ? "" : '<span style="font-size:11px;font-weight:700;color:#14794e">silenzio</span>')) + '</div>' +
     '<div>' + esc(f.where) + '</div><div style="color:#44576b">' + (f.nMail ? f.nMail + " email · " + esc(f.kinds) : "Nessuna email") + '</div></div>').join("") + '</div>' + mbVesPanel(M) + '</div>';
