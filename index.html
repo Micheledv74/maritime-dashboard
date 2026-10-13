@@ -5994,6 +5994,8 @@ a:hover { text-decoration: underline; }
 .rd-gantt{ position:relative; height:30px; }
 .rd-band{ position:absolute; top:-10px; bottom:-10px; background:rgba(20,121,78,.08); }
 .rd-head .rd-band{ top:0; bottom:0; border-radius:4px; }
+.rd-bandA{ background:repeating-linear-gradient(135deg,rgba(61,79,102,.13) 0 4px,rgba(61,79,102,.03) 4px 8px); }
+.rd-anch{ position:absolute; top:8px; height:70px; box-sizing:border-box; display:block; border:1.5px dashed #7d8fa6; border-right:0; border-radius:10px 0 0 10px; background:repeating-linear-gradient(135deg,#e6ebf2 0 5px,#f7f9fb 5px 10px); font-size:9.5px; font-weight:800; font-style:normal; letter-spacing:.06em; color:#3d4f66; text-transform:uppercase; padding:5px 6px; overflow:hidden; white-space:nowrap; cursor:help; z-index:0; }
 .rd-cut{ position:absolute; top:-10px; bottom:-10px; border-left:2px dashed #c0261c; }
 .rd-track{ position:absolute; left:0; right:0; top:14px; height:2px; background:#eef2f6; }
 .rd-seg{ position:absolute; top:8px; height:14px; border-radius:4px 0 0 4px; } .rd-seg.h{ border-radius:0 4px 4px 0; }
@@ -9205,12 +9207,13 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
     </div>
     <div class="todo-form-row">
       <label for="todo-when">Quando</label>
-      <select id="todo-when">
+      <div style="display:flex;gap:6px;flex:1;align-items:center;flex-wrap:wrap;"><button type="button" class="btn btn-sm" id="todo-when-q0" onclick="window.todoWhenQuick('today')">Oggi</button><button type="button" class="btn btn-sm" id="todo-when-q1" onclick="window.todoWhenQuick('tomorrow')">Domani</button>
+      <select id="todo-when" style="flex:1;min-width:140px;">
         <option value="today">Oggi</option>
         <option value="tomorrow">Domani</option>
         <option value="thisweek">Questa settimana</option>
         <option value="custom">Data specifica…</option>
-      </select>
+      </select></div>
     </div>
     <div class="todo-form-row" id="todo-date-row" style="display:none;">
       <label for="todo-date">Data</label>
@@ -22355,6 +22358,7 @@ function renderCertificatesView() {
             <th>Restano</th>
             <th>N° Cert.</th>
             <th>Place</th>
+            <th>Note</th>
             <th>Service / Audit</th>
             <th></th>
           </tr>
@@ -22434,7 +22438,6 @@ function certTableRowHTML(it) {
     <td><span class="cert-n">${escapeHTML(it.n || "")}</span></td>
     <td>
       <div class="cert-name-cell">${escapeHTML(truncate(it.name, 60))}${(it._locked && Object.keys(it._locked).length) ? ` <span title="Ha dati modificati manualmente (bloccati, sopravvivono all'import)" style="font-size:11px;color:#6a4bff;">🔒</span>` : ""}</div>
-      ${it.notes ? `<div class="cert-notes muted">${escapeHTML(truncate(it.notes, 80))}</div>` : ""}
     </td>
     <td><span class="vessel-tag">${escapeHTML(it.vesselName || "")}</span></td>
     <td><span class="cert-cat-tag">${escapeHTML(it.category || "")}</span></td>
@@ -22442,6 +22445,7 @@ function certTableRowHTML(it) {
     <td><span class="cert-pill ${cls}">${daysLabel}</span></td>
     <td>${certNumHTML}</td>
     <td class="muted" style="font-size: 11px;">${escapeHTML(it.place || "—")}</td>
+    <td style="font-size:11.5px;color:#44576b;min-width:160px;max-width:280px;white-space:normal;text-wrap:pretty;">${it.notes ? escapeHTML(it.notes) : '<span class="muted">—</span>'}</td>
     <td>${certServiceCellHTML(it)}</td>
     <td><button class="btn btn-sm" style="white-space:nowrap;" onclick="event.stopPropagation(); window.openCertEditor('${escapeAttr(it.vesselId)}','${escapeAttr(it._key)}')">✎ Gestisci</button></td>
   </tr>`;
@@ -22940,9 +22944,10 @@ function buildCertReport() {
   };
   const certLine = c => {
     const nm = c.name || "—";
-    const num = c.certNum ? ` — ${EN ? "No." : "N°"} ${c.certNum}` : "";
+    const num = c.certNum ? ` — ${EN ? "Cert. No." : "Cert. N°"} ${c.certNum}` : "";
     const dt = daysTxt(c._days);
-    return `  • ${nm}${num} — ${fmtDate(c.expiry)}${dt ? ` (${dt})` : ""}`;
+    const pos = c.n != null && String(c.n).trim() !== "" ? `${EN ? "No." : "N°"} ${String(c.n).trim()} · ` : "";
+    return `  • ${pos}${nm}${num} — ${fmtDate(c.expiry)}${dt ? ` (${dt})` : ""}`;
   };
 
   const vLabel = vName ? (/^m\/v/i.test(vName) ? vName : "M/V " + vName) : null;
@@ -23059,6 +23064,7 @@ function renderCertSectionForVessel(vesselId) {
               <th>Scadenza</th>
               <th>Restano</th>
               <th>N° Cert.</th>
+              <th>Note</th>
             </tr>
           </thead>
           <tbody>
@@ -23076,6 +23082,7 @@ function renderCertSectionForVessel(vesselId) {
                 <td>${expFmt}</td>
                 <td><span class="cert-pill ${cls}">${daysLabel}</span></td>
                 <td>${certNumHTML}</td>
+                <td style="font-size:11.5px;color:#44576b;max-width:260px;white-space:normal;">${it.notes ? escapeHTML(it.notes) : '<span class="muted">—</span>'}</td>
               </tr>`;
             }).join("")}
           </tbody>
@@ -24176,6 +24183,8 @@ function todoRowHTML(t) {
     <div class="todo-actions">
       ${t.outlookWebUrl ? `<button class="btn btn-sm btn-outlook-open" data-outlook-open="${escapeAttr(t.outlookWebUrl)}" title="Apri email in Outlook${t.outlookLinkedName ? ': ' + escapeAttr(t.outlookLinkedName) : ''}">📧 Apri</button>` : ""}
       ${t.remKey && !t.done ? (() => { const ri = window.remTodoInfo ? window.remTodoInfo(t) : { mail: true }; return (ri.tool === "ihm" ? `<button class="btn btn-sm btn-outlook-open" onclick="window.remTodoTool('${escapeAttr(t.id)}')" title="Scarica l'Excel IHM del periodo">⬇ Report IHM</button>` : "") + (ri.mail ? `<button class="btn btn-sm btn-outlook-open" onclick="window.remSendFromTodo('${escapeAttr(t.id)}')" title="Apre l'email precompilata e chiude la to-do">✉ Invia avviso</button>` : ""); })() : ""}
+      ${!t.done && cls !== "today" ? `<button class="btn btn-sm" onclick="event.stopPropagation();window.todoQuickDue('${escapeAttr(t.id)}',0)" title="Sposta a oggi">Oggi</button>` : ""}
+      ${!t.done && t.dueDate !== resolveWhen("tomorrow", "") ? `<button class="btn btn-sm" onclick="event.stopPropagation();window.todoQuickDue('${escapeAttr(t.id)}',1)" title="Sposta a domani">Domani</button>` : ""}
       <button class="btn btn-sm" data-todo-edit="${escapeAttr(t.id)}" title="Modifica">✎</button>
       ${isArch ? `<button class="btn btn-sm" data-todo-unarchive="${escapeAttr(t.id)}" title="Rimetti tra le to-do aperte">↩ Ripristina</button>` : ""}
       ${!t.done ? `<button class="btn btn-sm" data-todo-done="${escapeAttr(t.id)}" title="Fatto">✓</button>` :
@@ -24185,6 +24194,9 @@ function todoRowHTML(t) {
   </div>`;
 }
 
+window.todoQuickDue = function(id, n){ const d = resolveWhen(n ? "tomorrow" : "today", ""); updateTodo(id, { dueDate: d, dueCleared: false });
+  try { if(typeof ghSetDirty === "function") ghSetDirty(); } catch(e) {} showToast(n ? "Spostata a domani" : "Spostata a oggi"); render(); };
+window.todoWhenQuick = function(w){ const s = document.getElementById("todo-when"); if(!s) return; s.value = w; document.getElementById("todo-date").value = ""; document.getElementById("todo-date-row").style.display = "none"; };
 function attachTodoHandlers(root) {
   // v0.14.2: click su bottone "📧 Apri" apre l'email Outlook
   root.querySelectorAll("[data-outlook-open]").forEach(btn => {
@@ -24588,7 +24600,11 @@ function bdHTML(){
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">' +
         box("Speso", bdP(pct), bdK(tot) + " su " + bdK(B), tone) + box("A fine anno · " + esc(M.method), bdK(proj), (proj >= B ? "+" : "") + bdP(proj / B - 1) + " sul budget", tone) +
         box("Spesa media al giorno · finora", bdKd(dNow), DAY + " giorni dal 1° gennaio · budget al giorno " + bdKd(B / M.DY)) +
-        box("Da spendere al giorno · fino al 31.12", left > 0 ? bdKd(dLeft) : "$ 0", left > 0 ? LEFTD + " giorni · restano " + bdK(left) + (slow ? " · devi rallentare del " + bdP(1 - dLeft / dNow) : "") : "budget finito · sforamento " + bdK(-left) + " già fatto", dc, dbg, dc) + '</div>' +
+        box("Da spendere al giorno · fino al 31.12", left > 0 ? bdKd(dLeft) : "$ 0", left > 0 ? LEFTD + " giorni · restano " + bdK(left) + (slow ? " · devi rallentare del " + bdP(1 - dLeft / dNow) : "") : "budget finito · sforamento " + bdK(-left) + " già fatto", dc, dbg, dc) +
+        (() => { const bd = B / M.DY, oN = dNow - bd, oE = (proj - B) / M.DY, cN = oN > 0 ? RED : GRN, cE = oE > 0 ? RED : GRN, any = oN > 0 || oE > 0;
+          const v = (lab, val, c, sub) => '<div style="min-width:0"><div style="font-size:11px;color:#44576b">' + lab + '</div><div style="font:600 22px var(--font-mono,monospace);color:' + c + '">' + (val > 0 ? "+" + bdKd(val) : "$ 0") + '</div><div style="font-size:11.5px;color:#44576b">' + sub + '</div></div>';
+          return '<div style="border:1px solid ' + (any ? RED : "rgba(10,27,46,.12)") + ';background:' + (any ? "#fdeceb" : "#fff") + ';border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px"><div class="bd-eb" style="color:' + (any ? RED : "#6a7d90") + '">Sforamento medio al giorno</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+            v("a oggi", oN, cN, oN > 0 ? bdK(tot - B * YF) + " sopra il ritmo" : "dentro il ritmo") + v("a fine anno", oE, cE, oE > 0 ? bdK(proj - B) + " oltre budget" : "chiude dentro") + '</div></div>'; })() + '</div>' +
       '<div><div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#44576b;align-items:center"><b class="bd-eb" style="color:#0a1b2e">Andamento</b>' +
         '<span style="display:flex;gap:6px;align-items:center"><i style="width:18px;height:3px;background:' + tone + ';display:inline-block"></i>speso (cumulato)</span><span style="display:flex;gap:6px;align-items:center"><i style="width:18px;border-top:3px dashed ' + tone + ';display:inline-block"></i>proiezione</span><span style="display:flex;gap:6px;align-items:center"><i style="width:18px;border-top:2px dashed #8a9bb0;display:inline-block"></i>ritmo del budget</span><span style="display:flex;gap:6px;align-items:center"><i style="width:18px;height:10px;background:#f6c9c5;display:inline-block"></i>di cui extra budget</span></div>' +
         bdChart(M, tone) + '<div style="font-size:12px;color:#6a7d90;margin-top:6px">' + (M.hist.length < 2 ? "Un solo report: dal 1° gennaio la linea è una retta. Con un report ogni 15 giorni diventa l'andamento vero e la proiezione usa il ritmo delle ultime settimane." : M.hist.length + " report caricati quest'anno.") + '</div></div>' +
@@ -27917,8 +27933,10 @@ function radarPaint(){
     const dotC = l.calls.some(c => c.worst === "late") ? "#c0261c" : l.calls.some(c => c.worst === "risk") ? "#c07800" : l.calls.length ? "#14794e" : "#9fb0c4";
     const blocks = l.calls.filter(c => c.eta < H).map(c => {
       const dots = c.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || (b.crit - a.crit)).map(x => '<i class="rd-dot' + (x.crit ? " crit" : "") + '" style="background:' + COL[x.k] + '"></i>').join("");
-      return '<button class="rd-call' + (sel && c.id === sel.id ? " on" : "") + '" onclick="window.rdPick(\'' + ea(c.id) + '\')" style="left:' + fx(c.eta) + ';width:' + fw(Math.max(0, c.eta), Math.min(c.etd, H)) + ';background:' + TINT[c.worst][0] + ';border-color:' + TINT[c.worst][1] + '">' +
-        '<b>' + esc(c.port) + '</b><span><em>' + rdFD(c.eta, now) + '</em> <strong style="color:' + TINT[c.worst][1] + '">' + c.n.ok + "/" + c.its.length + '</strong></span><span class="rd-dots">' + (dots || '<small>nessun PO pianificato</small>') + '</span></button>';
+      const anch = c.etb - c.eta > 0.04 && c.etb > 0, b0 = anch ? c.etb : c.eta;
+      const anchH = anch ? '<i class="rd-anch" title="' + esc(c.port) + ' · in rada / attesa ormeggio: ETA ' + rdFD(c.eta, now) + ' → ETB ' + rdFD(c.etb, now) + '" style="left:' + fx(Math.max(0, c.eta)) + ';width:' + fw(Math.max(0, c.eta), Math.min(c.etb, H)) + '">rada</i>' : "";
+      return anchH + '<button class="rd-call' + (sel && c.id === sel.id ? " on" : "") + '" onclick="window.rdPick(\'' + ea(c.id) + '\')" style="left:' + fx(b0) + ';width:' + fw(Math.max(0, b0), Math.min(c.etd, H)) + ';background:' + TINT[c.worst][0] + ';border-color:' + TINT[c.worst][1] + (anch ? ";border-top-left-radius:3px;border-bottom-left-radius:3px" : "") + '">' +
+        '<b>' + esc(c.port) + '</b><span><em>' + (anch ? "ETB " + rdFD(c.etb, now) : rdFD(c.eta, now)) + '</em> <strong style="color:' + TINT[c.worst][1] + '">' + c.n.ok + "/" + c.its.length + '</strong></span><span class="rd-dots">' + (dots || '<small>nessun PO pianificato</small>') + '</span></button>';
     }).join("");
     const PO = { miss: 0, ifx: 1, onb: 2 };
     const pastB = l.past.length ? l.past.map((c, i) => {
@@ -27963,6 +27981,8 @@ function radarPaint(){
     let gT = ""; const gs = ax1 > 12 ? 2 : 1;
     for(let d = 0; d <= ax1; d += gs) gT += '<span class="rd-gt' + (d === 0 ? " now" : "") + '" style="left:' + gp(d) + '%">' + (d === 0 ? "OGGI" : rdFD(d, now)) + '</span>';
     const band = 'left:' + gp(Math.max(0, sel.etb)) + '%;width:' + Math.max(0, gp(sel.etd) - gp(Math.max(0, sel.etb))) + '%';
+    const anchS = sel.etb - sel.eta > 0.04 && sel.etb > 0, bandAs = anchS ? 'left:' + gp(Math.max(0, sel.eta)) + '%;width:' + Math.max(0, gp(sel.etb) - gp(Math.max(0, sel.eta))) + '%' : "";
+    const bandA = anchS ? '<i class="rd-band rd-bandA" style="' + bandAs + '"></i>' : "";
     const SEG = { f: "#8fa1b5", t: "#2b6de0", d: "#1d3a5c", s: "#2b6de0" }, HATCH = { f: "#e7ecf2", t: "#dfe8fb", d: "#d3dbe6", s: "#dfe8fb" };
     const rows = sel.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || ((a.onb ? 1 : 0) - (b.onb ? 1 : 0)) || (b.crit - a.crit) || ((a.cut - a.H2) - (b.cut - b.H2))).map(x => {
       const open = window._rd.open === x.it.id;
@@ -27995,7 +28015,7 @@ function radarPaint(){
       return '<div class="rd-row' + (open ? " open" : "") + (x.k === "late" ? " late" : "") + '"><div class="rd-rg" onclick="window.rdOpen(\'' + ea(x.it.id) + '\')">' +
         '<div class="rd-po"><div class="rd-tags"><span class="rd-pon">' + esc(String(x.it.poNumber || x.it.dnNumber || "").replace(/^\d{4}-/, "")) + '</span>' + (x.crit ? '<span class="rd-crit"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:#c0261c;color:#fff;font:800 11px/1 var(--font-sans);vertical-align:-2px;">C</span> CRITICO</span>' : "") + (x.noCust ? '<span class="rd-eu">UE</span>' : "") + '</div>' +
         '<b>' + esc(x.it.description || "") + '</b><span>' + esc(x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "Fornitore non indicato") + '</span></div>' +
-        '<div class="rd-gantt"><i class="rd-band" style="' + band + '"></i><i class="rd-cut" style="left:' + gp(cut) + '%"></i><i class="rd-track"></i>' + bars + note + '</div>' +
+        '<div class="rd-gantt">' + bandA + '<i class="rd-band" style="' + band + '"></i><i class="rd-cut" style="left:' + gp(cut) + '%"></i><i class="rd-track"></i>' + bars + note + '</div>' +
         '<div class="rd-v"><b style="color:' + COL[x.k] + '">' + verdict + '</b><span>' + sub + '</span></div></div>' + altHTML + '</div>';
     }).join("");
     const rel = pr.rel ? "●".repeat(pr.rel) + "○".repeat(5 - pr.rel) : "non valutato";
@@ -28010,8 +28030,8 @@ function radarPaint(){
       '<div class="rd-prof"><div class="rd-prof-h"><b>Profilo porto · ' + esc(sel.port) + '</b><span class="rd-src ' + (pr.set ? "set" : "") + '">' + (pr.set ? "tuo profilo" : "valori standard") + '</span><button class="btn btn-sm" onclick="window.rdEditProfile(\'' + ea(sel.port) + '\')">Modifica</button></div>' +
       '<div class="rd-prof-g"><div><em>Dogana</em><b>' + rdF1(pr.customs[0]) + '–' + rdF1(pr.customs[1]) + ' gg' + (pr.eu ? " · 0 se UE" : "") + '</b></div><div><em>Preavviso agente</em><b>' + pr.notice + ' h</b></div><div><em>Affidabilità</em><b style="color:' + relC + '">' + rel + '</b></div></div>' +
       '<div class="rd-sub"><em>Agenzia</em> <b>' + esc(pr.agent || "—") + '</b></div>' + (pr.note ? '<div class="rd-note">' + esc(pr.note) + '</div>' : "") + '</div></div>' +
-      (sel.its.length ? '<div class="rd-tblw"><div class="rd-tbl"><div class="rd-rg rd-head"><div>PO · articolo · fornitore</div><div class="rd-gantt"><i class="rd-band" style="' + band + '"></i><span class="rd-bandl" style="left:' + gp(Math.max(0, sel.etb)) + '%">NAVE IN PORTO</span>' + gT + '</div><div>Margine sul limite</div></div>' + rows +
-      '<div class="rd-legend"><span><i style="background:#8fa1b5"></i>pronto dal fornitore</span><span><i style="background:#2b6de0"></i>trasporto</span><span><i style="background:#1d3a5c"></i>dogana</span><span><i style="background:repeating-linear-gradient(45deg,#2b6de0 0 3px,#dfe8fb 3px 6px)"></i>incertezza (min → max)</span><span><i class="cut"></i>limite di consegna</span><span>stima ' + M.basis + '</span></div></div></div>'
+      (sel.its.length ? '<div class="rd-tblw"><div class="rd-tbl"><div class="rd-rg rd-head"><div>PO · articolo · fornitore</div><div class="rd-gantt">' + bandA + '<i class="rd-band" style="' + band + '"></i>' + (anchS ? '<span class="rd-bandl" style="left:' + gp(Math.max(0, sel.eta)) + '%;color:#3d4f66">RADA</span>' : "") + '<span class="rd-bandl" style="left:' + gp(Math.max(0, sel.etb)) + '%">NAVE IN PORTO</span>' + gT + '</div><div>Margine sul limite</div></div>' + rows +
+      '<div class="rd-legend"><span><i style="background:#8fa1b5"></i>pronto dal fornitore</span><span><i style="background:#2b6de0"></i>trasporto</span><span><i style="background:#1d3a5c"></i>dogana</span><span><i style="background:repeating-linear-gradient(45deg,#2b6de0 0 3px,#dfe8fb 3px 6px)"></i>incertezza (min → max)</span><span><i class="cut"></i>limite di consegna</span>' + (anchS ? '<span><i style="background:repeating-linear-gradient(135deg,rgba(61,79,102,.35) 0 3px,rgba(61,79,102,.08) 3px 6px)"></i>in rada (ETA → ETB)</span><span><i style="background:rgba(20,121,78,.25)"></i>in banchina (ETB → ETD)</span>' : "") + '<span>stima ' + M.basis + '</span></div></div></div>'
       : '<div class="rd-sub" style="padding:10px 0">Nessuna consegna pianificata su questo scalo. Pianificala dalla scheda articolo (Pianifica consegna) o spostala qui dal radar.</div>') + '</div>';
   }
 
@@ -30072,8 +30092,11 @@ function mbSectionHTML(full){ const b = mbData(); if(!b) return full ? '<div id=
     '<div class="mb-k"><div><b style="color:' + (M.openD ? "#c0261c" : "#14794e") + '">' + M.openD + '</b><span>da decidere</span></div><div><b style="color:#c07800">' + M.openQ + '</b><span>da rispondere</span></div><div><b style="color:#6a7d90">' + (M.rest.length + M.spam + (c.noise || 0)) + '</b><span>da non leggere</span></div></div></div>';
   h += warn;
   if(!open) return h + '</section>';
-  if(M.D.length) h += '<div style="display:flex;flex-direction:column;gap:9px"><div class="mb-eb" style="color:#c0261c">Da decidere · email incrociate con viaggio, radar e pratiche</div>' + M.D.map((d, i) => mbCardHTML(d, i)).join("") + '</div>';
-  if(M.Q.length) h += '<div><div class="mb-eb" style="color:#b06a00;margin-bottom:4px">Da rispondere' + (M.E.some(e => e.addr != null) ? ' · scritte a te per nome' : '') + '</div>' + M.Q.map(mbQHTML).join("") + '</div>';
+  const Dop = M.D.filter(d => !d.done), Ddn = M.D.filter(d => d.done), Qop = M.Q.filter(e => !e.done), Qdn = M.Q.filter(e => e.done);
+  if(M.D.length) h += '<div style="display:flex;flex-direction:column;gap:9px"><div class="mb-eb" style="color:#c0261c">Da decidere · email incrociate con viaggio, radar e pratiche</div>' + (Dop.length ? Dop.map(d => mbCardHTML(d, M.D.indexOf(d))).join("") : '<div style="font-size:12.5px;color:#14794e;font-weight:700">✓ Tutte lavorate</div>') + '</div>';
+  if(M.Q.length) h += '<div><div class="mb-eb" style="color:#b06a00;margin-bottom:4px">Da rispondere' + (M.E.some(e => e.addr != null) ? ' · scritte a te per nome' : '') + '</div>' + (Qop.length ? Qop.map(mbQHTML).join("") : '<div style="font-size:12.5px;color:#14794e;font-weight:700;padding:6px 0">✓ Tutte lavorate</div>') + '</div>';
+  if(Ddn.length + Qdn.length) h += '<details' + (window._mbDnOpen ? " open" : "") + ' ontoggle="window._mbDnOpen=this.open" style="border:1px solid rgba(10,27,46,.10);border-radius:12px;padding:10px 14px"><summary style="cursor:pointer;font-size:12.5px;font-weight:700;color:#44576b">Già lavorate · ' + (Ddn.length ? Ddn.length + " da decidere" : "") + (Ddn.length && Qdn.length ? " · " : "") + (Qdn.length ? Qdn.length + " da rispondere" : "") + ' <span style="font-weight:500">(apri per recuperarle)</span></summary>' +
+    '<div style="display:flex;flex-direction:column;gap:9px;margin-top:10px">' + Ddn.map(d => mbCardHTML(d, M.D.indexOf(d))).join("") + (Qdn.length ? '<div>' + Qdn.map(mbQHTML).join("") + '</div>' : "") + '</div></details>';
   h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="mb-eb">Flotta stanotte</div><div class="mb-f">' + M.fleet.map(f => '<div onclick="mbVesOpen(\'' + esc(f.id) + '\')" style="' + (window._mbVes === f.id ? "border-color:#1553d8;box-shadow:0 0 0 1px #1553d8" : "") + '"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(f.n) + '</b>' +
     (f.dec ? '<span style="font-size:11px;font-weight:700;color:#c0261c">vedi ' + String(f.dec).padStart(2, "0") + '</span>' : (f.nMail ? "" : '<span style="font-size:11px;font-weight:700;color:#14794e">silenzio</span>')) + '</div>' +
     '<div>' + esc(f.where) + '</div><div style="color:#44576b">' + (f.nMail ? f.nMail + " email · " + esc(f.kinds) : "Nessuna email") + '</div></div>').join("") + '</div>' + mbVesPanel(M) + '</div>';
