@@ -9310,6 +9310,13 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       </div>
     </div>
     <div class="crr-field" style="margin-bottom:14px;">
+      <label>Raggruppa</label>
+      <div class="crr-buckets" id="crr-group">
+        <button class="crr-bucket active" data-grp="vessel">Per nave</button>
+        <button class="crr-bucket" data-grp="resp">Per nave e chi se ne occupa</button>
+      </div>
+    </div>
+    <div class="crr-field" style="margin-bottom:14px;">
       <label>Destinatari <span class="crr-lbl-hint">— tocca per includere nell'email</span></label>
       <div class="crr-recipients" id="crr-recipients"></div>
     </div>
@@ -22285,6 +22292,8 @@ function renderCertificatesView() {
   });
   if (filter.vessel !== "all") filtered = filtered.filter(it => it.vesselId === filter.vessel);
   if (filter.category !== "all") filtered = filtered.filter(it => it.category === filter.category);
+  const fResp = filter.resp || "all";
+  if (fResp !== "all") filtered = filtered.filter(it => fResp === "none" ? !it._resp : it._resp === fResp);
   if (filter.urgency !== "all") {
     if (filter.urgency === "permanent") {
       filtered = filtered.filter(it => it.isPermanent);
@@ -22333,6 +22342,15 @@ function renderCertificatesView() {
     return `<button class="cert-filter-chip ${active ? "active" : ""}" onclick="window.setCertFilter('urgency', '${escapeAttr(u.id)}')">${escapeHTML(u.label)}</button>`;
   }).join("");
 
+  const respBase = allItems.filter(it => !it.isPermanent && (filter.vessel === "all" || it.vesselId === filter.vessel));
+  const respChips = [["all", "Tutti", null], ...Object.keys(CERT_RESP).map(k => [k, CERT_RESP[k].s, CERT_RESP[k].c]), ["none", "Da assegnare", null]].map(([k, l, c]) => {
+    const n = k === "all" ? respBase.length : respBase.filter(it => k === "none" ? !it._resp : it._resp === k).length;
+    if (k !== "all" && k !== "none" && !n) return "";
+    return `<button class="cert-filter-chip ${fResp === k ? "active" : ""}" onclick="window.setCertFilter('resp', '${k}')"${c && fResp !== k ? ` style="color:${c};border-color:${c};"` : ""}>${escapeHTML(l)} <span style="opacity:.7;">${n}</span></button>`;
+  }).join("");
+  const respBar = (fResp !== "all" && fResp !== "none") ? (() => { const R = CERT_RESP[fResp];
+    return `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;margin-bottom:10px;border:1px solid ${R.c};border-radius:12px;background:#fff;"><span style="${certChipCss(R.c, true)}cursor:default;">${escapeHTML(R.l)}</span><span style="font-size:12.5px;color:#44576b;flex:1;min-width:200px;">Una sola email con tutte le sue voci in scadenza${fResp === "class" || fResp === "buy" || fResp === "service" ? ", con porto e date dal Viaggio" : ""}.</span><button class="btn btn-primary btn-sm" onclick="window.certReqOpen('${fResp}')">✉ Prepara richiesta</button></div>`; })() : "";
+
   // Toolbar import (un bottone per nave per ricaricare/aggiornare)
   const importButtons = VESSELS.map(v => {
     const meta = (state.certificatesMeta || {})[v.vesselId];
@@ -22354,6 +22372,7 @@ function renderCertificatesView() {
             <th>Certificato</th>
             <th>Nave</th>
             <th>Categoria</th>
+            <th>Chi</th>
             <th>Scadenza</th>
             <th>Restano</th>
             <th>N° Cert.</th>
@@ -22410,7 +22429,12 @@ function renderCertificatesView() {
           <span class="cert-filter-label">Scadenza:</span>
           <div class="cert-filter-chips">${urgencyChips}</div>
         </div>
+        <div class="cert-filter-row">
+          <span class="cert-filter-label">Chi:</span>
+          <div class="cert-filter-chips">${respChips}</div>
+        </div>
       </section>
+      ${respBar}
 
       <section class="cert-table-section">
         ${tableHTML}
@@ -22441,6 +22465,7 @@ function certTableRowHTML(it) {
     </td>
     <td><span class="vessel-tag">${escapeHTML(it.vesselName || "")}</span></td>
     <td><span class="cert-cat-tag">${escapeHTML(it.category || "")}</span></td>
+    <td style="min-width:110px;">${certRespCellHTML(it)}</td>
     <td>${expFmt}</td>
     <td><span class="cert-pill ${cls}">${daysLabel}</span></td>
     <td>${certNumHTML}</td>
@@ -22485,6 +22510,8 @@ function applyCertExtra(vid,it){
   m._needsService=!!ex.needsService;
   m._svc=ex.plan||null;
   m._reports=Array.isArray(ex.reports)?ex.reports:[];
+  m._resp=ex.resp||""; m._where=ex.where||""; m._respName=ex.respName||"";
+  m._hist=Array.isArray(ex.history)?ex.history:[];
   return m;
 }
 function certServiceCellHTML(it){
@@ -22499,6 +22526,135 @@ function certServiceCellHTML(it){
 function certSupplierEmail(name){ if(!name) return ""; try{ const s=getEntityProfile("supplier",name); if(s&&s.email) return s.email; }catch(e){} try{ const a=getEntityProfile("agency",name); if(a&&a.email) return a.email; }catch(e){} return ""; }
 function certRubricaNames(){ const set=new Set(); try{ Object.keys(loadEntityProfiles("supplier")||{}).forEach(n=>set.add(n)); }catch(e){} try{ Object.keys(loadEntityProfiles("agency")||{}).forEach(n=>set.add(n)); }catch(e){} return [...set].sort((a,b)=>a.localeCompare(b)); }
 function certFindItem(vid,key){ const arr=(state.certificates&&state.certificates[vid])||[]; return arr.find(x=>certKey(x)===key)||null; }
+
+// === v1.24 — CHI SE NE OCCUPA (responsabile, dove, contatto, storico, richieste raggruppate) ===
+const CERT_RESP = {
+  master:{l:"Master / bordo", s:"Master", en:"Master / on board", c:"#1553d8"},
+  class:{l:"RINA (Classe)", s:"RINA", en:"Class (RINA)", c:"#6a4bff"},
+  flag:{l:"Bandiera / Amministrazione", s:"Bandiera", en:"Flag Administration", c:"#0f7b8a"},
+  service:{l:"Ditta esterna (service)", s:"Ditta", en:"Service company", c:"#b06a00"},
+  buy:{l:"Acquisto / sostituzione", s:"Acquisto", en:"Purchase / replacement", c:"#14794e"},
+  office:{l:"Ufficio / Compagnia", s:"Ufficio", en:"Company / Office", c:"#3d4f66"},
+  pi:{l:"P&I / Assicurazione", s:"P&I", en:"P&I / Insurance", c:"#8a3ffc"},
+  port:{l:"Porto / Autorità locale", s:"Porto", en:"Port / Local authority", c:"#b3246b"}
+};
+const CERT_WHERE = { board:"a bordo", port:"in porto", yard:"in cantiere" };
+const CERT_WHERE_EN = { board:"on board", port:"in port", yard:"at shipyard" };
+function certChipCss(c,on){ return "font-family:inherit;font-size:12px;font-weight:700;border-radius:999px;padding:6px 11px;cursor:pointer;border:1px solid "+c+";background:"+(on?c:"#fff")+";color:"+(on?"#fff":c)+";"; }
+function certMasterEmail(vid, ex){ const cfg=VESSELS.find(v=>v.vesselId===vid)||{}; const m=(ex&&ex.masterEmailOverride)||cfg.masterEmail||""; return /example\.com|_{2,}/.test(m)?"":m; }
+function certRespEmail(vid, resp, name){ return resp==="master" ? certMasterEmail(vid, {}) : certSupplierEmail(name); }
+// ultimo contatto usato per quel responsabile su quella nave (poi su tutta la flotta)
+function certRespDefault(vid, resp){ if(!resp||resp==="master") return ""; const all=loadCertExtras(); let best="", bt="";
+  const scan=(o,boost)=>Object.values(o||{}).forEach(e=>{ if(e&&e.resp===resp&&e.respName){ const t=(boost?"z":"a")+(e.updatedAt||""); if(t>bt){ bt=t; best=e.respName; } } });
+  Object.keys(all).forEach(v=>scan(all[v], v===vid)); return best; }
+function certFmtD(iso, en, short){ if(!iso) return ""; const d=new Date(String(iso).slice(0,10)+"T00:00:00"); if(isNaN(d)) return String(iso); return d.toLocaleDateString(en?"en-GB":"it-IT", short?{month:"short",year:"numeric"}:{day:"2-digit",month:"short",year:"numeric"}); }
+function certRespCellHTML(it){
+  const R=CERT_RESP[it._resp], c=R?R.c:"#8a93a0";
+  const opts='<option value="">— chi? —</option>'+Object.keys(CERT_RESP).map(k=>'<option value="'+k+'"'+(it._resp===k?" selected":"")+'>'+escapeHTML(CERT_RESP[k].s)+'</option>').join("");
+  const sel='<select onclick="event.stopPropagation()" onchange="window.certSetResp(\''+escapeAttr(it.vesselId)+'\',\''+escapeAttr(it._key)+'\',this.value)" title="'+escapeAttr(R?R.l:"Assegna chi se ne occupa")+'" style="font-family:inherit;font-size:11px;font-weight:700;border-radius:999px;padding:3px 8px;cursor:pointer;border:1px solid '+c+';background:'+(R?c:"#fff")+';color:'+(R?"#fff":"#6a7d90")+';max-width:120px;">'+opts+'</select>';
+  const sub=[it._where?CERT_WHERE[it._where]:"", it._respName||""].filter(Boolean).map(escapeHTML).join(" · ");
+  const h=(it._hist||[])[0];
+  const last=h?'<div style="font-size:10.5px;color:#6a7d90;margin-top:2px;" title="Ultimo intervento registrato">ultimo '+escapeHTML(certFmtD(h.date,false,true))+(h.by?" · "+escapeHTML(h.by):"")+'</div>':"";
+  return sel+(sub?'<div style="font-size:10.5px;color:#44576b;margin-top:3px;">'+sub+'</div>':"")+last;
+}
+window.certSetResp = function(vid, key, v){ const it=certFindItem(vid,key); if(!it) return; const ex=getCertExtra(vid,it);
+  setCertExtra(vid, it, { resp:v||"", respName: v ? (ex.resp===v && ex.respName ? ex.respName : certRespDefault(vid,v)) : "" });
+  const y=window.scrollY; render(); try{ window.scrollTo(0,y); }catch(e){} showToast(v ? "Assegnato a "+CERT_RESP[v].s : "Responsabile tolto"); };
+function certVoyLegs(vid){ const V=getVoyage(vid)||{}; return [V.current, V.next].filter(l=>l&&l.to).map(l=>({ port:l.to, eta:l.eta||"", etb:l.etb||"", etd:l.etd||"" })); }
+function certRespItems(vid, resp, win){
+  const arr=(state.certificates&&state.certificates[vid])||[];
+  return arr.map(it=>applyCertExtra(vid,it)).filter(it=>it._resp===resp && !it.isPermanent)
+    .map(it=>Object.assign(it,{ _days: it.expiry ? daysToExpiry(it.expiry) : null }))
+    .filter(it=>win==="all" || (it._days!=null && it._days<=+win))
+    .sort((a,b)=>(a._days==null?1e9:a._days)-(b._days==null?1e9:b._days));
+}
+// Prepara richiesta: una sola email al responsabile con tutte le sue voci in scadenza
+window._crq = null;
+function crqHost(){ let h=document.getElementById("cert-rq-host"); if(!h){ h=document.createElement("div"); h.id="cert-rq-host"; document.body.appendChild(h); } return h; }
+window.certReqClose = function(){ const h=document.getElementById("cert-rq-host"); if(h) h.innerHTML=""; };
+window.certReqOpen = function(resp, vid){
+  const f=state._certFilter||{};
+  if(!vid) vid = (f.vessel&&f.vessel!=="all") ? f.vessel : ((VESSELS.find(v=>certRespItems(v.vesselId,resp,"all").length)||VESSELS[0]||{}).vesselId);
+  window._crq = { resp, vid, name:null, lang:(window._crq&&window._crq.lang)||"en", win:"90", sel:null, leg:0, to:null };
+  crqRender();
+};
+window.crqSet = function(k, v){ const S=window._crq; if(!S) return; S[k]=v; if(k==="vid"){ S.name=null; S.sel=null; S.to=null; S.leg=0; } if(k==="name"){ S.sel=null; S.to=null; } if(k==="win") S.sel=null; crqRender(); };
+window.crqToggle = function(key, on){ const S=window._crq; if(!S) return; S.sel=S.sel||{}; S.sel[key]=on; crqRender(); };
+function crqBuild(S, items, leg){
+  const cfg=VESSELS.find(v=>v.vesselId===S.vid)||{}, R=CERT_RESP[S.resp];
+  const vN=cfg.displayName||S.vid, vL=/^m\/v/i.test(vN)?vN:"M/V "+vN, imo=cfg.imo?(" (IMO "+cfg.imo+")"):"";
+  const T={
+    master:["please arrange on board the following items falling due and confirm completion, sending us a copy of the updated certificate / record:","Vi chiediamo di provvedere a bordo alle seguenti voci in scadenza e di confermarci l'esito, inviandoci copia del certificato / registrazione aggiornata:"],
+    class:["we kindly request the attendance of your surveyor for the following surveys / endorsements:","Vi chiediamo la presenza del Vostro ispettore per le seguenti visite / convalide:"],
+    flag:["we kindly ask you to arrange the renewal / endorsement of the following:","Vi chiediamo di provvedere al rinnovo / convalida di quanto segue:"],
+    service:["we kindly request your quotation and availability for the following services:","Vi chiediamo preventivo e disponibilità per i seguenti interventi:"],
+    buy:["we kindly request your best quotation and lead time for the supply / replacement of the following:","Vi chiediamo la migliore offerta e i tempi di consegna per la fornitura / sostituzione di quanto segue:"],
+    office:["please find below the items under Company responsibility falling due; kindly arrange as necessary:","di seguito le voci di competenza della Compagnia in scadenza; Vi preghiamo di provvedere:"],
+    pi:["please find below the certificates falling due; kindly arrange the renewal and send us the updated documents:","di seguito i certificati in scadenza; Vi preghiamo di provvedere al rinnovo e di inviarci i documenti aggiornati:"],
+    port:["please find below the items falling due; kindly advise on the local requirements and arrange as necessary:","di seguito le voci in scadenza; Vi preghiamo di indicarci i requisiti locali e di provvedere:"]
+  }[S.resp];
+  const CL={ master:["Thank you.","Grazie."], class:["Please confirm availability and attendance arrangements.","Vi preghiamo di confermare disponibilità e modalità dell'attendance."], service:["Please confirm availability, lead time and costs.","Vi preghiamo di confermare disponibilità, tempi e costi."], buy:["Please include delivery to the vessel at the port above.","Vi preghiamo di includere la consegna a bordo nel porto indicato."] }[S.resp] || ["Thank you for your cooperation.","Grazie per la collaborazione."];
+  const SJ={ master:["Items due on board","Voci in scadenza a bordo"], class:["Survey attendance request","Richiesta attendance ispettore"], flag:["Renewal / endorsement request","Richiesta rinnovo / convalida"], service:["RFQ — services","Richiesta preventivo service"], buy:["RFQ — supply / replacement","Richiesta offerta fornitura / sostituzione"], office:["Items due — Company","Voci in scadenza — Compagnia"], pi:["Certificates due — P&I / insurance","Certificati in scadenza — P&I / assicurazione"], port:["Items due — port requirements","Voci in scadenza — requisiti porto"] }[S.resp];
+  const one=(en)=>{ const i=en?0:1;
+    const line=c=>{ const d=c._days; const dt=d==null?"":d<0?(en?"expired "+(-d)+" days ago":"scaduto da "+(-d)+" gg"):d===0?(en?"today":"oggi"):(en?"in "+d+" days":"tra "+d+" gg");
+      return "  • "+(c.n!=null&&String(c.n).trim()!==""?((en?"No. ":"N° ")+String(c.n).trim()+" · "):"")+(c.name||"—")+(c.certNum?(" — "+(en?"Cert. No. ":"Cert. N° ")+c.certNum):"")+(c.expiry?(" — "+(en?"exp. ":"scad. ")+certFmtD(c.expiry,en)+(dt?" ("+dt+")":"")):"")+(c._where?(" — "+(en?CERT_WHERE_EN:CERT_WHERE)[c._where]):""); };
+    const list=items.map(line).join("\n")||(en?"  — none —":"  — nessuna voce —");
+    const sch=leg?((en?"Vessel schedule: ":"Programma nave: ")+leg.port+(leg.eta?", ETA "+certFmtD(leg.eta,en):"")+(leg.etb?", ETB "+certFmtD(leg.etb,en):"")+(leg.etd?", ETD "+certFmtD(leg.etd,en):"")+"."):"";
+    const greet=S.resp==="master"?(en?"Dear Master,":"Gentile Comandante,"):(en?"Dear "+(S.name||"Sirs")+",":"Spett.le "+(S.name||"Ditta")+",");
+    const ref=S.resp==="master"?"":(en?"with reference to "+vL+imo+", ":"con riferimento alla "+vL+imo+", ");
+    let intro=T[i]; if(ref) intro=intro.charAt(0).toLowerCase()+intro.slice(1);
+    const sign=en?"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA":"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA";
+    return { s: vL+" — "+SJ[i]+(leg?" @ "+leg.port:"")+" ("+items.length+")", b: greet+"\n\n"+ref+intro+"\n\n"+list+(sch?"\n\n"+sch:"")+"\n\n"+CL[i]+"\n\n"+sign };
+  };
+  if(S.lang==="it"){ const a=one(false); return { subject:a.s, body:a.b }; }
+  if(S.lang==="both"){ const a=one(false), b=one(true); return { subject:a.s+" / "+b.s, body:a.b+"\n\n———————————————\n\n"+b.b }; }
+  const b=one(true); return { subject:b.s, body:b.b };
+}
+function crqRender(){
+  const S=window._crq; if(!S) return; const R=CERT_RESP[S.resp];
+  const all=certRespItems(S.vid,S.resp,S.win);
+  const names=[...new Set(all.map(i=>i._respName||""))];
+  if(S.resp!=="master" && (S.name==null || !names.includes(S.name))) S.name=names[0]||"";
+  const items=S.resp==="master"?all:all.filter(i=>(i._respName||"")===S.name);
+  S.sel=S.sel||{};
+  const picked=items.filter(i=>S.sel[i._key]!==false);
+  const legs=certVoyLegs(S.vid); if(S.leg>=legs.length) S.leg=legs.length?0:-1;
+  if(S.to==null) S.to=certRespEmail(S.vid,S.resp,S.name);
+  const rep=crqBuild(S,picked,legs[S.leg]);
+  S._rep=rep; S._picked=picked;
+  const lab='display:block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#6a7d90;margin-bottom:5px;';
+  const inp='width:100%;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid #cbd3dd;border-radius:9px;box-sizing:border-box;background:#fff;color:#0a1b2e;';
+  const bt=(on)=>'font-family:inherit;font-size:12px;font-weight:700;border-radius:8px;padding:6px 11px;cursor:pointer;border:1px solid '+(on?"#1553d8":"#cbd3dd")+';background:'+(on?"#1553d8":"#fff")+';color:'+(on?"#fff":"#44576b")+';';
+  const vOpts=VESSELS.map(v=>{ const n=certRespItems(v.vesselId,S.resp,"all").length; return '<option value="'+escapeAttr(v.vesselId)+'"'+(v.vesselId===S.vid?" selected":"")+'>'+escapeHTML(v.displayName||v.vesselId)+(n?" ("+n+")":"")+'</option>'; }).join("");
+  const wOpts=[["30","scaduti + entro 30 gg"],["90","scaduti + entro 90 gg"],["180","scaduti + entro 180 gg"],["all","tutte le voci"]].map(([k,l])=>'<option value="'+k+'"'+(S.win===k?" selected":"")+'>'+l+'</option>').join("");
+  const nameRow=S.resp==="master"?"":(names.length>1?'<div><span style="'+lab+'">Destinatario</span><div style="display:flex;gap:6px;flex-wrap:wrap;">'+names.map(n=>'<button type="button" onclick="window.crqSet(\'name\',this.dataset.n)" data-n="'+escapeAttr(n)+'" style="'+bt(n===S.name)+'">'+escapeHTML(n||"senza nome")+' · '+all.filter(i=>(i._respName||"")===n).length+'</button>').join("")+'</div></div>':"");
+  const legRow=legs.length?'<div><label style="'+lab+'">Scalo (dal Viaggio)</label><select onchange="window.crqSet(\'leg\',+this.value)" style="'+inp+'"><option value="-1"'+(S.leg<0?" selected":"")+'>— non indicare —</option>'+legs.map((l,i)=>'<option value="'+i+'"'+(S.leg===i?" selected":"")+'>'+escapeHTML(l.port)+(l.eta?" · ETA "+escapeHTML(certFmtD(l.eta)):"")+(l.etd?" · ETD "+escapeHTML(certFmtD(l.etd)):"")+'</option>').join("")+'</select></div>':'<div style="font-size:12px;color:#6a7d90;align-self:end;">Nessuno scalo nel Viaggio: aggiornalo per mettere porto e date nella richiesta.</div>';
+  const rows=items.length?items.map(i=>{ const on=S.sel[i._key]!==false, d=i._days; const dc=d==null?"#6a7d90":d<0?"#c0261c":d<=30?"#b06a00":"#44576b";
+    return '<label style="display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-top:1px solid #eef1f5;cursor:pointer;font-size:12.5px;"><input type="checkbox"'+(on?" checked":"")+' onchange="window.crqToggle(\''+escapeAttr(i._key)+'\',this.checked)" style="margin-top:2px;"><span style="flex:1;min-width:0;"><b style="font-family:var(--font-mono,monospace);color:#6a7d90;font-weight:600;">'+escapeHTML(String(i.n||""))+'</b> '+escapeHTML(i.name||"")+(i.certNum?' <span style="color:#6a7d90;">· '+escapeHTML(i.certNum)+'</span>':"")+(i._where?' <span style="color:#6a7d90;">· '+CERT_WHERE[i._where]+'</span>':"")+'</span><span style="white-space:nowrap;font-weight:700;color:'+dc+';">'+(i.expiry?escapeHTML(certFmtD(i.expiry)):"senza data")+'</span></label>'; }).join("")
+    :'<div style="font-size:12.5px;color:#6a7d90;padding:8px 0;">Nessuna voce assegnata a <b>'+escapeHTML(R.l)+'</b> per questa nave in questa finestra. Assegnale dalla colonna «Chi» dell\'elenco.</div>';
+  crqHost().innerHTML='<div onclick="if(event.target===this)window.certReqClose()" style="position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.42);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:34px 16px;">'
+   +'<div style="width:min(720px,96vw);background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.32);color:#0a1b2e;">'
+    +'<div style="display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid #eef1f5;"><span style="'+certChipCss(R.c,true)+'cursor:default;">'+escapeHTML(R.l)+'</span><div style="flex:1;font-weight:700;font-size:15px;">Prepara richiesta</div><button onclick="window.certReqClose()" style="border:none;background:transparent;font-size:22px;color:#6a7d90;cursor:pointer;line-height:1;">✕</button></div>'
+    +'<div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">'
+     +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;"><div><label style="'+lab+'">Nave</label><select onchange="window.crqSet(\'vid\',this.value)" style="'+inp+'">'+vOpts+'</select></div><div><label style="'+lab+'">Voci</label><select onchange="window.crqSet(\'win\',this.value)" style="'+inp+'">'+wOpts+'</select></div>'+legRow+'</div>'
+     +nameRow
+     +'<div><span style="'+lab+'">Da includere · '+picked.length+' di '+items.length+'</span>'+rows+'</div>'
+     +'<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;"><div><label style="'+lab+'">A '+(S.resp==="master"?"(email Comandante dalla nave)":"(dalla Rubrica)")+'</label><input id="crq-to" value="'+escapeAttr(S.to||"")+'" oninput="window._crq.to=this.value" placeholder="'+(S.resp==="master"?"comandante@nave":"aggiungi il contatto in Rubrica o scrivi l\'email")+'" style="'+inp+'"></div><div style="display:flex;gap:4px;">'+[["it","IT"],["en","EN"],["both","IT+EN"]].map(([k,l])=>'<button type="button" onclick="window.crqSet(\'lang\',\''+k+'\')" style="'+bt(S.lang===k)+'">'+l+'</button>').join("")+'</div></div>'
+     +'<div><label style="'+lab+'">Oggetto</label><input id="crq-subj" value="'+escapeAttr(rep.subject)+'" style="'+inp+'"></div>'
+     +'<div><label style="'+lab+'">Testo <span style="text-transform:none;font-weight:400;">— modificabile; cambiando le scelte sopra si rigenera</span></label><textarea id="crq-body" rows="14" style="'+inp+'font-family:var(--font-mono,monospace);font-size:12px;line-height:1.5;resize:vertical;">'+escapeHTML(rep.body)+'</textarea></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:9px;padding:14px 22px;border-top:1px solid #eef1f5;justify-content:flex-end;flex-wrap:wrap;"><button onclick="window.crqCopy()" style="'+bt(false)+'padding:9px 14px;">Copia testo</button><button onclick="window.crqSend()"'+(picked.length?"":" disabled")+' style="'+bt(true)+'padding:9px 16px;'+(picked.length?"":"opacity:.5;cursor:default;")+'">✉ Apri in Outlook ('+picked.length+')</button></div>'
+   +'</div></div>';
+}
+window.crqCopy = function(){ const s=(document.getElementById("crq-subj")||{}).value||"", b=(document.getElementById("crq-body")||{}).value||""; if(navigator.clipboard) navigator.clipboard.writeText(s+"\n\n"+b).then(()=>showToast("Testo copiato")).catch(()=>showToast("Copia non riuscita")); };
+window.crqSend = function(){ const S=window._crq; if(!S||!S._picked||!S._picked.length) return;
+  const subj=(document.getElementById("crq-subj")||{}).value||S._rep.subject, body=(document.getElementById("crq-body")||{}).value||S._rep.body, to=((document.getElementById("crq-to")||{}).value||"").trim();
+  if(typeof openComposeMail==="function" && typeof buildComposeHref==="function") openComposeMail(buildComposeHref(subj, body, to));
+  S._picked.forEach(i=>{ const it=certFindItem(S.vid,i._key); if(!it) return; const ex=getCertExtra(S.vid,it); const reports=Array.isArray(ex.reports)?ex.reports.slice():[];
+    reports.unshift({ ts:new Date().toISOString(), which:"resp:"+S.resp, to:to||"(nessun destinatario)", lang:S.lang, subject:subj, batch:S._picked.length>1?S._picked.length:undefined });
+    const patch={ reports }; if(ex.needsService){ const plan=Object.assign({}, ex.plan||{}); if(!plan.status||plan.status==="none") plan.status="requested"; patch.plan=plan; }
+    setCertExtra(S.vid, it, patch); });
+  showToast("Bozza pronta · "+S._picked.length+" voci tracciate"); window.certReqClose(); if(state.view==="certificates") render(); };
 
 window.setCertFilter = function(key, value) {
   if (!state._certFilter) state._certFilter = { urgency: "all", vessel: "all", category: "all", q: "" };
@@ -22537,7 +22693,7 @@ window.openCertEditor = function(vid, key){
   const reps = eff._reports||[];
   const repHTML = reps.length ? reps.map(r=>{
     const when=new Date(r.ts).toLocaleString("it-IT",{day:"2-digit",month:"short",year:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const who = r.which==="master"?"Comandante":"Fornitore";
+    const who = r.which==="master"?"Comandante":(String(r.which||"").startsWith("resp:")&&CERT_RESP[r.which.slice(5)])?("Richiesta · "+CERT_RESP[r.which.slice(5)].s+(r.batch?" · "+r.batch+" voci":"")):"Fornitore";
     return '<div style="display:flex;gap:8px;align-items:baseline;padding:7px 0;border-top:1px solid #eef1f5;font-size:12px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;color:#0e54c1;background:#eaf1fd;padding:1px 6px;border-radius:5px;white-space:nowrap;">'+who+'</span><span style="flex:1;color:#3a4250;">'+escapeHTML(r.to||"—")+'<div style="font-size:10.5px;color:#8a93a0;">'+escapeHTML(r.subject||"")+'</div></span><span style="font-size:10.5px;color:#8a93a0;white-space:nowrap;">'+escapeHTML(r.lang.toUpperCase())+' · '+when+'</span></div>';
   }).join("") : '<div style="font-size:12px;color:#8a93a0;padding:6px 0;">Nessun report ancora inviato per questo certificato.</div>';
   const lab='display:block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#7a8290;margin-bottom:5px;';
@@ -22574,6 +22730,28 @@ window.openCertEditor = function(vid, key){
           +'</div>'
           +ceNotes(ex.notes,it.notes)
         +'</div>'
+        +(()=>{ window._ceVid=vid; const resp=ex.resp||"", where=ex.where||"", hist=Array.isArray(ex.history)?ex.history:[];
+          const rb=k=>'<button type="button" data-ce-resp="'+k+'" onclick="window.ceSetResp(\''+k+'\')" style="'+certChipCss(CERT_RESP[k].c,resp===k)+'">'+escapeHTML(CERT_RESP[k].l)+'</button>';
+          const wb=k=>'<button type="button" data-ce-where="'+k+'" onclick="window.ceSetWhere(\''+k+'\')" style="'+certChipCss("#0a1b2e",where===k)+'">'+CERT_WHERE[k]+'</button>';
+          const em=resp?certRespEmail(vid,resp,ex.respName||""):"";
+          const hRows=hist.length?hist.map((h,i)=>'<div style="display:grid;grid-template-columns:86px minmax(0,1fr) auto 20px;gap:8px;align-items:baseline;padding:6px 0;border-top:1px solid #eef1f5;font-size:12px;"><span style="font-family:var(--font-mono,monospace);color:#44576b;">'+escapeHTML(certFmtD(h.date))+'</span><span>'+escapeHTML(h.by||"—")+(h.port?' <span style="color:#6a7d90;">· '+escapeHTML(h.port)+'</span>':"")+(h.note?'<div style="font-size:11px;color:#6a7d90;">'+escapeHTML(h.note)+'</div>':"")+'</span><span style="font-family:var(--font-mono,monospace);white-space:nowrap;">'+(h.cost?escapeHTML((h.cur==="EUR"?"€ ":"$ ")+Number(h.cost).toLocaleString("it-IT")):"")+'</span><button type="button" onclick="window.ceDelHist(\''+escapeAttr(vid)+'\',\''+escapeAttr(key)+'\','+i+')" title="Elimina" style="border:none;background:transparent;color:#8a93a0;cursor:pointer;">✕</button></div>').join(""):'<div style="font-size:12px;color:#8a93a0;padding:4px 0;">Nessun intervento registrato. Ogni volta che viene fatto, segnalo qui: la prossima volta sai a chi chiedere e quanto costò.</div>';
+          return '<div style="border:1px solid #e3e8ef;border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:12px;">'
+            +'<div style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0a1b2e;">Chi se ne occupa</div>'
+            +'<input type="hidden" id="ce-resp" value="'+escapeAttr(resp)+'"><input type="hidden" id="ce-where" value="'+escapeAttr(where)+'">'
+            +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(CERT_RESP).map(rb).join("")+'</div>'
+            +'<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:14px;align-items:start;">'
+              +'<div><label style="'+lab+'">Dove si fa</label><div style="display:flex;gap:6px;flex-wrap:wrap;">'+Object.keys(CERT_WHERE).map(wb).join("")+'</div></div>'
+              +'<div id="ce-resp-name-wrap" style="display:'+(resp&&resp!=="master"?"block":"none")+';"><label style="'+lab+'">Contatto (Rubrica)</label><input type="text" id="ce-resp-name" list="ce-rubrica-dl" value="'+escapeAttr(ex.respName||"")+'" oninput="window.ceRespHint()" placeholder="Ispettore RINA, ditta, agenzia…" style="'+inp+'"></div>'
+            +'</div>'
+            +'<div id="ce-resp-hint" style="font-size:11.5px;color:#6a7d90;">'+(resp?(em?"Email: "+escapeHTML(em):(resp==="master"?"Email Comandante non impostata nella scheda nave":"Contatto senza email in Rubrica")):"Scegli chi se ne occupa: le richieste in Certificati si preparano per responsabile.")+'</div>'
+          +'</div>'
+          +'<div style="border:1px solid #e3e8ef;border-radius:12px;padding:15px;">'
+            +'<div style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0a1b2e;margin-bottom:6px;">Storico · chi l\'ha fatto, dove, quanto è costato</div>'+hRows
+            +'<div style="display:grid;grid-template-columns:130px minmax(0,1fr) minmax(0,.8fr) 90px 66px;gap:8px;margin-top:10px;">'
+              +'<input type="date" id="ce-h-date" style="'+inp+'padding:7px 8px;font-size:12.5px;"><input type="text" id="ce-h-by" list="ce-rubrica-dl" placeholder="Chi l\'ha fatto" value="'+escapeAttr(ex.respName||"")+'" style="'+inp+'padding:7px 8px;font-size:12.5px;"><input type="text" id="ce-h-port" placeholder="Porto" style="'+inp+'padding:7px 8px;font-size:12.5px;"><input type="number" id="ce-h-cost" placeholder="Costo" style="'+inp+'padding:7px 8px;font-size:12.5px;"><select id="ce-h-cur" style="'+inp+'padding:7px 4px;font-size:12.5px;"><option>USD</option><option>EUR</option></select>'
+            +'</div>'
+            +'<div style="display:flex;gap:8px;margin-top:8px;"><input type="text" id="ce-h-note" placeholder="Note (facoltative)" style="'+inp+'padding:7px 8px;font-size:12.5px;flex:1;"><button type="button" onclick="window.ceAddHist(\''+escapeAttr(vid)+'\',\''+escapeAttr(key)+'\')" style="font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;background:#1553d8;border:none;border-radius:9px;padding:7px 14px;cursor:pointer;white-space:nowrap;">+ Aggiungi</button></div>'
+          +'</div>'; })()
         +'<div><label style="'+lab+'">Fornitore / Agenzia (emittente o di riferimento)</label><input type="text" id="ce-supplier" list="ce-rubrica-dl" value="'+escapeAttr(ex.supplier||"")+'" placeholder="Nome dalla Rubrica o libero" style="'+inp+'"></div>'
         +'<label style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:#f7f9fb;border:1px solid #eef1f5;border-radius:10px;cursor:pointer;"><input type="checkbox" id="ce-needs" '+(needs?"checked":"")+' onchange="window.ceToggleNeeds(this.checked)" style="width:17px;height:17px;cursor:pointer;"><span style="font-size:13.5px;font-weight:600;color:#2b3240;">Richiede service / audit / verifica / ispezione</span></label>'
         +'<div id="ce-plan" style="display:'+(needs?"block":"none")+';border:1px solid #e4e1f2;border-radius:12px;padding:15px;background:#fbfaff;">'
@@ -22608,6 +22786,24 @@ window.openCertEditor = function(vid, key){
     +'</div>'+dl+'</div>';
   ceEnsureHost().innerHTML = html;
 };
+window.ceSetResp = function(k){ const h=document.getElementById("ce-resp"); if(!h) return; const v=h.value===k?"":k; h.value=v;
+  document.querySelectorAll("[data-ce-resp]").forEach(b=>{ const kk=b.getAttribute("data-ce-resp"); b.setAttribute("style", certChipCss(CERT_RESP[kk].c, kk===v)); });
+  const w=document.getElementById("ce-resp-name-wrap"); if(w) w.style.display=(v&&v!=="master")?"block":"none";
+  const n=document.getElementById("ce-resp-name"); if(n && v && v!=="master" && !n.value) n.value=certRespDefault(window._ceVid, v);
+  window.ceRespHint(); };
+window.ceSetWhere = function(k){ const h=document.getElementById("ce-where"); if(!h) return; const v=h.value===k?"":k; h.value=v;
+  document.querySelectorAll("[data-ce-where]").forEach(b=>b.setAttribute("style", certChipCss("#0a1b2e", b.getAttribute("data-ce-where")===v))); };
+window.ceRespHint = function(){ const r=(document.getElementById("ce-resp")||{}).value||"", n=(document.getElementById("ce-resp-name")||{}).value||"", el=document.getElementById("ce-resp-hint"); if(!el) return;
+  if(!r){ el.textContent="Scegli chi se ne occupa: le richieste in Certificati si preparano per responsabile."; return; }
+  const em=r==="master"?(((document.getElementById("ce-master-email")||{}).value||"").trim()||certMasterEmail(window._ceVid,{})):certSupplierEmail(n.trim());
+  el.textContent = em ? "Email: "+em : (r==="master"?"Email Comandante non impostata nella scheda nave":(n?"Contatto senza email in Rubrica":"Indica il contatto dalla Rubrica")); };
+window.ceAddHist = function(vid, key){ const it=certFindItem(vid,key); if(!it) return; const g=id=>((document.getElementById(id)||{}).value||"").trim();
+  const date=g("ce-h-date"); if(!date){ showToast("Indica la data dell'intervento"); return; }
+  certEditorReadFields(vid,it); const ex=getCertExtra(vid,it);
+  const history=[{ date, by:g("ce-h-by"), port:g("ce-h-port"), cost:g("ce-h-cost")?+g("ce-h-cost"):"", cur:g("ce-h-cur")||"USD", note:g("ce-h-note"), at:new Date().toISOString() }].concat(Array.isArray(ex.history)?ex.history:[]).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  setCertExtra(vid,it,{ history }); showToast("Intervento registrato"); window.openCertEditor(vid,key); };
+window.ceDelHist = function(vid, key, i){ const it=certFindItem(vid,key); if(!it) return; if(!confirm("Eliminare questo intervento dallo storico?")) return;
+  certEditorReadFields(vid,it); const ex=getCertExtra(vid,it); const history=(Array.isArray(ex.history)?ex.history:[]).slice(); history.splice(i,1); setCertExtra(vid,it,{ history }); window.openCertEditor(vid,key); };
 window.ceToggleNeeds = function(on){ const el=document.getElementById("ce-plan"); if(el) el.style.display=on?"block":"none"; };
 window.ceSetLang = function(l){ window._ceLang=l; document.querySelectorAll("#cert-editor-host button").forEach(()=>{}); const host=document.getElementById("cert-editor-host"); if(!host) return; host.querySelectorAll("[onclick^=\"window.ceSetLang\"]").forEach(b=>{ const k=b.getAttribute("onclick").match(/ceSetLang\('(\w+)'\)/)[1]; b.style.background=k===l?"#0e54c1":"#eef1f5"; b.style.color=k===l?"#fff":"#4b5563"; }); };
 window.ceSyncSupEmail = function(){ const n=(document.getElementById("ce-plan-supplier")||{}).value||""; const em=certSupplierEmail(n); const f=document.getElementById("ce-sup-email"); if(f && !f.value && em) f.value=em; };
@@ -22620,6 +22816,7 @@ function certEditorReadFields(vid, it){
     category:(g("ce-category")||"").trim(), notes:(g("ce-notes")||"").trim(),
     expiry:g("ce-expiry")||"", place:(g("ce-place")||"").trim(), supplier:(g("ce-supplier")||"").trim(),
     needsService:needs,
+    resp:g("ce-resp")||"", where:g("ce-where")||"", respName:(g("ce-resp-name")||"").trim(),
     plan:{ type:g("ce-type")||"service", status:g("ce-status")||"none", date:g("ce-date")||"", port:(g("ce-port")||"").trim(), supplier:(g("ce-plan-supplier")||"").trim() },
     supEmailOverride:(g("ce-sup-email")||"").trim(),
     masterEmailOverride:(g("ce-master-email")||"").trim()
@@ -22854,6 +23051,10 @@ window.openCertReport = function() {
     b.classList.toggle("active", window._certReport.buckets.includes(b.dataset.bucket)));
 
   vsel.onchange = () => { window._certReport.vessel = vsel.value; renderCertRecipients(); refreshCertReportPreview(); };
+  document.querySelectorAll("#crr-group .crr-bucket").forEach(b => {
+    b.classList.toggle("active", b.dataset.grp === (window._certReport.groupBy || "vessel"));
+    b.onclick = () => { window._certReport.groupBy = b.dataset.grp; document.querySelectorAll("#crr-group .crr-bucket").forEach(x => x.classList.toggle("active", x === b)); refreshCertReportPreview(); };
+  });
   document.querySelectorAll("#crr-buckets .crr-bucket").forEach(b => {
     b.onclick = () => {
       const k = b.dataset.bucket;
@@ -22956,6 +23157,16 @@ function buildCertReport() {
     ? `${vLabel} — ${cap(filterLabel)} (${count})`
     : `${EN ? "Fleet" : "Flotta"} — ${cap(filterLabel)} (${count})`;
 
+  const grpResp = window._certReport.groupBy === "resp";
+  const blk = (vid, arr) => {
+    if (!grpResp) return arr.map(certLine).join("\n");
+    const by = {}; arr.forEach(c => { const r = getCertExtra(vid, c).resp || ""; (by[r] = by[r] || []).push(c); });
+    return [...Object.keys(CERT_RESP), ""].filter(r => by[r]).map(r => {
+      const ex1 = getCertExtra(vid, by[r][0]);
+      const lab = r ? (EN ? CERT_RESP[r].en : CERT_RESP[r].l) + (ex1.respName && by[r].every(c => getCertExtra(vid, c).respName === ex1.respName) ? " — " + ex1.respName : "") : (EN ? "To be assigned" : "Da assegnare");
+      return `  ▸ ${lab}\n` + by[r].map(c => "  " + certLine(c)).join("\n");
+    }).join("\n\n");
+  };
   // Corpo: se flotta → raggruppo per nave con intestazione; se una nave → elenco singolo
   const vids = Object.keys(byVessel);
   let listBlock;
@@ -22963,10 +23174,10 @@ function buildCertReport() {
     listBlock = vids.map(vid => {
       const dn = (VESSELS.find(v => v.vesselId === vid) || {}).displayName || vid;
       const head = (/^m\/v/i.test(dn) ? dn : "M/V " + dn);
-      return `${head}\n${byVessel[vid].map(certLine).join("\n")}`;
+      return `${head}\n${blk(vid, byVessel[vid])}`;
     }).join("\n\n");
   } else {
-    listBlock = (byVessel[vids[0]] || []).map(certLine).join("\n");
+    listBlock = vids[0] ? blk(vids[0], byVessel[vids[0]]) : "";
   }
   if (!listBlock) listBlock = EN ? "  — none —" : "  — nessuno —";
 
