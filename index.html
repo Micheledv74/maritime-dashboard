@@ -22526,9 +22526,10 @@ const CERT_RESP = {
   supt:{l:"Superintendent tecnico", s:"Supt. tecnico", en:"Technical Superintendent", c:"#0a5c9e"},
   supm:{l:"Superintendent marine / HSQE", s:"Supt. marine", en:"Marine / HSQE Superintendent", c:"#2f6f5e"},
   class:{l:"RINA (Classe)", s:"RINA", en:"Class (RINA)", c:"#6a4bff"},
-  flag:{l:"Bandiera / Amministrazione", s:"Bandiera", en:"Flag Administration", c:"#0f7b8a"},
+  flag:{l:"Bandiera / Amministrazione", s:"Bandiera", en:"Flag Administration", c:"#3a7ca5"},
   service:{l:"Ditta esterna (service)", s:"Ditta", en:"Service company", c:"#b06a00"},
   buy:{l:"Acquisto / sostituzione", s:"Acquisto", en:"Purchase / replacement", c:"#14794e"},
+  agency:{l:"Agenzia", s:"Agenzia", en:"Agency", c:"#0f7b8a"},
   office:{l:"Ufficio / Compagnia", s:"Ufficio", en:"Company / Office", c:"#3d4f66"},
   pi:{l:"P&I / Assicurazione", s:"P&I", en:"P&I / Insurance", c:"#8a3ffc"},
   port:{l:"Porto / Autorità locale", s:"Porto", en:"Port / Local authority", c:"#b3246b"}
@@ -22586,12 +22587,13 @@ function crqBuild(S, items, leg){
     flag:["we kindly ask you to arrange the renewal / endorsement of the following:","Vi chiediamo di provvedere al rinnovo / convalida di quanto segue:"],
     service:["we kindly request your quotation and availability for the following services:","Vi chiediamo preventivo e disponibilità per i seguenti interventi:"],
     buy:["we kindly request your best quotation and lead time for the supply / replacement of the following:","Vi chiediamo la migliore offerta e i tempi di consegna per la fornitura / sostituzione di quanto segue:"],
+    agency:["we kindly ask you to arrange the following at the vessel's call and to confirm the arrangements:","Vi chiediamo di organizzare quanto segue durante lo scalo della nave e di confermarci le disposizioni:"],
     office:["please find below the items under Company responsibility falling due; kindly arrange as necessary:","di seguito le voci di competenza della Compagnia in scadenza; Vi preghiamo di provvedere:"],
     pi:["please find below the certificates falling due; kindly arrange the renewal and send us the updated documents:","di seguito i certificati in scadenza; Vi preghiamo di provvedere al rinnovo e di inviarci i documenti aggiornati:"],
     port:["please find below the items falling due; kindly advise on the local requirements and arrange as necessary:","di seguito le voci in scadenza; Vi preghiamo di indicarci i requisiti locali e di provvedere:"]
   }[S.resp];
   const CL={ master:["Thank you.","Grazie."], class:["Please confirm availability and attendance arrangements.","Vi preghiamo di confermare disponibilità e modalità dell'attendance."], service:["Please confirm availability, lead time and costs.","Vi preghiamo di confermare disponibilità, tempi e costi."], buy:["Please include delivery to the vessel at the port above.","Vi preghiamo di includere la consegna a bordo nel porto indicato."] }[S.resp] || ["Thank you for your cooperation.","Grazie per la collaborazione."];
-  const SJ={ master:["Items due on board","Voci in scadenza a bordo"], class:["Survey attendance request","Richiesta attendance ispettore"], supt:["Items due — technical","Voci in scadenza — tecnico"], supm:["Items due — marine / HSQE","Voci in scadenza — marine / HSQE"], flag:["Renewal / endorsement request","Richiesta rinnovo / convalida"], service:["RFQ — services","Richiesta preventivo service"], buy:["RFQ — supply / replacement","Richiesta offerta fornitura / sostituzione"], office:["Items due — Company","Voci in scadenza — Compagnia"], pi:["Certificates due — P&I / insurance","Certificati in scadenza — P&I / assicurazione"], port:["Items due — port requirements","Voci in scadenza — requisiti porto"] }[S.resp];
+  const SJ={ master:["Items due on board","Voci in scadenza a bordo"], class:["Survey attendance request","Richiesta attendance ispettore"], supt:["Items due — technical","Voci in scadenza — tecnico"], supm:["Items due — marine / HSQE","Voci in scadenza — marine / HSQE"], flag:["Renewal / endorsement request","Richiesta rinnovo / convalida"], service:["RFQ — services","Richiesta preventivo service"], buy:["RFQ — supply / replacement","Richiesta offerta fornitura / sostituzione"], agency:["Arrangements at port call","Disposizioni per lo scalo"], office:["Items due — Company","Voci in scadenza — Compagnia"], pi:["Certificates due — P&I / insurance","Certificati in scadenza — P&I / assicurazione"], port:["Items due — port requirements","Voci in scadenza — requisiti porto"] }[S.resp];
   const one=(en)=>{ const i=en?0:1;
     const line=c=>{ const d=c._days; const dt=d==null?"":d<0?(en?"expired "+(-d)+" days ago":"scaduto da "+(-d)+" gg"):d===0?(en?"today":"oggi"):(en?"in "+d+" days":"tra "+d+" gg");
       return "  • "+(c.n!=null&&String(c.n).trim()!==""?((en?"No. ":"N° ")+String(c.n).trim()+" · "):"")+(c.name||"—")+(c.certNum?(" — "+(en?"Cert. No. ":"Cert. N° ")+c.certNum):"")+(c.expiry?(" — "+(en?"exp. ":"scad. ")+certFmtD(c.expiry,en)+(dt?" ("+dt+")":"")):"")+(c._where?(" — "+(en?CERT_WHERE_EN:CERT_WHERE)[c._where]):""); };
