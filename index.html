@@ -6487,7 +6487,7 @@ table.cert-table thead th, .cert-table-section thead th, table.cert-table thead,
   letter-spacing:.06em !important; border-bottom:1px solid #eef1f4 !important;
 }
 .cert-table-section, .cert-view .cert-table{ border-radius:12px; }
-.cert-view .cert-table-section{ border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); background:#fff; }
+.cert-view .cert-table-section{ border:1px solid var(--border); border-radius:var(--radius-lg); overflow-x:auto; box-shadow:var(--shadow-card); background:#fff; }
 .cert-view-header h1{ font-size:24px !important; font-weight:700 !important; letter-spacing:-.02em; margin:0 0 4px !important; }
 /* chip filtro come "stagechip" del riferimento */
 .cert-view .cert-filter-chip{ border-radius:8px !important; padding:6px 12px !important; background:#f1f4f7 !important; border:1px solid var(--border) !important; color:#475569 !important; font-weight:500; }
@@ -22368,18 +22368,14 @@ function renderCertificatesView() {
     : `<table class="cert-table">
         <thead>
           <tr>
-            <th>N°</th>
-            <th>Certificato</th>
-            <th>Nave</th>
-            <th>Categoria</th>
-            <th>Chi</th>
-            <th>Scadenza</th>
-            <th>Restano</th>
-            <th>N° Cert.</th>
-            <th>Place</th>
-            <th>Note</th>
-            <th>Service / Audit</th>
-            <th></th>
+            <th style="width:44px;">N°</th>
+            <th style="min-width:240px;">Certificato</th>
+            <th style="width:130px;">Chi</th>
+            <th style="width:120px;">Scadenza</th>
+            <th style="width:170px;">N° Cert. · Place</th>
+            <th style="min-width:200px;">Note</th>
+            <th style="width:110px;">Service</th>
+            <th style="width:40px;"></th>
           </tr>
         </thead>
         <tbody>
@@ -22460,19 +22456,16 @@ function certTableRowHTML(it) {
 
   return `<tr class="cert-row cert-row-${cls}">
     <td><span class="cert-n">${escapeHTML(it.n || "")}</span></td>
-    <td>
-      <div class="cert-name-cell">${escapeHTML(truncate(it.name, 60))}${(it._locked && Object.keys(it._locked).length) ? ` <span title="Ha dati modificati manualmente (bloccati, sopravvivono all'import)" style="font-size:11px;color:#6a4bff;">🔒</span>` : ""}</div>
+    <td style="min-width:240px;">
+      <div class="cert-name-cell" style="text-wrap:pretty;">${escapeHTML(it.name || "")}${(it._locked && Object.keys(it._locked).length) ? ` <span title="Ha dati modificati manualmente (bloccati, sopravvivono all'import)" style="font-size:11px;color:#6a4bff;">🔒</span>` : ""}</div>
+      <div style="font-size:11px;color:#6a7d90;margin-top:2px;">${escapeHTML(it.vesselName || "")}${it.category ? " · " + escapeHTML(it.category) : ""}</div>
     </td>
-    <td><span class="vessel-tag">${escapeHTML(it.vesselName || "")}</span></td>
-    <td><span class="cert-cat-tag">${escapeHTML(it.category || "")}</span></td>
-    <td style="min-width:110px;">${certRespCellHTML(it)}</td>
-    <td>${expFmt}</td>
-    <td><span class="cert-pill ${cls}">${daysLabel}</span></td>
-    <td>${certNumHTML}</td>
-    <td class="muted" style="font-size: 11px;">${escapeHTML(it.place || "—")}</td>
-    <td style="font-size:11.5px;color:#44576b;min-width:160px;max-width:280px;white-space:normal;text-wrap:pretty;">${it.notes ? escapeHTML(it.notes) : '<span class="muted">—</span>'}</td>
+    <td>${certRespCellHTML(it)}</td>
+    <td style="white-space:nowrap;"><div>${expFmt}</div><span class="cert-pill ${cls}" style="margin-top:3px;display:inline-block;">${daysLabel}</span></td>
+    <td><div>${certNumHTML}</div>${it.place ? `<div style="font-size:11px;color:#6a7d90;margin-top:2px;">${escapeHTML(it.place)}</div>` : ""}</td>
+    <td style="font-size:11.5px;color:#44576b;white-space:normal;text-wrap:pretty;">${it.notes ? escapeHTML(it.notes) : '<span class="muted">—</span>'}</td>
     <td>${certServiceCellHTML(it)}</td>
-    <td><button class="btn btn-sm" style="white-space:nowrap;" onclick="event.stopPropagation(); window.openCertEditor('${escapeAttr(it.vesselId)}','${escapeAttr(it._key)}')">✎ Gestisci</button></td>
+    <td><button class="btn btn-sm" title="Gestisci" onclick="event.stopPropagation(); window.openCertEditor('${escapeAttr(it.vesselId)}','${escapeAttr(it._key)}')">✎</button></td>
   </tr>`;
 }
 
@@ -22530,6 +22523,8 @@ function certFindItem(vid,key){ const arr=(state.certificates&&state.certificate
 // === v1.24 — CHI SE NE OCCUPA (responsabile, dove, contatto, storico, richieste raggruppate) ===
 const CERT_RESP = {
   master:{l:"Master / bordo", s:"Master", en:"Master / on board", c:"#1553d8"},
+  supt:{l:"Superintendent tecnico", s:"Supt. tecnico", en:"Technical Superintendent", c:"#0a5c9e"},
+  supm:{l:"Superintendent marine / HSQE", s:"Supt. marine", en:"Marine / HSQE Superintendent", c:"#2f6f5e"},
   class:{l:"RINA (Classe)", s:"RINA", en:"Class (RINA)", c:"#6a4bff"},
   flag:{l:"Bandiera / Amministrazione", s:"Bandiera", en:"Flag Administration", c:"#0f7b8a"},
   service:{l:"Ditta esterna (service)", s:"Ditta", en:"Service company", c:"#b06a00"},
@@ -22585,6 +22580,8 @@ function crqBuild(S, items, leg){
   const vN=cfg.displayName||S.vid, vL=/^m\/v/i.test(vN)?vN:"M/V "+vN, imo=cfg.imo?(" (IMO "+cfg.imo+")"):"";
   const T={
     master:["please arrange on board the following items falling due and confirm completion, sending us a copy of the updated certificate / record:","Vi chiediamo di provvedere a bordo alle seguenti voci in scadenza e di confermarci l'esito, inviandoci copia del certificato / registrazione aggiornata:"],
+    supt:["please find below the items falling due under your technical supervision; kindly arrange / advise the planned action:","di seguito le voci in scadenza di tua competenza tecnica; ti chiedo di organizzare / indicarmi l'intervento previsto:"],
+    supm:["please find below the items falling due under your supervision (marine / HSQE); kindly arrange / advise the planned action:","di seguito le voci in scadenza di tua competenza (marine / HSQE); ti chiedo di organizzare / indicarmi l'intervento previsto:"],
     class:["we kindly request the attendance of your surveyor for the following surveys / endorsements:","Vi chiediamo la presenza del Vostro ispettore per le seguenti visite / convalide:"],
     flag:["we kindly ask you to arrange the renewal / endorsement of the following:","Vi chiediamo di provvedere al rinnovo / convalida di quanto segue:"],
     service:["we kindly request your quotation and availability for the following services:","Vi chiediamo preventivo e disponibilità per i seguenti interventi:"],
@@ -22594,13 +22591,14 @@ function crqBuild(S, items, leg){
     port:["please find below the items falling due; kindly advise on the local requirements and arrange as necessary:","di seguito le voci in scadenza; Vi preghiamo di indicarci i requisiti locali e di provvedere:"]
   }[S.resp];
   const CL={ master:["Thank you.","Grazie."], class:["Please confirm availability and attendance arrangements.","Vi preghiamo di confermare disponibilità e modalità dell'attendance."], service:["Please confirm availability, lead time and costs.","Vi preghiamo di confermare disponibilità, tempi e costi."], buy:["Please include delivery to the vessel at the port above.","Vi preghiamo di includere la consegna a bordo nel porto indicato."] }[S.resp] || ["Thank you for your cooperation.","Grazie per la collaborazione."];
-  const SJ={ master:["Items due on board","Voci in scadenza a bordo"], class:["Survey attendance request","Richiesta attendance ispettore"], flag:["Renewal / endorsement request","Richiesta rinnovo / convalida"], service:["RFQ — services","Richiesta preventivo service"], buy:["RFQ — supply / replacement","Richiesta offerta fornitura / sostituzione"], office:["Items due — Company","Voci in scadenza — Compagnia"], pi:["Certificates due — P&I / insurance","Certificati in scadenza — P&I / assicurazione"], port:["Items due — port requirements","Voci in scadenza — requisiti porto"] }[S.resp];
+  const SJ={ master:["Items due on board","Voci in scadenza a bordo"], class:["Survey attendance request","Richiesta attendance ispettore"], supt:["Items due — technical","Voci in scadenza — tecnico"], supm:["Items due — marine / HSQE","Voci in scadenza — marine / HSQE"], flag:["Renewal / endorsement request","Richiesta rinnovo / convalida"], service:["RFQ — services","Richiesta preventivo service"], buy:["RFQ — supply / replacement","Richiesta offerta fornitura / sostituzione"], office:["Items due — Company","Voci in scadenza — Compagnia"], pi:["Certificates due — P&I / insurance","Certificati in scadenza — P&I / assicurazione"], port:["Items due — port requirements","Voci in scadenza — requisiti porto"] }[S.resp];
   const one=(en)=>{ const i=en?0:1;
     const line=c=>{ const d=c._days; const dt=d==null?"":d<0?(en?"expired "+(-d)+" days ago":"scaduto da "+(-d)+" gg"):d===0?(en?"today":"oggi"):(en?"in "+d+" days":"tra "+d+" gg");
       return "  • "+(c.n!=null&&String(c.n).trim()!==""?((en?"No. ":"N° ")+String(c.n).trim()+" · "):"")+(c.name||"—")+(c.certNum?(" — "+(en?"Cert. No. ":"Cert. N° ")+c.certNum):"")+(c.expiry?(" — "+(en?"exp. ":"scad. ")+certFmtD(c.expiry,en)+(dt?" ("+dt+")":"")):"")+(c._where?(" — "+(en?CERT_WHERE_EN:CERT_WHERE)[c._where]):""); };
     const list=items.map(line).join("\n")||(en?"  — none —":"  — nessuna voce —");
     const sch=leg?((en?"Vessel schedule: ":"Programma nave: ")+leg.port+(leg.eta?", ETA "+certFmtD(leg.eta,en):"")+(leg.etb?", ETB "+certFmtD(leg.etb,en):"")+(leg.etd?", ETD "+certFmtD(leg.etd,en):"")+"."):"";
-    const greet=S.resp==="master"?(en?"Dear Master,":"Gentile Comandante,"):(en?"Dear "+(S.name||"Sirs")+",":"Spett.le "+(S.name||"Ditta")+",");
+    const sup=S.resp==="supt"||S.resp==="supm";
+    const greet=S.resp==="master"?(en?"Dear Master,":"Gentile Comandante,"):sup?(en?"Dear "+(S.name||"Superintendent")+",":"Ciao "+(S.name||"")+","):(en?"Dear "+(S.name||"Sirs")+",":"Spett.le "+(S.name||"Ditta")+",");
     const ref=S.resp==="master"?"":(en?"with reference to "+vL+imo+", ":"con riferimento alla "+vL+imo+", ");
     let intro=T[i]; if(ref) intro=intro.charAt(0).toLowerCase()+intro.slice(1);
     const sign=en?"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA":"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA";
