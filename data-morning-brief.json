@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "generatedAt": "2026-10-15T10:39:41.542Z",
-  "since": "2026-10-14T10:37:56.773Z",
-  "until": "2026-10-15T10:37:56.773Z",
+  "generatedAt": "2026-10-15T10:46:45.438Z",
+  "since": "2026-10-14T10:45:00.076Z",
+  "until": "2026-10-15T10:45:00.076Z",
   "monday": false,
   "model": "open-mistral-nemo",
   "counts": {
-    "read": 130,
+    "read": 132,
     "mine": 11,
     "noise": 7,
-    "considered": 61
+    "considered": 62
   },
   "ai": {
     "calls": 5,
@@ -62,7 +62,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Ripetizione del messaggio di cortesia."
+      "fact": "Messaggio di cortesia senza contenuti operativi."
     },
     {
       "id": 3,
@@ -84,8 +84,8 @@
       "date": "2026-10-14",
       "docs": [],
       "reply": true,
-      "action": "Confermare ordine per MGO mt. 150",
-      "fact": "Conferma ordine per MGO 150 mt. da parte di San Colombano Bulk."
+      "action": "Confermare ordine MGO 150 mt.",
+      "fact": "Conferma ordine per 150 mt di MGO."
     },
     {
       "id": 4,
@@ -108,7 +108,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Documenti inviati al fornitore di carburante su richiesta."
+      "fact": "Documenti inviati al fornitore bunker su richiesta."
     },
     {
       "id": 5,
@@ -130,8 +130,8 @@
       "date": "2026-10-10",
       "docs": [],
       "reply": true,
-      "action": "Preparare alloggio per supervisore",
-      "fact": "Ritardo ormeggio, possibile bisogno alloggio per supervisore."
+      "action": "Organizzare alloggio superintendente per 18:00.",
+      "fact": "Ritardo ormeggio, possibile bisogno alloggio superintendente."
     },
     {
       "id": 6,
@@ -154,7 +154,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Forma rivista inviata al fornitore di carburante."
+      "fact": "Forma rivista inviata al fornitore bunker."
     },
     {
       "id": 7,
@@ -199,8 +199,8 @@
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Preparare cartella documenti per ispezione ibrida",
-      "fact": "Preparare cartella documenti per ispezione ibrida Rightship."
+      "action": "Preparare cartella documenti per ispezione ibrida.",
+      "fact": "Richiesta cartella documenti per ispezione ibrida Rightship."
     },
     {
       "id": 9,
@@ -218,12 +218,12 @@
       "ai": true,
       "vessel": "MED LIGURIA",
       "kind": "routine",
-      "port": "BELEM",
+      "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Notato contatto per agente VDC."
+      "fact": "Conferma ricezione contatti agente VDC."
     },
     {
       "id": 10,
@@ -246,7 +246,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Aggiornamento quotidiano conflitto Medio Oriente."
+      "fact": "Aggiornamento conflitto Medio Oriente, spam newsletter."
     },
     {
       "id": 11,
@@ -263,13 +263,13 @@
       "hasAttachments": true,
       "ai": true,
       "vessel": "PEPPINO",
-      "kind": "domanda",
+      "kind": "routine",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Messaggio dal Capitano Espósito allegato."
+      "fact": "Messaggio dal Capitano con allegato da CE."
     },
     {
       "id": 12,
@@ -289,12 +289,10 @@
       "kind": "routine",
       "port": "",
       "date": "",
-      "docs": [
-        "24/R"
-      ],
+      "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Attività RINA Services per NORRBOTTEN, job number 24/R."
+      "fact": "Email senza contenuti operativi su attività RINA."
     },
     {
       "id": 13,
@@ -318,8 +316,8 @@
         "359.268-26 REV.01"
       ],
       "reply": true,
-      "action": "Verificare offerta gas detector",
-      "fact": "ANCB attende conferma per offerta gas detector."
+      "action": "Valutare offerta gas detector ANCB.",
+      "fact": "ANCB attende conferma ordine gas detector."
     },
     {
       "id": 14,
@@ -341,8 +339,8 @@
       "date": "2026-10-19",
       "docs": [],
       "reply": true,
-      "action": "Verificare prospettive ormeggio e servizi",
-      "fact": "ETA 19 ottobre 00:00 LT, servizi CTM e medico in attesa."
+      "action": "Verificare prospettive ormeggio e servizi.",
+      "fact": "ETA 19/10, ormeggio soggetto a cambiamenti."
     },
     {
       "id": 15,
@@ -360,12 +358,12 @@
       "ai": true,
       "vessel": "NORRBOTTEN",
       "kind": "posizione",
-      "port": "ISTANBUL ANCHORAGE",
+      "port": "ISTANBUL",
       "date": "2026-10-14",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "NORRBOTTEN partita da Yalova, arrivo ancoraggio Istanbul notte."
+      "fact": "Nave partita da Yalova, arrivo ancoraggio Istanbul notte."
     },
     {
       "id": 16,
@@ -388,7 +386,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email pubblicitario su podcast DNV, non rilevante per flotta."
+      "fact": ""
     },
     {
       "id": 17,
@@ -411,7 +409,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email promozionale su strumenti AR per navi, non rilevante."
+      "fact": ""
     },
     {
       "id": 18,
@@ -434,7 +432,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma invio stato conto aggiornato per Red Coral Bulkers Ltd."
+      "fact": "Conferma invio stato conto aggiornato Red Coral Bulkers Ltd"
     },
     {
       "id": 19,
@@ -479,8 +477,8 @@
       "date": "2026-11-01",
       "docs": [],
       "reply": true,
-      "action": "Rispondere con proposte per 31 camion (2093 CBM) Italia-Mogadishu.",
-      "fact": "Charterer cerca nave geared o RoRo per 31 camion da Atessa a Mogadishu."
+      "action": "Valutare offerta per carico 31 camion (2093 CBM)",
+      "fact": "Charterers cercano nave geared o RoRo Italia-Somalia"
     },
     {
       "id": 21,
@@ -501,9 +499,9 @@
       "port": "ISTANBUL",
       "date": "",
       "docs": [],
-      "reply": true,
-      "action": "Verificare disponibilità bunker a Istanbul per NORRBOTTEN.",
-      "fact": "Bunker non disponibile a Istanbul per maltempo; aggiornamento previsto."
+      "reply": false,
+      "action": "",
+      "fact": "Bunker non disponibile a Istanbul per maltempo"
     },
     {
       "id": 22,
@@ -526,7 +524,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "NORRBOTTEN partita da Yalova con pilota disembarcato alle 19:05 LT."
+      "fact": "Nave partita da Yalova Shipyard con pilot disembarcato"
     },
     {
       "id": 23,
@@ -548,8 +546,8 @@
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Acquistare pompa raffreddamento acqua marina per PEPPINO.",
-      "fact": "Chiedono requisizione urgente pompa raffreddamento acqua marina per PEPPINO."
+      "action": "Rispondere richiesta pompa raffreddamento acqua mare",
+      "fact": "Ch. Eng. richiede pezzo di ricambio urgente per PEPPINO"
     },
     {
       "id": 24,
@@ -572,7 +570,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Comunicato stampa ABS su MOU per stoccaggio energia elettrica, irrilevante."
+      "fact": ""
     },
     {
       "id": 25,
@@ -595,7 +593,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "PEPPINO in navigazione da Fazendinha a Trombetas, ETA 16:00 LT."
+      "fact": "ETA Trombetas, Brasile alle 16:00 LT"
     },
     {
       "id": 26,
@@ -618,7 +616,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto Noon PEPPINO: 250 NM percorsi, 42 NM rimanenti a Trombetas."
+      "fact": "Rapporto di mezzogiorno con dati navigazione e condizioni meteo"
     },
     {
       "id": 27,
@@ -637,11 +635,11 @@
       "vessel": "PEPPINO",
       "kind": "conferma_ordine",
       "port": "TROMBETAS",
-      "date": "2026-10-14",
+      "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Documenti per clearance portuale inviati per PEPPINO a Alumar."
+      "fact": "Documenti per clearance portuale inviati a Orion Rodos"
     },
     {
       "id": 28,
@@ -664,7 +662,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione documenti per clearance portuale da Orion Rodos."
+      "fact": "Conferma ricezione documenti per clearance portuale"
     },
     {
       "id": 29,
@@ -685,9 +683,9 @@
       "port": "ISTANBUL",
       "date": "2026-10-14",
       "docs": [],
-      "reply": true,
-      "action": "Monitorare condizioni meteo per bunker a Istanbul.",
-      "fact": "NORRBOTTEN ormeggiata a Istanbul in attesa condizioni meteo migliorate."
+      "reply": false,
+      "action": "",
+      "fact": "Nave ormeggiata in ancoraggio Istanbul, attesa bunker"
     },
     {
       "id": 30,
@@ -710,7 +708,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Email spam per carico 2500MT vetro Nigeria-Ghana, non rilevante."
+      "fact": ""
     },
     {
       "id": 31,
@@ -774,12 +772,12 @@
       "ai": true,
       "vessel": "",
       "kind": "offerta",
-      "port": "TABONEO",
+      "port": "TABONEO|QINZHOU|ZHANJIANG|XINSHA",
       "date": "2026-10-25",
       "docs": [],
       "reply": true,
-      "action": "Valutare offerta carbone 50k+10% per Corea.",
-      "fact": "Proposta carbone 50k±10% da Taboneo/Qinzhou/Zhanjiang/Xinsha, 25-30 ott."
+      "action": "Valutare offerta carbone 50k+10%",
+      "fact": "Proposta per 50k coal da Taboneo/China, 25-30 ott, 8k/12k mt, comm 1.25%."
     },
     {
       "id": 34,
@@ -803,8 +801,8 @@
         "2026-MDT-HQRQ-00150"
       ],
       "reply": true,
-      "action": "Confermare ordine per offerta HANHWA Engine.",
-      "fact": "Offerta confermata per pezzi HANHWA Engine su RFQ 2026-MDT-HQRQ-00150."
+      "action": "Confermare ordine per offerta HANHWA Engine",
+      "fact": "Offerta confermata per RFQ 2026-MDT-HQRQ-00150, allegato disponibile."
     },
     {
       "id": 35,
@@ -830,7 +828,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "SUNJIN ENTECH declina quotazione per RFQ 2026-MDT-HQRQ-00226."
+      "fact": "SUNJIN ENTECH declina offerta per RFQ 2026-MDT-HQRQ-00226."
     },
     {
       "id": 36,
@@ -853,7 +851,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione comunicazioni agenzia per Voy. 26342."
+      "fact": "Conferma ricezione comunicazione agenzia per Voy. 26342."
     },
     {
       "id": 37,
@@ -992,7 +990,7 @@
         "2026-NOR-00013"
       ],
       "reply": true,
-      "action": "Verificare stato pagamento fattura TC overhaul.",
+      "action": "Verificare stato pagamento fattura 31362031",
       "fact": "Fattura per TC overhaul ancora non pagata."
     },
     {
@@ -1017,8 +1015,8 @@
         "2026-PEP-HQRQ-00255"
       ],
       "reply": true,
-      "action": "Confermare ordine per offerta G&P TECH.",
-      "fact": "Offerta pezzi con tempi consegna: 45 giorni (item 4) e 10 giorni (altri)."
+      "action": "Confermare ordine per offerta G&P TECH",
+      "fact": "Offerta con tempi consegna: 45 giorni (item 4), 10 giorni (altri)."
     },
     {
       "id": 44,
@@ -1042,7 +1040,7 @@
         "2026-MDT-HQRQ-00225"
       ],
       "reply": true,
-      "action": "Confermare accettazione modello VGS-1A-2-8.",
+      "action": "Confermare accettazione modello VGS-1A-2-8",
       "fact": "Offerta basata su modello alternativo VGS-1A-2-8, confermare accettazione."
     },
     {
@@ -1065,7 +1063,7 @@
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "Fornire indirizzo nave per spedizione DHL.",
+      "action": "Fornire indirizzo nave per spedizione DHL",
       "fact": "Chiedono indirizzo nave per consegna documenti via DHL."
     },
     {
@@ -1083,7 +1081,7 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "",
-      "kind": "routine",
+      "kind": "spam",
       "port": "",
       "date": "",
       "docs": [],
@@ -1106,7 +1104,7 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "",
-      "kind": "routine",
+      "kind": "spam",
       "port": "",
       "date": "",
       "docs": [],
@@ -1135,7 +1133,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Rapporto lavoro quotidiano inviato dal capitano"
+      "fact": "Rapporto lavoro giornaliero inviato dal capitano"
     },
     {
       "id": 49,
@@ -1152,13 +1150,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "PEPPINO",
-      "kind": "offerta",
+      "kind": "domanda",
       "port": "",
       "date": "",
       "docs": [],
       "reply": true,
-      "action": "richiedere aggiornamento preventivo per US$25.000",
-      "fact": "Richiesta aggiornamento preventivo per chiamata Brasile"
+      "action": "Chiedere aggiornamento preventivo per US$25,000",
+      "fact": "TSM richiede aggiornamento preventivo per chiamata Brasile"
     },
     {
       "id": 50,
@@ -1175,13 +1173,13 @@
       "hasAttachments": false,
       "ai": true,
       "vessel": "NORRBOTTEN",
-      "kind": "routine",
+      "kind": "conferma_ordine",
       "port": "",
       "date": "",
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Conferma ricezione disegni approvati RINA per luci navigazione"
+      "fact": "Confermata ricezione documenti per luci di navigazione RINA"
     },
     {
       "id": 51,
@@ -1205,8 +1203,8 @@
         "0010075152-BE04"
       ],
       "reply": true,
-      "action": "saldo scaduto, richiedere pagamento immediato",
-      "fact": "Saldo in sospeso, pagamento richiesto urgentemente"
+      "action": "Risolvere saldo insoluto PPG",
+      "fact": "Saldo insoluto PPG, pagamento richiesto urgentemente"
     },
     {
       "id": 52,
@@ -1234,7 +1232,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "Messaggio non recapitato a Francesca Bogazzi Agenmar"
+      "fact": "Messaggio non recapitato a Francesca Bogazzi Agenzia Marittima"
     },
     {
       "id": 53,
@@ -1259,7 +1257,7 @@
       ],
       "reply": false,
       "action": "",
-      "fact": "Messaggio non recapitato a Francesca Bogazzi Agenmar"
+      "fact": "Messaggio non recapitato a Francesca Bogazzi Agenzia Marittima"
     },
     {
       "id": 54,
@@ -1284,8 +1282,8 @@
         "MDT-SHPR-00115"
       ],
       "reply": true,
-      "action": "valutare offerta per PR115",
-      "fact": "Offerta inviata per PR115 M/V MED TOSCANA"
+      "action": "Valutare offerta YH Marine Trade",
+      "fact": "Offerta per PR115 M/V MED TOSCANA inviata"
     },
     {
       "id": 55,
@@ -1331,7 +1329,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Proposta per nave 34-45k DWT tra India/Giappone"
+      "fact": ""
     },
     {
       "id": 57,
@@ -1354,7 +1352,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Offerte ricambi compressori Tanabe disponibili"
+      "fact": ""
     },
     {
       "id": 58,
@@ -1377,7 +1375,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Comunicazione promozionale nuovo sito Exonder"
+      "fact": ""
     },
     {
       "id": 59,
@@ -1400,7 +1398,7 @@
       "docs": [],
       "reply": false,
       "action": "",
-      "fact": "Posizione nave: 09-19.3S/040-54.9E, rotta VILA DO CONDE"
+      "fact": "MED LIGURIA in navigazione verso Vila do Conde"
     },
     {
       "id": 60,
@@ -1443,12 +1441,36 @@
       "kind": "offerta",
       "port": "SANTAREM",
       "date": "",
-      "docs": [
-        ""
-      ],
+      "docs": [],
       "reply": true,
-      "action": "Conferma ordine e invia SWIFT pagamento",
-      "fact": "Offerta pompa acqua di mare con foto allegata"
+      "action": "emetti PO per pompa acqua",
+      "fact": "fornisce dettagli pompa acqua, prezzi e termini pagamento"
+    },
+    {
+      "id": 62,
+      "from": "Mas Marine s.r.l. (Info)",
+      "fromEmail": "info@masmarine.it",
+      "subject": "Re: PROFORMA INVOICE REQUEST - R: M/V MED TOSCANA PR72 HQPO-00113 MDT-SHPR-00072 MAS MARINE SHIPPING SUPPLIES / 026-62441",
+      "receivedAt": "2026-10-15T10:43:30Z",
+      "webLink": "https://outlook.office365.com/owa/?ItemID=AAMkAGNhMTA4ZjE5LTk3ZGQtNGMwYS1hYWExLTZhNjQ2YWMxMDZiNQBGAAAAAAC1d6vpnx%2FPR6MWu34vnklfBwBYWF9qc37UTpbqyo%2B4NVKtAAHHe60eAABYWF9qc37UTpbqyo%2B4NVKtAAHdVZ1nAAA%3D&exvsurl=1&viewmodel=ReadMessageItem",
+      "conversationId": "AAQkAGNhMTA4ZjE5LTk3ZGQtNGMwYS1hYWExLTZhNjQ2YWMxMDZiNQAQAP9Zl6a3Ze5CmtH5G386SYs=",
+      "answered": false,
+      "addr": "general",
+      "greet": "Dear Sirs",
+      "thread": 2,
+      "hasAttachments": true,
+      "ai": true,
+      "vessel": "MED TOSCANA",
+      "kind": "fattura",
+      "port": "",
+      "date": "",
+      "docs": [
+        "HQPO-00113",
+        "MDT-SHPR-00072"
+      ],
+      "reply": false,
+      "action": "",
+      "fact": "invio fattura proforma richiesta per forniture"
     }
   ]
 }
