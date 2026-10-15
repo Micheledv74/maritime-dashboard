@@ -8923,6 +8923,7 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       </div>
       <p style="font-size:var(--fs-xs);color:var(--text-faint);margin:8px 0 0;">
         Sincronizza to-do, note locali e azioni archiviate tra PC, cellulare e tablet usando il tuo Google Drive personale.
+        <br>Account usato: <b id="drive-acct-lbl"></b> · <a href="#" onclick="event.preventDefault();window.driveSetAccount();document.getElementById('drive-acct-lbl').textContent=driveAccount()||'chiedi ogni volta'">cambia</a><script>try{document.getElementById("drive-acct-lbl").textContent=(localStorage.getItem("mpd.driveAccount")??"mdvpurchasing@gmail.com")||"chiedi ogni volta";}catch(e){}</script>
         <br><b>Nota:</b> il login Google non funziona su iPhone/Safari (popup bloccato). Su iPhone usa il “Sync multi-dispositivo (n8n)” qui sotto.
       </p>
     </div>
@@ -25327,6 +25328,9 @@ function renderDriveIndicator() {
 }
 
 // === CONNECT (OAuth) =======================================================
+function driveAccount(){ const v = localStorage.getItem("mpd.driveAccount"); return v == null ? "mdvpurchasing@gmail.com" : v.trim(); }
+window.driveSetAccount = function(){ const v = prompt("Account Google da usare per la sincronizzazione (vuoto = chiedi ogni volta):", driveAccount()); if(v === null) return;
+  localStorage.setItem("mpd.driveAccount", v.trim()); tokenClient = null; showToast(v.trim() ? "Sincronizzazione con " + v.trim() : "Google chiederà l'account"); };
 function driveConnect(silent) {
   if (typeof google === "undefined" || !google.accounts) {
     if (!silent) showToast("Libreria Google non ancora caricata, riprova tra un momento");
@@ -25349,9 +25353,9 @@ function driveConnect(silent) {
   // Silent: prompt="" sfrutta la sessione esistente di Google (cookie del browser),
   // niente popup se l'utente ha già autorizzato l'app prima.
   // Manual: prompt="consent" forza la schermata di autorizzazione esplicita.
-  tokenClient.requestAccessToken({
-    prompt: silent ? "" : "consent"
-  });
+  // v1.25b — account Google fisso (il PC ufficio ne ha più d'uno): niente scelta dell'account a ogni sync
+  const acct = driveAccount();
+  tokenClient.requestAccessToken(Object.assign({ prompt: silent ? "" : "consent" }, acct ? { login_hint: acct, hint: acct } : {}));
 }
 
 // Refresh silenzioso: chiamato N secondi prima della scadenza del token
@@ -31025,6 +31029,8 @@ function vlInfo(l, mk){ mk = mk || {}; const H = vlHist(l), ev = ["Prima email "
 function vlAll(withDismissed){ const D = vlData(); if(!D) return []; const M = vlMarks();
   return Object.values(D.leads || {}).filter(l => l && l.company && l.id).map(l => ({ l, I: vlInfo(l, M[l.id]) })).filter(x => withDismissed || !x.I.dismiss); }
 function vlCountryMap(all){ const m = {}; all.forEach(x => { const c = String(x.l.country || "").toUpperCase(); if(c) x.I.ports.forEach(p => { if(!m[p]) m[p] = c; }); }); return m; }
+const VL_CIT = { BRAZIL: "Brasile", BRASIL: "Brasile", SPAIN: "Spagna", ITALY: "Italia", FRANCE: "Francia", GREECE: "Grecia", TURKEY: "Turchia", "TÜRKIYE": "Turchia", EGYPT: "Egitto", MOROCCO: "Marocco", TUNISIA: "Tunisia", ALGERIA: "Algeria", NETHERLANDS: "Paesi Bassi", BELGIUM: "Belgio", GERMANY: "Germania", "UNITED KINGDOM": "Regno Unito", UK: "Regno Unito", PORTUGAL: "Portogallo", MALTA: "Malta", CROATIA: "Croazia", SLOVENIA: "Slovenia", ROMANIA: "Romania", BULGARIA: "Bulgaria", CYPRUS: "Cipro", SWEDEN: "Svezia", NORWAY: "Norvegia", DENMARK: "Danimarca", FINLAND: "Finlandia", POLAND: "Polonia", "UNITED STATES": "Stati Uniti", USA: "Stati Uniti", CANADA: "Canada", MEXICO: "Messico", ARGENTINA: "Argentina", URUGUAY: "Uruguay", CHILE: "Cile", PERU: "Perù", COLOMBIA: "Colombia", PANAMA: "Panama", CHINA: "Cina", JAPAN: "Giappone", "SOUTH KOREA": "Corea del Sud", KOREA: "Corea del Sud", SINGAPORE: "Singapore", INDIA: "India", "UNITED ARAB EMIRATES": "Emirati Arabi", UAE: "Emirati Arabi", "SAUDI ARABIA": "Arabia Saudita", OMAN: "Oman", QATAR: "Qatar", KENYA: "Kenya", TANZANIA: "Tanzania", "SOUTH AFRICA": "Sudafrica", GHANA: "Ghana", NIGERIA: "Nigeria", TOGO: "Togo", BENIN: "Benin", "IVORY COAST": "Costa d'Avorio", SENEGAL: "Senegal", MAURITIUS: "Mauritius", RUSSIA: "Russia", UKRAINE: "Ucraina", GEORGIA: "Georgia", ISRAEL: "Israele", LEBANON: "Libano", AUSTRALIA: "Australia", INDONESIA: "Indonesia", MALAYSIA: "Malesia", VIETNAM: "Vietnam", THAILAND: "Thailandia", PHILIPPINES: "Filippine" };
+function vlCName(c){ c = String(c || "").toUpperCase().trim(); if(!c) return ""; return VL_CIT[c] || c.toLowerCase().replace(/\b\p{L}/gu, m => m.toUpperCase()); }
 function vlCountryOf(port, cmap){ const k = Object.keys(cmap).find(p => vlPortEq(p, port)); return k ? cmap[k] : ""; }
 function vlCovers(x, port, cmap){ if(x.I.ports.some(p => vlPortEq(p, port))) return true; const c = String(x.l.country || "").toUpperCase(); return !!(x.l.wide && c && vlCountryOf(port, cmap) === c); }
 // scali futuri della flotta (viaggio current/next)
@@ -31048,6 +31054,12 @@ function vlCss(){ if(document.getElementById("vl-css")) return; const s = docume
 .vl-pc small{font:500 10.5px/1 'IBM Plex Mono',monospace;opacity:.75}
 .vl-pc.on{background:#1553d8;border-color:#1553d8;color:#fff}
 .vl-pc.call{border-color:#c07800}.vl-pc.call.on{border-color:#1553d8}
+.vl-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:start}
+.vl-row>.vl-eb{padding-top:9px}
+.vl-cc{border:1px solid rgba(10,27,46,.2);background:#fff;color:#0a1b2e;font:700 13px/1 inherit;padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.vl-cc small{font:500 10.5px/1 'IBM Plex Mono',monospace;opacity:.75}
+.vl-cc.on{background:#0a1b2e;border-color:#0a1b2e;color:#fff}
+.vl-cc.call{border-color:#c07800}.vl-cc.call.on{border-color:#0a1b2e}
 .vl-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .vl-kc{border:none;background:#eef1f5;color:#44576b;font:600 11.5px/1 inherit;padding:6px 9px;border-radius:6px;cursor:pointer}
 .vl-kc.on{background:#0a1b2e;color:#fff}
@@ -31102,21 +31114,33 @@ function vlPageHTML(){
   vlCss(); const S = window._vl, D = vlData();
   if(!D) return '<div class="vl"><div class="vl-list"><div class="vl-empty"><b>L\'archivio è ancora vuoto.</b><br>Si riempie da solo: importa in n8n il <b>Riepilogo del Mattino v2.5</b> (riconosce le email di presentazione di chandler, maker e agenzie) e lancia una volta <b>Proposte – recupero 18 mesi</b> per le email già arrivate. Il file <span class="vl-mono">data-vendor-leads.json</span> compare sul repo e questa pagina si accende.</div></div></div>';
   const all = vlAll(), cmap = vlCountryMap(all), calls = vlCalls(), old = !!S.old;
-  const cnt = p => all.filter(x => vlCovers(x, p, cmap) && (old || !x.I.stale)).length;
+  const live = all.filter(x => old || !x.I.stale);
+  const cOf = x => String(x.l.country || "").toUpperCase();
+  const inC = (x, c) => cOf(x) === c || x.I.ports.some(p => cmap[p] === c);
+  // v1.25b — PAESE come filtro principale, poi i porti di quel paese
+  const C = {}; live.forEach(x => new Set([cOf(x), ...x.I.ports.map(p => cmap[p])].filter(Boolean)).forEach(c => C[c] = (C[c] || 0) + 1));
+  const callC = {}; calls.forEach(c => { const k = vlCountryOf(c.port, cmap); if(k && !callC[k]) callC[k] = c; });
+  const CL = Object.keys(C).sort((a, b) => (!!callC[b] - !!callC[a]) || C[b] - C[a] || a.localeCompare(b));
+  if(!S.cInit){ S.cInit = 1; S.country = S.port ? (vlCountryOf(S.port, cmap) || "") : (CL.find(c => callC[c] && C[c]) || CL[0] || ""); }
+  const countriesHTML = '<button class="vl-cc' + (!S.country ? " on" : "") + '" onclick="vlSetCountry(\'\')">Tutti i paesi<small>' + live.length + '</small></button>' +
+    CL.map(c => '<button class="vl-cc' + (S.country === c ? " on" : "") + (callC[c] ? " call" : "") + '" onclick="vlSetCountry(\'' + vlJ(c) + '\')"' + (callC[c] ? ' title="Scalo ' + vlE(callC[c].vname) + ' a ' + vlE(callC[c].port) + '"' : "") + '>' + vlE(vlCName(c)) + (callC[c] ? '<small>⚓ ' + vlE(callC[c].vname) + '</small>' : "") + '<small>' + C[c] + '</small></button>').join("");
+  const cnt = p => live.filter(x => vlCovers(x, p, cmap)).length;
   const P = []; const has = p => P.some(x => vlPortEq(x.p, p));
-  calls.forEach(c => { if(!has(c.port)) P.push({ p: c.port, c }); });
-  const freq = {}; all.forEach(x => { if(old || !x.I.stale) x.I.ports.forEach(p => freq[p] = (freq[p] || 0) + 1); });
-  Object.keys(freq).sort((a, b) => freq[b] - freq[a]).forEach(p => { if(P.length < 16 && !has(p)) P.push({ p }); });
+  calls.forEach(c => { if(!S.country || vlCountryOf(c.port, cmap) === S.country) if(!has(c.port)) P.push({ p: c.port, c }); });
+  const freq = {}; live.forEach(x => x.I.ports.forEach(p => { if(!S.country || cmap[p] === S.country) freq[p] = (freq[p] || 0) + 1; }));
+  Object.keys(freq).sort((a, b) => freq[b] - freq[a]).forEach(p => { if(P.length < (S.country ? 40 : 16) && !has(p)) P.push({ p }); });
   if(S.port && !has(S.port)) P.unshift({ p: vlPN(S.port) });
-  if(!S.port){ const f = P.find(x => x.c && cnt(x.p)) || P.find(x => cnt(x.p)) || P[0]; S.port = f ? f.p : ""; }
-  const portsHTML = P.map(x => '<button class="vl-pc' + (vlPortEq(x.p, S.port) ? " on" : "") + (x.c ? " call" : "") + '" onclick="vlSetPort(\'' + vlJ(x.p) + '\')"' + (x.c ? ' title="Scalo ' + vlE(x.c.vname) + (x.c.eta ? " · ETA " + vlFDs(x.c.eta) : "") + '"' : "") + '>' + vlE(x.p) + (x.c ? '<small>' + vlE(x.c.vname) + (x.c.eta ? " " + vlFDs(x.c.eta) : "") + '</small>' : "") + '<small>' + cnt(x.p) + '</small></button>').join("");
+  const nC = S.country ? live.filter(x => inC(x, S.country)).length : live.length;
+  const portsHTML = '<button class="vl-pc' + (!S.port ? " on" : "") + '" onclick="vlSetPort(\'\')">' + (S.country ? "Tutto " + vlE(vlCName(S.country)) : "Tutti i porti") + '<small>' + nC + '</small></button>' +
+    P.map(x => '<button class="vl-pc' + (vlPortEq(x.p, S.port) ? " on" : "") + (x.c ? " call" : "") + '" onclick="vlSetPort(\'' + vlJ(x.p) + '\')"' + (x.c ? ' title="Scalo ' + vlE(x.c.vname) + (x.c.eta ? " · ETA " + vlFDs(x.c.eta) : "") + '"' : "") + '>' + vlE(x.p) + (x.c ? '<small>' + vlE(x.c.vname) + (x.c.eta ? " " + vlFDs(x.c.eta) : "") + '</small>' : "") + '<small>' + cnt(x.p) + '</small></button>').join("");
   const q = String(S.q || "").trim().toLowerCase();
-  let L = q ? all.filter(x => [x.l.company, x.l.what, x.l.brands, x.I.ports.join(" "), x.l.country, x.l.email].join(" ").toLowerCase().includes(q)) : all.filter(x => vlCovers(x, S.port, cmap));
+  let L = q ? all.filter(x => [x.l.company, x.l.what, x.l.brands, x.I.ports.join(" "), x.l.country, vlCName(cOf(x)), x.l.email].join(" ").toLowerCase().includes(q))
+    : S.port ? all.filter(x => vlCovers(x, S.port, cmap)) : S.country ? all.filter(x => inC(x, S.country)) : all.slice();
   const hiddenOld = old ? 0 : L.filter(x => x.I.stale).length; if(!old) L = L.filter(x => !x.I.stale);
   const kc = k => k === "all" ? L.length : L.filter(x => x.l.type === k).length;
   const kindsHTML = [["all", "Tutti"], ["chandler", "Chandler"], ["maker", "Maker"], ["agenzia", "Agenzie"], ["servizi", "Servizi"]].map(([k, l]) => '<button class="vl-kc' + (S.kind === k ? " on" : "") + '" onclick="vlSetKind(\'' + k + '\')">' + l + ' ' + kc(k) + '</button>').join("");
   if(S.kind !== "all") L = L.filter(x => x.l.type === S.kind);
-  const call = q ? null : vlCallAt(S.port), ag = call && call.leg && call.leg.agency || null, agN = vlNorm(ag && ag.name);
+  const call = q || !S.port ? null : vlCallAt(S.port), ag = call && call.leg && call.leg.agency || null, agN = vlNorm(ag && ag.name);
   const isAg = x => !!(agN && agN.length >= 4 && (vlNorm(x.l.company).includes(agN) || agN.includes(vlNorm(x.l.company))));
   L.sort((a, b) => (isAg(b) - isAg(a)) || (b.I.st - a.I.st) || String(b.l.lastAt || "").localeCompare(String(a.l.lastAt || "")));
   if(S.sel && !all.some(x => x.l.id === S.sel)) S.sel = "";
@@ -31132,14 +31156,15 @@ function vlPageHTML(){
   const agE = ag && typeof voyageAgencyEmail === "function" ? voyageAgencyEmail(ag) : "";
   const agHTML = ag && ag.name ? '<div class="vl-ag"><span class="vl-eb" style="color:#1553d8">Agenzia dello scalo</span><b>' + vlE(ag.name) + '</b>' + (agE ? '<span class="vl-mono">' + vlE(agE) + '</span>' : "") + '<span style="color:#44576b">conosce i fornitori locali: mettila in copia nella RFQ lampo.</span></div>' : "";
   const known = !q && S.port ? vlKnown(S.port) : true;
-  const empty = !L.length ? '<div class="vl-empty">' + (q ? "Nessuna azienda per «" + vlE(S.q) + "»." : "Nessuno ti ha scritto per " + vlE(S.port) + (hiddenOld ? " negli ultimi " + VL_STALE_M + " mesi" : "") + ".") + (ag && ag.name ? " Chiedi a " + vlE(ag.name) + ", l'agenzia dello scalo." : " Chiedi all'agenzia dello scalo") + ' Oppure cerca nell\'elenco soci per porto dell\'<a href="https://www.shipsupply.org" target="_blank" rel="noopener">ISSA</a>.</div>' : "";
+  const empty = !L.length ? '<div class="vl-empty">' + (q ? "Nessuna azienda per «" + vlE(S.q) + "»." : "Nessuno ti ha scritto per " + vlE(S.port || vlCName(S.country) || "questo filtro") + (hiddenOld ? " negli ultimi " + VL_STALE_M + " mesi" : "") + ".") + (ag && ag.name ? " Chiedi a " + vlE(ag.name) + ", l'agenzia dello scalo." : " Chiedi all'agenzia dello scalo") + ' Oppure cerca nell\'elenco soci per porto dell\'<a href="https://www.shipsupply.org" target="_blank" rel="noopener">ISSA</a>.</div>' : "";
   const side = S.rfq ? vlRfqHTML(all) : vlDetailHTML(all.find(x => x.l.id === S.sel) || L[0], isAg);
   return '<div class="vl">' +
     (S.undo ? '<div class="vl-undo"><span>Tolto: non comparirà più come proposta.</span><button onclick="vlUndo()">↩ Annulla</button></div>' : "") +
-    '<div class="vl-ports">' + portsHTML + '</div>' +
+    '<div class="vl-row"><span class="vl-eb">Paese</span><div class="vl-ports">' + countriesHTML + '</div></div>' +
+    '<div class="vl-row"><span class="vl-eb">Porto</span><div class="vl-ports">' + portsHTML + '</div></div>' +
     '<div class="vl-bar">' + kindsHTML + '<input type="search" class="vl-q" id="vl-q" placeholder="Cerca in tutti i porti: azienda, marchio, servizio…" value="' + escapeAttr(S.q || "") + '" autocomplete="off"><span style="flex:1"></span>' +
       (!known && call ? '<button class="vl-bt" onclick="vlKnowPort(\'' + vlJ(S.port) + '\')" title="Togli l\'avviso «primo scalo» dal radar">Conosco già ' + vlE(S.port) + '</button>' : "") +
-      '<button class="vl-bt p" onclick="vlRfqStart(\'' + vlJ(S.port) + '\')">⚡ RFQ lampo' + (nPick ? " · " + nPick : "") + '</button></div>' +
+      '<button class="vl-bt p" onclick="vlRfqStart(\'' + vlJ(S.port || (P[0] && P[0].p) || "") + '\')">⚡ RFQ lampo' + (nPick ? " · " + nPick : "") + '</button></div>' +
     '<div class="vl-cols"><div class="vl-list">' + (q ? '<div class="vl-ag" style="background:#fff">Ricerca in tutti i porti · ' + L.length + ' risultati</div>' : agHTML) +
       '<div class="vl-hd"><div></div><div>Azienda · cosa dice di fare</div><div>Fiducia (dai tuoi dati)</div></div>' + rows + empty +
       '<div class="vl-ft"><span>Si riempie da sola dalla posta del mattino' + (D.updatedAt ? " · aggiornato " + vlFD(D.updatedAt) : "") + " · " + Object.keys(D.leads || {}).length + ' aziende in archivio</span>' +
@@ -31206,9 +31231,10 @@ function vlRenderRubrica(root, nSup, nAg){
   if(q){ q.addEventListener("input", e => { clearTimeout(window._vlQt); const v = e.target.value; window._vlQt = setTimeout(() => { window._vl.q = v; renderRubricaPage(); const q2 = document.getElementById("vl-q"); if(q2){ q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } }, 180); }); }
 }
 function vlRe(){ if(state.view === "rubrica") renderRubricaPage(); }
-window.vlOpen = function(port, o){ o = o || {}; const S = window._vl; S.port = vlPN(port); S.q = ""; S.kind = "all"; S.sel = ""; S.rfq = null;
+window.vlOpen = function(port, o){ o = o || {}; const S = window._vl; S.port = vlPN(port); S.cInit = 0; S.q = ""; S.kind = "all"; S.sel = ""; S.rfq = null;
   state.view = "rubrica"; state._rubricaTab = "scoperti"; if(o.rfq) vlRfqStart(port, o.item, true); render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
-window.vlSetPort = function(p){ const S = window._vl; S.port = p; S.q = ""; S.sel = ""; if(S.rfq) S.rfq.port = p; vlRe(); };
+window.vlSetPort = function(p){ const S = window._vl; S.port = p; S.q = ""; S.sel = ""; if(S.rfq && p) S.rfq.port = p; vlRe(); };
+window.vlSetCountry = function(c){ const S = window._vl; S.country = c; S.cInit = 1; S.port = ""; S.q = ""; S.sel = ""; vlRe(); };
 window.vlSetKind = function(k){ window._vl.kind = k; vlRe(); };
 window.vlSel = function(id){ window._vl.sel = id; window._vl.rfq = null; vlRe(); };
 window.vlPick = function(id){ const p = window._vl.pick; p[id] = !p[id]; if(!p[id]) delete p[id]; vlRe(); };
