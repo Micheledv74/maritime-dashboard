@@ -9944,6 +9944,7 @@ async function loadData() {
     state.noonReports = (noonData && noonData.vessels) ? noonData.vessels : (noonData || null);  // {vesselId:[report,...]}
     state.pendingReplies = (pendingData && Array.isArray(pendingData.items)) ? pendingData.items : (Array.isArray(pendingData) ? pendingData : null);
     fetchJSON(DATA_URLS.morningBrief).then(d => { state.morningBrief = d; try { mbRepaint(); } catch(e) {} }).catch(() => {});  // v1.19
+    if (typeof vlFetch === "function") vlFetch();  // v1.25 Scoperti
     state.recentEmails = (recentEmailsData && Array.isArray(recentEmailsData.threads)) ? recentEmailsData : null;  // v0.48: {threads:[{conversationId,subject,messages:[...],waitingReply,waitingDays,webLink,hasAttachments}]}
     // v0.37 — Rubriche Notion: Notion vince sui conflitti (merge nei profili locali)
     mergeNotionProfiles("supplier", supProfiles);
@@ -13387,6 +13388,7 @@ function renderRubricaPage() {
   // Agenzie: nomi dalla rubrica voyage + profili agenzia
   const agNames = new Set(Object.keys(loadEntityProfiles("agency")));
   try { (loadAgencies() || []).forEach(a => a.name && agNames.add(a.name)); } catch(_) {}
+  if (tab === "scoperti" && typeof vlRenderRubrica === "function") return vlRenderRubrica(root, supNames.size, agNames.size);  // v1.25
 
   const kind = tab;
   const names = [...(kind === "supplier" ? supNames : agNames)].filter(Boolean).sort((a,b)=>a.localeCompare(b));
@@ -13426,6 +13428,7 @@ function renderRubricaPage() {
     <div class="todo-mode-switch" role="tablist" style="margin-bottom:16px;">
       <button class="tms-btn ${tab==='supplier'?'active':''}" onclick="window.setRubricaTab('supplier')">🏭 Fornitori <span class="tms-badge">${supNames.size}</span></button>
       <button class="tms-btn ${tab==='agency'?'active':''}" onclick="window.setRubricaTab('agency')">⚓ Agenzie <span class="tms-badge">${agNames.size}</span></button>
+      ${typeof vlRenderRubrica === "function" ? `<button class="tms-btn" onclick="window.setRubricaTab('scoperti')">🧭 Scoperti <span class="tms-badge">${(vlData() && Object.keys(vlData().leads || {}).length) || 0}</span></button>` : ""}
     </div>
     <div class="rub-toolbar">
       <input type="search" class="search-input" id="rubrica-search" placeholder="Cerca ${kind==='supplier'?'fornitore':'agenzia'}…" value="${escapeAttr(state._rubricaQuery||"")}">
@@ -16733,6 +16736,7 @@ function buildItemDetailHTML(it, vessel, vesselCfg) {
         ${flowHTML}
         ${typeof mpDetailHTML === "function" ? mpDetailHTML(it) : ""}
         ${offersHTML}
+        ${typeof vlItemHTML === "function" ? vlItemHTML(it, vessel) : ""}
         ${ordersHTML}
         ${typeof itemMailHTML === "function" ? itemMailHTML(it, vessel) : ""}
         ${shipmentSection(it, vessel)}
@@ -25586,6 +25590,8 @@ function buildStatePayload() {
     todoTombs: (typeof loadTodoTombs === "function" ? loadTodoTombs() : {}),
     reminders: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.reminders") : {}),
     chaseOff: (typeof loadChaseOff === "function" ? loadChaseOff() : {}),
+    leadMarks: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.leadMarks") : {}),
+    vlMoveOff: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.vlMoveOff") : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {}),
     recRev: (typeof recTrack === "function" ? recTrack() : {})
@@ -26065,7 +26071,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","infoshipLedger","rfqGenuine","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","infoshipLedger","rfqGenuine","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook","leadMarks","vlMoveOff"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -26200,7 +26206,9 @@ function collSnapshot(){
     delivGoal: f(typeof loadDelivGoal==="function"?loadDelivGoal():{}),
     todoTombs: f(typeof loadTodoTombs==="function"?loadTodoTombs():{}),
     reminders: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.reminders"):{}),
-    chaseOff: f(typeof loadChaseOff==="function"?loadChaseOff():{})
+    chaseOff: f(typeof loadChaseOff==="function"?loadChaseOff():{}),
+    leadMarks: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.leadMarks"):{}),
+    vlMoveOff: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.vlMoveOff"):{})
   };
 }
 
@@ -26339,7 +26347,7 @@ function mpdMergeRemote(remote, force){
       }
     }
     // v0.96 — profili porto e flag critico: unione per voce, vince updatedAt più recente
-    ["portProfiles", "critFlags", "matPos", "delivGoal", "reminders", "chaseOff", "logbook"].forEach(cn => {
+    ["portProfiles", "critFlags", "matPos", "delivGoal", "reminders", "chaseOff", "logbook", "leadMarks", "vlMoveOff"].forEach(cn => {
       const rv = remote[cn]; if (!rv || typeof rv !== "object") return;
       const lk = "mpd." + cn;
       let local = {}; try { local = JSON.parse(localStorage.getItem(lk) || "{}") || {}; } catch {}
@@ -28115,6 +28123,7 @@ function radarPaint(){
   staleLanes.filter(l => !(typeof mpProposal === "function" && mpProposal(l.vid))).forEach(l => moves.push({ where: l.name + " · viaggio da aggiornare", c: "#c07800", title: "Aggiorna il viaggio di " + l.name,
     why: "Ultimo scalo impostato: " + l.stale.port + ", ETA " + rdFD(l.stale.eta, now) + " (passata)." + (l.stale.n ? " " + l.stale.n + " consegne sono legate a quello scalo." : "") + " Senza date future i suoi PO non entrano nel radar.",
     cta: "Apri viaggio", go: "window.goVessel('" + ea(l.vid) + "')" }));
+  if(typeof vlRadarMoves === "function") try{ vlRadarMoves(M).forEach(m => moves.push(m)); }catch(e){}  // v1.25 primo scalo
   const bad = all.filter(x => x.k !== "ok").sort((a, b) => (b.crit - a.crit) || (ORD[a.k] - ORD[b.k]) || (a.c.etd - b.c.etd));
   bad.forEach(x => {
     const where = x.c.vname + " · " + x.c.port + (x.crit ? " · critico" : "") + " · limite " + rdFDT(x.cut, now);
@@ -30958,6 +30967,305 @@ function importBackup(e) {
   else start();
   setTimeout(schedule, 1500);
 })();
+</script>
+<script>
+// === v1.25 SCOPERTI — chi può servirti, porto per porto ======================
+// Fonte: data-vendor-leads.json scritto da n8n (Riepilogo del Mattino v2.5 + "Proposte – recupero 18 mesi"):
+// {version:1, updatedAt, seen:[], leads:{key:{id,company,type,ports[],wide,country,brands,email,phone,web,what,quote,firstAt,lastAt,n,mails[{at,subject,webLink}]}}}
+// key = dominio email (o indirizzo intero se gmail/yahoo/…). Nessun inserimento a mano.
+// Locale + sync per voce: mpd.leadMarks {key:{dismiss,promoted,ports[],contacted[{at,port,vid,what}],updatedAt}} · mpd.vlMoveOff {PORTO:ts}
+// Scala di fiducia calcolata dai dati: presentato → contattato (RFQ Infoship / RFQ lampo) → ha quotato → ha avuto un PO.
+const VL_URL = "https://raw.githubusercontent.com/Micheledv74/maritime-dashboard/main/data-vendor-leads.json";
+const VL_STALE_M = 18;
+const VL_STEPS = ["Si è presentato", "Contattato", "Ha quotato", "Ha avuto un PO"];
+const VL_KIND = { chandler: ["Chandler", "#e7eefc", "#1553d8"], maker: ["Maker", "#f1e8fb", "#6a2bb3"], agenzia: ["Agenzia", "#e1f3f4", "#0f6b78"], servizi: ["Servizi", "#fdeed0", "#8a4b00"] };
+const VL_FREE = /^(gmail|googlemail|yahoo|hotmail|outlook|live|icloud|aol|mail|yandex|qq|163|126|gmx|libero|uol|bol|terra)\./i;
+const VL_STOP = /\b(ltda|ltd|limited|llc|inc|sa|srl|spa|gmbh|bv|co|company|corp|group|the|and)\b/g;
+window._vl = window._vl || { port: "", kind: "all", q: "", sel: "", rfq: null, pick: {}, old: false, undo: "" };
+
+function vlData(){ if(window._vlD) return window._vlD; try{ const c = JSON.parse(localStorage.getItem("mpd.vendorLeadsCache") || "null"); if(c && c.leads) return (window._vlD = c); }catch(e){} return null; }
+function vlFetch(){ return fetch(VL_URL + "?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(d => { if(!d || !d.leads) return;
+  window._vlD = d; try{ localStorage.setItem("mpd.vendorLeadsCache", JSON.stringify(d)); }catch(e){} vlRepaint(); }).catch(() => {}); }
+function vlRepaint(){ try{ if(state.view === "rubrica" && state._rubricaTab === "scoperti") renderRubricaPage(); else if(document.getElementById("radar-root") && typeof radarPaint === "function") radarPaint(); }catch(e){} }
+function vlMarks(){ return rdLoadJSON("mpd.leadMarks"); }
+function vlMark(id, patch){ const all = vlMarks(); all[id] = Object.assign({}, all[id] || {}, patch, { updatedAt: new Date().toISOString() }); rdSaveJSON("mpd.leadMarks", all); }
+function vlE(s){ return escapeHTML(String(s == null ? "" : s)); }
+function vlJ(s){ return escapeAttr(String(s)).replace(/'/g, "\\'"); }
+function vlFD(s){ if(!s) return ""; const d = new Date(String(s).length <= 10 ? s + "T12:00:00" : s); return isNaN(d) ? String(s) : d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" }); }
+function vlFDs(s){ if(!s) return ""; const d = new Date(String(s).length <= 10 ? s + "T12:00:00" : s); return isNaN(d) ? String(s) : d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }); }
+function vlNorm(s){ return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(VL_STOP, " ").replace(/[^a-z0-9]/g, ""); }
+function vlPN(s){ return String(s || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\(.*?\)/g, "").replace(/[^A-Z ]/g, " ").replace(/\s+/g, " ").trim(); }
+function vlPortEq(a, b){ a = vlPN(a); b = vlPN(b); if(!a || !b) return false; if(a === b) return true; const [s, l] = a.length < b.length ? [a, b] : [b, a]; return s.length >= 5 && (l.startsWith(s + " ") || l.endsWith(" " + s)); }
+function vlDom(e){ const m = String(e || "").toLowerCase().match(/@([\w.-]+)/); return m ? m[1] : ""; }
+
+// storico Infoship + registro RFQ indicizzati per nome fornitore / dominio email
+function vlIx(){ const L = typeof isxData === "function" ? isxData() : { rfq: {}, po: {} };
+  if(window._vlIx && window._vlIx.L === L) return window._vlIx;
+  const by = {}, add = (h, k, n, r) => { const x = vlNorm(h); if(x.length < 4) return; (by[x] = by[x] || { rfq: [], po: [] })[k].push({ n, r }); };
+  Object.entries(L.rfq || {}).forEach(([n, r]) => r && add(r.h, "rfq", n, r));
+  Object.entries(L.po || {}).forEach(([n, r]) => r && add(r.h, "po", n, r));
+  const dom = {}; try{ Object.entries(typeof loadRfqVendors === "function" ? loadRfqVendors() : {}).forEach(([n, v]) => { const d = vlDom(v && v.email); if(d) (dom[d] = dom[d] || []).push(n); }); }catch(e){}
+  return (window._vlIx = { L, by, keys: Object.keys(by), dom }); }
+function vlHist(l){ const X = vlIx(), k = vlNorm(l.company), out = { rfq: [], po: [], rv: [] };
+  if(k.length >= 4) X.keys.forEach(h => { if(h === k || (h.length >= 6 && k.includes(h)) || (k.length >= 6 && h.includes(k))){ out.rfq.push(...X.by[h].rfq); out.po.push(...X.by[h].po); } });
+  const d = vlDom(l.email); if(d && !VL_FREE.test(d)) out.rv = X.dom[d] || [];
+  return out; }
+function vlInfo(l, mk){ mk = mk || {}; const H = vlHist(l), ev = ["Prima email " + vlFD(l.firstAt) + ((l.n || 1) > 1 ? " · " + l.n + " email" : ""), "", "", ""];
+  const byD = (a, b) => String((b.r && b.r.d) || "").localeCompare(String((a.r && a.r.d) || ""));
+  const con = (mk.contacted || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  const rf = H.rfq.slice().sort(byD), off = rf.filter(x => typeof isxIsOffer === "function" && isxIsOffer(x.r)), po = H.po.slice().sort(byD);
+  let st = 0;
+  if(rf.length || con.length || H.rv.length){ st = 1; ev[1] = rf.length ? rf.length + " RFQ · ultima " + rf[0].n + (rf[0].r.d ? " del " + vlFD(rf[0].r.d) : "") : con.length ? "RFQ lampo " + vlFD(con[0].at) + (con[0].port ? " · " + con[0].port : "") : "RFQ " + H.rv[0]; }
+  if(off.length){ st = 2; ev[2] = off.length + (off.length > 1 ? " offerte" : " offerta") + " · ultima " + off[0].n + (off[0].r.d ? " del " + vlFD(off[0].r.d) : ""); } else if(rf.length) ev[2] = "Nessuna offerta finora";
+  if(po.length){ st = 3; ev[3] = po.length + " PO · ultimo " + po[0].n + (po[0].r.d ? " del " + vlFD(po[0].r.d) : ""); }
+  const last = [l.lastAt, con[0] && con[0].at, rf[0] && rf[0].r.d].filter(Boolean).sort().pop();
+  const months = last ? Math.round((Date.now() - new Date(last).getTime()) / (30.44 * 864e5)) : 99;
+  const ports = [...new Set([...(l.ports || []), ...(mk.ports || [])].map(p => vlPN(p)).filter(Boolean))];
+  return { st, ev, months, stale: months > VL_STALE_M && st < 2, ports, dismiss: !!mk.dismiss, promoted: !!mk.promoted, rfq: rf, off, po }; }
+function vlAll(withDismissed){ const D = vlData(); if(!D) return []; const M = vlMarks();
+  return Object.values(D.leads || {}).filter(l => l && l.company && l.id).map(l => ({ l, I: vlInfo(l, M[l.id]) })).filter(x => withDismissed || !x.I.dismiss); }
+function vlCountryMap(all){ const m = {}; all.forEach(x => { const c = String(x.l.country || "").toUpperCase(); if(c) x.I.ports.forEach(p => { if(!m[p]) m[p] = c; }); }); return m; }
+function vlCountryOf(port, cmap){ const k = Object.keys(cmap).find(p => vlPortEq(p, port)); return k ? cmap[k] : ""; }
+function vlCovers(x, port, cmap){ if(x.I.ports.some(p => vlPortEq(p, port))) return true; const c = String(x.l.country || "").toUpperCase(); return !!(x.l.wide && c && vlCountryOf(port, cmap) === c); }
+// scali futuri della flotta (viaggio current/next)
+function vlCalls(){ const out = [], today = new Date().toISOString().slice(0, 10);
+  (VESSELS || []).forEach(V => { const voy = getVoyage(V.vesselId) || {}; ["current", "next"].forEach(w => { const lg = voy[w]; if(!lg || !lg.to) return;
+    const d = String(lg.etd || lg.etb || lg.eta || "").slice(0, 10); if(d && d < today) return;
+    out.push({ vid: V.vesselId, vname: V.displayName, port: vlPN(lg.to), raw: lg.to, eta: lg.eta || lg.etb || "", etd: lg.etd || "", leg: lg, which: w }); }); });
+  return out.sort((a, b) => String(a.eta || "9").localeCompare(String(b.eta || "9"))); }
+function vlCallAt(port, vid){ return vlCalls().find(c => vlPortEq(c.port, port) && (!vid || c.vid === vid)) || null; }
+// porto già noto: profilo porto, storico viaggi, agenzia in Rubrica con quella città, o "lo conosco" a mano
+function vlKnown(port){ if(rdLoadJSON("mpd.vlMoveOff")[vlPN(port)]) return true;
+  try{ if(rdProfile(port).set) return true; }catch(e){}
+  if((VESSELS || []).some(V => ((getVoyage(V.vesselId) || {}).history || []).some(h => vlPortEq(h.to, port)))) return true;
+  try{ return Object.values(loadEntityProfiles("agency") || {}).some(p => p && p.city && vlPortEq(p.city, port)); }catch(e){ return false; } }
+window.vlKnowPort = function(port){ const o = rdLoadJSON("mpd.vlMoveOff"); o[vlPN(port)] = { at: new Date().toISOString(), updatedAt: new Date().toISOString() }; rdSaveJSON("mpd.vlMoveOff", o); showToast("Ok: niente più avviso «primo scalo» per " + port); vlRepaint(); };
+
+function vlCss(){ if(document.getElementById("vl-css")) return; const s = document.createElement("style"); s.id = "vl-css"; s.textContent = `
+.vl{display:flex;flex-direction:column;gap:12px;color:#0a1b2e}
+.vl-ports{display:flex;gap:6px;flex-wrap:wrap}
+.vl-pc{border:1px solid rgba(10,27,46,.16);background:#fff;color:#0a1b2e;font:600 12.5px/1 inherit;padding:7px 11px;border-radius:999px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.vl-pc small{font:500 10.5px/1 'IBM Plex Mono',monospace;opacity:.75}
+.vl-pc.on{background:#1553d8;border-color:#1553d8;color:#fff}
+.vl-pc.call{border-color:#c07800}.vl-pc.call.on{border-color:#1553d8}
+.vl-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.vl-kc{border:none;background:#eef1f5;color:#44576b;font:600 11.5px/1 inherit;padding:6px 9px;border-radius:6px;cursor:pointer}
+.vl-kc.on{background:#0a1b2e;color:#fff}
+.vl-q{flex:1 1 200px;min-width:160px;max-width:320px;font:inherit;font-size:13px;padding:7px 10px;border:1px solid rgba(10,27,46,.16);border-radius:8px}
+.vl-bt{border:1px solid rgba(10,27,46,.16);background:#fff;color:#0a1b2e;font:600 12.5px/1.2 inherit;padding:8px 13px;border-radius:999px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.vl-bt:hover{text-decoration:none;border-color:#1553d8}
+.vl-bt.p{background:#1553d8;border-color:#1553d8;color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(21,83,216,.28)}
+.vl-bt.g{background:#e3f2ea;border-color:#14794e;color:#0d5c3a}
+.vl-cols{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.vl-list{flex:1 1 540px;min-width:0;background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:14px;overflow:hidden}
+.vl-side{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.vl-card{background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:13px}
+.vl-hd{display:grid;grid-template-columns:22px minmax(0,1fr) 150px;gap:12px;padding:8px 14px;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6a7d90}
+.vl-r{display:grid;grid-template-columns:22px minmax(0,1fr) 150px;gap:12px;padding:12px 14px;border-top:1px solid #eef0f3;cursor:pointer;align-items:start}
+.vl-r:hover{background:#f7f9fc}.vl-r.on{background:#f0f5ff}.vl-r.old{opacity:.6}
+.vl-ck{width:18px;height:18px;border-radius:5px;border:1.5px solid #b8c3ce;background:#fff;color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;padding:0;cursor:pointer;margin-top:2px}
+.vl-ck.on{background:#1553d8;border-color:#1553d8}
+.vl-n{display:flex;gap:7px;align-items:center;flex-wrap:wrap;font-weight:700;font-size:14px}
+.vl-k{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px}
+.vl-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px}
+.vl-tag.b{background:#1553d8;color:#fff}.vl-tag.g{background:#e3f2ea;color:#0d5c3a;border:1px solid #14794e}
+.vl-f{font-size:13px;color:#44576b;margin-top:3px;text-wrap:pretty}
+.vl-s{font-size:11.5px;color:#6a7d90;margin-top:4px;display:flex;gap:4px 10px;flex-wrap:wrap}
+.vl-seg{display:flex;gap:3px}.vl-seg i{flex:1;height:6px;border-radius:999px;background:#e3e8ed}
+.vl-sl{font-size:11.5px;font-weight:700;margin-top:5px}
+.vl-ev{font-size:11px;color:#6a7d90;line-height:1.35;margin-top:2px}
+.vl-ft{padding:10px 14px;border-top:1px solid #eef0f3;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11.5px;color:#6a7d90}
+.vl-ft button{border:none;background:none;color:#1553d8;font:600 11.5px inherit;cursor:pointer;padding:0}
+.vl-ag{padding:10px 14px;background:#f5f8ff;border-top:1px solid #eef0f3;font-size:12.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.vl-eb{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6a7d90}
+.vl-kv{display:grid;grid-template-columns:86px minmax(0,1fr);gap:6px 10px;font-size:12.5px}
+.vl-kv>span:nth-child(odd){color:#6a7d90}
+.vl-mono{font-family:'IBM Plex Mono',monospace;font-size:12px;word-break:break-all}
+.vl-quote{border-left:3px solid #d5dce3;padding:2px 0 2px 10px;font-size:12.5px;color:#44576b;font-style:italic;text-wrap:pretty}
+.vl-lad{display:grid;grid-template-columns:14px minmax(0,1fr);gap:4px 9px;align-items:start}
+.vl-lad i{width:12px;height:12px;border-radius:50%;border:2px solid #c7d0d9;box-sizing:border-box;margin-top:3px}
+.vl-lab{display:flex;flex-direction:column;gap:3px;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#6a7d90}
+.vl-in{font:500 13px inherit;padding:7px 8px;border:1px solid rgba(10,27,46,.16);border-radius:8px;color:#0a1b2e;text-transform:none;letter-spacing:0;width:100%;box-sizing:border-box}
+.vl-pre{background:#f5f7f9;border:1px solid #e6eaee;border-radius:10px;padding:12px;font-size:12.5px;line-height:1.5;white-space:pre-wrap;max-height:300px;overflow:auto}
+.vl-undo{background:#0a1b2e;color:#fff;border-radius:10px;padding:9px 14px;font-size:12.5px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.vl-undo button{border:none;background:none;color:#8fb3ff;font:700 12.5px inherit;cursor:pointer}
+.vl-empty{padding:22px 16px;font-size:13px;color:#44576b;line-height:1.5;text-wrap:pretty}
+.vl-mini{display:flex;flex-direction:column;gap:8px}
+@media (max-width:760px){.vl-r,.vl-hd{grid-template-columns:22px minmax(0,1fr)}.vl-r>.vl-t{grid-column:2}.vl-hd>div:last-child{display:none}}
+`; document.head.appendChild(s); }
+
+function vlSegs(st, old){ return [0, 1, 2, 3].map(i => '<i style="background:' + (i > st ? "#e3e8ed" : old ? "#9aa7b4" : st === 3 ? "#14794e" : "#1553d8") + '"></i>').join(""); }
+function vlStepC(st, old){ return old ? "#6a7d90" : st === 3 ? "#14794e" : st === 0 ? "#44576b" : "#1553d8"; }
+function vlKindB(t){ const k = VL_KIND[t] || VL_KIND.servizi; return '<span class="vl-k" style="background:' + k[1] + ';color:' + k[2] + '">' + k[0] + '</span>'; }
+
+function vlPageHTML(){
+  vlCss(); const S = window._vl, D = vlData();
+  if(!D) return '<div class="vl"><div class="vl-list"><div class="vl-empty"><b>L\'archivio è ancora vuoto.</b><br>Si riempie da solo: importa in n8n il <b>Riepilogo del Mattino v2.5</b> (riconosce le email di presentazione di chandler, maker e agenzie) e lancia una volta <b>Proposte – recupero 18 mesi</b> per le email già arrivate. Il file <span class="vl-mono">data-vendor-leads.json</span> compare sul repo e questa pagina si accende.</div></div></div>';
+  const all = vlAll(), cmap = vlCountryMap(all), calls = vlCalls(), old = !!S.old;
+  const cnt = p => all.filter(x => vlCovers(x, p, cmap) && (old || !x.I.stale)).length;
+  const P = []; const has = p => P.some(x => vlPortEq(x.p, p));
+  calls.forEach(c => { if(!has(c.port)) P.push({ p: c.port, c }); });
+  const freq = {}; all.forEach(x => { if(old || !x.I.stale) x.I.ports.forEach(p => freq[p] = (freq[p] || 0) + 1); });
+  Object.keys(freq).sort((a, b) => freq[b] - freq[a]).forEach(p => { if(P.length < 16 && !has(p)) P.push({ p }); });
+  if(S.port && !has(S.port)) P.unshift({ p: vlPN(S.port) });
+  if(!S.port){ const f = P.find(x => x.c && cnt(x.p)) || P.find(x => cnt(x.p)) || P[0]; S.port = f ? f.p : ""; }
+  const portsHTML = P.map(x => '<button class="vl-pc' + (vlPortEq(x.p, S.port) ? " on" : "") + (x.c ? " call" : "") + '" onclick="vlSetPort(\'' + vlJ(x.p) + '\')"' + (x.c ? ' title="Scalo ' + vlE(x.c.vname) + (x.c.eta ? " · ETA " + vlFDs(x.c.eta) : "") + '"' : "") + '>' + vlE(x.p) + (x.c ? '<small>' + vlE(x.c.vname) + (x.c.eta ? " " + vlFDs(x.c.eta) : "") + '</small>' : "") + '<small>' + cnt(x.p) + '</small></button>').join("");
+  const q = String(S.q || "").trim().toLowerCase();
+  let L = q ? all.filter(x => [x.l.company, x.l.what, x.l.brands, x.I.ports.join(" "), x.l.country, x.l.email].join(" ").toLowerCase().includes(q)) : all.filter(x => vlCovers(x, S.port, cmap));
+  const hiddenOld = old ? 0 : L.filter(x => x.I.stale).length; if(!old) L = L.filter(x => !x.I.stale);
+  const kc = k => k === "all" ? L.length : L.filter(x => x.l.type === k).length;
+  const kindsHTML = [["all", "Tutti"], ["chandler", "Chandler"], ["maker", "Maker"], ["agenzia", "Agenzie"], ["servizi", "Servizi"]].map(([k, l]) => '<button class="vl-kc' + (S.kind === k ? " on" : "") + '" onclick="vlSetKind(\'' + k + '\')">' + l + ' ' + kc(k) + '</button>').join("");
+  if(S.kind !== "all") L = L.filter(x => x.l.type === S.kind);
+  const call = q ? null : vlCallAt(S.port), ag = call && call.leg && call.leg.agency || null, agN = vlNorm(ag && ag.name);
+  const isAg = x => !!(agN && agN.length >= 4 && (vlNorm(x.l.company).includes(agN) || agN.includes(vlNorm(x.l.company))));
+  L.sort((a, b) => (isAg(b) - isAg(a)) || (b.I.st - a.I.st) || String(b.l.lastAt || "").localeCompare(String(a.l.lastAt || "")));
+  if(S.sel && !all.some(x => x.l.id === S.sel)) S.sel = "";
+  const nPick = all.filter(x => S.pick[x.l.id]).length;
+  const rows = L.map(x => { const l = x.l, I = x.I, on = S.sel === l.id, pk = !!S.pick[l.id];
+    const wrote = I.stale ? "ultima notizia " + I.months + " mesi fa" : "ti ha scritto " + (I.months <= 1 ? "di recente" : I.months + " mesi fa");
+    return '<div class="vl-r' + (on ? " on" : "") + (I.stale ? " old" : "") + '" onclick="vlSel(\'' + vlJ(l.id) + '\')">' +
+      '<button class="vl-ck' + (pk ? " on" : "") + '" title="Destinatario della RFQ lampo" onclick="event.stopPropagation();vlPick(\'' + vlJ(l.id) + '\')">' + (pk ? "✓" : "") + '</button>' +
+      '<div style="min-width:0"><div class="vl-n">' + vlE(l.company) + vlKindB(l.type) + (isAg(x) ? '<span class="vl-tag b">Agenzia dello scalo</span>' : "") + (I.promoted ? '<span class="vl-tag g">In Rubrica</span>' : "") + '</div>' +
+      (l.what ? '<div class="vl-f">' + vlE(l.what) + '</div>' : "") +
+      '<div class="vl-s"><span>' + vlE(I.ports.join(" · ") || (l.country ? (l.wide ? "tutto " : "") + l.country : "porti non indicati")) + '</span>' + (l.brands ? '<span>· ' + vlE(l.brands) + '</span>' : "") + '<span style="color:' + (I.stale ? "#c0261c" : "#6a7d90") + '">· ' + wrote + '</span></div></div>' +
+      '<div class="vl-t"><div class="vl-seg">' + vlSegs(I.st, I.stale) + '</div><div class="vl-sl" style="color:' + vlStepC(I.st, I.stale) + '">' + VL_STEPS[I.st] + '</div><div class="vl-ev">' + vlE(I.ev[I.st]) + '</div></div></div>'; }).join("");
+  const agE = ag && typeof voyageAgencyEmail === "function" ? voyageAgencyEmail(ag) : "";
+  const agHTML = ag && ag.name ? '<div class="vl-ag"><span class="vl-eb" style="color:#1553d8">Agenzia dello scalo</span><b>' + vlE(ag.name) + '</b>' + (agE ? '<span class="vl-mono">' + vlE(agE) + '</span>' : "") + '<span style="color:#44576b">conosce i fornitori locali: mettila in copia nella RFQ lampo.</span></div>' : "";
+  const known = !q && S.port ? vlKnown(S.port) : true;
+  const empty = !L.length ? '<div class="vl-empty">' + (q ? "Nessuna azienda per «" + vlE(S.q) + "»." : "Nessuno ti ha scritto per " + vlE(S.port) + (hiddenOld ? " negli ultimi " + VL_STALE_M + " mesi" : "") + ".") + (ag && ag.name ? " Chiedi a " + vlE(ag.name) + ", l'agenzia dello scalo." : " Chiedi all'agenzia dello scalo") + ' Oppure cerca nell\'elenco soci per porto dell\'<a href="https://www.shipsupply.org" target="_blank" rel="noopener">ISSA</a>.</div>' : "";
+  const side = S.rfq ? vlRfqHTML(all) : vlDetailHTML(all.find(x => x.l.id === S.sel) || L[0], isAg);
+  return '<div class="vl">' +
+    (S.undo ? '<div class="vl-undo"><span>Tolto: non comparirà più come proposta.</span><button onclick="vlUndo()">↩ Annulla</button></div>' : "") +
+    '<div class="vl-ports">' + portsHTML + '</div>' +
+    '<div class="vl-bar">' + kindsHTML + '<input type="search" class="vl-q" id="vl-q" placeholder="Cerca in tutti i porti: azienda, marchio, servizio…" value="' + escapeAttr(S.q || "") + '" autocomplete="off"><span style="flex:1"></span>' +
+      (!known && call ? '<button class="vl-bt" onclick="vlKnowPort(\'' + vlJ(S.port) + '\')" title="Togli l\'avviso «primo scalo» dal radar">Conosco già ' + vlE(S.port) + '</button>' : "") +
+      '<button class="vl-bt p" onclick="vlRfqStart(\'' + vlJ(S.port) + '\')">⚡ RFQ lampo' + (nPick ? " · " + nPick : "") + '</button></div>' +
+    '<div class="vl-cols"><div class="vl-list">' + (q ? '<div class="vl-ag" style="background:#fff">Ricerca in tutti i porti · ' + L.length + ' risultati</div>' : agHTML) +
+      '<div class="vl-hd"><div></div><div>Azienda · cosa dice di fare</div><div>Fiducia (dai tuoi dati)</div></div>' + rows + empty +
+      '<div class="vl-ft"><span>Si riempie da sola dalla posta del mattino' + (D.updatedAt ? " · aggiornato " + vlFD(D.updatedAt) : "") + " · " + Object.keys(D.leads || {}).length + ' aziende in archivio</span>' +
+        (hiddenOld ? '<button onclick="vlOld()">Mostra ' + hiddenOld + ' senza notizie da oltre ' + VL_STALE_M + ' mesi</button>' : old ? '<button onclick="vlOld()">Nascondi i vecchi</button>' : "") + '</div></div>' +
+    '<div class="vl-side">' + side + '</div></div></div>';
+}
+function vlDetailHTML(x, isAg){ if(!x) return "";
+  const l = x.l, I = x.I, m = (l.mails || [])[0] || {};
+  const lad = VL_STEPS.map((t, i) => { const on = i <= I.st, c = I.st === 3 ? "#14794e" : "#1553d8";
+    return '<i style="' + (on ? "background:" + c + ";border-color:" + c : "background:#fff") + '"></i><div style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:' + (i === I.st ? 700 : 500) + ';color:' + (on ? "#0a1b2e" : "#6a7d90") + '">' + t + '</span><span style="font-size:11.5px;color:#6a7d90">' + vlE(I.ev[i] || "—") + '</span></div>'; }).join("");
+  return '<div class="vl-card"><div><div style="font-size:18px;font-weight:700">' + vlE(l.company) + '</div><div style="font-size:12.5px;color:#44576b;margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + vlKindB(l.type) + (l.country ? vlE(l.country) : "") + (isAg(x) ? '<span class="vl-tag b">Agenzia dello scalo</span>' : "") + '</div></div>' +
+    '<div class="vl-kv"><span>Email</span><span class="vl-mono">' + (l.email ? '<a href="mailto:' + escapeAttr(l.email) + '">' + vlE(l.email) + '</a>' : "—") + '</span>' +
+      '<span>Telefono</span><span class="vl-mono">' + (l.phone ? '<a href="tel:' + escapeAttr(String(l.phone).replace(/[^\d+]/g, "")) + '">' + vlE(l.phone) + '</a>' : "—") + '</span>' +
+      (l.web ? '<span>Sito</span><span class="vl-mono"><a href="' + escapeAttr(/^https?:/i.test(l.web) ? l.web : "https://" + l.web) + '" target="_blank" rel="noopener">' + vlE(l.web) + '</a></span>' : "") +
+      '<span>Porti</span><span>' + vlE(I.ports.join(", ") || "—") + (l.wide && l.country ? " · tutto " + vlE(l.country) : "") + ' <button style="display:inline;border:none;padding:0;background:none;color:#1553d8;font-weight:600;cursor:pointer;font-size:11.5px;font-family:inherit" onclick="vlAddPort(\'' + vlJ(l.id) + '\')">+ porto</button></span>' +
+      '<span>Marchi</span><span>' + vlE(l.brands || "—") + '</span></div>' +
+    (l.quote || l.what ? '<div style="display:flex;flex-direction:column;gap:6px"><div class="vl-eb">Dall\'email originale</div>' + (l.quote ? '<div class="vl-quote">' + vlE(l.quote) + '</div>' : '<div style="font-size:12.5px;color:#44576b">' + vlE(l.what) + '</div>') +
+      '<div style="font-size:11px;color:#6a7d90">Estratto da Mistral · ' + (m.at ? "email del " + vlFD(m.at) : "") + (m.subject ? " · «" + vlE(m.subject) + "»" : "") + (m.webLink ? ' · <a href="' + escapeAttr(m.webLink) + '" target="_blank" rel="noopener">Apri in Outlook</a>' : "") + '</div></div>' : "") +
+    '<div style="display:flex;flex-direction:column;gap:7px"><div class="vl-eb">Scala di fiducia</div><div class="vl-lad">' + lad + '</div></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #eef0f3">' +
+      (I.promoted ? '<button class="vl-bt g" onclick="vlOpenCard(\'' + vlJ(l.id) + '\')">✓ In Rubrica ›</button>' : '<button class="vl-bt" onclick="vlPromote(\'' + vlJ(l.id) + '\')">Promuovi in Rubrica</button>') +
+      '<button class="vl-bt" style="color:#44576b" onclick="vlDismiss(\'' + vlJ(l.id) + '\')">✕ Non è una proposta</button></div></div>';
+}
+function vlLegFor(R){ const c = vlCallAt(R.port, R.vid) || vlCallAt(R.port); return c; }
+function vlRfqText(R){
+  const c = vlLegFor(R), lg = c && c.leg || {}, ag = lg.agency || {}, agE = ag.name && typeof voyageAgencyEmail === "function" ? voyageAgencyEmail(ag) : "";
+  const V = (VESSELS || []).find(v => v.vesselId === R.vid) || {}, ship = "M/V " + (V.displayName || R.vid || "").replace(/^M\/V\s*/i, "");
+  const fdE = s => { const d = new Date(String(s).slice(0, 10) + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }); };
+  const fdI = s => { const d = new Date(String(s).slice(0, 10) + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" }); };
+  const eta = lg.eta || lg.etb || "", etd = lg.etd || "", due = { "4": "4 hours", "12": "12 hours", "24": "24 hours" }[R.due] || "24 hours", dueI = R.due + " ore";
+  const part = String(R.part || "").trim() || "(describe the item)";
+  const en = "Dear Sirs,\n\nour vessel " + ship + " will call " + R.port + (eta ? " on " + fdE(eta) : "") + (etd ? " (ETD " + fdE(etd) + ")" : "") + ".\n\nWe urgently need:\n• " + part.split("\n").join("\n• ") +
+    "\n\nPlease quote price, availability and lead time for delivery on board" + (ag.name ? " via our port agents " + ag.name + (agE ? " (" + agE + ")" : "") : "") + ".\nKindly reply within " + due + ".\n\nBest regards,\nMichele Del Vecchio\nPurchasing Dept. — purchasing@sssdam.com";
+  const it = "Spettabili,\n\nla nostra nave " + ship + " sarà a " + R.port + (eta ? " il " + fdI(eta) : "") + (etd ? " (partenza " + fdI(etd) + ")" : "") + ".\n\nCi serve con urgenza:\n• " + part.split("\n").join("\n• ") +
+    "\n\nVi chiediamo prezzo, disponibilità e tempi di consegna a bordo" + (ag.name ? " tramite la nostra agenzia " + ag.name + (agE ? " (" + agE + ")" : "") : "") + ".\nCortese risposta entro " + dueI + ".\n\nCordiali saluti,\nMichele Del Vecchio\nUfficio Acquisti — purchasing@sssdam.com";
+  const body = R.lang === "IT" ? it : R.lang === "EN" ? en : it + "\n\n— — —\n\n" + en;
+  const subj = (R.lang === "IT" ? "RFQ URGENTE — " : "URGENT RFQ — ") + ship + " — " + R.port + (eta ? " ETA " + vlFDs(eta) : "") + " — " + (R.lang === "IT" ? "risposta entro " + R.due + " h" : "reply within " + R.due + "h");
+  return { subj, body, agE, ag };
+}
+function vlRfqHTML(all){
+  const R = window._vl.rfq, S = window._vl, picked = all.filter(x => S.pick[x.l.id]), T = vlRfqText(R);
+  const opt = (v, l, cur) => '<option value="' + escapeAttr(v) + '"' + (String(cur) === String(v) ? " selected" : "") + '>' + vlE(l) + '</option>';
+  const noMail = picked.filter(x => !x.l.email).length;
+  return '<div class="vl-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-size:16px;font-weight:700">⚡ RFQ lampo · ' + vlE(R.port) + '</div><button class="vl-bt" style="padding:4px 10px" onclick="vlRfqClose()">Chiudi</button></div>' +
+    '<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px"><label class="vl-lab">Nave<select class="vl-in" onchange="vlRfqSet(\'vid\',this.value)">' + (VESSELS || []).map(v => opt(v.vesselId, v.displayName, R.vid)).join("") + '</select></label>' +
+      '<label class="vl-lab">Rispondere entro<select class="vl-in" onchange="vlRfqSet(\'due\',this.value)">' + opt("4", "4 ore", R.due) + opt("12", "12 ore", R.due) + opt("24", "24 ore", R.due) + '</select></label></div>' +
+    '<label class="vl-lab">Cosa serve (una riga per articolo)<textarea class="vl-in" rows="3" style="resize:vertical" onchange="vlRfqSet(\'part\',this.value)">' + vlE(R.part || "") + '</textarea></label>' +
+    '<div class="vl-bar">' + ["EN", "IT", "IT+EN"].map(g => '<button class="vl-kc' + (R.lang === g ? " on" : "") + '" onclick="vlRfqSet(\'lang\',\'' + g + '\')">' + g + '</button>').join("") + '</div>' +
+    '<div style="font-size:12px;color:#44576b;display:flex;flex-direction:column;gap:4px"><div><b style="color:#0a1b2e">' + picked.length + ' destinatari</b> in CCN (nessuno vede gli altri)' + (T.agE ? ' · agenzia ' + vlE(T.ag.name) + ' in copia' : "") + (noMail ? ' · <span style="color:#b06a00">' + noMail + ' senza email</span>' : "") + '</div>' +
+      '<div class="vl-mono" style="font-size:11px;color:#6a7d90">' + (picked.length ? picked.map(x => vlE(x.l.email || x.l.company)).join(", ") : "Spunta le aziende nella lista a sinistra") + '</div></div>' +
+    '<div class="vl-pre"><div style="font-weight:700;margin-bottom:6px">' + vlE(T.subj) + '</div>' + vlE(T.body) + '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="vl-bt p" onclick="vlRfqSend()">Apri in Outlook</button><button class="vl-bt" onclick="vlRfqCopy()">Copia testo</button></div>' +
+    '<div style="font-size:11.5px;color:#6a7d90;text-wrap:pretty">All\'invio i destinatari salgono a «Contattato». Chi poi quota in Infoship sale a «Ha quotato» da solo, con l\'export successivo.</div></div>';
+}
+
+function vlRenderRubrica(root, nSup, nAg){
+  const D = vlData(), n = D ? Object.keys(D.leads || {}).length : 0;
+  root.innerHTML = '<header class="todo-page-header"><div><h1>Rubrica</h1><div class="todo-page-stats"><span class="stat">Scoperti: chi ti ha scritto per proporsi, porto per porto</span></div></div></header>' +
+    '<div class="todo-mode-switch" role="tablist" style="margin-bottom:16px;">' +
+      '<button class="tms-btn" onclick="window.setRubricaTab(\'supplier\')">🏭 Fornitori <span class="tms-badge">' + nSup + '</span></button>' +
+      '<button class="tms-btn" onclick="window.setRubricaTab(\'agency\')">⚓ Agenzie <span class="tms-badge">' + nAg + '</span></button>' +
+      '<button class="tms-btn active" onclick="window.setRubricaTab(\'scoperti\')">🧭 Scoperti <span class="tms-badge">' + n + '</span></button></div>' + vlPageHTML();
+  const q = document.getElementById("vl-q");
+  if(q){ q.addEventListener("input", e => { clearTimeout(window._vlQt); const v = e.target.value; window._vlQt = setTimeout(() => { window._vl.q = v; renderRubricaPage(); const q2 = document.getElementById("vl-q"); if(q2){ q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } }, 180); }); }
+}
+function vlRe(){ if(state.view === "rubrica") renderRubricaPage(); }
+window.vlOpen = function(port, o){ o = o || {}; const S = window._vl; S.port = vlPN(port); S.q = ""; S.kind = "all"; S.sel = ""; S.rfq = null;
+  state.view = "rubrica"; state._rubricaTab = "scoperti"; if(o.rfq) vlRfqStart(port, o.item, true); render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+window.vlSetPort = function(p){ const S = window._vl; S.port = p; S.q = ""; S.sel = ""; if(S.rfq) S.rfq.port = p; vlRe(); };
+window.vlSetKind = function(k){ window._vl.kind = k; vlRe(); };
+window.vlSel = function(id){ window._vl.sel = id; window._vl.rfq = null; vlRe(); };
+window.vlPick = function(id){ const p = window._vl.pick; p[id] = !p[id]; if(!p[id]) delete p[id]; vlRe(); };
+window.vlOld = function(){ window._vl.old = !window._vl.old; vlRe(); };
+window.vlAddPort = function(id){ const p = prompt("Porto da aggiungere (es. SANTOS):", ""); if(!p || !p.trim()) return; const mk = vlMarks()[id] || {}; vlMark(id, { ports: [...new Set([...(mk.ports || []), vlPN(p)])] }); vlRe(); };
+window.vlDismiss = function(id){ vlMark(id, { dismiss: true }); const S = window._vl; S.undo = id; S.sel = ""; delete S.pick[id]; clearTimeout(window._vlUt); window._vlUt = setTimeout(() => { S.undo = ""; vlRe(); }, 7000); vlRe(); };
+window.vlUndo = function(){ const S = window._vl; if(S.undo){ vlMark(S.undo, { dismiss: false }); S.sel = S.undo; S.undo = ""; } vlRe(); };
+window.vlPromote = function(id){ const x = vlAll(true).find(y => y.l.id === id); if(!x) return; const l = x.l, kind = l.type === "agenzia" ? "agency" : "supplier";
+  const all = loadEntityProfiles(kind), nm = String(l.company).trim(), p = all[nm] || { rating: 0 };
+  if(!p.email && l.email) p.email = l.email; if(!p.phone && l.phone) p.phone = l.phone; if(!p.country && l.country) p.country = l.country; if(!p.city && x.I.ports[0]) p.city = x.I.ports[0];
+  const note = "Da Scoperti: " + [l.what, x.I.ports.length ? "porti " + x.I.ports.join(", ") : "", l.brands].filter(Boolean).join(" · ");
+  if(!String(p.notes || "").includes("Da Scoperti")) p.notes = (p.notes ? p.notes + "\n" : "") + note;
+  p.updatedAt = new Date().toISOString(); all[nm] = p; saveEntityProfiles(kind, all); if(typeof ghSetDirty === "function") ghSetDirty();
+  vlMark(id, { promoted: true, rubrica: { kind, name: nm } }); showToast(nm + " aggiunto alla Rubrica (" + (kind === "agency" ? "agenzie" : "fornitori") + ")"); vlRe(); };
+window.vlOpenCard = function(id){ const mk = vlMarks()[id] || {}, r = mk.rubrica; if(!r) return; if(r.kind === "agency" && window.openAgencyCard) window.openAgencyCard(r.name); else if(window.openSupplierCard) window.openSupplierCard(r.name); };
+window.vlRfqStart = function(port, itemId, noRender){ const S = window._vl, c = vlCallAt(port); let vid = c ? c.vid : ((VESSELS || [])[0] || {}).vesselId, part = "";
+  if(itemId){ ((state.data && state.data.vessels) || []).forEach(v => { const it = (v.items || []).find(i => String(i.id) === String(itemId)); if(it){ vid = v.vesselId; part = String(it.description || it.itemDescription || it.title || "").trim(); } }); }
+  S.rfq = { port: vlPN(port || S.port), vid, part, due: "12", lang: "EN" }; S.port = S.rfq.port;
+  if(!Object.keys(S.pick).length){ const all = vlAll(), cmap = vlCountryMap(all); all.filter(x => vlCovers(x, S.port, cmap) && !x.I.stale && x.l.email).slice(0, 8).forEach(x => S.pick[x.l.id] = true); }
+  if(!noRender) vlRe(); };
+window.vlRfqClose = function(){ window._vl.rfq = null; vlRe(); };
+window.vlRfqSet = function(k, v){ const R = window._vl.rfq; if(!R) return; R[k] = v; vlRe(); };
+window.vlRfqCopy = function(){ const T = vlRfqText(window._vl.rfq); try{ navigator.clipboard.writeText(T.subj + "\n\n" + T.body); showToast("Testo copiato"); }catch(e){ showToast("Copia non riuscita"); } };
+window.vlRfqSend = function(){ const S = window._vl, R = S.rfq; if(!R) return; const picked = vlAll().filter(x => S.pick[x.l.id] && x.l.email);
+  if(!picked.length){ showToast("Spunta almeno un'azienda con email"); return; }
+  const T = vlRfqText(R), now = new Date().toISOString();
+  const href = "mailto:purchasing@sssdam.com?bcc=" + encodeURIComponent(picked.map(x => x.l.email).join(";")) + (T.agE ? "&cc=" + encodeURIComponent(T.agE) : "") + "&subject=" + encodeURIComponent(T.subj) + "&body=" + encodeURIComponent(T.body);
+  const M = vlMarks(); picked.forEach(x => { const m = M[x.l.id] || {}; m.contacted = [{ at: now, port: R.port, vid: R.vid, what: String(R.part || "").slice(0, 80) }].concat(m.contacted || []).slice(0, 10); m.updatedAt = now; M[x.l.id] = m; });
+  rdSaveJSON("mpd.leadMarks", M);
+  window.location.href = href; showToast("RFQ lampo pronta in Outlook · " + picked.length + " destinatari ora «Contattato»"); S.rfq = null; S.pick = {}; vlRe(); };
+
+// Radar: avviso sui primi scali in porti senza storico
+function vlRadarMoves(M){ if(!vlData()) return []; const out = [], seen = {}, all = vlAll(), cmap = vlCountryMap(all), ea = s => vlJ(s);
+  (M.calls || []).forEach(c => { if(c.past) return; const P = vlPN(c.port); if(!P || seen[P] || vlKnown(c.port)) return; seen[P] = 1;
+    const L = all.filter(x => vlCovers(x, P, cmap) && !x.I.stale); if(L.some(x => x.I.st >= 3)) return;
+    const q = L.filter(x => x.I.st === 2).length, lg = (vlCallAt(P, c.vid) || {}).leg || {}, ag = lg.agency && lg.agency.name;
+    out.push({ where: (c.vname || "") + " · " + c.port + " · primo scalo", c: "#c07800", title: "Primo scalo a " + c.port + ": non hai mai comprato in questo porto",
+      why: (L.length ? "Ti hanno scritto " + L.length + (L.length === 1 ? " azienda" : " aziende") + " che coprono " + c.port + (q ? ", " + q + " ti " + (q === 1 ? "ha" : "hanno") + " già quotato" : "") + "." : "Nessuna proposta in archivio per " + c.port + ".") + (ag ? " Agenzia dello scalo: " + ag + "." : " Se non basta, chiedi all'agenzia dello scalo."),
+      cta: "Chi c'è ›", go: "window.vlOpen('" + ea(P) + "')" }); });
+  return out.slice(0, 2); }
+
+// Scheda articolo: REQ/RFQ ancora senza PO, scalo noto → chi c'è in quel porto
+function vlItemHTML(it, vessel){ try{
+  if(!vlData() || !it || it.poNumber || (typeof reqIsClosed === "function" && reqIsClosed(it))) return "";
+  const vid = vessel && vessel.vesselId; let port = "";
+  const plan = typeof getDeliveryPlan === "function" ? getDeliveryPlan(it.id) : null; if(plan && plan.port) port = plan.port;
+  if(!port && vid && typeof mpWhere === "function"){ const W = mpWhere(vid); if(W && W.port && !W.old) port = W.port; }
+  if(!port) return ""; port = vlPN(port);
+  const all = vlAll(), cmap = vlCountryMap(all), L = all.filter(x => vlCovers(x, port, cmap) && !x.I.stale).sort((a, b) => b.I.st - a.I.st);
+  if(!L.length) return ""; vlCss();
+  const q = L.filter(x => x.I.st >= 2).length, P = vlJ(port), id = vlJ(it.id);
+  return '<div class="detail-section"><div class="idx-h"><h4>Chi c\'è a ' + vlE(port) + '</h4></div><div class="vl-mini"><div style="font-size:13px;color:#44576b;text-wrap:pretty">' +
+    L.length + (L.length === 1 ? " azienda ti ha scritto" : " aziende ti hanno scritto") + " per " + vlE(port) + (q ? ", " + q + " ti " + (q === 1 ? "ha" : "hanno") + " già quotato" : "") + ": <b style=\"color:#0a1b2e\">" + L.slice(0, 3).map(x => vlE(x.l.company)).join(" · ") + "</b>" + (L.length > 3 ? " e altre " + (L.length - 3) : "") + '.</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="vl-bt" onclick="window.closeItemDetailPopover&&closeItemDetailPopover();vlOpen(\'' + P + '\')">Vedi chi c\'è ›</button><button class="vl-bt p" onclick="window.closeItemDetailPopover&&closeItemDetailPopover();vlOpen(\'' + P + '\',{rfq:1,item:\'' + id + '\'})">⚡ RFQ lampo</button></div></div></div>';
+}catch(e){ return ""; } }
+setTimeout(() => { if(!window._vlD) vlFetch(); }, 4000);
+
 </script>
 
 </body>
