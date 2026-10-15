@@ -1,15 +1,15 @@
 {
-  "lastSync": "2026-10-15T15:05:16.261Z",
+  "lastSync": "2026-10-15T15:22:10.632Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
-      "totalReq": 259,
+      "totalReq": 260,
       "rfqOpen": 22,
-      "rfqOverdue7": 6,
-      "rfqOverdue15": 6,
-      "readyForPO": 5,
+      "rfqOverdue7": 5,
+      "rfqOverdue15": 5,
+      "readyForPO": 6,
       "orders": 13,
       "poReadyForDN": 0,
       "dn": 0,
@@ -28,6 +28,38 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med toscana::bump test kit for 5gas detector",
+          "description": "BUMP TEST KIT FOR 5-GAS DETECTOR",
+          "supplier": "—",
+          "department": "DECK Department",
+          "reqNumber": "2026-MDT-SHPR-00108",
+          "rfqNumbers": [],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Endorsed",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-09-29",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
         {
           "id": "med toscana::chlorine reagent kit for clxxt and clxex chlorine monitor 12 month supply for erma first",
           "description": "Chlorine reagent kit for CLX-XT and CLX-EX Chlorine Monitor 12 month supply FOR ERMA FIRST",
@@ -79,14 +111,16 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 7,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 2,
+          "rfqPct": 29,
           "rfqDays": 1,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Refused",
+            "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
           "rfqDetails": [
@@ -94,7 +128,7 @@
               "number": "2026-MDT-HQRQ-00226",
               "supplier": "SUNJIN ENTECH Co.,Ltd.",
               "code": "SSS0011",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Refused",
               "date": "2026-10-14",
               "deadline": "2026-10-29"
             },
@@ -102,9 +136,9 @@
               "number": "2026-MDT-HQRQ-00225",
               "supplier": "G&P TECH CO.",
               "code": "SSS0010",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-10-14",
-              "deadline": "2026-10-29"
+              "deadline": "2026-11-28"
             },
             {
               "number": "2026-MDT-HQRQ-00224",
@@ -134,9 +168,9 @@
               "number": "2026-MDT-HQRQ-00221",
               "supplier": "YH MARINE TRADE CO.,LTD",
               "code": "SSS0003",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-10-14",
-              "deadline": "2026-10-29"
+              "deadline": "2026-10-19"
             },
             {
               "number": "2026-MDT-HQRQ-00220",
@@ -654,34 +688,80 @@
         {
           "id": "med toscana::new type power connection for cargo grabs catalog \"oduheavy duty connectors\"",
           "description": "New type power connection for cargo Grabs, Catalog \"ODU-Heavy Duty Connectors\".",
-          "supplier": "YH MARINE TRADE CO.,LTD",
+          "supplier": "G&P TECH CO.",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00104",
           "rfqNumbers": [
+            "2026-MDT-HQRQ-00231",
+            "2026-MDT-HQRQ-00230",
+            "2026-MDT-HQRQ-00229",
+            "2026-MDT-HQRQ-00228",
+            "2026-MDT-HQRQ-00227",
             "2026-MDT-HQRQ-00216"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 6,
+          "rfqClosed": 1,
+          "rfqPct": 17,
           "rfqDays": 23,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Sent to Vendor",
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00231",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00230",
+              "supplier": "DUBHE CO., LTD.",
+              "code": "SSS0006",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00229",
+              "supplier": "SUNJIN ENTECH Co.,Ltd.",
+              "code": "SSS0011",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00228",
+              "supplier": "Dongjin Intec Co., Ltd.",
+              "code": "SSS0012",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00227",
+              "supplier": "MacGregor Pte Ltd",
+              "code": "SSS0034",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
             {
               "number": "2026-MDT-HQRQ-00216",
               "supplier": "YH MARINE TRADE CO.,LTD",
               "code": "SSS0003",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-09-22",
-              "deadline": "2026-10-07"
+              "deadline": "2026-09-27"
             }
           ],
           "poDetails": [],
@@ -716,7 +796,16 @@
           "reqStatus": "",
           "rfqStatusSummary": [],
           "rfqDetails": [],
-          "poDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00109",
+              "supplier": "TEFIN SCRL",
+              "code": "SSS0033",
+              "status": "PO Finalized",
+              "date": "2026-09-16",
+              "deadline": "2026-10-01"
+            }
+          ],
           "dnDetails": [
             {
               "number": "2026-MDT-HQDN-00144",
@@ -16481,18 +16570,18 @@
     {
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
-      "totalReq": 175,
-      "rfqOpen": 17,
+      "totalReq": 176,
+      "rfqOpen": 19,
       "rfqOverdue7": 1,
       "rfqOverdue15": 1,
       "readyForPO": 5,
-      "orders": 13,
+      "orders": 12,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 15,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 87,
+      "pctReqToPO": 86,
       "pctPOToDN": 92,
       "lat": null,
       "lng": null,
@@ -16504,6 +16593,114 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "peppino::urgent motor mscw pump",
+          "description": "URGENT- MOTOR- MSCW PUMP",
+          "supplier": "YH MARINE TRADE CO.,LTD",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-PEP-SHPR-00153",
+          "rfqNumbers": [
+            "2026-PEP-HQRQ-00258",
+            "2026-PEP-HQRQ-00257"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 2,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00258",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00257",
+              "supplier": "Draft Marine Supply",
+              "code": "",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            }
+          ],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-10-14",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "peppino::urgent motor mscw pump",
+          "description": "URGENT- MOTOR- MSCW PUMP",
+          "supplier": "YH MARINE TRADE CO.,LTD",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-PEP-SHPR-00153",
+          "rfqNumbers": [
+            "2026-PEP-HQRQ-00258",
+            "2026-PEP-HQRQ-00257"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 2,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00258",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00257",
+              "supplier": "Draft Marine Supply",
+              "code": "",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-15",
+              "deadline": "2026-10-30"
+            }
+          ],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-10-14",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
         {
           "id": "peppino::spares for service air compressor",
           "description": "SPARES FOR SERVICE AIR COMPRESSOR",
@@ -16679,12 +16876,21 @@
           "rfqPct": 0,
           "rfqDays": null,
           "rfqStatus": "",
-          "poStatus": "PO Published",
+          "poStatus": "PO Finalized",
           "dnStatus": "DN Shipped to Vessel",
           "reqStatus": "",
           "rfqStatusSummary": [],
           "rfqDetails": [],
-          "poDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-PEP-HQPO-00158",
+              "supplier": "OMA GROUP",
+              "code": "SSS0067",
+              "status": "PO Finalized",
+              "date": "2026-09-28",
+              "deadline": "2026-10-13"
+            }
+          ],
           "dnDetails": [
             {
               "number": "2026-PEP-HQDN-00141",
@@ -17343,15 +17549,14 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 4,
-          "rfqPct": 80,
+          "rfqClosed": 5,
+          "rfqPct": 100,
           "rfqDays": 23,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [
@@ -17359,7 +17564,7 @@
               "number": "2026-PEP-HQRQ-00255",
               "supplier": "G&P TECH CO.",
               "code": "SSS0010",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-09-22",
               "deadline": "2026-10-07"
             },
@@ -17760,7 +17965,7 @@
           "rfqPct": 0,
           "rfqDays": 58,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "PO Published",
+          "poStatus": "PO Cancelled",
           "dnStatus": "",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
@@ -17774,9 +17979,9 @@
               "number": "2026-PEP-HQPO-00156",
               "supplier": "DUBHE CO., LTD.",
               "code": "SSS0006",
-              "status": "PO Published",
+              "status": "PO Cancelled",
               "date": "2026-09-28",
-              "deadline": "2026-10-13"
+              "deadline": ""
             }
           ],
           "dnDetails": [],
