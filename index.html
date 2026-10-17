@@ -19434,7 +19434,9 @@ const VOYAGE_STATUS_LABELS = {
 };
 
 function getVoyage(vesselId) {
-  return (state.voyages && state.voyages[vesselId]) || {};
+  const v = (state.voyages && state.voyages[vesselId]) || {};
+  // v1.26 — rotazione fissa: scalo in corso e successivo calcolati dal giro
+  return (v.rotation && v.rotation.on && typeof rotDerive === "function") ? rotDerive(vesselId, v) : v;
 }
 
 function daysUntil(dateStr) {
@@ -20248,6 +20250,7 @@ function itemsForLeg(vesselId, which){
   const v = (state.data && state.data.vessels.find(x=>x.vesselId===vesselId));
   if(!v || !v.items) return [];
   const voy = getVoyage(vesselId);
+  if(voy._rot && typeof rotItemsForLeg === "function") return rotItemsForLeg(v, voy, which);
   const leg = which==='next' ? (voy.next||{}) : (voy.current||{});
   const legPort = (leg.to||"").trim().toLowerCase();
   const win = legWindowISO(leg);
@@ -21090,6 +21093,7 @@ window.openVoyageEditor = function(vesselId) {
       </div>
       <div class="item-detail-body">
 
+        ${typeof rotEditorBanner === "function" ? rotEditorBanner(vesselId) : ""}
         <div class="detail-section">
           <h4>Stato attuale</h4>
           <div class="voyage-form-row">
@@ -27942,6 +27946,7 @@ function rdModel(){
     const voy = getVoyage(cfg.vesselId) || {};
     const vs = (typeof getVoyageSummaryForCard === "function") ? getVoyageSummaryForCard(cfg.vesselId) : null;
     lane.state = vs && vs.status && typeof VOYAGE_STATUS_LABELS !== "undefined" ? (VOYAGE_STATUS_LABELS[vs.status] || "") : "";
+    if(voy._rot && typeof rotRadarLane === "function"){ const z = rotRadarLane(cfg, v, voy._rot, lane, calls, now, basis, G); if(z.gDirty) gDirty = true; staleDN += z.stale; unTot += lane.un; past.push(...lane.past); continue; }
     const assigned = new Set();
     // v1.15b — ordini del registro manuale (VEGA UNO): i PO entrano nel primo scalo futuro; "Consegna" = pronto dal fornitore
     const moIts = (v.items || []).filter(it => it._manual && it.poNumber && !rdCancelled(it) && !getDeliveryPlan(it.id)); const _moOld = [].map(o => ({ id: "mo::" + cfg.vesselId + "::" + o.id, _manual: true,
@@ -27984,7 +27989,7 @@ function rdModel(){
     unTot += lane.un;
   }
   if(gDirty) rdSaveJSON("mpd.delivGoal", G);
-  const inH = calls.filter(c => c.eta < H);
+  const inH = calls.filter(c => c.eta < H && !c.quiet);
   return { H, basis, now, lanes, calls: inH, allCalls: calls, past, staleDN, unTot };
 }
 
@@ -27993,7 +27998,9 @@ window._rd = window._rd || { sel: null, open: null, undo: null };
 // v1.13 — gli ordini manuali hanno la loro scheda articolo (non più il rimando al registro)
 function rdAlts(x, M){
   if(x.onb) return [];
-  return M.allCalls.filter(c => c.vid === x.c.vid).map(c => ({ c, r: rdCalc(x.it, c, M.now, M.basis), cur: c.id === x.c.id, pr: rdProfile(c.port) }));
+  let L = M.allCalls.filter(c => c.vid === x.c.vid);
+  if(x.c.rot){ L = L.filter(c => c.etd >= 0 && (c.store || c.id === x.c.id)).slice(0, 6); if(!L.some(c => c.id === x.c.id)) L.unshift(x.c); }
+  return L.map(c => ({ c, r: rdCalc(x.it, c, M.now, M.basis), cur: c.id === x.c.id, pr: rdProfile(c.port) }));
 }
 window.rdMove = function(itemId, callId){
   const M = rdModel();
@@ -28097,7 +28104,7 @@ function radarPaint(){
   const risky = M.calls.filter(c => c.n.late);
   const critBad = all.filter(x => x.crit && x.k !== "ok");
   const staleLanes = M.lanes.filter(l => l.stale && !l.calls.length);
-  const sel = M.calls.concat(M.past).find(c => c.id === window._rd.sel) || risky.slice().sort((a, b) => a.etd - b.etd)[0] || M.calls[0] || M.past[0] || null;
+  const sel = M.allCalls.concat(M.past).find(c => c.id === window._rd.sel) || risky.slice().sort((a, b) => a.etd - b.etd)[0] || M.calls[0] || M.past[0] || null;
   if(sel) window._rd.sel = sel.id;
   const esc = escapeHTML, ea = s => escapeAttr(String(s)).replace(/'/g, "\\'");
 
@@ -28127,6 +28134,8 @@ function radarPaint(){
   staleLanes.filter(l => !(typeof mpProposal === "function" && mpProposal(l.vid))).forEach(l => moves.push({ where: l.name + " · viaggio da aggiornare", c: "#c07800", title: "Aggiorna il viaggio di " + l.name,
     why: "Ultimo scalo impostato: " + l.stale.port + ", ETA " + rdFD(l.stale.eta, now) + " (passata)." + (l.stale.n ? " " + l.stale.n + " consegne sono legate a quello scalo." : "") + " Senza date future i suoi PO non entrano nel radar.",
     cta: "Apri viaggio", go: "window.goVessel('" + ea(l.vid) + "')" }));
+  M.lanes.filter(l => l.rot && (l.rot.end - now) / 864e5 < H + 7).forEach(l => moves.push({ where: l.name + " · rotazione fissa", c: "#0f7b8a", title: "La rotazione di " + l.name + " finisce il " + rdFD((l.rot.end - now) / 864e5, now),
+    why: "Dopo l'ultimo scalo il viaggio torna da scrivere a mano e i PO restano senza scalo. Prolungala o imposta il viaggio successivo.", cta: "Prolunga", go: "window.rotOpen('" + ea(l.vid) + "')" }));
   if(typeof vlRadarMoves === "function") try{ vlRadarMoves(M).forEach(m => moves.push(m)); }catch(e){}  // v1.25 primo scalo
   const bad = all.filter(x => x.k !== "ok").sort((a, b) => (b.crit - a.crit) || (ORD[a.k] - ORD[b.k]) || (a.c.etd - b.c.etd));
   bad.forEach(x => {
@@ -28166,6 +28175,7 @@ function radarPaint(){
   const lanesHTML = M.lanes.map(l => {
     const dotC = l.calls.some(c => c.worst === "late") ? "#c0261c" : l.calls.some(c => c.worst === "risk") ? "#c07800" : l.calls.length ? "#14794e" : "#9fb0c4";
     const blocks = l.calls.filter(c => c.eta < H).map(c => {
+      if(c.rot && typeof rotBlockHTML === "function") return rotBlockHTML(c, sel, fx, fw, now, TINT, H);
       const dots = c.its.slice().sort((a, b) => ORD[a.k] - ORD[b.k] || (b.crit - a.crit)).map(x => '<i class="rd-dot' + (x.crit ? " crit" : "") + '" style="background:' + COL[x.k] + '"></i>').join("");
       const anch = c.etb - c.eta > 0.04 && c.etb > 0, b0 = anch ? c.etb : c.eta;
       const anchH = anch ? '<i class="rd-anch" title="' + esc(c.port) + ' · in rada / attesa ormeggio: ETA ' + rdFD(c.eta, now) + ' → ETB ' + rdFD(c.etb, now) + '" style="left:' + fx(Math.max(0, c.eta)) + ';width:' + fw(Math.max(0, c.eta), Math.min(c.etb, H)) + '">rada</i>' : "";
@@ -28180,9 +28190,9 @@ function radarPaint(){
         '<b>' + esc(c.port) + '</b><span><em>' + rdFD(c.etd, now) + '</em> <strong>' + (done ? "✓ " : "") + (c.n.onb + c.n.ifx) + '/' + c.rows.length + ' a bordo</strong></span><span class="rd-dots">' + (dots || '<small>nessun PO</small>') + '</span></button>';
     }).join("") + (l.pastMore ? '<span class="rd-pastmore">+' + l.pastMore + ' prima</span>' : "") : '<span class="rd-pastnone">nessuno scalo concluso negli ultimi ' + RD_PB + ' gg</span>';
     const empty = !blocks ? '<div class="rd-empty" style="left:' + (PW + 6) + 'px"><span>' + (l.stale ? "ETA " + esc(l.stale.port) + " " + rdFD(l.stale.eta, now) + " passata: viaggio da aggiornare" : "Viaggio non impostato: PO non legabili a uno scalo") + '</span><b onclick="window.goVessel(\'' + ea(l.vid) + '\')">Apri viaggio →</b></div>' : "";
-    return '<div class="rd-lane"><div class="rd-lh"><div class="rd-ln"><i style="background:' + dotC + '"></i>' + esc(l.name) + '</div>' + (l.state ? '<div class="rd-ls">' + esc(l.state) + '</div>' : "") +
+    return '<div class="rd-lane"><div class="rd-lh"><div class="rd-ln"><i style="background:' + dotC + '"></i>' + esc(l.name) + '</div>' + (l.state ? '<div class="rd-ls">' + esc(l.state) + '</div>' : "") + (l.rot && typeof rotLaneTag === "function" ? rotLaneTag(l, now) : "") +
       (l.un ? '<span class="rd-un" onclick="window.goVesselWithFilter && window.goVesselWithFilter(\'' + ea(l.vid) + '\',\'orders\')">' + l.un + ' PO senza scalo</span>' : "") + '</div>' +
-      '<div class="rd-lt"><i class="rd-pastz"></i>' + grid + '<i class="rd-nowline" style="left:' + PW + 'px"></i>' + pastB + blocks + empty + '</div></div>';
+      '<div class="rd-lt"><i class="rd-pastz"></i>' + grid + (l.rot ? '<i style="position:absolute;top:27px;left:' + PW + 'px;right:0;border-top:1.5px dashed #9cc7cc;pointer-events:none"></i>' : "") + '<i class="rd-nowline" style="left:' + PW + 'px"></i>' + pastB + blocks + empty + '</div></div>';
   }).join("");
 
   // scalo selezionato
@@ -28223,7 +28233,8 @@ function radarPaint(){
       const bars = x.segs.map(s => '<i class="rd-seg" style="left:' + gp(s.a) + '%;width:' + Math.max(0.6, gp(s.lo) - gp(s.a)) + '%;background:' + SEG[s.k] + '"></i><i class="rd-seg h" style="left:' + gp(s.lo) + '%;width:' + Math.max(0, gp(s.hi) - gp(s.lo)) + '%;background:repeating-linear-gradient(45deg,' + SEG[s.k] + ' 0 3px,' + HATCH[s.k] + ' 3px 6px)"></i>').join("");
       const note = x.unknown ? '<span class="rd-gnote bad">? ' + esc(x.st === "nodn" ? "nessuna DN né data di spedizione" : "PO senza data di pronto") + '</span>' : (x.onb ? '<span class="rd-gnote ok">✓ a bordo' + (x.ifx ? ' · DN da chiudere' : '') + '</span>' : !x.segs.length ? '<span class="rd-gnote ok">✓ pronto</span>' : "");
       const verdict = x.onb ? "✓ a bordo" : x.k === "ok" ? x.margin : x.k === "risk" ? "a rischio · " + x.margin : x.unknown ? "senza data" : "non arriva · " + x.margin;
-      const sub = x.onb ? (x.onbD != null ? "consegnata il " + rdFD(x.onbD, now) : "consegnata") + (x.ifx ? " · DN aperta in Infoship" : " · DN chiusa") : x.k === "ok" ? "a bordo entro il " + rdFD(x.hi, now) : x.unknown ? esc(x.chain.split(" → ")[0]) : "arrivo " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now);
+      let sub = x.onb ? (x.onbD != null ? "consegnata il " + rdFD(x.onbD, now) : "consegnata") + (x.ifx ? " · DN aperta in Infoship" : " · DN chiusa") : x.k === "ok" ? "a bordo entro il " + rdFD(x.hi, now) : x.unknown ? esc(x.chain.split(" → ")[0]) : "arrivo " + rdFD(x.lo, now) + " – " + rdFD(x.hi, now);
+      if(x.auto && !x.onb) sub += ' · <span style="color:#0b5f6b;font-weight:600">⟲ primo passaggio utile' + (x.nextC ? ', se lo perde ' + rdFD(x.nextC.etb, now) : '') + '</span>';
       let altHTML = "";
       if(open){
         altHTML = '<div class="rd-alt"><div class="rd-alt-h"><b>Dove arriva in tempo?</b><span>stessa catena, con dogana e preavviso di ogni porto</span>' +
@@ -28241,6 +28252,7 @@ function radarPaint(){
           }).join("") +
           (rdAlts(x, M).length < 2 ? '<div class="rd-sub">Il viaggio di ' + esc(x.c.vname) + ' ha un solo scalo impostato: aggiungi il successivo per vedere le alternative.</div>' : "") +
           '<div class="rd-alt-r" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;"><div class="rd-alt-p" style="flex:1;min-width:180px;"><b>Altra destinazione</b><em>se non arriva in tempo o cambia il piano</em></div>' +
+            (x.c.rot && !x.auto ? '<button class="btn btn-sm" onclick="window.rotAuto(\'' + ea(x.it.id) + '\')" title="Lascia scegliere al radar il primo passaggio utile dal deposito">⟲ Primo passaggio utile</button>' : "") +
             '<button class="btn btn-sm" onclick="window.rdRelease(\'' + ea(x.it.id) + '\')" title="Toglie il PO da questo scalo: torna tra i PO senza scalo">Svincola dallo scalo</button>' +
             '<button class="btn btn-sm" onclick="window.rdOtherPort(\'' + ea(x.it.id) + '\')" title="Porto e data scritti a mano">Altro porto…</button>' +
             '<button class="btn btn-sm" onclick="window.rdToOffice(\'' + ea(x.it.id) + '\')" title="Lo fai arrivare in ufficio e poi lo smisti tu">' + ((mpManual(x.it.id) || {}).pos === "office" ? "✓ In ufficio" : "Fai arrivare in ufficio") + '</button>' +
@@ -28269,6 +28281,7 @@ function radarPaint(){
       : '<div class="rd-sub" style="padding:10px 0">Nessuna consegna pianificata su questo scalo. Pianificala dalla scheda articolo (Pianifica consegna) o spostala qui dal radar.</div>') + '</div>';
   }
 
+  if(sel && sel.rot && !sel.past && typeof rotSelHTML === "function") selHTML = selHTML.replace('<div class="rd-card"><div class="rd-selh">', '<div class="rd-card">' + rotSelHTML(sel, M) + '<div class="rd-selh">');
   // fornitori
   const supMap = {};
   bad.filter(x => x.st === "attesa" || x.unknown || x.k === "late").forEach(x => { const k = x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "Fornitore non indicato"; (supMap[k] = supMap[k] || []).push(x); });
@@ -28305,6 +28318,281 @@ function radarPaint(){
     (typeof ifxList === "function" && ifxList().length ? '<b style="margin-top:10px;">' + ifxList().length + ' DN da far chiudere alla nave</b><span>Confermate a bordo da te, ancora aperte in Infoship: solo la nave può chiuderle.</span><a onclick="window.ifxOpen()">Chiedi alla nave →</a>' : "") + '</div></div>';
 }
 window.radarPaint = radarPaint;
+
+// === v1.26 — ROTAZIONE FISSA (navette: PEPPINO Trombetas⇄São Luís, ATLAS Carrara⇄Genova) ==========
+// state.voyages[vid].rotation = {on,id,stops:[{port,role,anch,stay,sail,agency}],start,days,end,store,adj:{k:ore},skip:{k:true},updatedAt}
+// Gli scali sono generati (id "rot:<id>:<k>"); uno slittamento su k sposta k e tutti i successivi.
+// Nel radar i PO senza piano prendono da soli il primo passaggio utile dal porto di deposito.
+const ROT_ROLES = { load: "Carico", disch: "Scarico", bunker: "Bunker", other: "Sosta" };
+const ROT_PRESETS = [
+  { k: "trs", label: "Trombetas ⇄ São Luís", rx: /PEPPINO/i, r: { stops: [{ port: "PORTO TROMBETAS", role: "load", anch: 0, stay: 1, sail: 3.5, agency: "" }, { port: "SAO LUIS", role: "disch", anch: 0, stay: 1, sail: 3.5, agency: "" }], days: 90, end: "", store: "SAO LUIS" } },
+  { k: "cge", label: "Marina di Carrara ⇄ Genova", rx: /ATLAS|NORRBOTTEN/i, r: { stops: [{ port: "MARINA DI CARRARA", role: "load", anch: 0, stay: 1, sail: 0.3, agency: "" }, { port: "GENOVA", role: "disch", anch: 0, stay: 1, sail: 0.3, agency: "" }], days: 90, end: "", store: "MARINA DI CARRARA" } }
+];
+function rotPad(n){ return String(n).padStart(2, "0"); }
+function rotISO(ms){ const d = new Date(ms); return d.getFullYear() + "-" + rotPad(d.getMonth() + 1) + "-" + rotPad(d.getDate()) + "T" + rotPad(d.getHours()) + ":" + rotPad(d.getMinutes()); }
+function rotFmt(ms){ const d = new Date(ms); return rotPad(d.getDate()) + "." + rotPad(d.getMonth() + 1) + " " + rotPad(d.getHours()) + ":" + rotPad(d.getMinutes()); }
+function rotFmtD(ms){ const d = new Date(ms); return rotPad(d.getDate()) + "." + rotPad(d.getMonth() + 1) + "." + d.getFullYear(); }
+function rotFmtH(h){ const a = Math.abs(h), s = h < 0 ? "−" : "+"; return s + (a >= 24 && a % 24 === 0 ? (a / 24) + " g" : a + " h"); }
+function rotNum(x){ return (Math.round(x * 100) / 100).toString().replace(".", ","); }
+function rotKey(p){ return String(p || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase().replace(/\s+/g, " "); }
+function rotCode(p){ const w = rotKey(p).split(" ").filter(x => !/^(PORTO|PORT|MARINA|DI|DE|DO|DA|DEL)$/.test(x)); return (w.length ? w : rotKey(p).split(" ")).join(" "); }
+function rotRaw(vid){ return (state.voyages && state.voyages[vid]) || {}; }
+function rotOf(vid){ const r = rotRaw(vid).rotation; return r && r.on && r.stops && r.stops.length >= 2 && r.start ? r : null; }
+function rotCycle(r){ return (r.stops || []).reduce((a, s) => a + (Number(s.anch) || 0) + Math.max(0.05, Number(s.stay) || 0) + (Number(s.sail) || 0), 0); }
+function rotEndMs(r){ const s = Date.parse(r.start); if(r.end) return Date.parse(String(r.end).slice(0, 10) + "T23:59"); return s + (Number(r.days) || 90) * 864e5; }
+function rotIsStore(r, port){ if(r.store === "-") return false; const st = r.store || ((r.stops.find(s => s.role === "load") || r.stops[0] || {}).port); return rotKey(port) === rotKey(st); }
+function rotLabel(r){ return r.stops.map(s => rotCode(s.port)).join(r.stops.length === 2 ? " ⇄ " : " → "); }
+function rotCalls(r){
+  const out = []; if(!r || !r.stops || r.stops.length < 2) return out;
+  let t = Date.parse(r.start); if(isNaN(t)) return out;
+  const end = rotEndMs(r), n = r.stops.length, adj = r.adj || {}, skip = r.skip || {};
+  for(let k = 0; k < 600 && t <= end; k++){
+    t += (Number(adj[k]) || 0) * 36e5;
+    const s = r.stops[k % n], stay = Math.max(0.05, Number(s.stay) || 0), anch = Math.max(0, Number(s.anch) || 0);
+    const eta = t, etb = t + anch * 864e5, etd = etb + stay * 864e5;
+    if(!skip[k]) out.push({ k, cyc: Math.floor(k / n) + 1, id: "rot:" + r.id + ":" + k, port: rotKey(s.port), role: s.role || "other", agency: s.agency || "", from: k ? rotKey(r.stops[(k - 1 + n) % n].port) : "", eta, etb, etd, store: rotIsStore(r, s.port), shifted: Number(adj[k]) || 0 });
+    t = etd + Math.max(0, Number(s.sail) || 0) * 864e5;
+  }
+  return out;
+}
+function rotDerive(vid, v){
+  const r = rotOf(vid); if(!r) return v;
+  const C = rotCalls(r), now = Date.now(), i = C.findIndex(c => c.etd >= now);
+  if(i < 0) return v;   // rotazione finita: torna il viaggio scritto a mano
+  const L = c => c ? { id: c.id, from: c.from || ((v.current || {}).to || ""), to: c.port, eta: rotISO(c.eta), etb: c.etb > c.eta ? rotISO(c.etb) : "", etd: rotISO(c.etd), agency: c.agency ? { name: c.agency, contacts: "" } : null, role: c.role } : {};
+  const cur = C[i], inPort = cur.eta <= now;
+  const out = Object.assign({}, v, { current: L(cur), next: L(C[i + 1]), status: inPort ? (cur.role === "load" ? "loading" : cur.role === "disch" ? "discharging" : "in_port") : "at_sea", updatedAt: new Date(Math.max(Date.parse(v.updatedAt || 0) || 0, now - 36e5)).toISOString() });
+  Object.defineProperty(out, "_rot", { value: r, enumerable: false });
+  return out;
+}
+function rotRadarCalls(cfg, r, now){
+  return rotCalls(r).map(x => ({ id: x.id, vid: cfg.vesselId, vname: cfg.displayName, which: "rot", legId: x.id, port: x.port, eta: (x.eta - now) / 864e5, etb: (x.etb - now) / 864e5, etd: (x.etd - now) / 864e5,
+    etaS: rotISO(x.eta), etbS: x.etb > x.eta ? rotISO(x.etb) : "", etdS: rotISO(x.etd), its: [], rot: true, role: x.role, store: x.store, k: x.k, cyc: x.cyc, shifted: x.shifted }));
+}
+// ogni PO aperto: piano fissato su uno scalo della rotazione, altrimenti il primo passaggio utile al deposito
+function rotAssign(v, C, now, basis){
+  const fut = C.filter(c => c.etd >= 0), st = fut.filter(c => c.store), pool = st.length ? st : fut;
+  const by = {}; let un = 0;
+  (v.items || []).forEach(it => {
+    if(!it.poNumber || rdCancelled(it) || it.dnStatus === "DN Received on Board" || rdStaleDN(it, now)) return;
+    const plan = getDeliveryPlan(it.id) || null;
+    if(plan && (plan.released || plan.mode === "none")){ un++; return; }
+    if(plan && plan.mode === "manual") return;
+    const p = typeof mpOf === "function" ? mpOf(it, now) : null, onb = !!(p && p.pos === "onboard");
+    let c = plan && plan.voyageLegId && /^rot:/.test(plan.voyageLegId) ? C.find(k => k.id === plan.voyageLegId) || null : null;
+    if(c && c.etd < 0 && !onb) c = null;
+    if(onb && !c) return;
+    let x, auto = false;
+    if(c) x = rdCalc(it, c, now, basis);
+    else {
+      if(!pool.length){ un++; return; }
+      auto = true; let pick = null;
+      for(const k of pool){ const r = rdCalc(it, k, now, basis); if(r.k === "ok"){ pick = [k, r]; break; } if(r.k === "risk" && !pick){ pick = [k, r]; if(r.crit) break; } }
+      if(!pick) pick = [pool[0], rdCalc(it, pool[0], now, basis)];
+      c = pick[0]; x = pick[1]; x.nextC = pool[pool.indexOf(c) + 1] || null;
+    }
+    x.auto = auto;
+    (by[c.id] = by[c.id] || []).push(x);
+  });
+  return { by, un };
+}
+function rotItemsForLeg(v, voy, which){
+  const leg = which === "next" ? (voy.next || {}) : (voy.current || {}); if(!leg.id) return [];
+  const now = Date.now(), cfg = VESSELS.find(x => x.vesselId === v.vesselId) || { vesselId: v.vesselId, displayName: "" };
+  const A = rotAssign(v, rotRadarCalls(cfg, voy._rot, now), now, (rdPrefs() || {}).basis);
+  return (A.by[leg.id] || []).map(x => x.it);
+}
+function rotRadarLane(cfg, v, r, lane, calls, now, basis, G){
+  const C = rotRadarCalls(cfg, r, now), A = rotAssign(v, C, now, basis); let gDirty = false;
+  const stale = (v.items || []).filter(it => it.poNumber && !rdCancelled(it) && it.dnStatus !== "DN Received on Board" && rdStaleDN(it, now)).length;
+  lane.un = A.un;
+  const last = C[C.length - 1];
+  lane.rot = { label: rotLabel(r), cycle: rotCycle(r), end: last ? now + last.etd * 864e5 : now, store: (C.find(c => c.store) || {}).port || "" };
+  C.forEach(c => {
+    const xs = A.by[c.id] || [];
+    if(c.etd < 0){
+      if(c.etd >= -RD_PB && xs.length){ const pc = rdPastCall(cfg, { to: c.port, from: c.from, eta: c.etaS, etb: c.etbS, etd: c.etdS }, xs.map(x => x.it), now, c.id); if(pc) lane.past.push(pc); }
+      return;
+    }
+    c.its = xs; c.onb = xs.filter(x => x.onb).length; c.onbIfx = xs.filter(x => x.onb && x.ifx).length;
+    try{ if(rdGoalCall(G, c, now)) gDirty = true; }catch(e){}
+    c.n = { ok: 0, risk: 0, late: 0 }; xs.forEach(x => c.n[x.k]++);
+    c.worst = c.n.late ? "late" : c.n.risk ? "risk" : "ok";
+    c.quiet = !xs.length;
+    calls.push(c); lane.calls.push(c);
+  });
+  lane.past.sort((a, b) => b.etd - a.etd); lane.pastMore = Math.max(0, lane.past.length - 2); lane.past = lane.past.slice(0, 2);
+  return { gDirty, stale };
+}
+function rotBlockHTML(c, sel, fx, fw, now, TINT, H){
+  const esc = escapeHTML, id = escapeAttr(String(c.id)).replace(/'/g, "\\'"), on = sel && c.id === sel.id;
+  const COL = { ok: "#14794e", risk: "#c07800", late: "#c0261c" }, ORD = { late: 0, risk: 1, ok: 2 };
+  const a = Math.max(0, c.eta), pos = "left:" + fx(a) + ";width:" + fw(a, Math.min(c.etd, H));
+  const tip = escapeAttr(c.port + " · " + (ROT_ROLES[c.role] || "") + " · giro " + c.cyc + " · ETA " + rdFDT(c.eta, now) + " → ETD " + rdFDT(c.etd, now) + (c.store ? " · porto di deposito" : "") + (c.shifted ? " · slittato " + rotFmtH(c.shifted) : ""));
+  const code = esc(rotCode(c.port)), sh = c.shifted ? ' <span style="color:#b06a00">' + rotFmtH(c.shifted) + '</span>' : "";
+  if(c.quiet) return '<button class="rd-call' + (on ? " on" : "") + '" title="' + tip + '" onclick="window.rdPick(\'' + id + '\')" style="' + pos + ';min-width:30px;height:40px;top:8px;padding:4px 5px;overflow:hidden;border-radius:7px;z-index:1;background:' + (c.store ? "#e3f3f5" : "#f5f7fa") + ';border:1.5px ' + (c.store ? "solid #0f7b8a" : "dashed #a9b7c7") + '">' +
+    '<b style="display:block;overflow:hidden;text-overflow:ellipsis;font-size:10.5px;color:' + (c.store ? "#0b5f6b" : "#44576b") + '">' + code + '</b><span style="display:block;overflow:hidden;font-size:9.5px">' + rdFD(c.eta, now) + sh + '</span></button>';
+  const dots = c.its.slice().sort((p, q) => ORD[p.k] - ORD[q.k] || (q.crit - p.crit)).map(x => '<i class="rd-dot' + (x.crit ? " crit" : "") + '" style="background:' + COL[x.k] + '"></i>').join("");
+  return '<button class="rd-call' + (on ? " on" : "") + '" title="' + tip + '" onclick="window.rdPick(\'' + id + '\')" style="' + pos + ';min-width:64px;overflow:hidden;z-index:2;background:' + TINT[c.worst][0] + ';border-color:' + TINT[c.worst][1] + '">' +
+    '<b style="display:block;overflow:hidden;text-overflow:ellipsis">' + (c.store ? "⟲ " : "") + code + '</b><span><em>' + rdFD(c.eta, now) + '</em> <strong style="color:' + TINT[c.worst][1] + '">' + c.n.ok + "/" + c.its.length + '</strong>' + sh + '</span><span class="rd-dots">' + dots + '</span></button>';
+}
+function rotLaneTag(l, now){
+  const r = l.rot;
+  return '<div onclick="window.rotOpen(\'' + escapeAttr(l.vid).replace(/'/g, "\\'") + '\')" title="Rotazione fissa · clic per modificarla" style="cursor:pointer;font-size:10.5px;font-weight:800;color:#0b5f6b;line-height:1.35;">⟲ ' + escapeHTML(r.label) +
+    '<br><span style="font-weight:600;color:#44576b">ciclo ' + rotNum(r.cycle) + ' gg · fino al ' + rdFD((r.end - now) / 864e5, now) + '</span></div>';
+}
+function rotSelHTML(sel, M){
+  const r = rotOf(sel.vid); if(!r) return "";
+  const now = M.now, esc = escapeHTML, vid = escapeAttr(sel.vid).replace(/'/g, "\\'"), k = sel.k;
+  const mine = M.allCalls.filter(c => c.vid === sel.vid && c.rot);
+  const storeP = (mine.find(c => c.store) || {}).port || "";
+  const nxt = mine.filter(c => c.store && c.etd >= 0 && c.id !== sel.id && c.eta > sel.eta).slice(0, 4).map(c => rdFD(c.etb, now)).join(" · ");
+  const b = (h, l) => '<button class="btn btn-sm" onclick="window.rotShift(\'' + vid + '\',' + k + ',' + h + ')">' + l + '</button>';
+  return '<div style="margin-bottom:12px;padding:10px 12px;border-radius:10px;background:#eef7f8;border:1px solid #bcdfe3;display:flex;flex-direction:column;gap:7px;">' +
+    '<div style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#0b5f6b">⟲ ROTAZIONE FISSA · GIRO ' + sel.cyc + ' · ' + esc((ROT_ROLES[sel.role] || "").toUpperCase()) + (sel.store ? " · PORTO DI DEPOSITO" : "") + (sel.shifted ? ' · <span style="color:#b06a00">SLITTATO ' + rotFmtH(sel.shifted) + '</span>' : "") + '</div>' +
+    '<div style="font-size:12.5px;color:#0a1b2e;text-wrap:pretty">' + (storeP ? 'La merce aspetta in deposito a <b>' + esc(storeP) + '</b> e ogni PO prende da solo il primo passaggio utile.' + (nxt ? ' Passaggi successivi al deposito: <b style="font-family:var(--font-mono)">' + nxt + '</b>.' : "") : 'Nessun porto di deposito: ogni PO va al primo scalo utile della rotazione.') + '</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:11.5px;color:#44576b">La nave è in anticipo o in ritardo? Sposta questo scalo, i successivi seguono:</span>' + b(-6, "−6 h") + b(6, "+6 h") + b(12, "+12 h") + b(24, "+1 g") +
+    (sel.shifted ? b(-sel.shifted, "Azzera") : "") + '<span style="flex:1"></span><button class="btn btn-sm" onclick="window.rotSkip(\'' + vid + '\',' + k + ')">Salta lo scalo</button><button class="btn btn-sm" onclick="window.rotOpen(\'' + vid + '\')">Modifica rotazione</button></div></div>';
+}
+function rotSave(vid, msg){
+  const raw = state.voyages && state.voyages[vid]; if(!raw) return;
+  if(raw.rotation) raw.rotation.updatedAt = new Date().toISOString();
+  raw.updatedAt = new Date().toISOString();
+  saveVoyages(); if(typeof ghSetDirty === "function") ghSetDirty();
+  if(msg && typeof showToast === "function") showToast(msg);
+  if(document.getElementById("radar-root")) radarPaint(); else if(typeof render === "function") render();
+}
+window.rotShift = function(vid, k, h){
+  const r = rotRaw(vid).rotation; if(!r) return;
+  r.adj = r.adj || {}; const v = (Number(r.adj[k]) || 0) + h; if(v) r.adj[k] = v; else delete r.adj[k];
+  rotSave(vid, v ? "Scalo spostato di " + rotFmtH(h) + ": i successivi seguono" : "Slittamento azzerato");
+};
+window.rotSkip = function(vid, k){
+  const r = rotRaw(vid).rotation; if(!r) return;
+  if(!confirm("Saltare questo scalo? Gli orari dei successivi restano quelli calcolati; i PO legati qui passano al primo passaggio utile.")) return;
+  r.skip = r.skip || {}; r.skip[k] = true; window._rd.sel = null; rotSave(vid, "Scalo saltato");
+};
+window.rotAuto = function(itemId){
+  const it = faFindItem(itemId) || {};
+  rdSetPlanUndo(itemId, null, (it.description || "") + " → primo passaggio utile", "Il radar sceglie il primo passaggio utile dal deposito");
+};
+function rotEditorBanner(vid){
+  const raw = rotRaw(vid), on = rotOf(vid), ea = escapeAttr(vid).replace(/'/g, "\\'");
+  const go = "window.closeVoyageEditor();window.rotOpen('" + ea + "')";
+  if(on){ const C = rotCalls(on), last = C[C.length - 1];
+    return '<div class="detail-section" style="background:#eef7f8;border:1px solid #bcdfe3;border-radius:10px;padding:12px;"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b style="color:#0b5f6b">⟲ Rotazione fissa attiva</b>' +
+      '<div style="font-size:12.5px;color:#0a1b2e;margin-top:3px">' + escapeHTML(rotLabel(on)) + ' · ciclo ' + rotNum(rotCycle(on)) + ' gg' + (last ? ' · fino al ' + rotFmtD(last.etd) : "") + '</div>' +
+      '<div style="font-size:11.5px;color:#44576b;margin-top:3px">Il viaggio in corso e il successivo qui sotto vengono dalla rotazione: per spostare uno scalo usa la rotazione o il radar.</div></div>' +
+      '<button class="btn btn-sm btn-primary" onclick="' + go + '">Modifica rotazione</button></div></div>'; }
+  return '<div class="detail-section" style="border:1px dashed #9cc7cc;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px;font-size:12.5px;color:#0a1b2e"><b>La nave fa viaggi fissi tra gli stessi porti?</b> Scrivi il giro una volta: ETA, ETB ed ETD li calcolo io per tutta la durata.</div>' +
+    '<button class="btn btn-sm" onclick="' + go + '">⟲ ' + (raw.rotation ? "Riattiva la rotazione" : "Imposta rotazione fissa") + '</button></div>';
+}
+// --- editor ---
+window.rotOpen = function(vid){
+  const raw = rotRaw(vid), r0 = raw.rotation ? JSON.parse(JSON.stringify(raw.rotation)) : null;
+  const vs = VESSELS.find(v => v.vesselId === vid) || {}, nm = String(vs.displayName || vid);
+  let r = r0 || { id: "", stops: [], start: "", days: 90, end: "", store: "" };
+  if(!r.stops || !r.stops.length){ const p = ROT_PRESETS.find(p => p.rx.test(nm) || p.rx.test(vid));
+    Object.assign(r, p ? JSON.parse(JSON.stringify(p.r)) : { stops: [{ port: "", role: "load", anch: 0, stay: 1, sail: 1, agency: "" }, { port: "", role: "disch", anch: 0, stay: 1, sail: 1, agency: "" }] }); }
+  if(!r.start){ const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0, 0); r.start = rotISO(d.getTime()); }
+  window._rotEd = { vid, nm, r, was: !!(r0 && r0.on), had: !!r0 };
+  rotEdPaint();
+};
+window.rotClose = function(){ const h = document.getElementById("rot-host"); if(h) h.innerHTML = ""; window._rotEd = null; };
+function rotPrevHTML(r){
+  const ok = r.stops.filter(s => String(s.port || "").trim()).length >= 2;
+  const C = ok ? rotCalls(Object.assign({}, r, { id: r.id || "prev" })) : [];
+  if(!C.length) return '<div style="font-size:12.5px;color:#b06a00">Servono almeno due porti e la prima ETA.</div>';
+  const t0 = C[0].eta, last = C[C.length - 1], span = Math.max(1, Math.min((last.etd - t0) / 864e5, 28));
+  const P = ms => Math.max(0, Math.min(100, (ms - t0) / 864e5 / span * 100));
+  const bars = C.filter(c => c.eta < t0 + span * 864e5).map(c => '<i title="' + escapeAttr(c.port + " · ETA " + rotFmt(c.eta) + " → ETD " + rotFmt(c.etd)) + '" style="position:absolute;top:6px;bottom:6px;left:' + P(c.eta) + '%;width:' + Math.max(0.8, P(c.etd) - P(c.eta)) + '%;background:' + (c.store ? "#0f7b8a" : "#8fa1b5") + ';border-radius:3px"></i>').join("");
+  let ticks = ""; for(let d = 0; d <= span; d += 7) ticks += '<span style="position:absolute;left:' + (d / span * 100) + '%;' + (d ? "transform:translateX(-50%)" : "") + '">' + rotFmt(t0 + d * 864e5).slice(0, 5) + '</span>';
+  const giri = Math.ceil((last.k + 1) / r.stops.length), stP = (C.find(c => c.store) || {}).port;
+  const list = C.slice(0, 6).map(c => '<div style="display:grid;grid-template-columns:minmax(0,1.4fr) 90px minmax(0,1fr) minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px solid #e3edef;font-size:12px;align-items:baseline">' +
+    '<b style="color:' + (c.store ? "#0b5f6b" : "#0a1b2e") + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (c.store ? "⟲ " : "") + escapeHTML(c.port) + '</b><span style="color:#44576b">' + (ROT_ROLES[c.role] || "") + '</span>' +
+    '<span style="font-family:var(--font-mono);color:#0a1b2e">ETA ' + rotFmt(c.eta) + '</span><span style="font-family:var(--font-mono);color:#0a1b2e">ETD ' + rotFmt(c.etd) + '</span></div>').join("");
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;font-size:13px;color:#0a1b2e"><b style="font-size:15px">Ciclo ' + rotNum(rotCycle(r)) + ' giorni</b><span>' + giri + ' giri · <b>' + C.length + ' scali</b> calcolati</span><span>ultimo: ' + escapeHTML(last.port) + ', ETD ' + rotFmtD(last.etd) + '</span>' +
+    (stP ? '<span style="color:#0b5f6b;font-weight:700">un passaggio al deposito ogni ' + rotNum(rotCycle(r)) + ' gg</span>' : "") + '</div>' +
+    '<div style="position:relative;height:30px;background:#fff;border:1px solid #d6e8eb;border-radius:8px;margin:10px 0 3px"><i style="position:absolute;left:0;right:0;top:50%;border-top:1.5px dashed #b9cfd3"></i>' + bars + '</div>' +
+    '<div style="position:relative;height:14px;font:10px var(--font-mono);color:#6a7d90;margin-bottom:8px">' + ticks + '</div>' + list +
+    (C.length > 6 ? '<div style="font-size:11.5px;color:#6a7d90;padding-top:5px">… e altri ' + (C.length - 6) + ' scali, fino al ' + rotFmtD(last.etd) + '</div>' : "");
+}
+function rotEdRead(){
+  const S = window._rotEd; if(!S) return; const r = S.r;
+  document.querySelectorAll("#rot-host [data-rs]").forEach(el => { const i = +el.dataset.i, k = el.dataset.rs, s = r.stops[i]; if(!s) return;
+    s[k] = ["anch", "stay", "sail"].includes(k) ? (parseFloat(String(el.value).replace(",", ".")) || 0) : k === "port" ? el.value.toUpperCase() : el.value; });
+  const g = id => document.getElementById(id);
+  if(g("rot-start")) r.start = g("rot-start").value; if(g("rot-end")) r.end = g("rot-end").value; if(g("rot-store")) r.store = g("rot-store").value;
+}
+window.rotEdInput = function(){ rotEdRead(); const p = document.getElementById("rot-prev"); if(p && window._rotEd) p.innerHTML = rotPrevHTML(window._rotEd.r); };
+window.rotEdAdd = function(){ rotEdRead(); window._rotEd.r.stops.push({ port: "", role: "other", anch: 0, stay: 1, sail: 1, agency: "" }); rotEdPaint(); };
+window.rotEdDel = function(i){ rotEdRead(); window._rotEd.r.stops.splice(i, 1); rotEdPaint(); };
+window.rotEdDays = function(n){ rotEdRead(); const r = window._rotEd.r; r.days = n; r.end = ""; rotEdPaint(); };
+window.rotEdPreset = function(k){ rotEdRead(); const p = ROT_PRESETS.find(x => x.k === k); if(!p) return; const r = window._rotEd.r; Object.assign(r, JSON.parse(JSON.stringify(p.r))); rotEdPaint(); };
+function rotEdPaint(){
+  const S = window._rotEd; if(!S) return; const r = S.r, esc = escapeHTML, ea = s => escapeAttr(String(s == null ? "" : s));
+  let h = document.getElementById("rot-host"); if(!h){ h = document.createElement("div"); h.id = "rot-host"; document.body.appendChild(h); }
+  const inp = "border:1px solid #d5dbe3;border-radius:8px;padding:7px 8px;font-size:13px;font-family:var(--font-sans);background:#fff;box-sizing:border-box;color:#0a1b2e;width:100%;";
+  const th = t => '<th style="font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#6a7d90;text-align:left;padding:0 4px 5px;white-space:nowrap">' + t + '</th>';
+  const num = (k, i, val) => '<td style="padding:3px 4px;width:76px"><input data-rs="' + k + '" data-i="' + i + '" type="number" min="0" step="0.25" value="' + ea(val) + '" oninput="window.rotEdInput()" style="' + inp + 'font-family:var(--font-mono);"></td>';
+  const ags = Object.keys((typeof loadEntityProfiles === "function" && loadEntityProfiles("agency")) || {}).sort();
+  const rows = r.stops.map((s, i) => '<tr><td style="padding:3px 4px;font:700 12px var(--font-mono);color:#6a7d90">' + (i + 1) + '</td>' +
+    '<td style="padding:3px 4px;min-width:150px"><input data-rs="port" data-i="' + i + '" value="' + ea(s.port) + '" placeholder="es. GENOVA" oninput="window.rotEdInput()" onchange="rotEdRead();rotEdPaint()" style="' + inp + 'text-transform:uppercase;font-weight:700"></td>' +
+    '<td style="padding:3px 4px;width:104px"><select data-rs="role" data-i="' + i + '" oninput="window.rotEdInput()" style="' + inp + '">' + Object.keys(ROT_ROLES).map(k => '<option value="' + k + '"' + (s.role === k ? " selected" : "") + '>' + ROT_ROLES[k] + '</option>').join("") + '</select></td>' +
+    num("anch", i, s.anch || 0) + num("stay", i, s.stay == null ? 1 : s.stay) + num("sail", i, s.sail == null ? 1 : s.sail) +
+    '<td style="padding:3px 4px;min-width:130px"><input data-rs="agency" data-i="' + i + '" list="rot-ag" value="' + ea(s.agency) + '" placeholder="dalla Rubrica" oninput="window.rotEdInput()" style="' + inp + '"></td>' +
+    '<td style="padding:3px 0;width:34px">' + (r.stops.length > 2 ? '<button class="btn btn-sm" title="Togli" onclick="window.rotEdDel(' + i + ')">✕</button>' : "") + '</td></tr>').join("");
+  const ports = [...new Set(r.stops.map(s => rotKey(s.port)).filter(Boolean))];
+  const defStore = rotKey((r.stops.find(s => s.role === "load") || r.stops[0] || {}).port);
+  const cur = r.store === "-" ? "-" : rotKey(r.store || defStore);
+  const stSel = '<select id="rot-store" oninput="window.rotEdInput()" style="' + inp + '">' + ports.map(p => '<option value="' + ea(p) + '"' + (cur === p ? " selected" : "") + '>' + esc(p) + '</option>').join("") + '<option value="-"' + (cur === "-" ? " selected" : "") + '>Nessun deposito · primo scalo utile</option></select>';
+  const chip = n => '<button class="btn btn-sm' + (!r.end && Number(r.days) === n ? " btn-primary" : "") + '" onclick="window.rotEdDays(' + n + ')">' + n + ' gg</button>';
+  const lab = (t, f, hint) => '<label style="display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#6a7d90;">' + t + f + (hint ? '<span style="font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:#6a7d90">' + hint + '</span>' : "") + '</label>';
+  const nSkip = Object.keys(r.skip || {}).length, nAdj = Object.keys(r.adj || {}).length;
+  h.innerHTML = '<div onclick="if(event.target===this)window.rotClose()" style="position:fixed;inset:0;background:rgba(10,27,46,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;">' +
+    '<div style="background:#fff;border-radius:16px;width:min(860px,100%);max-height:94vh;overflow:auto;padding:20px 22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 20px 50px rgba(10,27,46,.3);">' +
+    '<div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#0f7b8a">⟲ ROTAZIONE FISSA</div><b style="font-size:20px;color:#0a1b2e">' + esc(S.nm) + '</b>' +
+      '<div style="font-size:12.5px;color:#44576b;margin-top:4px;text-wrap:pretty;max-width:640px">Scrivi il giro una volta: ETA, ETB ed ETD di ogni scalo li calcolo io per tutta la durata. Nel radar ogni PO aspetta nel porto di deposito e prende da solo il primo passaggio utile della nave.</div></div>' +
+      '<button class="btn btn-sm" onclick="window.rotClose()">✕</button></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-size:11.5px;color:#6a7d90">Parti da:</span>' + ROT_PRESETS.map(p => '<button class="btn btn-sm" onclick="window.rotEdPreset(\'' + p.k + '\')">' + esc(p.label) + '</button>').join("") + '</div>' +
+    '<div><div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%"><thead><tr>' + th("#") + th("Porto") + th("Operazione") + th("Rada") + th("In porto") + th("Poi naviga") + th("Agenzia") + th("") + '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<datalist id="rot-ag">' + ags.map(a => '<option value="' + ea(a) + '"></option>').join("") + '</datalist>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px"><button class="btn btn-sm" onclick="window.rotEdAdd()">+ Aggiungi porto</button><span style="font-size:11.5px;color:#6a7d90">in giorni, anche frazioni (0,25 = 6 ore) · dall\'ultimo porto la nave torna al primo</span></div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">' +
+      lab("Prima ETA a " + esc(rotKey(r.stops[0] && r.stops[0].port) || "porto 1"), '<input id="rot-start" type="datetime-local" value="' + ea(r.start) + '" oninput="window.rotEdInput()" style="' + inp + '">') +
+      lab("Durata", '<div style="display:flex;gap:5px;flex-wrap:wrap">' + chip(30) + chip(60) + chip(90) + chip(120) + '</div><input id="rot-end" type="date" value="' + ea(r.end) + '" oninput="window.rotEdInput()" style="' + inp + '">', "oppure fino al giorno indicato") +
+      lab("Deposito della merce", stSel, "dove la facciamo stoccare in attesa della nave") +
+    '</div>' +
+    '<div id="rot-prev" style="background:#f5f9fa;border:1px solid #d6e8eb;border-radius:12px;padding:12px 14px">' + rotPrevHTML(r) + '</div>' +
+    (nAdj || nSkip ? '<div style="font-size:12px;color:#44576b">' + [nAdj ? nAdj + " slittament" + (nAdj > 1 ? "i" : "o") + " segnat" + (nAdj > 1 ? "i" : "o") + " dal radar" : "", nSkip ? nSkip + " scal" + (nSkip > 1 ? "i saltati" : "o saltato") : ""].filter(Boolean).join(" · ") + ' (restano se non cambi porti, tempi o prima ETA) · <a href="#" onclick="window._rotEd.r.adj={};window._rotEd.r.skip={};rotEdRead();rotEdPaint();return false;">azzera</a></div>' : "") +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + (S.was ? '<button class="btn btn-sm" style="color:#c0261c" onclick="window.rotStop()">Ferma la rotazione</button>' : "") + '<span style="flex:1"></span>' +
+      '<button class="btn btn-sm" onclick="window.rotClose()">Annulla</button><button class="btn btn-sm btn-primary" onclick="window.rotEdSave()">' + (S.was ? "Salva" : "Salva e attiva") + '</button></div>' +
+    '</div></div>';
+}
+window.rotEdSave = function(){
+  rotEdRead(); const S = window._rotEd; if(!S) return; const r = S.r;
+  const stops = r.stops.filter(s => String(s.port || "").trim()).map(s => ({ port: rotKey(s.port), role: s.role || "other", anch: Math.max(0, +s.anch || 0), stay: Math.max(0.05, +s.stay || 0), sail: Math.max(0, +s.sail || 0), agency: String(s.agency || "").trim() }));
+  if(stops.length < 2){ showToast("Servono almeno due porti"); return; }
+  if(!r.start || isNaN(Date.parse(r.start))){ showToast("Indica la prima ETA"); return; }
+  if(!state.voyages) state.voyages = {};
+  const raw = state.voyages[S.vid] || (state.voyages[S.vid] = {});
+  const old = raw.rotation, sig = x => JSON.stringify([x.start, (x.stops || []).map(s => [rotKey(s.port), +s.anch || 0, +s.stay || 0, +s.sail || 0])]);
+  const same = old && sig(old) === sig({ start: r.start, stops });
+  stops.forEach(s => { if(s.agency && typeof upsertAgency === "function") try{ upsertAgency(s.agency, ""); }catch(e){} });
+  raw.rotation = { on: true, id: (old && old.id) || ("r" + Date.now().toString(36)), stops, start: r.start, days: Number(r.days) || 90, end: r.end || "", store: r.store || "",
+    adj: same ? (r.adj || {}) : {}, skip: same ? (r.skip || {}) : {}, updatedAt: new Date().toISOString() };
+  const n = rotCalls(raw.rotation), last = n[n.length - 1];
+  window.rotClose();
+  rotSave(S.vid, "Rotazione attiva: " + n.length + " scali calcolati" + (last ? " fino al " + rotFmtD(last.etd) : ""));
+};
+window.rotStop = function(){
+  const S = window._rotEd; if(!S) return;
+  if(!confirm("Fermare la rotazione? Lo scalo in corso e il successivo restano nel viaggio come scali normali.")) return;
+  const raw = state.voyages[S.vid], d = getVoyage(S.vid);
+  if(d._rot){ raw.current = Object.assign({}, d.current); raw.next = Object.assign({}, d.next); raw.status = d.status; }
+  raw.rotation.on = false;
+  window.rotClose(); rotSave(S.vid, "Rotazione fermata");
+};
 
 // === v1.11 — CRUSCOTTO DEL FLUSSO (pagina Procurement della nave) ===========================
 // Il Radar scali mette il TEMPO in orizzontale (arriva prima dello scalo?). Qui in orizzontale c'è il
