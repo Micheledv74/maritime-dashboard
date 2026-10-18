@@ -2505,7 +2505,22 @@
         "_loose": true,
         "wind": "Supply of Deck machinery, such as, cargo gears, Cranes, mooring winch, windless etc and related works, including Electrical Equipment.",
         "vesselId": "medtoscana",
-        "date": "2026-10-18"
+        "date": "2026-10-18",
+        "type": "sea",
+        "bunkers": {
+          "lsfo": "701.51",
+          "lsmgo": "55.781"
+        },
+        "course": "077",
+        "speed": "10.63",
+        "sea": "2.0 M",
+        "swell": "ESE/2.0 M",
+        "etaText": "CHIATTAGONG 03.11.2026 am, agw wp.",
+        "etaISO": "2026-11-03",
+        "consumption": {
+          "lsfo": "23.0",
+          "lsmgo": "0.2"
+        }
       }
     ],
     "medliguria": [
@@ -5514,6 +5529,40 @@
         "wind": "NNE/15 KTS",
         "sea": "NNE/1.5 M",
         "current": "W/+0.8 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "TANGA",
+        "to": "VILA DO CONDE",
+        "date": "2026-10-18",
+        "lat": "23-19.6S",
+        "lon": "036-57.6E",
+        "positionText": "23-19.6S / 036-57.6E",
+        "speed": "11.71",
+        "milesToGo": "5630",
+        "consumption": {
+          "lsfo": "18.04",
+          "lsmgo": "0.00",
+          "fw": "5"
+        },
+        "bunkers": {
+          "lsfo": "997.86",
+          "lsmgo": "45.47",
+          "fw": "231"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "20735",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 06 NOV 2026 PM WP AGW",
+        "etaISO": "2026-11-06",
+        "wind": "NNW/15 KTS",
+        "sea": "NNW/1.5 M",
+        "current": "SSW/-1.1 KTS",
         "vesselId": "medliguria"
       }
     ],
@@ -8966,5 +9015,5 @@
       }
     ]
   },
-  "syncedAt": "2026-10-18T10:04:23.566Z"
+  "syncedAt": "2026-10-18T11:04:47.711Z"
 }
