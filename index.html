@@ -28382,6 +28382,8 @@ function rotAssign(v, C, now, basis){
     let c = plan && plan.voyageLegId && /^rot:/.test(plan.voyageLegId) ? C.find(k => k.id === plan.voyageLegId) || null : null;
     if(c && c.etd < 0 && !onb) c = null;
     if(onb && !c) return;
+    // v1.26b: senza consegna pianificata il PO NON entra nel radar (resta "senza scalo"); l'automatico solo se chiesto (plan.rotAuto)
+    if(!c && !(plan && plan.rotAuto)){ un++; return; }
     let x, auto = false;
     if(c) x = rdCalc(it, c, now, basis);
     else {
@@ -28474,7 +28476,7 @@ window.rotSkip = function(vid, k){
 };
 window.rotAuto = function(itemId){
   const it = faFindItem(itemId) || {};
-  rdSetPlanUndo(itemId, null, (it.description || "") + " → primo passaggio utile", "Il radar sceglie il primo passaggio utile dal deposito");
+  rdSetPlanUndo(itemId, { mode: "voyage", leg: "rot", rotAuto: true }, (it.description || "") + " → primo passaggio utile", "Il radar sceglie il primo passaggio utile dal deposito");
 };
 function rotEditorBanner(vid){
   const raw = rotRaw(vid), on = rotOf(vid), ea = escapeAttr(vid).replace(/'/g, "\\'");
