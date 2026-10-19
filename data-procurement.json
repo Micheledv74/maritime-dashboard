@@ -1,15 +1,15 @@
 {
-  "lastSync": "2026-10-19T08:20:16.051Z",
+  "lastSync": "2026-10-19T08:25:16.163Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
       "totalReq": 260,
-      "rfqOpen": 22,
+      "rfqOpen": 23,
       "rfqOverdue7": 5,
       "rfqOverdue15": 5,
-      "readyForPO": 6,
+      "readyForPO": 5,
       "orders": 13,
       "poReadyForDN": 0,
       "dn": 0,
@@ -696,30 +696,30 @@
             "2026-MDT-HQRQ-00230",
             "2026-MDT-HQRQ-00229",
             "2026-MDT-HQRQ-00228",
-            "2026-MDT-HQRQ-00227",
-            "2026-MDT-HQRQ-00216"
+            "2026-MDT-HQRQ-00227"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 6,
-          "rfqClosed": 1,
-          "rfqPct": 17,
-          "rfqDays": 27,
-          "rfqStatus": "RFQ Offer Acknowledged",
+          "rfqIssued": 5,
+          "rfqClosed": 2,
+          "rfqPct": 40,
+          "rfqDays": 4,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor",
-            "RFQ Offer Acknowledged"
+            "RFQ Refused"
           ],
           "rfqDetails": [
             {
               "number": "2026-MDT-HQRQ-00231",
               "supplier": "G&P TECH CO.",
               "code": "SSS0010",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-10-15",
               "deadline": "2026-10-30"
             },
@@ -735,7 +735,7 @@
               "number": "2026-MDT-HQRQ-00229",
               "supplier": "SUNJIN ENTECH Co.,Ltd.",
               "code": "SSS0011",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Refused",
               "date": "2026-10-15",
               "deadline": "2026-10-30"
             },
@@ -743,7 +743,7 @@
               "number": "2026-MDT-HQRQ-00228",
               "supplier": "Dongjin Intec Co., Ltd.",
               "code": "SSS0012",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-10-15",
               "deadline": "2026-10-30"
             },
@@ -754,14 +754,6 @@
               "status": "RFQ Sent to Vendor",
               "date": "2026-10-15",
               "deadline": "2026-10-30"
-            },
-            {
-              "number": "2026-MDT-HQRQ-00216",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-09-22",
-              "deadline": "2026-09-27"
             }
           ],
           "poDetails": [],
@@ -11521,7 +11513,7 @@
           "description": "SAFETY",
           "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "DECK Department",
-          "reqNumber": "2025-MDT-SHPR-00060",
+          "reqNumber": "2026-MDT-SHPR-00118",
           "rfqNumbers": [
             "2026-MDT-HQRQ-00056",
             "2026-MDT-HQRQ-00044",
@@ -11531,14 +11523,14 @@
           "poNumber": "2025-MDT-HQPO-00046",
           "dnNumber": "2025-MDT-HQDN-00048",
           "dnInfoshipId": "HQS000000006023",
-          "rfqIssued": 4,
-          "rfqClosed": 3,
-          "rfqPct": 75,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 404,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
           "dnStatus": "DN Received on Board",
-          "reqStatus": "REQ Ordered",
+          "reqStatus": "REQ Endorsed",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Refused"
@@ -11547,7 +11539,7 @@
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
-          "reqDate": "2025-08-26",
+          "reqDate": "2026-10-18",
           "poDate": "2025-09-15",
           "dnDate": "2025-10-23",
           "poDeliveryDate": "2025-09-25",
@@ -16570,8 +16562,8 @@
     {
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
-      "totalReq": 176,
-      "rfqOpen": 19,
+      "totalReq": 177,
+      "rfqOpen": 20,
       "rfqOverdue7": 1,
       "rfqOverdue15": 1,
       "readyForPO": 5,
@@ -16594,6 +16586,70 @@
       "aisLastSeen": null,
       "items": [
         {
+          "id": "peppino::marpol equipment oily water separator",
+          "description": "MARPOL EQUIPMENT - OILY WATER SEPARATOR",
+          "supplier": "—",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-PEP-SHPR-00152",
+          "rfqNumbers": [],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Cancelled",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-10-12",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "peppino::oily water separator",
+          "description": "OILY WATER SEPARATOR",
+          "supplier": "—",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-PEP-SHPR-00154",
+          "rfqNumbers": [],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Endorsed",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-10-16",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
           "id": "peppino::urgent motor mscw pump",
           "description": "URGENT- MOTOR- MSCW PUMP",
           "supplier": "YH MARINE TRADE CO.,LTD",
@@ -16607,14 +16663,15 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 2,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 4,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
           "rfqDetails": [
@@ -16622,9 +16679,9 @@
               "number": "2026-PEP-HQRQ-00258",
               "supplier": "YH MARINE TRADE CO.,LTD",
               "code": "SSS0003",
-              "status": "RFQ Sent to Vendor",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-10-15",
-              "deadline": "2026-10-30"
+              "deadline": "2026-10-18"
             },
             {
               "number": "2026-PEP-HQRQ-00257",
@@ -16768,23 +16825,63 @@
         {
           "id": "peppino::urgent aux generator requisition 5l23/30h x 720rpm",
           "description": "URGENT AUX. GENERATOR REQUISITION (5L23/30H X 720RPM)",
-          "supplier": "—",
+          "supplier": "Zephyr Trading srl",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00149",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-PEP-HQRQ-00262",
+            "2026-PEP-HQRQ-00261",
+            "2026-PEP-HQRQ-00260",
+            "2026-PEP-HQRQ-00259"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 4,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 3,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
-          "rfqDetails": [],
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00262",
+              "supplier": "Zephyr Trading srl",
+              "code": "SSS0005",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-16",
+              "deadline": "2026-10-31"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00261",
+              "supplier": "MAS MARINE SHIPPING SUPPLIES",
+              "code": "SSS0002",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-16",
+              "deadline": "2026-10-31"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00260",
+              "supplier": "HAKEPA SRL",
+              "code": "SSS0001",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-16",
+              "deadline": "2026-10-31"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00259",
+              "supplier": "Everllence Italia S.r.l.",
+              "code": "SSS0023",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-10-16",
+              "deadline": "2026-10-31"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -16881,16 +16978,7 @@
           "reqStatus": "",
           "rfqStatusSummary": [],
           "rfqDetails": [],
-          "poDetails": [
-            {
-              "number": "2026-PEP-HQPO-00158",
-              "supplier": "OMA GROUP",
-              "code": "SSS0067",
-              "status": "PO Finalized",
-              "date": "2026-09-28",
-              "deadline": "2026-10-13"
-            }
-          ],
+          "poDetails": [],
           "dnDetails": [
             {
               "number": "2026-PEP-HQDN-00141",
