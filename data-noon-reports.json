@@ -2528,7 +2528,22 @@
         "current": "We see that your vessel MED TOSCANA is currently heading towards the Port of Chittagong with an estimated ETA .",
         "vesselId": "medtoscana",
         "date": "2026-10-19",
-        "wind": "*   Ship Repairs & Motor Rewinding (M.M.D & IACS Class Approved)"
+        "wind": "*   Ship Repairs & Motor Rewinding (M.M.D & IACS Class Approved)",
+        "type": "sea",
+        "bunkers": {
+          "lsfo": "678.71",
+          "lsmgo": "55.681"
+        },
+        "course": "077",
+        "speed": "10.96",
+        "sea": "1.4 M",
+        "swell": "SSW/1.6 M",
+        "etaText": "CHIATTAGONG 03.11.2026 pm, agw wp.",
+        "etaISO": "2026-11-03",
+        "consumption": {
+          "lsfo": "23.0",
+          "lsmgo": "0.2"
+        }
       }
     ],
     "medliguria": [
@@ -5571,6 +5586,40 @@
         "wind": "NNW/15 KTS",
         "sea": "NNW/1.5 M",
         "current": "SSW/-1.1 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "TANGA",
+        "to": "VILA DO CONDE",
+        "date": "2026-10-19",
+        "lat": "27-33.7S",
+        "lon": "034-02.2E",
+        "positionText": "27-33.7S / 034-02.2E",
+        "speed": "12.5",
+        "milesToGo": "5330",
+        "consumption": {
+          "lsfo": "19.32",
+          "lsmgo": "0.10",
+          "fw": "5"
+        },
+        "bunkers": {
+          "lsfo": "978.54",
+          "lsmgo": "45.37",
+          "fw": "226"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "20435",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 06 NOV 2026 PM WP AGW",
+        "etaISO": "2026-11-06",
+        "wind": "NNW/15 KTS",
+        "sea": "NNW/1.5 M",
+        "current": "SSW/+0.3 KTS",
         "vesselId": "medliguria"
       }
     ],
@@ -9043,5 +9092,5 @@
       }
     ]
   },
-  "syncedAt": "2026-10-19T10:05:12.645Z"
+  "syncedAt": "2026-10-19T11:05:46.576Z"
 }
