@@ -2528,7 +2528,7 @@
         "current": "We see that your vessel MED TOSCANA is currently heading towards the Port of Chittagong with an estimated ETA .",
         "vesselId": "medtoscana",
         "date": "2026-10-19",
-        "wind": "• Electric motor, Pump, Generator rewinding & over-hauling.",
+        "wind": "NE/4",
         "type": "sea",
         "bunkers": {
           "lsfo": "678.71",
@@ -2536,19 +2536,24 @@
         },
         "course": "077",
         "speed": "10.96",
-        "sea": "1.4 M",
-        "swell": "SSW/1.6 M",
-        "etaText": "CHIATTAGONG 03.11.2026 pm, agw wp.",
+        "sea": "NE/1.4 MTR",
+        "swell": "SSW/ABT 1.6 MTR",
+        "etaText": "03.11.2026 PM AGW WP, CHITAGGONG",
         "etaISO": "2026-11-03",
         "consumption": {
-          "lsfo": "23.0",
-          "lsmgo": "0.2"
-        }
+          "lsfo": "22.80",
+          "lsmgo": "0.10"
+        },
+        "lat": "26-46.5S",
+        "lon": "042-09.6E",
+        "positionText": "26-46.5S / 042-09.6E",
+        "milesToGo": "4123",
+        "to": "CHITAGGONG"
       },
       {
         "isNoonReport": true,
         "_loose": true,
-        "wind": "*   Electrical Motor, Pump, and Generator Rewinding & Overhauling.",
+        "wind": "NE/6",
         "vesselId": "medtoscana",
         "date": "2026-10-20",
         "type": "sea",
@@ -2558,37 +2563,47 @@
         },
         "course": "069",
         "speed": "11.22",
-        "sea": "2.8 M",
-        "swell": "SW/2.4 M",
-        "etaText": "CHIATTAGONG 03.11.2026 pm, agw wp.",
+        "sea": "NE/2.8 MTR",
+        "swell": "SW/ABT 2.4 MTR",
+        "etaText": "03.11.2026 PM AGW WP, CHITAGGONG",
         "etaISO": "2026-11-03",
         "consumption": {
-          "lsfo": "23.0",
-          "lsmgo": "0.2"
-        }
+          "lsfo": "22.10",
+          "lsmgo": "0.10"
+        },
+        "lat": "25-36.1S",
+        "lon": "046-44.2E",
+        "positionText": "25-36.1S / 046-44.2E",
+        "milesToGo": "3865",
+        "to": "CHITAGGONG"
       },
       {
         "isNoonReport": true,
         "_loose": true,
-        "wind": "Ship Repair/Crane Repair/Motor Rewinding/Gangway Supply & Repair/ All Repair Works With Qualified Certified Technicians.",
+        "wind": "NE/7",
         "vesselId": "medtoscana",
         "date": "2026-10-21",
         "type": "sea",
         "bunkers": {
-          "lsfo": "728.42",
-          "lsmgo": "55.881"
+          "lsfo": "633.34",
+          "lsmgo": "55.481"
         },
         "course": "046",
         "speed": "9.58",
-        "sea": "3.0 M",
-        "swell": "SSW/2.5 M",
-        "etaText": "CHIATTAGONG 03.11.2026 pm, agw wp.",
+        "sea": "NE/3.0 MTR",
+        "swell": "SSW/ABT 2.5 MTR",
+        "etaText": "03.11.2026 PM AGW WP, CHITAGGONG",
         "etaISO": "2026-11-03",
         "consumption": {
-          "lsfo": "23.0",
-          "lsmgo": "0.2"
+          "lsfo": "23.27",
+          "lsmgo": "0.10"
         },
-        "current": "12 * Overhauling Air compressor on Ships marine Engineering and Current compressors supply"
+        "current": "12 * Overhauling Air compressor on Ships marine Engineering and Current compressors supply",
+        "lat": "23-08.5S",
+        "lon": "049-56.0E",
+        "positionText": "23-08.5S / 049-56.0E",
+        "milesToGo": "3635",
+        "to": "CHITAGGONG"
       }
     ],
     "medliguria": [
@@ -5699,6 +5714,40 @@
         "wind": "SSW/27 KTS",
         "sea": "SSW/5.0 M",
         "current": "NE/-1.0 KTS",
+        "vesselId": "medliguria"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "12",
+        "from": "TANGA",
+        "to": "VILA DO CONDE",
+        "date": "2026-10-21",
+        "lat": "34-00.6S",
+        "lon": "026-28.4E",
+        "positionText": "34-00.6S / 026-28.4E",
+        "speed": "13.29",
+        "milesToGo": "4778",
+        "consumption": {
+          "lsfo": "20.50",
+          "lsmgo": "0.00",
+          "fw": "5"
+        },
+        "bunkers": {
+          "lsfo": "936.53",
+          "lsmgo": "45.37",
+          "fw": "220"
+        },
+        "cylinderOil": {
+          "daily": "300",
+          "rob": "19823",
+          "unit": "L"
+        },
+        "etaText": "ETA next port: 06 NOV 2026 PM WP AGW",
+        "etaISO": "2026-11-06",
+        "wind": "WSW/22 KTS",
+        "sea": "WSW/2.5 M",
+        "current": "SW/+1.0 KTS",
         "vesselId": "medliguria"
       }
     ],
@@ -9222,5 +9271,5 @@
       }
     ]
   },
-  "syncedAt": "2026-10-21T11:07:08.236Z"
+  "syncedAt": "2026-10-21T12:07:06.855Z"
 }
