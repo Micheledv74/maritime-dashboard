@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-10-26T19:35:50.212Z",
+  "lastSync": "2026-10-26T19:43:12.835Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -1158,9 +1158,9 @@
           "poNumber": "2026-MDT-HQPO-00105",
           "dnNumber": "2026-MDT-HQDN-00145",
           "dnInfoshipId": "HQS000000007673",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 55,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
@@ -1169,8 +1169,26 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00201",
+              "supplier": "RK MARINE SERVICE",
+              "code": "SSS0020",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00105",
+              "supplier": "RK MARINE SERVICE",
+              "code": "SSS0020",
+              "status": "PO Finalized",
+              "date": "2026-09-02",
+              "deadline": "2026-09-16"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-07-21",
@@ -2344,19 +2362,20 @@
         {
           "id": "med toscana::mooring rope stoppers",
           "description": "MOORING ROPE STOPPERS",
-          "supplier": "RK MARINE SERVICE",
+          "supplier": "Ocean Connect",
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00085",
           "rfqNumbers": [
-            "2026-MDT-HQRQ-00139"
+            "2026-MDT-HQRQ-00205",
+            "2026-MDT-HQRQ-00204"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
+          "rfqIssued": 2,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": 84,
+          "rfqDays": 55,
           "rfqStatus": "RFQ Refused",
           "poStatus": "",
           "dnStatus": "",
@@ -2366,12 +2385,20 @@
           ],
           "rfqDetails": [
             {
-              "number": "2026-MDT-HQRQ-00139",
-              "supplier": "RK MARINE SERVICE",
-              "code": "SSS0020",
+              "number": "2026-MDT-HQRQ-00205",
+              "supplier": "Ocean Connect",
+              "code": "SSS0065",
               "status": "RFQ Refused",
-              "date": "2026-08-03",
-              "deadline": "2026-08-18"
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00204",
+              "supplier": "FORTUNE MARITIME",
+              "code": "SSS0064",
+              "status": "RFQ Refused",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
             }
           ],
           "poDetails": [],
@@ -2471,21 +2498,20 @@
         {
           "id": "med toscana::viscosity sensor for fuel module fcm 1000 maker: alfa laval",
           "description": "Viscosity Sensor for Fuel Module FCM 1000, Maker: Alfa Laval",
-          "supplier": "RK MARINE SERVICE",
+          "supplier": "MAS MARINE SHIPPING SUPPLIES",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00071",
           "rfqNumbers": [
-            "2026-MDT-HQRQ-00172",
-            "2026-MDT-HQRQ-00171",
-            "2026-MDT-HQRQ-00170"
+            "2026-MDT-HQRQ-00212",
+            "2026-MDT-HQRQ-00211"
           ],
           "poNumber": "2026-MDT-HQPO-00098",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
-          "rfqDays": 84,
+          "rfqIssued": 2,
+          "rfqClosed": 2,
+          "rfqPct": 100,
+          "rfqDays": 54,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Cancelled",
           "dnStatus": "",
@@ -2493,17 +2519,25 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
-          "poDetails": [
+          "rfqDetails": [
             {
-              "number": "2026-MDT-HQPO-00098",
-              "supplier": "RK MARINE SERVICE",
-              "code": "SSS0020",
-              "status": "PO Cancelled",
-              "date": "2026-08-24",
-              "deadline": ""
+              "number": "2026-MDT-HQRQ-00212",
+              "supplier": "MAS MARINE SHIPPING SUPPLIES",
+              "code": "SSS0002",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-02",
+              "deadline": "2026-09-19"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00211",
+              "supplier": "HAKEPA SRL",
+              "code": "SSS0001",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-02",
+              "deadline": "2026-10-21"
             }
           ],
+          "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-07-15",
@@ -2518,53 +2552,43 @@
         {
           "id": "med toscana::pressure drop indicator for fuel oil filter type: fm 152de24/12a05; maker: alfa laval",
           "description": "Pressure Drop Indicator for Fuel Oil Filter type: FM 152DE-24/12-A05; Maker: Alfa Laval",
-          "supplier": "RK MARINE SERVICE",
+          "supplier": "MAS MARINE SHIPPING SUPPLIES",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00072",
           "rfqNumbers": [
-            "2026-MDT-HQRQ-00169",
-            "2026-MDT-HQRQ-00168",
-            "2026-MDT-HQRQ-00167"
+            "2026-MDT-HQRQ-00210",
+            "2026-MDT-HQRQ-00209"
           ],
           "poNumber": "2026-MDT-HQPO-00113",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 3,
+          "rfqIssued": 2,
           "rfqClosed": 2,
-          "rfqPct": 67,
-          "rfqDays": 84,
+          "rfqPct": 100,
+          "rfqDays": 54,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Refused",
             "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [
             {
-              "number": "2026-MDT-HQRQ-00169",
-              "supplier": "RK MARINE SERVICE",
-              "code": "SSS0020",
-              "status": "RFQ Refused",
-              "date": "2026-08-03",
-              "deadline": "2026-08-18"
+              "number": "2026-MDT-HQRQ-00210",
+              "supplier": "MAS MARINE SHIPPING SUPPLIES",
+              "code": "SSS0002",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-02",
+              "deadline": "2026-09-12"
             },
             {
-              "number": "2026-MDT-HQRQ-00168",
-              "supplier": "Mistral Suisse Sagl",
-              "code": "SSS0040",
+              "number": "2026-MDT-HQRQ-00209",
+              "supplier": "HAKEPA SRL",
+              "code": "SSS0001",
               "status": "RFQ Offer Acknowledged",
-              "date": "2026-08-03",
-              "deadline": "2026-08-18"
-            },
-            {
-              "number": "2026-MDT-HQRQ-00167",
-              "supplier": "Alfa Laval SRL",
-              "code": "SSS0049",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-08-03",
-              "deadline": "2026-08-18"
+              "date": "2026-09-02",
+              "deadline": "2026-09-17"
             }
           ],
           "poDetails": [],
@@ -2582,37 +2606,56 @@
         {
           "id": "med toscana::messenger line for mooring ropes",
           "description": "Messenger line for mooring ropes",
-          "supplier": "RK MARINE SERVICE",
+          "supplier": "Ocean Connect",
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00073",
           "rfqNumbers": [
-            "2026-MDT-HQRQ-00166"
+            "2026-MDT-HQRQ-00208",
+            "2026-MDT-HQRQ-00207",
+            "2026-MDT-HQRQ-00206"
           ],
           "poNumber": "2026-MDT-HQPO-00087",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 3,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": 84,
-          "rfqStatus": "RFQ Offer Acknowledged",
+          "rfqDays": 55,
+          "rfqStatus": "RFQ Cancelled",
           "poStatus": "PO Cancelled",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Offer Acknowledged"
+            "RFQ Refused",
+            "RFQ Cancelled"
           ],
-          "rfqDetails": [],
-          "poDetails": [
+          "rfqDetails": [
             {
-              "number": "2026-MDT-HQPO-00087",
+              "number": "2026-MDT-HQRQ-00208",
+              "supplier": "Ocean Connect",
+              "code": "SSS0065",
+              "status": "RFQ Refused",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00207",
+              "supplier": "FORTUNE MARITIME",
+              "code": "SSS0064",
+              "status": "RFQ Refused",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00206",
               "supplier": "RK MARINE SERVICE",
               "code": "SSS0020",
-              "status": "PO Cancelled",
-              "date": "2026-08-19",
+              "status": "RFQ Cancelled",
+              "date": "2026-09-01",
               "deadline": ""
             }
           ],
+          "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-07-15",
@@ -17720,9 +17763,9 @@
           "poNumber": "2026-PEP-HQPO-00149",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 55,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -17731,8 +17774,26 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00242",
+              "supplier": "MacGregor Pte Ltd",
+              "code": "SSS0034",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-PEP-HQPO-00149",
+              "supplier": "MacGregor Pte Ltd",
+              "code": "SSS0034",
+              "status": "PO Published",
+              "date": "2026-09-02",
+              "deadline": "2026-09-16"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-08-26",
@@ -17756,9 +17817,9 @@
           "poNumber": "2026-PEP-HQPO-00159",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 55,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -17767,7 +17828,16 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00245",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -17793,9 +17863,9 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 2,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 55,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
@@ -17805,7 +17875,24 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00244",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00243",
+              "supplier": "LG Marine Services(HK) Co.,Limited",
+              "code": "SSS0007",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-09-01",
+              "deadline": "2026-09-16"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -17945,9 +18032,9 @@
           "poNumber": "2026-PEP-HQPO-00150",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
-          "rfqClosed": 1,
-          "rfqPct": 100,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 69,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -17956,17 +18043,17 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [
+          "rfqDetails": [],
+          "poDetails": [
             {
-              "number": "2026-PEP-HQRQ-00236",
+              "number": "2026-PEP-HQPO-00150",
               "supplier": "YH MARINE TRADE CO.,LTD",
               "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-08-18",
-              "deadline": "2026-08-25"
+              "status": "PO Published",
+              "date": "2026-09-02",
+              "deadline": "2026-09-02"
             }
           ],
-          "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-08-10",
