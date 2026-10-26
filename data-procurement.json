@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-10-26T16:32:37.002Z",
+  "lastSync": "2026-10-26T16:35:17.309Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -2029,9 +2029,9 @@
           "poNumber": "2026-MDT-HQPO-00088",
           "dnNumber": "2026-MDT-HQDN-00130",
           "dnInfoshipId": "HQS000000007571",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 2,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 83,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
@@ -2041,7 +2041,24 @@
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00174",
+              "supplier": "AL SAFWAN MARINE EQUIPMENT MAINT.LLC",
+              "code": "SSS0043",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-08-04",
+              "deadline": "2026-08-19"
+            },
+            {
+              "number": "2026-MDT-HQRQ-00173",
+              "supplier": "RK MARINE SERVICE",
+              "code": "SSS0020",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-08-04",
+              "deadline": "2026-08-19"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -2356,7 +2373,7 @@
         {
           "id": "med toscana::emergency diesel generator",
           "description": "Emergency Diesel Generator",
-          "supplier": "G&P TECH CO.",
+          "supplier": "HAKEPA SRL",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00074",
           "rfqNumbers": [
@@ -2423,7 +2440,16 @@
               "deadline": "2026-08-13"
             }
           ],
-          "poDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00085",
+              "supplier": "HAKEPA SRL",
+              "code": "SSS0001",
+              "status": "PO Published",
+              "date": "2026-08-07",
+              "deadline": "2026-08-13"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-07-16",
@@ -12148,17 +12174,15 @@
           "department": "DECK Department",
           "reqNumber": "2026-MLG-SHPR-00064",
           "rfqNumbers": [
-            "2026-MLG-HQRQ-00144",
-            "2026-MLG-HQRQ-00137",
-            "2026-MLG-HQRQ-00120"
+            "2026-MLG-HQRQ-00144"
           ],
           "poNumber": "2026-MLG-HQPO-00072",
           "dnNumber": "2026-MLG-HQDN-00064",
           "dnInfoshipId": "HQS000000007550",
-          "rfqIssued": 3,
-          "rfqClosed": 3,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
           "rfqPct": 100,
-          "rfqDays": 91,
+          "rfqDays": 84,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
           "dnStatus": "DN Shipped to Vessel",
@@ -12174,33 +12198,9 @@
               "status": "RFQ Offer Acknowledged",
               "date": "2026-08-03",
               "deadline": "2026-08-18"
-            },
-            {
-              "number": "2026-MLG-HQRQ-00137",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-27",
-              "deadline": "2026-08-11"
-            },
-            {
-              "number": "2026-MLG-HQRQ-00120",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-27",
-              "deadline": "2026-08-11"
             }
           ],
           "poDetails": [
-            {
-              "number": "2026-MLG-HQPO-00058",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "PO Finalized",
-              "date": "2026-07-31",
-              "deadline": "2026-08-11"
-            },
             {
               "number": "2026-MLG-HQPO-00070",
               "supplier": "YH MARINE TRADE CO.,LTD",
@@ -12220,8 +12220,8 @@
           ],
           "dnDetails": [],
           "poSplit": {
-            "i": 3,
-            "of": 3,
+            "i": 2,
+            "of": 2,
             "po": "2026-MLG-HQPO-00072",
             "base": "med liguria::deck store"
           },
@@ -14259,17 +14259,15 @@
           "department": "DECK Department",
           "reqNumber": "2026-MLG-SHPR-00064",
           "rfqNumbers": [
-            "2026-MLG-HQRQ-00144",
-            "2026-MLG-HQRQ-00137",
-            "2026-MLG-HQRQ-00120"
+            "2026-MLG-HQRQ-00144"
           ],
-          "poNumber": "2026-MLG-HQPO-00058",
+          "poNumber": "2026-MLG-HQPO-00070",
           "dnNumber": "2026-MLG-HQDN-00064",
           "dnInfoshipId": "HQS000000007550",
-          "rfqIssued": 3,
-          "rfqClosed": 3,
+          "rfqIssued": 1,
+          "rfqClosed": 1,
           "rfqPct": 100,
-          "rfqDays": 91,
+          "rfqDays": 84,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
           "dnStatus": "DN Shipped to Vessel",
@@ -14285,33 +14283,9 @@
               "status": "RFQ Offer Acknowledged",
               "date": "2026-08-03",
               "deadline": "2026-08-18"
-            },
-            {
-              "number": "2026-MLG-HQRQ-00137",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-27",
-              "deadline": "2026-08-11"
-            },
-            {
-              "number": "2026-MLG-HQRQ-00120",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-27",
-              "deadline": "2026-08-11"
             }
           ],
           "poDetails": [
-            {
-              "number": "2026-MLG-HQPO-00058",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "PO Finalized",
-              "date": "2026-07-31",
-              "deadline": "2026-08-11"
-            },
             {
               "number": "2026-MLG-HQPO-00070",
               "supplier": "YH MARINE TRADE CO.,LTD",
@@ -14319,17 +14293,25 @@
               "status": "PO Finalized",
               "date": "2026-08-03",
               "deadline": "2026-08-11"
+            },
+            {
+              "number": "2026-MLG-HQPO-00072",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "PO Finalized",
+              "date": "2026-08-05",
+              "deadline": "2026-08-18"
             }
           ],
           "dnDetails": [],
           "poSplit": {
             "i": 1,
             "of": 2,
-            "po": "2026-MLG-HQPO-00058",
+            "po": "2026-MLG-HQPO-00070",
             "base": "med liguria::deck store"
           },
           "reqDate": "2026-07-24",
-          "poDate": "2026-07-31",
+          "poDate": "2026-08-03",
           "dnDate": "2026-08-23",
           "poDeliveryDate": "2026-08-11",
           "dnDeliveryDate": "2026-09-07",
@@ -18247,9 +18229,9 @@
           "poNumber": "2026-PEP-HQPO-00145",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 2,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 82,
           "rfqStatus": "RFQ Refused",
           "poStatus": "PO Published",
@@ -18259,7 +18241,24 @@
             "RFQ Offer Acknowledged",
             "RFQ Refused"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-PEP-HQRQ-00219",
+              "supplier": "Mistral Suisse Sagl",
+              "code": "SSS0040",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-08-05",
+              "deadline": "2026-08-17"
+            },
+            {
+              "number": "2026-PEP-HQRQ-00218",
+              "supplier": "Alfa Laval SpA, Marine & Diesel, Service",
+              "code": "SSS0055",
+              "status": "RFQ Refused",
+              "date": "2026-08-05",
+              "deadline": "2026-08-20"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -18320,7 +18319,7 @@
         {
           "id": "peppino::main engine cylinder cover",
           "description": "MAIN ENGINE CYLINDER COVER",
-          "supplier": "Proinelca Korea Co., Ltd.",
+          "supplier": "Zephyr Trading srl",
           "department": "ENGINE Department",
           "reqNumber": "2026-PEP-SHPR-00117",
           "rfqNumbers": [
@@ -18387,7 +18386,16 @@
               "deadline": "2026-08-18"
             }
           ],
-          "poDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-PEP-HQPO-00142",
+              "supplier": "Zephyr Trading srl",
+              "code": "SSS0005",
+              "status": "PO Finalized",
+              "date": "2026-08-07",
+              "deadline": "2026-08-18"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-08-03",
@@ -18713,9 +18721,9 @@
           "poNumber": "2026-PEP-HQPO-00141",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 3,
-          "rfqClosed": 2,
-          "rfqPct": 67,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 105,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "PO Published",
@@ -18725,32 +18733,7 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-PEP-HQRQ-00197",
-              "supplier": "MacGregor Pte Ltd",
-              "code": "SSS0034",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-13",
-              "deadline": "2026-07-28"
-            },
-            {
-              "number": "2026-PEP-HQRQ-00196",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-13",
-              "deadline": "2026-07-28"
-            },
-            {
-              "number": "2026-PEP-HQRQ-00195",
-              "supplier": "LFA Global. Pte Ltd.",
-              "code": "SSS0030",
-              "status": "RFQ Sent to Vendor",
-              "date": "2026-07-13",
-              "deadline": "2026-07-28"
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-PEP-HQPO-00141",
@@ -18965,9 +18948,9 @@
           "poNumber": "2026-PEP-HQPO-00140",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 2,
-          "rfqClosed": 2,
-          "rfqPct": 100,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 106,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -18976,24 +18959,7 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-PEP-HQRQ-00200",
-              "supplier": "YH MARINE TRADE CO.,LTD",
-              "code": "SSS0003",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-14",
-              "deadline": "2026-07-29"
-            },
-            {
-              "number": "2026-PEP-HQRQ-00189",
-              "supplier": "LFA Global. Pte Ltd.",
-              "code": "SSS0030",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-07-12",
-              "deadline": "2026-07-27"
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-PEP-HQPO-00140",
