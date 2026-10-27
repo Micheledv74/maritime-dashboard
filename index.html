@@ -28299,7 +28299,7 @@ function radarPaint(){
     '<span class="rd-legs"><span><i style="background:#14794e"></i>in tempo</span><span><i style="background:#c07800"></i>a rischio</span><span><i style="background:#c0261c"></i>non arriva</span><span><i class="crit"></i>critico</span></span>' +
     '<span class="rd-topa">' + (window._rd.undo ? '<button class="btn btn-sm" onclick="window.rdUndo()">↩ Annulla: ' + esc(window._rd.undo.label.slice(0, 40)) + '</button>' : "") +
     '<button class="btn btn-sm" onclick="window.shipHubBoard()" title="PO negli hub TML, spedizioni con più PO sotto un solo AWB e pre-alert all\'agenzia">⇉ Hub e consolidati</button>' +
-    (n => '<button class="btn btn-sm" onclick="window.ifxOpen()" title="DN confermate a bordo da te ma ancora aperte in Infoship: email al Comandante">☑ DN da far chiudere' + (n ? " · " + n : "") + '</button>')(typeof ifxList === "function" ? ifxList().length : 0) +
+    (n => '<button class="btn btn-sm" onclick="window.ifxOpen()" title="DN ancora aperte in Infoship (confermate a bordo + spedite da oltre 30 gg): email a Comandante e Direttore di macchina">☑ DN da far chiudere' + (n ? " · " + n : "") + '</button>')(typeof ifxList === "function" ? ifxList().length + ifxVerifyList().length : 0) +
     '<button class="btn btn-sm" onclick="window.mpdExportAll()" title="Scarica TUTTI i dati salvati in questo browser">⤓ Backup dati</button>' +
     '<button class="btn btn-sm" onclick="window.setOverviewMode(\'classic\')">Vista classica</button></span></div>' +
     '<div class="rd-hero-row"><div class="rd-hero"><div class="rd-eyebrow">RADAR SCALI · PROSSIMI ' + H + ' GIORNI</div><div class="rd-hl">' + esc(headline) + '</div><div class="rd-sl">' + esc(subline) + '</div>' +
@@ -28705,7 +28705,7 @@ function pvHTML(vid){
     '<div style="display:flex;gap:18px 26px;flex-wrap:wrap;flex:1;min-width:300px;">' +
       kpi(P.open, "aperti", "#0a1b2e", P.grey ? P.grey + " fermi apposta" : "") + kpi(P.red, "fermi oltre il doppio", "#c0261c", P.amb + " oltre il tempo giusto") +
       kpi(P.critBad + "/" + P.crit, "critici in ritardo", P.critBad ? "#c0261c" : "#14794e", "materiale critico") + kpi(P.done30, "a bordo in 30 gg", "#14794e", "DN chiuse") +
-      (P.stale ? '<div onclick="window.m3DnStart && window.m3DnStart(\'' + ea(vid) + '\')" title="DN spedite da oltre 30 giorni senza tracking, mai chiuse in Infoship: probabilmente già a bordo. Non contano come ritardi." style="cursor:pointer;display:flex;flex-direction:column;gap:1px;min-width:120px;border-left:1px solid rgba(10,27,46,.10);padding-left:18px;"><span style="font-family:var(--font-mono);font-size:26px;font-weight:700;line-height:1.05;color:#6a7d90;">' + P.stale + '</span><span style="font-size:11.5px;font-weight:700;color:#0a1b2e;">DN vecchie da verificare</span><span style="font-size:11px;color:#1553d8;font-weight:700;">Pulizia DN →</span></div>' : "") +
+      (P.stale ? '<div onclick="window.ifxOpen && window.ifxOpen()" title="DN spedite da oltre 30 giorni senza tracking, mai chiuse in Infoship: probabilmente già a bordo. Apri l\'elenco e chiedi alla nave di chiuderle o chiarire." style="cursor:pointer;display:flex;flex-direction:column;gap:1px;min-width:120px;border-left:1px solid rgba(10,27,46,.10);padding-left:18px;"><span style="font-family:var(--font-mono);font-size:26px;font-weight:700;line-height:1.05;color:#6a7d90;">' + P.stale + '</span><span style="font-size:11.5px;font-weight:700;color:#0a1b2e;">DN vecchie da verificare</span><span style="font-size:11px;color:#1553d8;font-weight:700;">Chiedi alla nave →</span></div>' : "") +
       '</div>' + callBox + '</div>';
   // linea del flusso
   const st = s => {
@@ -29492,49 +29492,86 @@ window.ifxAllDone = function(){ const L = ifxList(); if(!L.length || !confirm("S
 window.ifxCopy = function(txt){ try { navigator.clipboard.writeText(txt); showToast("Copiato: " + txt); } catch(e) { prompt("Copia:", txt); } };
 window.ifxCopyAll = function(){ const t = ifxList().map(x => x.it.dnNumber || x.it.poNumber).filter(Boolean).join("\n"); window.ifxCopy(t); };
 // v1.02b — le DN le chiude SOLO la nave in Infoship: la dashboard prepara la richiesta al Comandante
+// v1.28 — DN "in viaggio" da oltre 30 gg senza tracking, non ancora confermate: si chiede alla nave di chiuderle o chiarire
+window._ifxSkip = window._ifxSkip || {};
+function ifxVerifyList(){
+  const all = loadMatPos(), out = [], now = Date.now();
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { const m = all[it.id] || {};
+    if(m.closeInInfoship || !it.dnNumber || !ifxNeeds(it)) return;
+    let p = null; try { p = mpOf(it, now); } catch(e) {}
+    if(p && p.stale) out.push({ it, vid: v.vesselId, m }); }));
+  return out.sort((a, b) => String(a.it.dnDate || "").localeCompare(String(b.it.dnDate || "")));
+}
+window.ifxVerifyList = ifxVerifyList;
+window.ifxToggleSkip = function(id){ if(window._ifxSkip[id]) delete window._ifxSkip[id]; else window._ifxSkip[id] = 1; ifxPaint(); };
+window.ifxVerAns = function(id, a){
+  if(a === "yes") mpSet(id, { pos: "onboard", closeInInfoship: true, by: "dn-clean" });
+  if(a === "no") mpSet(id, { pos: "transit", by: "dn-clean" });
+  ifxPaint(); if(document.getElementById("radar-root")) try { radarPaint(); } catch(e) {}
+};
 window.ifxAskShip = function(vid){
-  const L = ifxList().filter(x => x.vid === vid); if(!L.length) return;
+  const sk = window._ifxSkip, A = ifxList().filter(x => x.vid === vid && !sk[x.it.id]), B = ifxVerifyList().filter(x => x.vid === vid && !sk[x.it.id]);
+  if(!A.length && !B.length){ showToast("Nessuna DN selezionata per questa nave"); return; }
   const cfg = (VESSELS || []).find(v => v.vesselId === vid) || {}, nm = String(cfg.displayName || vid).replace(/^M\/[VB]\s*/i, "").trim();
-  const prev = L.filter(x => x.m.ifxAskedAt).map(x => mpFD(x.m.ifxAskedAt)), again = prev.length ? " (reminder)" : "";
-  const rows = L.map((x, i) => (i + 1) + ") " + (x.it.dnNumber ? "DN " + x.it.dnNumber + " · " : "") + "PO " + (x.it.poNumber || "—") + " · " + (x.it.description || "") + (x.it.supplier && x.it.supplier !== "—" ? " · " + x.it.supplier : "")).join("\n");
-  const subject = "M/V " + nm + " - Please confirm receipt on board in Infoship" + again + " - " + L.length + " DN";
-  const body = "Dear Captain,\n\n" + (prev.length ? "further to our previous request of " + [...new Set(prev)].join(", ") + ", " : "") +
-    "the goods listed below have been delivered on board but in Infoship the related Delivery Notes are still open.\n\n" + rows +
-    "\n\nKindly close each DN in Infoship as \"Received on Board\" (noting any shortage or damage), so that our records are aligned.\n\nThank you and best regards,\nMichele Del Vecchio\nPurchasing";
-  const to = cfg.masterEmail && !/example\.com|_{2,}/.test(cfg.masterEmail) ? cfg.masterEmail : "";
+  const all = A.concat(B), prev = all.filter(x => x.m.ifxAskedAt).map(x => mpFD(x.m.ifxAskedAt)), again = prev.length ? " (reminder)" : "";
+  const line = (x, i) => (i + 1) + ") DN " + (x.it.dnNumber || "—") + " · PO " + (x.it.poNumber || "—") + " · " + (x.it.description || "") + (x.it.supplier && x.it.supplier !== "—" ? " · " + x.it.supplier : "") + (x.it.dnDate ? " · shipped " + mpFD(x.it.dnDate) : "");
+  const subject = "M/V " + nm + " - Open Delivery Notes in Infoship - please close / clarify" + again + " - " + all.length + " DN";
+  let body = "Dear Captain, dear Chief Engineer,\n\n" + (prev.length ? "further to our previous request of " + [...new Set(prev)].join(", ") + ", " : "") +
+    "in Infoship the Delivery Notes listed below are still open.\n";
+  if(A.length) body += "\n" + (B.length ? "A) " : "") + "Delivered on board - kindly close them as \"Received on Board\":\n" + A.map(line).join("\n") + "\n";
+  if(B.length) body += "\n" + (A.length ? "B) " : "") + "Shipped some time ago - if received, kindly close them; if not received, or received incomplete/damaged, please advise:\n" + B.map(line).join("\n") + "\n";
+  body += "\nPlease note any shortage or damage when closing the DN, so that our records are aligned.\n\nThank you and best regards,\nMichele Del Vecchio\nPurchasing";
+  const ok = e => e && !/example\.com|_{2,}/.test(e) ? e : "", to = [ok(cfg.masterEmail), ok(cfg.chiefEngEmail)].filter(Boolean).join(";");
   openComposeMail(buildComposeHref(subject, body, to));
-  const ts = new Date().toISOString(); L.forEach(x => mpSet(x.it.id, { ifxAskedAt: ts }));
+  const ts = new Date().toISOString(); all.forEach(x => mpSet(x.it.id, { ifxAskedAt: ts }));
   ifxPaint();
 };
 window.ifxOpen = function(){ ifxPaint(); };
 window.ifxClose = function(){ const h = document.getElementById("ifx-host"); if(h) h.innerHTML = ""; };
 function ifxPaint(){
   let host = document.getElementById("ifx-host"); if(!host){ host = document.createElement("div"); host.id = "ifx-host"; document.body.appendChild(host); }
-  const L = ifxList(), esc = escapeHTML, by = {};
+  const L = ifxList(), V = ifxVerifyList(), esc = escapeHTML, by = {}, byV = {}, sk = window._ifxSkip;
   L.forEach(x => (by[x.vid] = by[x.vid] || []).push(x));
+  V.forEach(x => (byV[x.vid] = byV[x.vid] || []).push(x));
+  const vids = (VESSELS || []).map(c => c.vesselId).filter(v => by[v] || byV[v]);
+  const skBtn = x => '<button class="btn btn-sm" onclick="ifxToggleSkip(\'' + m3E(x.it.id) + '\')" title="Includi o escludi questa DN dall\'email" style="min-height:40px;white-space:nowrap;">' + (sk[x.it.id] ? "＋ Includi" : "Escludi") + '</button>';
+  const rowV = x => { const id = m3E(x.it.id), num = x.it.dnNumber || "", ask = x.m.ifxAskedAt, age = mpDaysSince(x.it.dnDate), off = !!sk[x.it.id];
+    return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid rgba(10,27,46,.08);' + (off ? "opacity:.45;" : "") + '">' +
+      '<div style="min-width:0;"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
+      '<button onclick="ifxCopy(\'' + m3E(num) + '\')" title="Copia il numero DN" style="' + mono + 'background:#fdf3e2;border:1px solid #f0d49c;border-radius:7px;padding:4px 9px;cursor:pointer;">' + esc(num) + ' ⧉</button>' +
+      '<span style="' + mono + 'font-weight:600;font-size:12px;color:#44576b;">PO ' + esc(x.it.poNumber || "—") + '</span>' +
+      '<span style="font-size:11.5px;color:' + (ask ? "#1553d8" : "#b06a00") + ';">' + esc(ask ? "chiesto alla nave il " + mpFD(ask) : "spedita il " + mpFD(x.it.dnDate) + (age != null ? " · " + age + " gg fa, senza tracking" : "")) + '</span></div>' +
+      '<div style="font-size:13px;color:#0a1b2e;margin-top:5px;">' + esc(x.it.description || "—") + '</div>' +
+      '<div style="font-size:11.5px;color:#6a7d90;margin-top:2px;">' + esc([x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "", x.it.dnStatus || ""].filter(Boolean).join(" · ")) + '</div></div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="btn btn-sm" onclick="ifxVerAns(\'' + id + '\',\'yes\')" title="So che è a bordo: passa tra le DN da chiudere" style="min-height:40px;white-space:nowrap;">✓ È a bordo</button>' +
+      '<button class="btn btn-sm" onclick="ifxVerAns(\'' + id + '\',\'no\')" title="Ancora in viaggio: esce da questa lista" style="min-height:40px;white-space:nowrap;">In viaggio</button>' + skBtn(x) + '</div></div>'; };
+  const sub = (t, n, c) => '<div style="padding:8px 14px;background:#f5f7fa;border-top:1px solid rgba(10,27,46,.08);font-size:11px;font-weight:800;letter-spacing:.05em;color:' + c + ';">' + t + ' · ' + n + '</div>';
   const card = "border:1px solid rgba(10,27,46,.10);border-radius:14px;overflow:hidden;background:#fff;";
   const mono = "font-family:var(--font-mono);font-size:13px;font-weight:700;color:#0a1b2e;";
   const row = x => { const id = m3E(x.it.id), num = x.it.dnNumber || "", ask = x.m.ifxAskedAt, askD = ask ? mpDaysSince(ask) : null;
+    const off = !!sk[x.it.id];
     const what = ask ? "chiesto alla nave il " + mpFD(ask) + (askD > 7 ? " · ancora aperta dopo " + askD + " gg" : "") : num ? "DN ancora aperta in Infoship" : "nessuna DN in Infoship";
-    return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid rgba(10,27,46,.08);">' +
+    return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid rgba(10,27,46,.08);' + (off ? "opacity:.45;" : "") + '">' +
       '<div style="min-width:0;"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">' +
       (num ? '<button onclick="ifxCopy(\'' + m3E(num) + '\')" title="Copia il numero DN" style="' + mono + 'background:#eef4ff;border:1px solid #cddafc;border-radius:7px;padding:4px 9px;cursor:pointer;">' + esc(num) + ' ⧉</button>' : "") +
       '<button onclick="ifxCopy(\'' + m3E(x.it.poNumber || "") + '\')" title="Copia il numero PO" style="' + mono + 'font-weight:600;background:#f5f7fa;border:1px solid rgba(10,27,46,.12);border-radius:7px;padding:4px 9px;cursor:pointer;">' + esc(x.it.poNumber || "—") + ' ⧉</button>' +
       '<span style="font-size:11.5px;color:' + (askD > 7 ? "#c0261c;font-weight:700" : "#6a7d90") + ';">' + esc(what) + '</span></div>' +
       '<div style="font-size:13px;color:#0a1b2e;margin-top:5px;">' + esc(x.it.description || "—") + '</div>' +
       '<div style="font-size:11.5px;color:#6a7d90;margin-top:2px;">' + esc([x.it.supplier && x.it.supplier !== "—" ? x.it.supplier : "", "a bordo confermato il " + mpFD(x.m.updatedAt) + (x.m.by === "dn-clean" ? " (pulizia DN)" : x.m.by === "consolidato" ? " (spedizione unica)" : ""), x.it.dnStatus || ""].filter(Boolean).join(" · ")) + '</div></div>' +
-      '<button class="btn btn-sm" onclick="ifxDone(\'' + id + '\')" title="Toglila dalla lista se la nave l\'ha già chiusa (sparisce comunque da sola col prossimo export Infoship)" style="min-height:40px;white-space:nowrap;">✓ Chiusa dalla nave</button></div>'; };
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button class="btn btn-sm" onclick="ifxDone(\'' + id + '\')" title="Toglila dalla lista se la nave l\'ha già chiusa (sparisce comunque da sola col prossimo export Infoship)" style="min-height:40px;white-space:nowrap;">✓ Chiusa dalla nave</button>' + skBtn(x) + '</div></div>'; };
   host.innerHTML = '<div style="position:fixed;inset:0;z-index:10050;background:#eef2f6;overflow:auto;font-family:var(--font-sans);">' +
     '<div style="position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);"><div style="max-width:1000px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
     '<button onclick="ifxClose()" style="border:1px solid rgba(10,27,46,.14);background:#fff;border-radius:10px;padding:0 14px;min-height:44px;font-size:13px;font-weight:700;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);">← Torna alla dashboard</button>' +
-    '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">PULIZIA DN · LE CHIUDE LA NAVE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">DN da far chiudere a bordo · ' + L.length + '</div></div>' +
+    '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">PULIZIA DN · LE CHIUDE LA NAVE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">DN aperte da far chiudere a bordo · ' + (L.length + V.length) + '</div></div>' +
     (L.length ? '<button class="btn btn-sm" onclick="ifxCopyAll()" style="min-height:40px;">⧉ Copia tutti i numeri</button>' : "") + '</div></div>' +
     '<div style="max-width:1000px;margin:0 auto;padding:18px 20px 40px;display:flex;flex-direction:column;gap:14px;">' +
-    '<div style="font-size:13px;color:#44576b;line-height:1.5;">Materiale che hai confermato a bordo («Pulizia DN» dal telefono, «A bordo» nella scheda PO, «Tutti a bordo» di una spedizione unica) ma con la DN ancora aperta in Infoship. Solo la nave può chiuderla: «Chiedi alla nave» prepara l\'email al Comandante con l\'elenco. Ogni voce sparisce da sola quando il prossimo export Infoship la porta come ricevuta a bordo.</div>' +
-    (L.length ? Object.keys(by).map(v => { const asked = by[v].filter(x => x.m.ifxAskedAt).length;
-      return '<div style="' + card + '"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;"><span style="flex:1;min-width:140px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">' + esc(m3VName(v).toUpperCase()) + ' · ' + by[v].length + (asked ? " · " + asked + " già chieste" : "") + '</span>' +
-        '<button class="btn btn-sm btn-primary" onclick="ifxAskShip(\'' + m3E(v) + '\')" style="min-height:40px;">✉ ' + (asked === by[v].length ? "Sollecita la nave" : "Chiedi alla nave di chiuderle") + '</button></div>' + by[v].map(row).join("") + '</div>'; }).join("")
-      : '<div style="' + card + 'padding:18px;font-size:13.5px;color:#44576b;">Niente in sospeso. Quando confermi una DN «a bordo» dal telefono, compare qui finché la nave non la chiude in Infoship.</div>') +
+    '<div style="font-size:13px;color:#44576b;line-height:1.5;">Solo la nave può chiudere le DN in Infoship. Per ogni nave, «✉ Chiedi alla nave» prepara UNA email al Comandante e al Direttore di macchina con due elenchi: <b>A bordo, da chiudere</b> (confermate da te) e <b>Da verificare</b> (spedite da oltre 30 giorni senza tracking: chiudere se ricevute, altrimenti chiarire). «Escludi» toglie una riga dall\'email. Ogni voce sparisce da sola quando l\'export Infoship la porta come ricevuta a bordo.</div>' +
+    (vids.length ? vids.map(v => { const a = by[v] || [], b = byV[v] || [], tot = a.length + b.length, asked = a.concat(b).filter(x => x.m.ifxAskedAt).length, inc = a.concat(b).filter(x => !sk[x.it.id]).length;
+      return '<div style="' + card + '"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;"><span style="flex:1;min-width:140px;font-size:11px;font-weight:800;letter-spacing:.06em;color:#6a7d90;">' + esc(m3VName(v).toUpperCase()) + ' · ' + tot + ' DN' + (asked ? " · " + asked + " già chieste" : "") + '</span>' +
+        '<button class="btn btn-sm btn-primary" onclick="ifxAskShip(\'' + m3E(v) + '\')"' + (inc ? "" : " disabled") + ' style="min-height:40px;">✉ ' + (asked && asked === tot ? "Sollecita la nave" : "Chiedi alla nave") + ' · ' + inc + ' DN</button></div>' +
+        (a.length ? sub("A BORDO · DA CHIUDERE", a.length, "#1553d8") + a.map(row).join("") : "") +
+        (b.length ? sub("DA VERIFICARE · SPEDITE DA OLTRE 30 GG", b.length, "#b06a00") + b.map(rowV).join("") : "") + '</div>'; }).join("")
+      : '<div style="' + card + 'padding:18px;font-size:13.5px;color:#44576b;">Niente in sospeso: nessuna DN aperta da far chiudere alla nave.</div>') +
     '</div></div>';
 }
 
