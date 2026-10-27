@@ -1,15 +1,15 @@
 {
-  "lastSync": "2026-10-27T08:32:51.876Z",
+  "lastSync": "2026-10-27T08:35:39.158Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
       "totalReq": 268,
-      "rfqOpen": 30,
-      "rfqOverdue7": 6,
+      "rfqOpen": 29,
+      "rfqOverdue7": 5,
       "rfqOverdue15": 5,
-      "readyForPO": 6,
+      "readyForPO": 7,
       "orders": 13,
       "poReadyForDN": 0,
       "dn": 0,
@@ -880,7 +880,7 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 1,
           "rfqClosed": 0,
           "rfqPct": 0,
           "rfqDays": 35,
@@ -891,7 +891,16 @@
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00217",
+              "supplier": "TEFIN SCRL",
+              "code": "SSS0033",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -961,33 +970,36 @@
         {
           "id": "med toscana::new type power connection for cargo grabs catalog \"oduheavy duty connectors\"",
           "description": "New type power connection for cargo Grabs, Catalog \"ODU-Heavy Duty Connectors\".",
-          "supplier": "G&P TECH CO.",
+          "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00104",
           "rfqNumbers": [
-            "2026-MDT-HQRQ-00231",
-            "2026-MDT-HQRQ-00230",
-            "2026-MDT-HQRQ-00229",
-            "2026-MDT-HQRQ-00228",
-            "2026-MDT-HQRQ-00227"
+            "2026-MDT-HQRQ-00216"
           ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
-          "rfqDays": 12,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
+          "rfqDays": 35,
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Offer Acknowledged",
-            "RFQ Sent to Vendor",
-            "RFQ Refused"
+            "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00216",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-22",
+              "deadline": "2026-09-27"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -12930,9 +12942,9 @@
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqIssued": 3,
+          "rfqClosed": 2,
+          "rfqPct": 67,
           "rfqDays": 35,
           "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
@@ -12942,7 +12954,32 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MLG-HQRQ-00158",
+              "supplier": "G&P TECH CO.",
+              "code": "SSS0010",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-22",
+              "deadline": "2026-10-06"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00157",
+              "supplier": "FUJI ELECTRIC Co.; Ltd",
+              "code": "SSS0004",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            },
+            {
+              "number": "2026-MLG-HQRQ-00156",
+              "supplier": "LG Marine Services(HK) Co.,Limited",
+              "code": "SSS0007",
+              "status": "RFQ Sent to Vendor",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
+            }
+          ],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
@@ -13096,9 +13133,9 @@
           "poNumber": "2026-MLG-HQPO-00085",
           "dnNumber": "2026-MLG-HQDN-00078",
           "dnInfoshipId": "HQS000000007636",
-          "rfqIssued": 1,
-          "rfqClosed": 1,
-          "rfqPct": 100,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 42,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Finalized",
@@ -13107,27 +13144,18 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [
             {
-              "number": "2026-MLG-HQRQ-00154",
+              "number": "2026-MLG-HQDN-00078",
               "supplier": "PPG PROTECTIVE & MARINE COATINS",
               "code": "SSS0058",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-09-15",
-              "deadline": "2026-09-30"
+              "status": "DN Shipped to Vessel",
+              "date": "2026-09-22",
+              "deadline": "2026-10-07"
             }
           ],
-          "poDetails": [
-            {
-              "number": "2026-MLG-HQPO-00085",
-              "supplier": "PPG PROTECTIVE & MARINE COATINS",
-              "code": "SSS0058",
-              "status": "PO Finalized",
-              "date": "2026-09-16",
-              "deadline": "2026-09-30"
-            }
-          ],
-          "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-09-15",
           "poDate": "2026-09-16",
