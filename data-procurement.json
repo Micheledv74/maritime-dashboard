@@ -1,23 +1,23 @@
 {
-  "lastSync": "2026-10-28T15:00:45.172Z",
+  "lastSync": "2026-10-28T15:09:36.213Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
-      "totalReq": 268,
-      "rfqOpen": 26,
+      "totalReq": 269,
+      "rfqOpen": 25,
       "rfqOverdue7": 6,
       "rfqOverdue15": 5,
       "readyForPO": 6,
-      "orders": 16,
+      "orders": 19,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 29,
       "delivery": "delayed",
       "deliveryColor": "red",
       "pctReqToPO": 87,
-      "pctPOToDN": 94,
+      "pctPOToDN": 92,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -28,6 +28,60 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med toscana::bearing and oil seal for gearboxes stabilizer winch impa",
+          "description": "Bearing and Oil seal for Gearboxes stabilizer winch, Impa",
+          "supplier": "MARINOSHIP SERVICES",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MDT-SHPR-00128",
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00240"
+          ],
+          "poNumber": "2026-MDT-HQPO-00123",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 1,
+          "rfqClosed": 1,
+          "rfqPct": 100,
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "REQ Ordered",
+          "rfqStatusSummary": [
+            "RFQ Offer Acknowledged"
+          ],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00240",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-10-28",
+              "deadline": "2026-11-12"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00123",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "PO Published",
+              "date": "2026-10-28",
+              "deadline": "2026-11-12"
+            }
+          ],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-10-28",
+          "poDate": "2026-10-28",
+          "dnDate": "",
+          "poDeliveryDate": "2026-11-12",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-11-12"
+        },
         {
           "id": "med toscana::acetylene/oxygen gases exchange",
           "description": "Acetylene/Oxygen Gases exchange",
@@ -40,9 +94,9 @@
           "poNumber": "2026-MDT-HQPO-00119",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
-          "rfqClosed": 1,
-          "rfqPct": 100,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 5,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -51,24 +105,15 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-MDT-HQRQ-00236",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-23",
-              "deadline": ""
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-MDT-HQPO-00119",
-              "supplier": "",
-              "code": "",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
               "status": "PO Published",
               "date": "2026-10-27",
-              "deadline": ""
+              "deadline": "2026-11-07"
             }
           ],
           "dnDetails": [],
@@ -76,11 +121,11 @@
           "reqDate": "2026-10-23",
           "poDate": "2026-10-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-11-07",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-11-07"
         },
         {
           "id": "med toscana::urgent for deck",
@@ -91,41 +136,41 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00235"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00121",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
+          "rfqIssued": 0,
           "rfqClosed": 0,
           "rfqPct": 0,
           "rfqDays": 5,
           "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [
+          "rfqDetails": [],
+          "poDetails": [
             {
-              "number": "2026-MDT-HQRQ-00235",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Sent to Vendor",
-              "date": "2026-10-23",
-              "deadline": ""
+              "number": "2026-MDT-HQPO-00121",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "PO Published",
+              "date": "2026-10-28",
+              "deadline": "2026-11-07"
             }
           ],
-          "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-21",
-          "poDate": "",
+          "poDate": "2026-10-28",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-11-07",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-11-07"
         },
         {
           "id": "med toscana::acetylene/oxygen gases exchange",
@@ -185,21 +230,21 @@
           "rfqDetails": [
             {
               "number": "2026-MDT-HQRQ-00237",
-              "supplier": "",
-              "code": "",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
               "status": "RFQ Offer Acknowledged",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
           "poDetails": [
             {
               "number": "2026-MDT-HQPO-00117",
-              "supplier": "",
-              "code": "",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
               "status": "PO Published",
               "date": "2026-10-27",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
           "dnDetails": [],
@@ -207,11 +252,11 @@
           "reqDate": "2026-10-23",
           "poDate": "2026-10-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-11-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-11-10"
         },
         {
           "id": "med toscana::impa cutting equipment",
@@ -257,9 +302,9 @@
           "poNumber": "2026-MDT-HQPO-00118",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 1,
-          "rfqClosed": 1,
-          "rfqPct": 100,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 5,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -268,24 +313,15 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-MDT-HQRQ-00234",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-23",
-              "deadline": ""
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-MDT-HQPO-00118",
-              "supplier": "",
-              "code": "",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
               "status": "PO Published",
               "date": "2026-10-27",
-              "deadline": ""
+              "deadline": "2026-11-07"
             }
           ],
           "dnDetails": [],
@@ -293,11 +329,11 @@
           "reqDate": "2026-10-14",
           "poDate": "2026-10-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-11-07",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-11-07"
         },
         {
           "id": "med toscana::amperemeter for lo purifier kerger catalogue",
@@ -341,49 +377,59 @@
             "2026-MDT-HQRQ-00239",
             "2026-MDT-HQRQ-00238"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00122",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 2,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 50,
           "rfqDays": 2,
-          "rfqStatus": "RFQ Created",
-          "poStatus": "",
+          "rfqStatus": "RFQ Sent to Vendor",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Created"
+            "RFQ Offer Acknowledged",
+            "RFQ Sent to Vendor"
           ],
           "rfqDetails": [
             {
               "number": "2026-MDT-HQRQ-00239",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Created",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "RFQ Offer Acknowledged",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             },
             {
               "number": "2026-MDT-HQRQ-00238",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Created",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
+              "status": "RFQ Sent to Vendor",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
-          "poDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00122",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "PO Published",
+              "date": "2026-10-28",
+              "deadline": "2026-11-10"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-19",
-          "poDate": "",
+          "poDate": "2026-10-28",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-11-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-11-10"
         },
         {
           "id": "med toscana::bump test kit for 5gas detector",
@@ -1902,7 +1948,7 @@
         {
           "id": "med toscana::emergency diesel generator tacho sensor",
           "description": "Emergency Diesel Generator - Tacho Sensor",
-          "supplier": "MAS MARINE SHIPPING SUPPLIES",
+          "supplier": "MARINOSHIP SERVICES",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00079",
           "rfqNumbers": [
@@ -1928,11 +1974,11 @@
           "poDetails": [
             {
               "number": "2026-MDT-HQPO-00120",
-              "supplier": "",
-              "code": "",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
               "status": "PO Published",
               "date": "2026-10-27",
-              "deadline": ""
+              "deadline": "2026-11-11"
             }
           ],
           "dnDetails": [],
@@ -1940,11 +1986,11 @@
           "reqDate": "2026-07-21",
           "poDate": "2026-10-27",
           "dnDate": "",
-          "poDeliveryDate": "2026-10-13",
+          "poDeliveryDate": "2026-11-11",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "2026-10-13"
+          "deliveryDate": "2026-11-11"
         },
         {
           "id": "med toscana::emergency diesel generator tacho sensor",
@@ -11739,7 +11785,7 @@
         {
           "id": "med toscana::safety",
           "description": "SAFETY",
-          "supplier": "UNIQUE SAFETY SOLUTIONS",
+          "supplier": "MARINOSHIP SERVICES",
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00118",
           "rfqNumbers": [
@@ -11749,9 +11795,9 @@
           "poNumber": "2026-MDT-HQPO-00116",
           "dnNumber": "2025-MDT-HQDN-00048",
           "dnInfoshipId": "HQS000000006023",
-          "rfqIssued": 2,
-          "rfqClosed": 2,
-          "rfqPct": 100,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 5,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -11760,32 +11806,15 @@
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-MDT-HQRQ-00233",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-23",
-              "deadline": ""
-            },
-            {
-              "number": "2026-MDT-HQRQ-00232",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-23",
-              "deadline": ""
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-MDT-HQPO-00116",
-              "supplier": "",
-              "code": "",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
               "status": "PO Published",
               "date": "2026-10-27",
-              "deadline": ""
+              "deadline": "2026-11-07"
             }
           ],
           "dnDetails": [],
@@ -11793,11 +11822,11 @@
           "reqDate": "2026-10-18",
           "poDate": "2026-10-27",
           "dnDate": "2025-10-23",
-          "poDeliveryDate": "2025-09-25",
+          "poDeliveryDate": "2026-11-07",
           "dnDeliveryDate": "2025-11-07",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "2025-09-25"
+          "deliveryDate": "2026-11-07"
         },
         {
           "id": "med toscana::oil seal \"v\" type impa marine catalogue 6th edition",
@@ -16638,19 +16667,19 @@
     {
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
-      "totalReq": 181,
+      "totalReq": 183,
       "rfqOpen": 18,
       "rfqOverdue7": 2,
       "rfqOverdue15": 1,
       "readyForPO": 3,
-      "orders": 16,
+      "orders": 18,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 16,
       "delivery": "delayed",
       "deliveryColor": "red",
       "pctReqToPO": 87,
-      "pctPOToDN": 90,
+      "pctPOToDN": 89,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -16661,6 +16690,88 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "peppino::personal multigas detetctor",
+          "description": "Personal Multigas Detetctor",
+          "supplier": "ANCB SRL",
+          "department": "DECK Department",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-PEP-HQPO-00164",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-PEP-HQPO-00164",
+              "supplier": "ANCB SRL",
+              "code": "SSS0061",
+              "status": "PO Published",
+              "date": "2026-10-27",
+              "deadline": "2026-11-11"
+            }
+          ],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "",
+          "poDate": "2026-10-27",
+          "dnDate": "",
+          "poDeliveryDate": "2026-11-11",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-11-11"
+        },
+        {
+          "id": "peppino::imo symbols",
+          "description": "IMO Symbols",
+          "supplier": "CAIM",
+          "department": "",
+          "reqNumber": "",
+          "rfqNumbers": [],
+          "poNumber": "2026-PEP-HQPO-00165",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": null,
+          "rfqStatus": "",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "",
+          "rfqStatusSummary": [],
+          "rfqDetails": [],
+          "poDetails": [
+            {
+              "number": "2026-PEP-HQPO-00165",
+              "supplier": "CAIM",
+              "code": "SSS0038",
+              "status": "PO Published",
+              "date": "2026-10-28",
+              "deadline": "2026-11-12"
+            }
+          ],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "",
+          "poDate": "2026-10-28",
+          "dnDate": "",
+          "poDeliveryDate": "2026-11-12",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-11-12"
+        },
         {
           "id": "peppino::main engine fuel system",
           "description": "MAIN ENGINE FUEL SYSTEM",
@@ -16976,9 +17087,9 @@
           "poNumber": "2026-PEP-HQPO-00160",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 4,
-          "rfqClosed": 3,
-          "rfqPct": 75,
+          "rfqIssued": 0,
+          "rfqClosed": 0,
+          "rfqPct": 0,
           "rfqDays": 12,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
@@ -16988,48 +17099,15 @@
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
-          "rfqDetails": [
-            {
-              "number": "2026-PEP-HQRQ-00262",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-16",
-              "deadline": ""
-            },
-            {
-              "number": "2026-PEP-HQRQ-00261",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-16",
-              "deadline": ""
-            },
-            {
-              "number": "2026-PEP-HQRQ-00260",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Sent to Vendor",
-              "date": "2026-10-16",
-              "deadline": ""
-            },
-            {
-              "number": "2026-PEP-HQRQ-00259",
-              "supplier": "",
-              "code": "",
-              "status": "RFQ Offer Acknowledged",
-              "date": "2026-10-16",
-              "deadline": ""
-            }
-          ],
+          "rfqDetails": [],
           "poDetails": [
             {
               "number": "2026-PEP-HQPO-00160",
-              "supplier": "",
-              "code": "",
+              "supplier": "Zephyr Trading srl",
+              "code": "SSS0005",
               "status": "PO Published",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
           "dnDetails": [],
@@ -17800,11 +17878,11 @@
           "poDetails": [
             {
               "number": "2026-PEP-HQPO-00163",
-              "supplier": "",
-              "code": "",
+              "supplier": "Proinelca Korea Co., Ltd.",
+              "code": "SSS0026",
               "status": "PO Published",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
           "dnDetails": [],
@@ -18321,11 +18399,11 @@
           "poDetails": [
             {
               "number": "2026-PEP-HQPO-00162",
-              "supplier": "",
-              "code": "",
+              "supplier": "GEORGE MENABONI SRL",
+              "code": "SSS0008",
               "status": "PO Published",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
           "dnDetails": [],
@@ -18999,11 +19077,11 @@
           "poDetails": [
             {
               "number": "2026-PEP-HQPO-00161",
-              "supplier": "",
-              "code": "",
+              "supplier": "YH MARINE TRADE CO.,LTD",
+              "code": "SSS0003",
               "status": "PO Published",
               "date": "2026-10-26",
-              "deadline": ""
+              "deadline": "2026-11-10"
             }
           ],
           "dnDetails": [],
