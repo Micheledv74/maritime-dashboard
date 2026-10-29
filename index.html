@@ -29530,11 +29530,10 @@ window.ifxAskShip = function(vid){
   const all = A.concat(B), prev = all.filter(x => x.m.ifxAskedAt).map(x => mpFD(x.m.ifxAskedAt)), again = prev.length ? " (reminder)" : "";
   const line = (x, i) => (i + 1) + ") DN " + (x.it.dnNumber || "—") + " · PO " + (x.it.poNumber || "—") + " · " + (x.it.description || "") + (x.it.supplier && x.it.supplier !== "—" ? " · " + x.it.supplier : "") + (x.it.dnDate ? " · shipped " + mpFD(x.it.dnDate) : "");
   const subject = "M/V " + nm + " - Open Delivery Notes in Infoship - please close / clarify" + again + " - " + all.length + " DN";
-  let body = "Dear Captain, dear Chief Engineer,\n\n" + (prev.length ? "further to our previous request of " + [...new Set(prev)].join(", ") + ", " : "") +
-    "in Infoship the Delivery Notes listed below are still open.\n";
-  if(A.length) body += "\n" + (B.length ? "A) " : "") + "Delivered on board - kindly close them as \"Received on Board\":\n" + A.map(line).join("\n") + "\n";
-  if(B.length) body += "\n" + (A.length ? "B) " : "") + "Shipped some time ago - if received, kindly close them; if not received, or received incomplete/damaged, please advise:\n" + B.map(line).join("\n") + "\n";
-  body += "\nPlease note any shortage or damage when closing the DN, so that our records are aligned.\n\nThank you and best regards,\nMichele Del Vecchio\nPurchasing";
+  let body = "Dear Captain, dear Chief Engineer,\n\nCould you please help us review and update the Delivery Notes listed below, which are still open in Infoship?\n";
+  if(A.length) body += "\n" + (B.length ? "A) Delivered on board - to be closed as \"Received on Board\":\n" : "") + A.map(line).join("\n") + "\n";
+  if(B.length) body += "\n" + (A.length ? "B) Shipped some time ago - please close if received, or advise if not received / incomplete / damaged:\n" : "") + B.map(line).join("\n") + "\n";
+  body += "\nPlease let us know as soon as it is done.\n\nThank you for your support and cooperation.\n\nThank you and best regards,";
   const ok = e => e && !/example\.com|_{2,}/.test(e) ? e : "", to = [ok(cfg.masterEmail), ok(cfg.chiefEngEmail)].filter(Boolean).join(";");
   openComposeMail(buildComposeHref(subject, body, to));
   const ts = new Date().toISOString(); all.forEach(x => mpSet(x.it.id, { ifxAskedAt: ts }));
