@@ -15711,14 +15711,19 @@ function renderItemsTable(v) {
   }
 
   // v0.6 — Filtro completati/cancellati (di default nascosti)
-  const showCompleted = !!state._showCompletedItems;
-  const showCancelled = !!state._showCancelledItems;
+  // v2.0e — con una ricerca attiva compaiono anche i flussi chiusi e annullati
+  const showCompleted = !!state._showCompletedItems || !!q;
+  const showCancelled = !!state._showCancelledItems || !!q;
   let hiddenCompleted = 0, hiddenCancelled = 0;
   items = items.filter(it => {
-    // Cancellato: REQ Cancelled o PO Cancelled
-    const isCancelled = it.reqStatus === "REQ Cancelled" || it.poStatus === "PO Cancelled";
-    // Completato: DN Received on Board (ciclo chiuso)
-    const isCompleted = it.dnStatus === "DN Received on Board" && !isCancelled;
+    // Cancellato: REQ Cancelled/Refused o PO Cancelled
+    const isCancelled = it.reqStatus === "REQ Cancelled" || it.reqStatus === "REQ Refused" || it.poStatus === "PO Cancelled";
+    // Completato: DN Received on Board (ciclo chiuso); dal database anche il PO con TUTTE le sue DN ricevute a bordo,
+    // e la richiesta già "Ordered" senza ordine nel flusso (l'ordine sta in un'altra pratica)
+    const dnAll = Array.isArray(it.dnDetails) && it.poNumber ? it.dnDetails.filter(d => !/cancel/i.test(d.status || "")) : [];
+    const isCompleted = !isCancelled && (it.dnStatus === "DN Received on Board" ||
+      (it._db && it.dnNumber && dnAll.length && dnAll.every(d => d.status === "DN Received on Board")) ||
+      (it._db && !it.poNumber && it.reqStatus === "REQ Ordered"));
     if (isCancelled && !showCancelled) { hiddenCancelled++; return false; }
     if (isCompleted && !showCompleted) { hiddenCompleted++; return false; }
     return true;
@@ -15734,6 +15739,11 @@ function renderItemsTable(v) {
       if (typeof av === "number" && typeof bv === "number") return state._sortDir * (av - bv);
       return state._sortDir * String(av).localeCompare(String(bv));
     });
+  } else {
+    // v2.0e — ordine predefinito: il flusso più recente in alto (ultimo documento del flusso)
+    const last = it => { const ds = [it.reqDate, it.poDate, it.dnDate].concat((it.rfqDetails || []).map(r => r.date)).map(x => String(x || "").slice(0, 10)).filter(x => /^\d{4}-/.test(x)); return ds.sort().pop() || ""; };
+    const num = it => String(it.dnNumber || it.poNumber || it.reqNumber || "");
+    items = items.map(it => [last(it), num(it), it]).sort((a, b) => b[0].localeCompare(a[0]) || b[1].localeCompare(a[1])).map(x => x[2]);
   }
   // Filtro extra per KPI/age band
   if (state._kpiFilter) {
