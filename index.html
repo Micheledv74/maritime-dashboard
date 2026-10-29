@@ -8794,6 +8794,9 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
       <button class="icon-btn desktop-only" id="btn-delivery-archive" title="Storico consegne (flotta)" aria-label="Storico consegne">
         <svg class="icon icon-md"><use href="#i-truck"/></svg>
       </button>
+      <button class="icon-btn desktop-only" id="btn-report-ihm" title="Report IHM (Excel) — ordini del mese per nave" aria-label="Report IHM">
+        <svg class="icon icon-md"><use href="#i-download"/></svg>
+      </button>
       <button class="icon-btn desktop-only" id="btn-settings" title="Impostazioni" aria-label="Impostazioni">
         <svg class="icon icon-md"><use href="#i-settings"/></svg>
       </button>
@@ -31633,9 +31636,10 @@ function dbBuildProc(docs, oldProc, idMap){
   const days = d => { if(!d) return null; const t = new Date(d + "T00:00:00").getTime(); return isNaN(t) ? null : Math.floor((Date.now() - t) / 864e5); };
   const cmp = (a, b) => String(a.doc_date || "").localeCompare(String(b.doc_date || "")) || String(a.number).localeCompare(String(b.number));
   // indice del vecchio feed: stessi id per le stesse pratiche (note, posizioni, piani di consegna restano agganciati)
-  const oldPo = {}, oldReq = {}, oldIds = {};
+  const oldPo = {}, oldReq = {}, oldRfq = {}, oldIds = {};
   ((oldProc && oldProc.vessels) || []).forEach(v => (v.items || []).forEach(it => { oldIds[it.id] = it;
-    if(it.poNumber) oldPo[it.poNumber] = it; if(it.reqNumber && !oldReq[it.reqNumber]) oldReq[it.reqNumber] = it; }));
+    if(it.poNumber) oldPo[it.poNumber] = it; if(it.reqNumber && !oldReq[it.reqNumber]) oldReq[it.reqNumber] = it;
+    (it.rfqNumbers || []).forEach(n => { if(n && !oldRfq[n]) oldRfq[n] = it; }); }));
   const groups = {};
   docs.forEach(d => { if(!d.number || EXCL[d.ship]) return; const sh = SHIP[d.ship] || [String(d.ship || "").toLowerCase(), d.ship];
     const k = sh[0] + "|" + norm(d.description); (groups[k] = groups[k] || { sh, desc: d.description, docs: [] }).docs.push(d); });
@@ -31679,7 +31683,8 @@ function dbBuildProc(docs, oldProc, idMap){
         // id: memoria dell'abbinamento → vecchio feed (stesso PO, poi stessa REQ) → nave::descrizione (+ ::REQ / ::PO se serve distinguere)
         const keys = [p && "PO:" + p.number, r && "REQ:" + r.number + (split ? ":" + (p ? p.number : "") : "")].filter(Boolean);
         let id = keys.map(k => idMap[k]).find(x => x && !used[x]);
-        const old = (p && oldPo[p.number]) || (!split && r && oldReq[r.number]) || null;
+        const free = o => o && !used[o.id] ? o : null;
+        const old = free(p && oldPo[p.number]) || (!split && (free(pos.map(x => oldPo[x.number]).find(Boolean)) || free(r && oldReq[r.number]) || free(rfqs.map(x => oldRfq[x.number]).find(Boolean)))) || null;
         if(!id && old && !used[old.id]) id = old.id;
         if(!id){ id = base; if(flows.length > 1 && fi < flows.length - 1 && r) id = base + "::" + r.number; if(split && split.i > 1 && p) id += "::" + p.number; }
         while(used[id]) id += "::" + ((p && p.number) || (r && r.number) || "x");
@@ -31826,7 +31831,7 @@ async function dbImportFiles(files){
     if(!keys.includes("Number") || !keys.includes("Status")){ tot.files.push(f.name + " (non riconosciuto)"); continue; }
     const docs = rows.map(r => dbRowToDoc(r, keys)).filter(Boolean), exp = new Date(f.lastModified || Date.now()).toISOString();
     const kind = keys.includes("Total") ? (keys.some(k => /quotation\s*limit/i.test(k)) ? "rfq" : "po") : "documenti";
-    showToast("Database: carico " + f.name + " · " + docs.length + " documenti…");
+    showToast("Database: carico " + f.name + " · " + docs.length + " documenti…"); window._db.last = "… carico " + f.name + " (" + docs.length + " documenti)"; dbRenderRow();
     const res = { inserted: 0, updated: 0, older: 0 };
     for(let i = 0; i < docs.length; i += 400){
       const { data, error } = await c.rpc("import_infoship", { rows: docs.slice(i, i + 400), exported_at: exp });
@@ -31844,12 +31849,12 @@ if(window.importInfoshipRfqExcel && !window._dbWrapped){
   window.importInfoshipRfqExcel = async function(fileOrList){
     const files = (fileOrList && typeof fileOrList.length === "number" && !(fileOrList instanceof Blob)) ? Array.from(fileOrList) : [fileOrList].filter(Boolean);
     let res = null;
-    try { res = await dbImportFiles(files); } catch(e) { console.error("[db] import", e); showToast("Database: import non riuscito · " + (e.message || e)); }
+    try { res = await dbImportFiles(files); } catch(e) { console.error("[db] import", e); window._db.last = "✕ Import non riuscito: " + (e.message || e); showToast("Database: import non riuscito · " + (e.message || e)); dbRenderRow(); }
     const priced = [];
     try { await loadSheetJS(); for(const f of files){ const wb = XLSX.read(await f.arrayBuffer(), { type: "array", sheetRows: 2 }); const r = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })[0] || []; if(r.includes("Total")) priced.push(f); } } catch(e) {}
     if(priced.length) await orig(priced);
-    if(res){ showToast("Database: " + res.inserted + " documenti nuovi, " + res.updated + " aggiornati" + (res.older ? ", " + res.older + " da export più vecchi (stato non toccato)" : "") + (dbSource() === "db" ? "" : " · attiva «Pratiche dal database» in Impostazioni per usarli"));
-      window.dbReloadProc(true); }
+    if(res){ window._db.last = "✓ " + new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) + " · " + res.files.join(", ") + ": " + res.inserted + " nuovi, " + res.updated + " aggiornati" + (res.older ? ", " + res.older + " più vecchi" : ""); showToast("Database: " + res.inserted + " documenti nuovi, " + res.updated + " aggiornati" + (res.older ? ", " + res.older + " da export più vecchi (stato non toccato)" : "") + (dbSource() === "db" ? "" : " · attiva «Pratiche dal database» in Impostazioni per usarli"));
+      if(dbSource() === "db") window.dbReloadProc(true); else dbFetchDocs().then(dbRenderRow).catch(() => {}); }
     else if(!priced.length && !window._db.user) showToast("Collegati al database (Impostazioni → Database centrale) per importare la lista documenti");
   };
 }
@@ -31861,22 +31866,28 @@ window.dbSetSource = function(s){ localStorage.setItem("mpd.procSource", s); dbR
 window.dbCompare = async function(){
   try {
     const gh = window._db.ghProc; if(!gh){ showToast("Feed precedente non ancora caricato"); return; }
-    const docs = window._db.docs || await dbFetchDocs(), mine = dbBuildProc(docs, gh, dbIdMap()).proc;
-    const flat = p => (p.vessels || []).flatMap(v => (v.items || []).map(i => Object.assign({ _v: v.vesselId }, i)));
-    const A = flat(gh), B = flat(mine), bPo = {}, aPo = {}; B.forEach(i => { if(i.poNumber) bPo[i.poNumber] = i; }); A.forEach(i => { if(i.poNumber) aPo[i.poNumber] = i; });
-    const known = new Set(docs.map(d => d.number));
-    const onlyOld = A.filter(i => i.poNumber && !bPo[i.poNumber]), onlyNew = B.filter(i => i.poNumber && !aPo[i.poNumber]);
+    const docs = await dbFetchDocs();
+    if(!docs.length){ showToast("Il database è ancora vuoto: carica prima gli Excel Infoship (⇧ Carica Excel Infoship)"); dbRenderRow(); return; }
+    const mine = dbBuildProc(docs, gh, dbIdMap()).proc;
+    const flat = p => (p.vessels || []).flatMap(v => (v.items || []).filter(i => !i._manual).map(i => Object.assign({ _v: v.vesselId }, i)));
+    const A = flat(gh), B = flat(mine), bPo = {}, aPo = {}, inDet = {}; B.forEach(i => { if(i.poNumber) bPo[i.poNumber] = i; (i.poDetails || []).forEach(p => inDet[p.number] = i); }); A.forEach(i => { if(i.poNumber) aPo[i.poNumber] = i; });
+    const known = new Set(docs.map(d => d.number)), dSt = {}; docs.forEach(d => dSt[d.number] = d.status || "");
+    const old0 = A.filter(i => i.poNumber && !bPo[i.poNumber]), canc = old0.filter(i => inDet[i.poNumber] && /cancel/i.test(dSt[i.poNumber])), onlyOld = old0.filter(i => !canc.includes(i)), onlyNew = B.filter(i => i.poNumber && !aPo[i.poNumber]);
     const diff = A.filter(i => i.poNumber && bPo[i.poNumber]).map(i => ({ a: i, b: bPo[i.poNumber] })).filter(x => (x.a.poStatus || "") !== (x.b.poStatus || "") || (x.a.dnStatus || "") !== (x.b.dnStatus || "") || (x.a.dnNumber || "") !== (x.b.dnNumber || ""));
-    const sameId = A.filter(i => B.some(b => b.id === i.id)).length;
+    const bIds = new Set(B.map(i => i.id)), lost = A.filter(i => !bIds.has(i.id)), sameId = A.length - lost.length;
     const esc = escapeHTML, row = (t, s) => '<div style="padding:6px 0;border-top:1px solid rgba(10,27,46,.08);font-size:12.5px;"><span style="font-family:ui-monospace,monospace;font-weight:700">' + esc(t) + '</span> ' + esc(s) + '</div>';
-    const per = (VESSELS || []).map(c => { const a = A.filter(i => i._v === c.vesselId).length, b = B.filter(i => i._v === c.vesselId).length; return (a || b) ? '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span>' + esc(c.displayName) + '</span><span>' + a + ' → <b>' + b + '</b></span></div>' : ""; }).join("");
+    const per = (VESSELS || []).filter(c => !c.manual).map(c => { const a = A.filter(i => i._v === c.vesselId).length, b = B.filter(i => i._v === c.vesselId).length; return (a || b) ? '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span>' + esc(c.displayName) + '</span><span>' + a + ' → <b>' + b + '</b></span></div>' : ""; }).join("") +
+      '<div style="font-size:12px;color:#6a7d90;margin-top:4px">Gli ordini manuali (ATLAS, VEGA UNO) non passano da Infoship: restano nel registro manuale e si aggiungono come prima.</div>';
+    const sec = (t, n, c, body) => '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:' + c + '">' + t + ' · ' + n + '</div>' + (n ? body : '<div style="font-size:12.5px;color:#14794e;padding:6px 0">Nessuno ✓</div>');
     let h = document.getElementById("db-cmp"); if(!h){ h = document.createElement("div"); h.id = "db-cmp"; document.body.appendChild(h); }
     h.innerHTML = '<div style="position:fixed;inset:0;z-index:9998;background:rgba(10,27,46,.45);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.parentNode.remove()"><div style="background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:86vh;overflow:auto;padding:20px 22px;color:#0a1b2e">' +
       '<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;font-size:18px;font-weight:800">Confronto: database ↔ feed Notion/GitHub</div><button class="btn btn-sm" onclick="document.getElementById(\'db-cmp\').remove()">Chiudi</button></div>' +
       '<div style="font-size:13px;color:#44576b;margin:8px 0 14px;text-wrap:pretty">Documenti nel database: <b>' + docs.length + '</b>. Pratiche vecchio → nuovo (il nuovo divide per richiesta le descrizioni usate più volte). Pratiche che tengono lo stesso id (note, posizioni e piani restano agganciati): <b>' + sameId + ' su ' + A.length + '</b>.</div>' + per +
-      '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#c0261c">PO SOLO NEL VECCHIO · ' + onlyOld.length + '</div>' + onlyOld.slice(0, 60).map(i => row(i.poNumber, (known.has(i.poNumber) ? "(nel database con un'altra descrizione) " : "(non nel database: manca nell'Excel) ") + (i.description || ""))).join("") +
-      '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#1553d8">PO SOLO NEL NUOVO · ' + onlyNew.length + '</div>' + onlyNew.slice(0, 60).map(i => row(i.poNumber, i.description || "")).join("") +
-      '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#b06a00">STATI DIVERSI · ' + diff.length + '</div>' + diff.slice(0, 80).map(x => row(x.a.poNumber, "vecchio: " + [x.a.poStatus, x.a.dnNumber, x.a.dnStatus].filter(Boolean).join(" · ") + "  →  nuovo: " + [x.b.poStatus, x.b.dnNumber, x.b.dnStatus].filter(Boolean).join(" · "))).join("") +
+      sec("PO SOLO NEL VECCHIO", onlyOld.length, "#c0261c", onlyOld.slice(0, 60).map(i => row(i.poNumber, (known.has(i.poNumber) ? "(nel database con un'altra descrizione) " : "(non nel database: manca nell'Excel) ") + (i.description || ""))).join("")) +
+      sec("PO ANNULLATI · ORA LA PRATICA MOSTRA L'ORDINE VALIDO", canc.length, "#44576b", canc.slice(0, 60).map(i => row(i.poNumber, "annullato → " + (inDet[i.poNumber].poNumber || "—") + " " + (inDet[i.poNumber].poStatus || "") + " · " + (i.description || ""))).join("")) +
+      sec("PRATICHE CHE CAMBIANO CODICE (note/posizioni da ricontrollare)", lost.length, "#b06a00", lost.slice(0, 40).map(i => row(i.reqNumber || i.poNumber || "—", i.description || "")).join("")) +
+      sec("PO SOLO NEL NUOVO", onlyNew.length, "#1553d8", onlyNew.slice(0, 60).map(i => row(i.poNumber, i.description || "")).join("")) +
+      sec("STATI DIVERSI", diff.length, "#b06a00", diff.slice(0, 80).map(x => row(x.a.poNumber, "vecchio: " + [x.a.poStatus, x.a.dnNumber, x.a.dnStatus].filter(Boolean).join(" · ") + "  →  nuovo: " + [x.b.poStatus, x.b.dnNumber, x.b.dnStatus].filter(Boolean).join(" · "))).join("")) +
       '</div></div>';
   } catch(e) { showToast("Confronto non riuscito: " + (e.message || e)); }
 };
@@ -31891,6 +31902,7 @@ function dbRenderRow(){
     : '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px"><span style="flex:1;min-width:180px">● Collegato come <b>' + esc(u.email || "") + '</b>' + (n != null ? ' · ' + n + ' documenti' : '') + '</span><button class="btn btn-sm" onclick="dbLogout()">Esci</button></div>' +
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px"><span style="font-size:12.5px;color:#44576b">Pratiche:</span>' + seg("db", "dal database (nuovo)") + seg("github", "da Notion/GitHub (vecchio)") + '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-sm" onclick="dbPickFiles()">⇧ Carica Excel Infoship</button><button class="btn btn-sm" onclick="dbCompare()">Confronta con il vecchio</button>' + (src === "db" ? '<button class="btn btn-sm" onclick="dbReloadProc()">↻ Rileggi</button>' : '') + '</div>' +
+      (window._db.last ? '<div style="font-size:12.5px;margin-top:8px;font-weight:600;color:' + (/^✕/.test(window._db.last) ? '#c0261c' : '#14794e') + '">' + esc(window._db.last) + '</div>' : '') +
       '<div style="font-size:11.5px;color:#6a7d90;margin-top:8px;text-wrap:pretty">Puoi anche trascinare gli Excel ovunque nella dashboard: lista documenti, RFQ e PO, anche insieme e di periodi sovrapposti. Un export più vecchio non riporta indietro gli stati.</div>';
 }
 (function(){
