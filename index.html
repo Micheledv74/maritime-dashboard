@@ -31653,10 +31653,24 @@ function dbBuildProc(docs, oldProc, idMap){
     // più richieste con la stessa descrizione → una pratica per richiesta: ogni documento va alla REQ più recente non successiva
     const flows = (reqs.length ? reqs : [null]).map(r => ({ req: r, rfq: [], po: [], dn: [] }));
     const byDate = d => { if(flows.length === 1) return flows[0]; let f = flows[0]; flows.forEach(x => { if(x.req && String(x.req.doc_date || "") <= String(d.doc_date || "")) f = x; }); return f; };
-    ds.forEach(d => { if(d.kind === "RFQ") byDate(d).rfq.push(d); else if(d.kind === "PO") byDate(d).po.push(d); });
-    ds.forEach(d => { if(d.kind !== "DN") return;
-      let f = null; flows.forEach(x => x.po.forEach(p => { if(p.code && p.code === d.code && String(p.doc_date || "") <= String(d.doc_date || "")) f = x; }));
-      (f || byDate(d)).dn.push(d); });
+    // RFQ → richiesta per data. PO → RFQ con lo STESSO IMPORTO e fornitore (l'ordine nasce dall'offerta), poi stesso fornitore, poi data.
+    // DN → PO dello stesso fornitore in ordine di numero (il primo PO senza DN prende la prima DN).
+    const le = (a, b) => String(a.doc_date || "") <= String(b.doc_date || ""), flowOf = new Map(), rfqUsed = new Set(), dnPo = {};
+    ds.forEach(d => { if(d.kind === "RFQ"){ const f = byDate(d); f.rfq.push(d); flowOf.set(d, f); } });
+    const rfqs0 = ds.filter(d => d.kind === "RFQ");
+    ds.filter(d => d.kind === "PO").sort((a, b) => a.number.localeCompare(b.number)).forEach(p => {
+      const c = rfqs0.filter(r => r.code && r.code === p.code && le(r, p));
+      const tot = p.total != null && Number(p.total) > 0 ? c.filter(r => r.total != null && Math.abs(Number(r.total) - Number(p.total)) < 0.05) : [];
+      const pick = l => l.filter(r => !rfqUsed.has(r)).pop() || l[l.length - 1];
+      const r = tot.length ? pick(tot) : (c.length ? pick(c) : null);
+      if(r) rfqUsed.add(r);
+      (r && flows.length > 1 ? flowOf.get(r) : byDate(p)).po.push(p); });
+    const poAll = ds.filter(d => d.kind === "PO").sort((a, b) => a.number.localeCompare(b.number)), hasDn = new Set();
+    ds.filter(d => d.kind === "DN").sort((a, b) => a.number.localeCompare(b.number)).forEach(d => {
+      const c = poAll.filter(p => p.code && p.code === d.code && le(p, d)), act = c.filter(p => !/cancel/i.test(p.status || ""));
+      const p = act.find(x => !hasDn.has(x)) || act[act.length - 1] || c[c.length - 1] || null;
+      if(p){ hasDn.add(p); dnPo[d.number] = p.number; }
+      (p ? flows.find(x => x.po.includes(p)) : byDate(d)).dn.push(d); });
     const base = norm(g.sh[1]) + "::" + norm(g.desc), v = V(g.sh);
     flows.forEach((f, fi) => {
       const r = f.req, rfqs = f.rfq, pos = f.po.slice().sort((a, b) => a.number.localeCompare(b.number)), dns = f.dn.slice().sort((a, b) => a.number.localeCompare(b.number));
@@ -31672,7 +31686,7 @@ function dbBuildProc(docs, oldProc, idMap){
       common.rfqPct = common.rfqIssued ? Math.round(common.rfqClosed / common.rfqIssued * 100) : 0;
       const active = pos.filter(p => !/cancel/i.test(p.status || ""));
       const same = (x, p) => (p.code && x.code && x.code === p.code) || (p.holder && norm(x.holder) === norm(p.holder));
-      const dnFor = (p, only) => { const m = dns.filter(d => same(d, p)); const l = m.length ? m : (only ? dns : []); return l[l.length - 1] || null; };
+      const dnFor = (p, only) => { const a = dns.filter(d => dnPo[d.number] === p.number); if(a.length) return a[a.length - 1]; const m = dns.filter(d => !dnPo[d.number] && same(d, p)); const l = m.length ? m : (only ? dns : []); return l[l.length - 1] || null; };
       const one = (p, dn, split) => {
         const it = Object.assign({}, common, {
           supplier: (p && p.holder) || (latestRfq && latestRfq.holder) || (dn && dn.holder) || "—",
