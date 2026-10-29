@@ -9937,7 +9937,8 @@ async function loadData() {
       fetchJSON(DATA_URLS.agencyProfiles).catch(() => null),  // v0.37: rubrica agenzie Notion opzionale
       fetchJSON(DATA_URLS.recentEmails).catch(() => null)  // v0.48: feed esteso posta recente opzionale
     ]);
-    state.data = dedupeProcItems(proc);
+    const procUse = (typeof window.dbProc === "function") ? await window.dbProc(proc) : proc;  // v2.0 database centrale
+    state.data = dedupeProcItems(procUse);
     state.tracking = trk;
     state.outlookTasks = outlookData;
     state.outlookCalendar = calData;  // {events:[{title,start,end,location,vesselId?}]} o null
@@ -9950,7 +9951,7 @@ async function loadData() {
     // v0.37 — Rubriche Notion: Notion vince sui conflitti (merge nei profili locali)
     mergeNotionProfiles("supplier", supProfiles);
     mergeNotionProfiles("agency", agProfiles);
-    writeCache({ procurement: proc, tracking: trk });
+    writeCache({ procurement: procUse, tracking: trk });
     state.loading = false;
     mergeAndPrepare();
     // v0.14 — Sincronizza i task Outlook con le to-do della dashboard
@@ -31618,6 +31619,287 @@ function vlItemHTML(it, vessel){ try{
     '<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="vl-bt" onclick="window.closeItemDetailPopover&&closeItemDetailPopover();vlOpen(\'' + P + '\')">Vedi chi c\'è ›</button><button class="vl-bt p" onclick="window.closeItemDetailPopover&&closeItemDetailPopover();vlOpen(\'' + P + '\',{rfq:1,item:\'' + id + '\'})">⚡ RFQ lampo</button></div></div></div>';
 }catch(e){ return ""; } }
 setTimeout(() => { if(!window._vlD) vlFetch(); }, 4000);
+
+</script>
+<script>
+// v2.0 — Pratiche (flussi REQ→RFQ→PO→DN) costruite dai documenti Infoship del database centrale.
+// Stesso formato di data-procurement.json (n8n "Procurement JSON v2"), così il resto della dashboard non cambia.
+function dbBuildProc(docs, oldProc, idMap){
+  idMap = idMap || {};
+  const SHIP = { PEP: ["peppino", "PEPPINO"], MDT: ["medtoscana", "MED TOSCANA"], MLG: ["medliguria", "MED LIGURIA"], NRB: ["norrbotten", "NORRBOTTEN"], ATL: ["norrbotten", "NORRBOTTEN"] };
+  const EXCL = { HQS: 1, HSQ: 1 }, ORDER = ["medtoscana", "medliguria", "norrbotten", "peppino"];
+  const CLOSED = /^RFQ (Offer Acknowledged|Closed|Quoted|Awarded)$/;
+  const norm = s => String(s || "").toLowerCase().replace(/[\(\)\.,'`\-]/g, "").replace(/\s+/g, " ").trim();
+  const days = d => { if(!d) return null; const t = new Date(d + "T00:00:00").getTime(); return isNaN(t) ? null : Math.floor((Date.now() - t) / 864e5); };
+  const cmp = (a, b) => String(a.doc_date || "").localeCompare(String(b.doc_date || "")) || String(a.number).localeCompare(String(b.number));
+  // indice del vecchio feed: stessi id per le stesse pratiche (note, posizioni, piani di consegna restano agganciati)
+  const oldPo = {}, oldReq = {}, oldIds = {};
+  ((oldProc && oldProc.vessels) || []).forEach(v => (v.items || []).forEach(it => { oldIds[it.id] = it;
+    if(it.poNumber) oldPo[it.poNumber] = it; if(it.reqNumber && !oldReq[it.reqNumber]) oldReq[it.reqNumber] = it; }));
+  const groups = {};
+  docs.forEach(d => { if(!d.number || EXCL[d.ship]) return; const sh = SHIP[d.ship] || [String(d.ship || "").toLowerCase(), d.ship];
+    const k = sh[0] + "|" + norm(d.description); (groups[k] = groups[k] || { sh, desc: d.description, docs: [] }).docs.push(d); });
+  const vessels = {}, used = {};
+  const V = sh => vessels[sh[0]] || (vessels[sh[0]] = { vesselId: sh[0], vesselName: sh[1], totalReq: 0, rfqOpen: 0, rfqOverdue7: 0, rfqOverdue15: 0, readyForPO: 0, orders: 0, poReadyForDN: 0, dn: 0, dnPending: 0,
+    delivery: "ok", deliveryColor: "green", pctReqToPO: 0, pctPOToDN: 0, lat: null, lng: null, sog: null, cog: null, heading: null, destination: null, eta: null, navStatus: null, aisLastSeen: null, items: [] });
+  const det = d => ({ number: d.number, supplier: d.holder || "", code: d.code || "", status: d.status || "", date: d.doc_date || "", deadline: d.quote_limit || d.delivery_date || "",
+    total: d.total == null ? null : Number(d.total), currency: d.currency || "" });
+  Object.values(groups).forEach(g => {
+    const ds = g.docs.slice().sort(cmp), reqs = ds.filter(d => d.kind === "REQ");
+    // più richieste con la stessa descrizione → una pratica per richiesta: ogni documento va alla REQ più recente non successiva
+    const flows = (reqs.length ? reqs : [null]).map(r => ({ req: r, rfq: [], po: [], dn: [] }));
+    const byDate = d => { if(flows.length === 1) return flows[0]; let f = flows[0]; flows.forEach(x => { if(x.req && String(x.req.doc_date || "") <= String(d.doc_date || "")) f = x; }); return f; };
+    ds.forEach(d => { if(d.kind === "RFQ") byDate(d).rfq.push(d); else if(d.kind === "PO") byDate(d).po.push(d); });
+    ds.forEach(d => { if(d.kind !== "DN") return;
+      let f = null; flows.forEach(x => x.po.forEach(p => { if(p.code && p.code === d.code && String(p.doc_date || "") <= String(d.doc_date || "")) f = x; }));
+      (f || byDate(d)).dn.push(d); });
+    const base = norm(g.sh[1]) + "::" + norm(g.desc), v = V(g.sh);
+    flows.forEach((f, fi) => {
+      const r = f.req, rfqs = f.rfq, pos = f.po.slice().sort((a, b) => a.number.localeCompare(b.number)), dns = f.dn.slice().sort((a, b) => a.number.localeCompare(b.number));
+      const st = rfqs.map(x => x.status).filter(Boolean), ust = [...new Set(st)];
+      const rfqStatus = st.find(s => /Acknowledged/i.test(s)) || st.find(s => /Sent to Vendor/i.test(s)) || st[st.length - 1] || "";
+      const rfqDate = rfqs.map(x => x.doc_date).filter(Boolean).sort()[0] || "";
+      const latestRfq = rfqs[rfqs.length - 1];
+      const common = { description: g.desc || "—", department: (ds.find(x => x.department) || {}).department || "",
+        reqNumber: r ? r.number : "", reqStatus: r ? r.status || "" : "", reqDate: r ? r.doc_date || "" : "",
+        rfqNumbers: rfqs.map(x => x.number), rfqIssued: rfqs.length, rfqClosed: rfqs.filter(x => CLOSED.test(x.status || "")).length,
+        rfqStatus, rfqStatusSummary: ust, rfqDays: days(rfqDate), rfqDetails: rfqs.map(det),
+        poDetails: pos.map(det), dnDetails: dns.map(det), _db: true };
+      common.rfqPct = common.rfqIssued ? Math.round(common.rfqClosed / common.rfqIssued * 100) : 0;
+      const active = pos.filter(p => !/cancel/i.test(p.status || ""));
+      const same = (x, p) => (p.code && x.code && x.code === p.code) || (p.holder && norm(x.holder) === norm(p.holder));
+      const dnFor = (p, only) => { const m = dns.filter(d => same(d, p)); const l = m.length ? m : (only ? dns : []); return l[l.length - 1] || null; };
+      const one = (p, dn, split) => {
+        const it = Object.assign({}, common, {
+          supplier: (p && p.holder) || (latestRfq && latestRfq.holder) || (dn && dn.holder) || "—",
+          poNumber: p ? p.number : "", poStatus: p ? p.status || "" : "", poDate: p ? p.doc_date || "" : "", poDeliveryDate: p ? p.delivery_date || "" : "",
+          dnNumber: dn ? dn.number : "", dnStatus: dn ? dn.status || "" : "", dnDate: dn ? dn.doc_date || "" : "", dnDeliveryDate: dn ? dn.delivery_date || "" : "",
+          dnInfoshipId: dn ? dn.infoship_id || "" : "", poSplit: split || null, poTotal: p && p.total != null ? Number(p.total) : null, poCurrency: p ? p.currency || "" : "" });
+        it.deliveryDate = it.poDeliveryDate || it.dnDeliveryDate || "—";
+        // id: memoria dell'abbinamento → vecchio feed (stesso PO, poi stessa REQ) → nave::descrizione (+ ::REQ / ::PO se serve distinguere)
+        const keys = [p && "PO:" + p.number, r && "REQ:" + r.number + (split ? ":" + (p ? p.number : "") : "")].filter(Boolean);
+        let id = keys.map(k => idMap[k]).find(x => x && !used[x]);
+        const old = (p && oldPo[p.number]) || (!split && r && oldReq[r.number]) || null;
+        if(!id && old && !used[old.id]) id = old.id;
+        if(!id){ id = base; if(flows.length > 1 && fi < flows.length - 1 && r) id = base + "::" + r.number; if(split && split.i > 1 && p) id += "::" + p.number; }
+        while(used[id]) id += "::" + ((p && p.number) || (r && r.number) || "x");
+        used[id] = 1; it.id = id; keys.forEach(k => idMap[k] = id);
+        const o = old || oldIds[id];
+        if(o){ if(o.origin) it.origin = o.origin; if(o.transportMode) it.transportMode = o.transportMode; }
+        v.items.push(it);
+      };
+      if(active.length <= 1){ const p = active[0] || pos[pos.length - 1] || null; one(p, p ? dnFor(p, true) : dns[dns.length - 1] || null, null); }
+      else active.forEach((p, i) => one(p, dnFor(p, false), { i: i + 1, of: active.length, po: p.number, base }));
+    });
+  });
+  // KPI come nel workflow n8n
+  Object.values(vessels).forEach(v => {
+    const a = v.items.filter(i => i.reqStatus !== "REQ Cancelled" && i.poStatus !== "PO Cancelled");
+    v.totalReq = a.length;
+    v.rfqOpen = a.filter(i => (i.rfqStatus === "RFQ Sent to Vendor" || i.reqStatus === "REQ Endorsed") && !i.poStatus).length;
+    v.rfqOverdue7 = a.filter(i => i.rfqStatus === "RFQ Sent to Vendor" && !i.poStatus && i.rfqDays > 7).length;
+    v.rfqOverdue15 = a.filter(i => i.rfqStatus === "RFQ Sent to Vendor" && !i.poStatus && i.rfqDays > 15).length;
+    v.readyForPO = a.filter(i => i.rfqStatus === "RFQ Offer Acknowledged" && !i.poStatus && i.rfqDays > 7).length;
+    v.orders = a.filter(i => i.poStatus && !i.dnStatus).length;
+    v.dnPending = a.filter(i => i.dnStatus === "DN Shipped to Vessel" || i.dnStatus === "DN Ready for Shipment").length;
+    const wPO = a.filter(i => i.poStatus).length, wDN = a.filter(i => i.dnStatus).length;
+    v.pctReqToPO = v.totalReq ? Math.round(wPO / v.totalReq * 100) : 0; v.pctPOToDN = wPO ? Math.round(wDN / wPO * 100) : 0;
+    const dates = a.map(i => new Date(i.deliveryDate)).filter(d => !isNaN(d.getTime()));
+    if(dates.length){ const t = new Date(); t.setHours(0,0,0,0); const m = dates.reduce((x, y) => x < y ? x : y), dd = (m - t) / 864e5;
+      if(dd < 0){ v.delivery = "delayed"; v.deliveryColor = "red"; } else if(dd < 1){ v.delivery = "today"; v.deliveryColor = "green"; }
+      else if(dd < 2){ v.delivery = "tomorrow"; v.deliveryColor = "yellow"; } else if(dd < 3){ v.delivery = "48h"; v.deliveryColor = "yellow"; } }
+    const ov = ((oldProc && oldProc.vessels) || []).find(x => x.vesselId === v.vesselId);
+    if(ov) ["lat","lng","sog","cog","heading","destination","eta","navStatus","aisLastSeen"].forEach(k => { if(ov[k] != null) v[k] = ov[k]; });
+  });
+  V(SHIP.NRB);
+  const list = ORDER.map(id => vessels[id]).filter(Boolean).concat(Object.values(vessels).filter(v => !ORDER.includes(v.vesselId)));
+  return { proc: { lastSync: new Date().toISOString(), schemaVersion: "2.0-db", source: "db", vessels: list }, idMap };
+}
+// Riga Excel Infoship → documento del database (solo i campi presenti nel file: quelli assenti non cancellano nulla)
+function dbRowToDoc(r, keys){
+  const xd = v => { if(v === "" || v == null) return null; if(typeof v === "number"){ if(v < 1) return null; return new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 864e5).toISOString().slice(0, 10); }
+    if(v instanceof Date) return v.getFullYear() + "-" + String(v.getMonth() + 1).padStart(2, "0") + "-" + String(v.getDate()).padStart(2, "0");
+    const s = String(v).trim(), m = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/); if(m) return m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0");
+    return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null; };
+  const s = v => { const t = String(v == null ? "" : v).replace(/\s+/g, " ").trim(); return t || null; };
+  const num = s(r.Number); if(!num) return null;
+  const dt = s(r["Document Type"]) || "";
+  const kind = /requisition/i.test(dt) || /-(SHPR|HQPR|HQSR)-/i.test(num) ? "REQ" : /quotation/i.test(dt) || /HQRQ/i.test(num) ? "RFQ"
+    : /delivery note/i.test(dt) || /HQDN/i.test(num) ? "DN" : /purchase order/i.test(dt) || /HQPO/i.test(num) ? "PO" : "OTHER";
+  const dk = keys.find(k => /^delivery/i.test(k)) || (keys.includes("LD") ? "LD" : null), qk = keys.find(k => /quotation\s*limit/i.test(k));
+  const o = { number: num, kind, ship: s(r.Ship), description: s(r.Description), status: s(r.Status), department: s(r.Department), doc_type: dt || null,
+    edit_side: s(r["Edit Side"]), priority: s(r.Priority), doc_date: xd(r.Dates), delivery_date: dk ? xd(r[dk]) : null, quote_limit: qk ? xd(r[qk]) : null,
+    code: s(r.Code), holder: s(r.Holder), infoship_id: s(r.ID) };
+  if(keys.includes("Total") && r.Total !== "" && r.Total != null){ const t = parseFloat(String(r.Total).replace(",", ".")); if(!isNaN(t)){ o.total = +t.toFixed(2); o.currency = /€|EUR/i.test(String(r.VASIMBOL || "")) ? "EUR" : "USD"; } }
+  Object.keys(o).forEach(k => { if(o[k] == null) delete o[k]; });
+  return o;
+}
+
+// ============================================================================
+// v2.0 — DATABASE CENTRALE (Supabase): un'unica fonte per PC, Mac, telefono.
+// Fase 1: Excel Infoship → tabella infoship_docs (1 riga per documento) → pratiche costruite qui.
+// Fonte pratiche: mpd.procSource "db" | "github" (vecchio percorso Notion→GitHub, in parallelo finché si confronta).
+// ============================================================================
+const SB_URL = "https://cqqltxsdntmmdnvywidx.supabase.co", SB_KEY = "sb_publishable_ajUJWOvJzkYkbEWe8y3VOw_kZGDr2sO";
+window._db = window._db || { client: null, user: null, docs: null, loadedAt: null, busy: false, ch: null };
+function dbSource(){ return localStorage.getItem("mpd.procSource") || "github"; }
+function dbIdMap(){ try { return JSON.parse(localStorage.getItem("mpd.dbIdMap") || "{}") || {}; } catch(e) { return {}; } }
+function dbLoadLib(){
+  if(window.supabase && window.supabase.createClient) return Promise.resolve();
+  return window._dbLib || (window._dbLib = new Promise((ok, ko) => { const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"; s.onload = ok; s.onerror = () => { window._dbLib = null; ko(new Error("libreria Supabase non caricata (rete?)")); }; document.head.appendChild(s); }));
+}
+async function dbClient(){
+  if(window._db.client) return window._db.client;
+  await dbLoadLib();
+  const c = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "mpd.sbAuth" } });
+  window._db.client = c;
+  const { data } = await c.auth.getSession(); window._db.user = data && data.session ? data.session.user : null;
+  c.auth.onAuthStateChange((ev, s) => { window._db.user = s ? s.user : null; dbRenderRow(); if(ev === "SIGNED_IN") dbSubscribe(); });
+  if(window._db.user) dbSubscribe();
+  return c;
+}
+async function dbReady(){ try { await dbClient(); return !!window._db.user; } catch(e) { return false; } }
+window.dbLogin = async function(){
+  const em = (document.getElementById("db-email") || {}).value || "", pw = (document.getElementById("db-pass") || {}).value || "";
+  if(!em || !pw){ showToast("Inserisci email e password del database"); return; }
+  try { const c = await dbClient(); const { error } = await c.auth.signInWithPassword({ email: em.trim(), password: pw });
+    if(error) throw error; showToast("Collegato al database centrale"); dbRenderRow(); dbReloadProc(true);
+  } catch(e) { showToast("Accesso non riuscito: " + (e.message || e)); }
+};
+window.dbLogout = async function(){ try { const c = await dbClient(); await c.auth.signOut(); } catch(e) {} window._db.user = null; window._db.docs = null; dbRenderRow(); };
+// Tutti i documenti (a pagine da 1000)
+async function dbFetchDocs(){
+  const c = await dbClient(), out = [];
+  for(let from = 0; ; from += 1000){
+    const { data, error } = await c.from("infoship_docs").select("number,kind,ship,description,status,department,doc_date,delivery_date,quote_limit,code,holder,total,currency,infoship_id,seen_at").order("number").range(from, from + 999);
+    if(error) throw error; out.push(...data); if(data.length < 1000) break;
+  }
+  window._db.docs = out; window._db.loadedAt = new Date().toISOString();
+  return out;
+}
+// Il prezzo e la valuta delle RFQ/PO dal database riempiono anche lo storico Infoship locale (offerte, LT, scorecard)
+function dbFillLedger(docs){
+  if(typeof isxLoad !== "function") return;
+  const L = isxLoad(), now = new Date().toISOString(); let ch = 0;
+  docs.forEach(d => { if((d.kind !== "RFQ" && d.kind !== "PO") || d.total == null) return; const k = rfqChaseKey(d.number); if(!k) return;
+    const b = d.kind === "RFQ" ? L.rfq : L.po, o = b[k] || {};
+    const r = { n: d.number, s: d.ship || "", ds: d.description || "", st: d.status || "", d: d.doc_date || "", dl: d.delivery_date || "", h: d.holder || "", c: d.code || "", v: +Number(d.total).toFixed(2), cu: d.currency || "USD", u: o.u || now };
+    if(d.kind === "RFQ") r.ql = d.quote_limit || "";
+    if(o.st !== r.st || o.v !== r.v || o.dl !== r.dl || o.h !== r.h || o.ql !== r.ql || o.d !== r.d){ r.u = now; b[k] = r; ch++; } });
+  if(ch){ L.meta = Object.assign({}, L.meta, { importedAt: now, lastDate: docs.map(x => x.doc_date).filter(Boolean).sort().pop() || "" }); isxSave(L); }
+}
+// Chiamata da loadData: se la fonte è il database e sei collegato, le pratiche arrivano da lì (il feed GitHub serve solo per gli id e l'AIS)
+window.dbProc = async function(ghProc){
+  if(ghProc) window._db.ghProc = ghProc;
+  if(dbSource() !== "db" || !(await dbReady())) return ghProc;
+  try {
+    const docs = await dbFetchDocs(); if(!docs.length) return ghProc;
+    const r = dbBuildProc(docs, window._db.ghProc, dbIdMap());
+    try { localStorage.setItem("mpd.dbIdMap", JSON.stringify(r.idMap)); } catch(e) {}
+    dbFillLedger(docs);
+    return r.proc;
+  } catch(e) { console.warn("[db] lettura pratiche", e); showToast("Database non raggiungibile: uso il feed precedente"); return ghProc; }
+};
+// Ricostruisce le pratiche senza ricaricare tutto (dopo un import o un aggiornamento in tempo reale)
+window.dbReloadProc = async function(quiet){
+  if(dbSource() !== "db" || window._db.busy) return; window._db.busy = true;
+  try { const p = await window.dbProc(window._db.ghProc || (readCache() || {}).procurement);
+    if(p && p.source === "db"){ state.data = dedupeProcItems(p); writeCache(Object.assign({}, readCache() || {}, { procurement: p })); mergeAndPrepare(); try { isxApply(); } catch(e) {} render(); if(!quiet) showToast("Pratiche aggiornate dal database"); }
+  } finally { window._db.busy = false; dbRenderRow(); }
+};
+// Tempo reale: un import fatto da un altro dispositivo arriva qui da solo
+function dbSubscribe(){
+  const c = window._db.client; if(!c || window._db.ch) return;
+  let t = null;
+  window._db.ch = c.channel("mpd-docs").on("postgres_changes", { event: "*", schema: "public", table: "infoship_docs" }, () => {
+    clearTimeout(t); t = setTimeout(() => window.dbReloadProc(true), 2500); }).subscribe();
+}
+// Import Excel → database. exported_at = data del file: un export più vecchio non riporta indietro gli stati.
+async function dbImportFiles(files){
+  if(!(await dbReady())) return null;
+  await loadSheetJS();
+  const c = window._db.client, tot = { inserted: 0, updated: 0, older: 0, files: [] };
+  for(const f of files){
+    const wb = XLSX.read(await f.arrayBuffer(), { type: "array" }), rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+    const keys = rows.length ? Object.keys(rows[0]) : [];
+    if(!keys.includes("Number") || !keys.includes("Status")){ tot.files.push(f.name + " (non riconosciuto)"); continue; }
+    const docs = rows.map(r => dbRowToDoc(r, keys)).filter(Boolean), exp = new Date(f.lastModified || Date.now()).toISOString();
+    const kind = keys.includes("Total") ? (keys.some(k => /quotation\s*limit/i.test(k)) ? "rfq" : "po") : "documenti";
+    showToast("Database: carico " + f.name + " · " + docs.length + " documenti…");
+    const res = { inserted: 0, updated: 0, older: 0 };
+    for(let i = 0; i < docs.length; i += 400){
+      const { data, error } = await c.rpc("import_infoship", { rows: docs.slice(i, i + 400), exported_at: exp });
+      if(error) throw error; ["inserted","updated","older"].forEach(k => res[k] += (data && data[k]) || 0);
+    }
+    ["inserted","updated","older"].forEach(k => tot[k] += res[k]); tot.files.push(f.name);
+    c.from("import_log").insert({ file_name: f.name, kind, exported_at: exp, result: res, device: navigator.userAgent.slice(0, 120) }).then(() => {});
+  }
+  return tot;
+}
+// L'import Excel di sempre (registro RFQ + storico prezzi) resta, ma riceve solo i file con il valore (RFQ/PO dettagliati):
+// la lista documenti generale non ha la colonna Total e azzererebbe i prezzi.
+if(window.importInfoshipRfqExcel && !window._dbWrapped){
+  window._dbWrapped = true; const orig = window.importInfoshipRfqExcel;
+  window.importInfoshipRfqExcel = async function(fileOrList){
+    const files = (fileOrList && typeof fileOrList.length === "number" && !(fileOrList instanceof Blob)) ? Array.from(fileOrList) : [fileOrList].filter(Boolean);
+    let res = null;
+    try { res = await dbImportFiles(files); } catch(e) { console.error("[db] import", e); showToast("Database: import non riuscito · " + (e.message || e)); }
+    const priced = [];
+    try { await loadSheetJS(); for(const f of files){ const wb = XLSX.read(await f.arrayBuffer(), { type: "array", sheetRows: 2 }); const r = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })[0] || []; if(r.includes("Total")) priced.push(f); } } catch(e) {}
+    if(priced.length) await orig(priced);
+    if(res){ showToast("Database: " + res.inserted + " documenti nuovi, " + res.updated + " aggiornati" + (res.older ? ", " + res.older + " da export più vecchi (stato non toccato)" : "") + (dbSource() === "db" ? "" : " · attiva «Pratiche dal database» in Impostazioni per usarli"));
+      window.dbReloadProc(true); }
+    else if(!priced.length && !window._db.user) showToast("Collegati al database (Impostazioni → Database centrale) per importare la lista documenti");
+  };
+}
+window.dbPickFiles = function(){ const i = document.createElement("input"); i.type = "file"; i.accept = ".xlsx,.xls"; i.multiple = true;
+  i.onchange = () => { if(i.files && i.files.length) window.importInfoshipRfqExcel(i.files); }; i.click(); };
+window.dbSetSource = function(s){ localStorage.setItem("mpd.procSource", s); dbRenderRow();
+  if(s === "db") window.dbReloadProc(); else if(window._db.ghProc){ state.data = dedupeProcItems(window._db.ghProc); writeCache(Object.assign({}, readCache() || {}, { procurement: window._db.ghProc })); mergeAndPrepare(); render(); showToast("Pratiche dal feed Notion/GitHub"); } };
+// Confronto con il vecchio feed: stesse pratiche? stessi stati?
+window.dbCompare = async function(){
+  try {
+    const gh = window._db.ghProc; if(!gh){ showToast("Feed precedente non ancora caricato"); return; }
+    const docs = window._db.docs || await dbFetchDocs(), mine = dbBuildProc(docs, gh, dbIdMap()).proc;
+    const flat = p => (p.vessels || []).flatMap(v => (v.items || []).map(i => Object.assign({ _v: v.vesselId }, i)));
+    const A = flat(gh), B = flat(mine), bPo = {}, aPo = {}; B.forEach(i => { if(i.poNumber) bPo[i.poNumber] = i; }); A.forEach(i => { if(i.poNumber) aPo[i.poNumber] = i; });
+    const known = new Set(docs.map(d => d.number));
+    const onlyOld = A.filter(i => i.poNumber && !bPo[i.poNumber]), onlyNew = B.filter(i => i.poNumber && !aPo[i.poNumber]);
+    const diff = A.filter(i => i.poNumber && bPo[i.poNumber]).map(i => ({ a: i, b: bPo[i.poNumber] })).filter(x => (x.a.poStatus || "") !== (x.b.poStatus || "") || (x.a.dnStatus || "") !== (x.b.dnStatus || "") || (x.a.dnNumber || "") !== (x.b.dnNumber || ""));
+    const sameId = A.filter(i => B.some(b => b.id === i.id)).length;
+    const esc = escapeHTML, row = (t, s) => '<div style="padding:6px 0;border-top:1px solid rgba(10,27,46,.08);font-size:12.5px;"><span style="font-family:ui-monospace,monospace;font-weight:700">' + esc(t) + '</span> ' + esc(s) + '</div>';
+    const per = (VESSELS || []).map(c => { const a = A.filter(i => i._v === c.vesselId).length, b = B.filter(i => i._v === c.vesselId).length; return (a || b) ? '<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span>' + esc(c.displayName) + '</span><span>' + a + ' → <b>' + b + '</b></span></div>' : ""; }).join("");
+    let h = document.getElementById("db-cmp"); if(!h){ h = document.createElement("div"); h.id = "db-cmp"; document.body.appendChild(h); }
+    h.innerHTML = '<div style="position:fixed;inset:0;z-index:9998;background:rgba(10,27,46,.45);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.parentNode.remove()"><div style="background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:86vh;overflow:auto;padding:20px 22px;color:#0a1b2e">' +
+      '<div style="display:flex;align-items:center;gap:10px"><div style="flex:1;font-size:18px;font-weight:800">Confronto: database ↔ feed Notion/GitHub</div><button class="btn btn-sm" onclick="document.getElementById(\'db-cmp\').remove()">Chiudi</button></div>' +
+      '<div style="font-size:13px;color:#44576b;margin:8px 0 14px;text-wrap:pretty">Documenti nel database: <b>' + docs.length + '</b>. Pratiche vecchio → nuovo (il nuovo divide per richiesta le descrizioni usate più volte). Pratiche che tengono lo stesso id (note, posizioni e piani restano agganciati): <b>' + sameId + ' su ' + A.length + '</b>.</div>' + per +
+      '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#c0261c">PO SOLO NEL VECCHIO · ' + onlyOld.length + '</div>' + onlyOld.slice(0, 60).map(i => row(i.poNumber, (known.has(i.poNumber) ? "(nel database con un'altra descrizione) " : "(non nel database: manca nell'Excel) ") + (i.description || ""))).join("") +
+      '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#1553d8">PO SOLO NEL NUOVO · ' + onlyNew.length + '</div>' + onlyNew.slice(0, 60).map(i => row(i.poNumber, i.description || "")).join("") +
+      '<div style="margin-top:16px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#b06a00">STATI DIVERSI · ' + diff.length + '</div>' + diff.slice(0, 80).map(x => row(x.a.poNumber, "vecchio: " + [x.a.poStatus, x.a.dnNumber, x.a.dnStatus].filter(Boolean).join(" · ") + "  →  nuovo: " + [x.b.poStatus, x.b.dnNumber, x.b.dnStatus].filter(Boolean).join(" · "))).join("") +
+      '</div></div>';
+  } catch(e) { showToast("Confronto non riuscito: " + (e.message || e)); }
+};
+// Riquadro in Impostazioni
+function dbRenderRow(){
+  const el = document.getElementById("db-row"); if(!el) return;
+  const u = window._db.user, src = dbSource(), esc = escapeHTML, n = window._db.docs ? window._db.docs.length : null;
+  const seg = (v, t) => '<button class="btn btn-sm' + (src === v ? ' btn-primary' : '') + '" onclick="dbSetSource(\'' + v + '\')">' + t + '</button>';
+  el.innerHTML = !u
+    ? '<div style="font-size:12.5px;color:#44576b;margin-bottom:8px;text-wrap:pretty">Un unico archivio per PC, Mac e telefono. Accedi con l\'utente creato in Supabase: resta collegato su questo dispositivo.</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input id="db-email" type="email" placeholder="email" autocomplete="username" style="flex:1;min-width:180px"><input id="db-pass" type="password" placeholder="password" autocomplete="current-password" style="flex:1;min-width:140px" onkeydown="if(event.key===\'Enter\')dbLogin()"><button class="btn btn-sm btn-primary" onclick="dbLogin()">Accedi</button></div>'
+    : '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px"><span style="flex:1;min-width:180px">● Collegato come <b>' + esc(u.email || "") + '</b>' + (n != null ? ' · ' + n + ' documenti' : '') + '</span><button class="btn btn-sm" onclick="dbLogout()">Esci</button></div>' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px"><span style="font-size:12.5px;color:#44576b">Pratiche:</span>' + seg("db", "dal database (nuovo)") + seg("github", "da Notion/GitHub (vecchio)") + '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-sm" onclick="dbPickFiles()">⇧ Carica Excel Infoship</button><button class="btn btn-sm" onclick="dbCompare()">Confronta con il vecchio</button>' + (src === "db" ? '<button class="btn btn-sm" onclick="dbReloadProc()">↻ Rileggi</button>' : '') + '</div>' +
+      '<div style="font-size:11.5px;color:#6a7d90;margin-top:8px;text-wrap:pretty">Puoi anche trascinare gli Excel ovunque nella dashboard: lista documenti, RFQ e PO, anche insieme e di periodi sovrapposti. Un export più vecchio non riporta indietro gli stati.</div>';
+}
+(function(){
+  const host = document.querySelector("#modal-settings .modal-section"); if(!host || document.getElementById("db-row")) return;
+  const s = document.createElement("div"); s.className = "modal-section"; s.innerHTML = '<h3>Database centrale</h3><div id="db-row"></div>';
+  host.parentNode.insertBefore(s, host); dbRenderRow();
+  if(localStorage.getItem("mpd.sbAuth")) dbClient().then(() => dbRenderRow()).catch(() => {});
+})();
+setTimeout(() => { if(dbSource() === "db" && state.data && !(state.data.source === "db")) window.dbReloadProc(true); }, 2500);
 
 </script>
 
