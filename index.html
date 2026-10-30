@@ -11340,10 +11340,10 @@ function renderMobileApp(){
     else if(mstate.vessel) html = (mstate.detTab && mstate.detTab !== "ops") ? m3Vessel(mstate.vessel) : m6Vessel(mstate.vessel);
     else if(mstate.screen === "todo") html = m6Todo();
     else if(mstate.screen === "rubrica") html = m6Rubrica();
-    else if(mstate.screen === "cerca") html = '<div class="m6" style="gap:14px">' + m3Search() + '</div>';
+    else if(mstate.screen === "cerca") html = typeof window.ccMobileHTML === "function" ? window.ccMobileHTML() : '<div class="m6" style="gap:14px">' + m3Search() + '</div>';
     else if(mstate.screen === "cert") html = maCert();
     else html = m6Fleet();
-    app.innerHTML = html; m6Badge(); return;
+    app.innerHTML = html; m6Badge(); if(!mstate.m6ct && !mstate.vessel && mstate.screen === "cerca" && typeof window.ccMobileBind === "function") window.ccMobileBind(); return;
   }
   app.innerHTML = '<div class="ma-empty" style="margin-top:40px">Modulo mobile non caricato: ricarica la pagina.</div>';
 }
@@ -13149,6 +13149,7 @@ function renderRubricaPage() {
   if (tab === "scoperti" && typeof vlRenderRubrica === "function") return vlRenderRubrica(root, supNames.size, agNames.size);  // v1.25
 
   const kind = tab;
+  if (state._rubLayout !== "list" && typeof window.rbRender === "function") return window.rbRender(root, kind, [...(kind === "supplier" ? supNames : agNames)].filter(Boolean), supNames.size, agNames.size);  // v2.4 — per paese e porto
   const names = [...(kind === "supplier" ? supNames : agNames)].filter(Boolean).sort((a,b)=>a.localeCompare(b));
   const q = (state._rubricaQuery || "").toLowerCase();
   const filtered = q ? names.filter(n => n.toLowerCase().includes(q)) : names;
@@ -13191,6 +13192,7 @@ function renderRubricaPage() {
     <div class="rub-toolbar">
       <input type="search" class="search-input" id="rubrica-search" placeholder="Cerca ${kind==='supplier'?'fornitore':'agenzia'}…" value="${escapeAttr(state._rubricaQuery||"")}">
       <div class="rub-actions">
+        ${typeof window.rbRender === "function" ? `<button class="rub-expbtn" onclick="state._rubLayout='geo';renderRubricaPage()">Vista per paese</button>` : ""}
         <button class="rub-newbtn" onclick="window.addNewEntity('${kind}')">+ Nuovo</button>
         <button class="rub-expbtn" onclick="window.exportRubricaCSV('${kind}')">⬇ Esporta CSV</button>
       </div>
@@ -30788,6 +30790,7 @@ function vlDetailHTML(x, isAg){ if(!x) return "";
     '<div style="display:flex;flex-direction:column;gap:7px"><div class="vl-eb">Scala di fiducia</div><div class="vl-lad">' + lad + '</div></div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #eef0f3">' +
       (I.promoted ? '<button class="vl-bt g" onclick="vlOpenCard(\'' + vlJ(l.id) + '\')">✓ In Rubrica ›</button>' : '<button class="vl-bt" onclick="vlPromote(\'' + vlJ(l.id) + '\')">Promuovi in Rubrica</button>') +
+      '<button class="vl-bt" onclick="vlTodo(\'' + vlJ(l.id) + '\')">+ To-do</button>' +
       '<button class="vl-bt" style="color:#44576b" onclick="vlDismiss(\'' + vlJ(l.id) + '\')">✕ Non è una proposta</button></div></div>';
 }
 function vlLegFor(R){ const c = vlCallAt(R.port, R.vid) || vlCallAt(R.port); return c; }
@@ -31578,25 +31581,27 @@ function ccLeftHTML(){
   const C = window._cc, R = ccSearch(C.q); C.res = R.out; const sel = C.sel || (R.out[0] && R.out[0].key) || "";
   const recog = R.recog.length ? '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12.5px;color:#44576b">Riconosciuti:</span>' + R.recog.map(r => '<span style="font:600 12px var(--font-mono);background:#e3f2ea;color:#14794e;border-radius:6px;padding:3px 8px">' + escapeHTML(r) + '</span>').join("") + '</div>' : "";
   const res = R.out.length ? '<div style="' + CC_BOX + '"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b;padding:11px 14px 7px">TROVATI · ' + R.out.length + '</span>' + R.out.map((r, i) => { const on = r.key === sel;
-      return '<button onclick="ccSelI(' + i + ')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:8px minmax(0,1fr);gap:11px;align-items:center;padding:10px 14px;border-top:1px solid rgba(10,27,46,.07);background:' + (on ? "#f2f6fe" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + '"><span style="width:8px;height:8px;border-radius:50%;background:' + r.dot + '"></span><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(r.title) + '</span><span style="font-size:12px;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(r.kind + " · " + r.sub) + '</span></span></button>'; }).join("") + '</div>'
+      return '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border-top:1px solid rgba(10,27,46,.07);background:' + (on ? "#f2f6fe" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + '"><button onclick="ccSelI(' + i + ')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:8px minmax(0,1fr);gap:11px;align-items:center;padding:10px 6px 10px 14px;min-width:0"><span style="width:8px;height:8px;border-radius:50%;background:' + r.dot + '"></span><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(r.title) + '</span><span style="font-size:12px;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(r.kind + " · " + r.sub) + '</span></span></button>' + (typeof ccActs === "function" ? ccActs(r.key) : "") + '</div>'; }).join("") + '</div>'
     : (C.q.trim().length >= 2 ? '<div style="' + CC_BOX + ';padding:16px;font-size:13.5px;color:#44576b">Niente per «' + escapeHTML(C.q.trim().slice(0, 40)) + '». Prova con il numero del documento o il nome del fornitore.</div>' : "");
   const fleet = '<div style="' + CC_BOX + '"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b;padding:11px 14px 7px">FLOTTA</span>' + (VESSELS || []).map(c => { const W = ccWhere(c.vesselId), on = sel === "v:" + c.vesselId, t = ccShipTime(c.vesselId);
       const line = W && W.port ? ccTitle(W.port) + (W.eta ? " · ETA " + ccD(W.eta) : "") + (W.etd ? " · ETD " + ccD(W.etd) : "") : (W && W.manualCity) || "viaggio non impostato";
       return '<button onclick="ccSel(\'v:' + ccJ(c.vesselId) + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid rgba(10,27,46,.07);background:' + (on ? "#f2f6fe" : "#fff") + '"><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><b style="font-size:13px">' + escapeHTML(c.displayName) + '</b><span style="font-size:12px;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(line) + '</span></span><span style="font:600 12px var(--font-mono);color:#44576b" title="Ora a bordo">' + escapeHTML(t || "") + '</span></button>'; }).join("") + '</div>';
-  return recog + res + fleet;
+  return recog + res + (C.mobile && C.q.trim().length >= 2 ? "" : fleet);
 }
-function ccRightHTML(){
+function ccRightHTML(){ return ccRightHTML0() + (typeof ccMailBox === "function" ? ccMailBox() : ""); }
+function ccRightHTML0(){
   const C = window._cc, sel = C.sel || (C.res[0] && C.res[0].key) || ""; C.cp = []; const D = ccCard(sel);
+  if(!D && C.mobile) return "";
   if(!D) return '<div style="background:#fff;border:1px dashed rgba(10,27,46,.25);border-radius:14px;padding:44px 40px;display:flex;flex-direction:column;gap:14px;min-height:460px;justify-content:center"><span style="font-size:22px;font-weight:700;color:#0a1b2e">Stai rispondendo a un\'email?</span><span style="font-size:15px;color:#44576b;line-height:1.55;max-width:560px;text-wrap:pretty">Copia l\'oggetto o il testo da Outlook e incollalo a sinistra. Qui compare la scheda con numeri, posizione della merce, scalo, agenzia e fornitore, tutto copiabile con un clic, più un testo in inglese pronto da incollare nella risposta.</span><span style="font-size:13px;color:#44576b">Oppure clicca una nave della flotta. Scorciatoia: tasto <b>/</b> per tornare alla casella.</span></div>';
   const ti = C.cp.length; C.cp.push({ t: D.text, l: "Testo per la risposta" });
   return '<div style="' + CC_BOX + '"><div style="padding:18px 20px;display:flex;flex-direction:column;gap:7px;border-bottom:1px solid rgba(10,27,46,.08)"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#44576b;background:#f1f3f6;border-radius:5px;padding:3px 7px">' + escapeHTML(D.kind) + '</span>' +
       (D.crit ? '<span style="font-size:11px;font-weight:700;color:#fff;background:#c0261c;border-radius:5px;padding:3px 7px">C CRITICO</span>' : "") + (D.status ? '<span style="font-size:12px;font-weight:600;white-space:nowrap;color:' + D.sc + ';border:1px solid ' + D.sc + ';border-radius:999px;padding:2px 10px">' + escapeHTML(D.status) + '</span>' : "") + '<span style="flex:1"></span>' + (D.extra || "") + '</div>' +
       '<span style="font-size:22px;font-weight:700;line-height:1.25;color:#0a1b2e">' + escapeHTML(D.title) + '</span><span style="font-size:14px;color:#44576b">' + escapeHTML(D.sub || "") + '</span></div>' +
-      '<div style="padding:4px 20px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 28px">' + D.groups.join("") + '</div></div>' +
+      '<div style="padding:4px ' + (C.mobile ? 14 : 20) + 'px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:0 28px">' + D.groups.join("") + '</div></div>' +
     (D.text ? '<div style="background:#0a1b2e;color:#fff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:9px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#9fb1c4">TESTO PRONTO PER LA RISPOSTA · EN</span><button onclick="ccCopy(' + ti + ')" style="font:600 13px var(--font-sans);background:#fff;color:#0a1b2e;border:0;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap">⧉ Copia tutto</button></div><span style="font:400 13px var(--font-mono);white-space:pre-wrap;line-height:1.55">' + escapeHTML(D.text) + '</span></div>' : "");
 }
 function renderCercaPage(){
-  const root = document.getElementById("view-root"); if(!root) return; const C = window._cc;
+  const root = document.getElementById("view-root"); if(!root) return; const C = window._cc; C.mobile = false;
   root.innerHTML = '<div style="display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:20px;align-items:start" id="cc-wrap">' +
     '<div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:12px"><div style="background:#fff;border:1.5px solid #1553d8;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 14px rgba(21,83,216,.10)">' +
       '<span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#1553d8">INCOLLA QUI · NUMERO, NOME O EMAIL</span>' +
@@ -31612,13 +31617,243 @@ function renderCercaPage(){
 window.renderCercaPage = renderCercaPage;
 function ccPaint(){ const l = document.getElementById("cc-left"), r = document.getElementById("cc-right"); if(!l || !r) return; l.innerHTML = ccLeftHTML(); r.innerHTML = ccRightHTML(); }
 window.ccSelI = function(i){ const r = window._cc.res[i]; if(r){ window._cc.sel = r.key; ccPaint(); } };
-window.ccSel = function(key){ window._cc.sel = key; ccPaint(); const r = document.getElementById("cc-right"); if(r){ const y = r.getBoundingClientRect().top + window.scrollY - 80; if(window.scrollY > y) window.scrollTo({ top: y, behavior: "smooth" }); } };
+window.ccSel = function(key){ window._cc.sel = key; ccPaint(); const r = document.getElementById("cc-right"); if(r){ const y = r.getBoundingClientRect().top + window.scrollY - (window._cc.mobile ? 12 : 80); if(window._cc.mobile || window.scrollY > y) window.scrollTo({ top: y, behavior: "smooth" }); } };
 window.ccClear = function(){ window._cc.q = ""; window._cc.sel = ""; const ta = document.getElementById("cc-q"); if(ta){ ta.value = ""; ta.focus(); } ccPaint(); };
 window.ccCopy = function(i){ const x = window._cc.cp[i]; if(!x) return; const done = () => showToast((x.l || "Testo") + " copiato");
   const fb = () => { const ta = document.createElement("textarea"); ta.value = x.t; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e) {} ta.remove(); done(); };
   try { navigator.clipboard.writeText(x.t).then(done, fb); } catch(e) { fb(); } };
 document.addEventListener("keydown", e => { if(e.key !== "/" || state.view !== "cerca") return; const a = document.activeElement; if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return; const ta = document.getElementById("cc-q"); if(ta){ e.preventDefault(); ta.focus(); ta.select(); } });
 setTimeout(() => { try { if(!(typeof maIsMobile === "function" && maIsMobile()) && state.view === "overview" && !sessionStorage.getItem("mpd.ccBoot")){ sessionStorage.setItem("mpd.ccBoot", "1"); window.goCerca(); } } catch(e) { console.warn("[cerca] avvio", e); } }, 0);
+
+// ============================================================================
+// v2.4 (30.10.2026) — Cerca: Apri · Copia · + per ogni risultato, posta di Outlook (webhook n8n "Cerca Posta"),
+// Cerca anche nelle 6 porte, Cerca nel mobile, Rubrica fornitori/agenzie per PAESE e PORTO (stile Scoperti), + To-do dai contatti.
+// ============================================================================
+function ccSplit(key){ const i = String(key).indexOf(":"); return { t: key.slice(0, i), id: key.slice(i + 1) }; }
+function ccMob(){ return !!window._cc.mobile || (typeof maIsMobile === "function" && maIsMobile()); }
+window.ccClip = function(t, l){ const done = () => (typeof showToast === "function" ? showToast : (typeof maToast === "function" ? maToast : () => {}))((l || "Testo") + " copiato");
+  const fb = () => { const ta = document.createElement("textarea"); ta.value = t; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e) {} ta.remove(); done(); };
+  try { navigator.clipboard.writeText(t).then(done, fb); } catch(e) { fb(); } };
+window.ccNewTodo = function(o){ o = o || {};
+  if(ccMob() && typeof window.m6NewTodo === "function"){ window.m6NewTodo(o.vid || ""); try { window._m6n.text = o.text || (o.item && o.item.description) || ""; m6NewPaint(); } catch(e) {} return; }
+  if(typeof openTodoModal === "function") openTodoModal(null, o.vid || "", o.item || { description: o.text || "" }); };
+function ccKeyItem(id){ return ccItems().find(x => x.id === id) || null; }
+function ccActs(key){ const k = ccJ(key), m = ccMob(), pad = m ? "9px 11px" : "4px 8px";
+  const b = (l, js, t, blue) => '<button onclick="event.stopPropagation();' + js + '" title="' + t + '" style="font:600 12px var(--font-sans);background:' + (blue ? "#eaf0fd" : "#fff") + ';color:' + (blue ? "#1553d8" : "#0a1b2e") + ';border:' + (blue ? "0" : "1px solid rgba(10,27,46,.15)") + ';border-radius:6px;padding:' + pad + ';cursor:pointer;white-space:nowrap">' + l + '</button>';
+  const { t } = ccSplit(key), ct = t === "i" ? "Copia il numero (PO, altrimenti REQ)" : t === "v" ? "Copia ETA/ETD in inglese" : "Copia il blocco contatto";
+  return '<span style="display:flex;gap:4px;padding:0 10px 0 2px">' + b("Apri", "ccOpenK('" + k + "')", "Apri la scheda completa") + b("Copia", "ccCopyK('" + k + "')", ct, true) + b("+", "ccTodoK('" + k + "')", "Nuova to-do") + '</span>'; }
+window.ccSelI = function(i){ const r = window._cc.res[i]; if(r) window.ccSel(r.key); };
+window.ccOpenK = function(key){ const { t, id } = ccSplit(key), m = ccMob();
+  if(t === "i"){ if(m && window.m3Po) window.m3Po(id); else if(typeof openItemDetailPopover === "function") openItemDetailPopover(id); }
+  else if(t === "v"){ if(m && window.maOpenVessel) window.maOpenVessel(id); else goVessel(id); }
+  else if(t === "s"){ if(m && window.m6OpenContact) window.m6OpenContact("supplier", id, "rubrica"); else if(window.openSupplierCard) window.openSupplierCard(id); }
+  else if(t === "a"){ if(m && window.m6OpenContact) window.m6OpenContact("agency", id, "rubrica"); else if(window.openAgencyCard) window.openAgencyCard(id); } };
+window.ccCopyK = function(key){ const { t, id } = ccSplit(key);
+  if(t === "i"){ const it = ccKeyItem(id); if(!it) return; const n = it.poNumber || it.reqNumber || ""; if(n) ccClip(n, (it.poNumber ? "PO " : "REQ ") + ccShort(n)); return; }
+  if(t === "v"){ ccClip(ccEtaEN(id), "ETA " + ccVName(id)); return; }
+  const n0 = window._cc.cp.length, D = ccCard(key); window._cc.cp.length = n0; if(D && D.text) ccClip(D.text, "Contatto " + id); };
+window.ccTodoK = function(key){ const { t, id } = ccSplit(key);
+  if(t === "i"){ const it = ccKeyItem(id); if(it) ccNewTodo({ vid: ccVid(it), item: it, text: (it.description || "") + (it.poNumber ? " · PO " + ccShort(it.poNumber) : "") }); }
+  else if(t === "v") ccNewTodo({ vid: id, item: { description: ccVName(id) }, text: ccVName(id) + ": " });
+  else ccNewTodo({ item: { description: "Sentire " + id }, text: "Sentire " + id }); };
+
+// --- posta di Outlook ---------------------------------------------------------------
+window._ccm = window._ccm || { key: "", st: "", list: [], err: "", all: false };
+function ccMailTerms(){
+  const C = window._cc, sel = C.sel || (C.res[0] && C.res[0].key) || "", T = [];
+  const dom = e => { const d = typeof vlDom === "function" ? vlDom(e) : ""; return d && !(typeof VL_FREE !== "undefined" && VL_FREE.test(d)) ? d : ""; };
+  if(sel){ const { t, id } = ccSplit(sel);
+    if(t === "i"){ const it = ccKeyItem(id); if(it) [it.poNumber, it.dnNumber, it.reqNumber].concat(it.rfqNumbers || []).filter(Boolean).forEach(n => { const m = String(n).toUpperCase().match(/^(\d{4})-([A-Z]{2,4})-([A-Z]{3,5})-(\d{4,6})$/); if(m){ T.push(m[3] + "-" + m[4]); T.push(m[3] + m[4]); } else T.push(String(n)); }); }
+    else if(t === "v") T.push(ccVName(id).replace(/^M\/?V\s*/i, ""));
+    else if(t === "s"){ const S = ccSup(id), d = dom(S.email); T.push(d || id); }
+    else if(t === "a"){ const p = getEntityProfile("agency", id) || {}, d = dom(p.email); T.push(d || id); }
+  } else if(C.q.trim().length >= 3) T.push(C.q.trim().split(/\s+/).slice(0, 6).join(" ").slice(0, 80));
+  return [...new Set(T)].slice(0, 8);
+}
+function ccMailUrl(){ return String((state.settings || {}).mailSearchUrl || "").trim(); }
+function ccMailFetch(key, terms){ const M = window._ccm, url = ccMailUrl(), tok = String((state.settings || {}).mailSearchToken || "");
+  fetch(url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(tok) + "&terms=" + encodeURIComponent(JSON.stringify(terms)), { cache: "no-store" })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error("risposta " + r.status + (r.status === 500 ? " (token sbagliato o workflow spento?)" : ""))))
+    .then(d => { if(M.key !== key) return; M.st = "ok"; M.list = (d && d.messages) || []; ccMailRepaint(); })
+    .catch(e => { if(M.key !== key) return; M.st = "err"; M.err = String(e && e.message || e); ccMailRepaint(); }); }
+function ccMailRepaint(){ const el = document.getElementById("cc-mail"); if(el) el.outerHTML = ccMailBox(); }
+window.ccMailRetry = function(){ window._ccm.key = ""; ccMailRepaint(); };
+window.ccMailMore = function(){ window._ccm.all = true; ccMailRepaint(); };
+window.ccMailConnect = function(){ const s = state.settings = state.settings || {};
+  const u = prompt("Indirizzo del webhook n8n «Cerca Posta» (Production URL, es. https://…/webhook/cerca-posta):", s.mailSearchUrl || ""); if(u === null) return;
+  const t = prompt("Token (lo stesso scritto nel nodo «controlla e prepara»):", s.mailSearchToken || ""); if(t === null) return;
+  s.mailSearchUrl = u.trim(); s.mailSearchToken = t.trim(); try { saveSettings(); } catch(e) {} window._ccm.key = ""; ccMailRepaint(); };
+window.ccMailCopyQ = function(){ const T = ccMailTerms(); if(T.length) ccClip(T.join(" OR "), "Ricerca per Outlook"); };
+window.ccMailTodo = function(i){ const m = window._ccm.list[i]; if(!m) return; const C = window._cc, sel = C.sel || (C.res[0] && C.res[0].key) || ""; let vid = "";
+  if(sel){ const { t, id } = ccSplit(sel); if(t === "v") vid = id; else if(t === "i"){ const it = ccKeyItem(id); if(it) vid = ccVid(it); } }
+  ccNewTodo({ vid, item: { description: m.subject, supplier: m.out ? "" : m.fromName }, text: "Rispondere: " + m.subject }); };
+function ccMailBox(){
+  const T = ccMailTerms(), M = window._ccm, url = ccMailUrl(); if(!T.length) return '<div id="cc-mail"></div>';
+  const key = T.join(" OR "), head = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px 8px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b">POSTA IN OUTLOOK</span><span style="font:500 11.5px var(--font-mono);color:#6a7d90;overflow-wrap:anywhere">' + escapeHTML(key.slice(0, 90)) + '</span><span style="flex:1"></span><button onclick="ccMailCopyQ()" title="Da incollare nella casella di ricerca di Outlook" style="font:600 12px var(--font-sans);background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:4px 8px;cursor:pointer">⧉ Copia ricerca</button></div>';
+  const wrap = inner => '<div id="cc-mail" style="' + CC_BOX + '">' + head + inner + '</div>';
+  if(!url) return wrap('<div style="padding:4px 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:13.5px;color:#44576b;line-height:1.5;text-wrap:pretty"><span>Qui possono comparire da sole le email che citano questa pratica, nave o fornitore, anche quelle inviate, senza scrivere niente in Outlook o in Perplexity. Serve il workflow n8n <b>Cerca Posta</b> (pronto nella cartella n8n): importalo, metti il token, attivalo e collegalo qui.</span><span>Intanto <b>Copia ricerca</b> ti dà la stringa già pronta da incollare nella ricerca di Outlook.</span><span><button onclick="ccMailConnect()" style="font:600 13px var(--font-sans);background:#1553d8;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer">Collega Outlook</button></span></div>');
+  if(M.key !== key){ M.key = key; M.st = "load"; M.list = []; M.all = false; clearTimeout(window._ccmT); window._ccmT = setTimeout(() => ccMailFetch(key, T), 450); }
+  if(M.st === "load") return wrap('<div style="padding:6px 16px 16px;font-size:13px;color:#6a7d90">Cerco in Outlook…</div>');
+  if(M.st === "err") return wrap('<div style="padding:6px 16px 16px;font-size:13px;color:#b3261e;display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span>Ricerca non riuscita: ' + escapeHTML(M.err) + '</span><button onclick="ccMailRetry()" style="font:600 12px var(--font-sans);background:#fff;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:4px 8px;cursor:pointer">Riprova</button><button onclick="ccMailConnect()" style="font:600 12px var(--font-sans);background:#fff;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:4px 8px;cursor:pointer">Impostazioni</button></div>');
+  if(!M.list.length) return wrap('<div style="padding:6px 16px 16px;font-size:13px;color:#6a7d90">Nessuna email trovata.</div>');
+  const L = M.all ? M.list : M.list.slice(0, 8), m = ccMob();
+  const fd = s => { const d = new Date(s); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: d.getFullYear() === new Date().getFullYear() ? undefined : "2-digit" }) + " " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); };
+  const rows = L.map((x, i) => '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 16px;border-top:1px solid rgba(10,27,46,.07)"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">' +
+      '<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:12px;color:#44576b"><span style="font-family:var(--font-mono)">' + escapeHTML(fd(x.at)) + '</span>' + (x.out ? '<span style="font-weight:700;color:#14794e">↗ inviata' + (x.to ? " a " + escapeHTML(x.to) : "") + '</span>' : '<span style="font-weight:600;color:#0a1b2e">' + escapeHTML(x.fromName || x.from || "") + '</span>') + (x.att ? '<span title="Allegati">📎</span>' : "") + '</div>' +
+      '<span style="font-size:13.5px;font-weight:600;color:#0a1b2e;overflow-wrap:anywhere">' + escapeHTML(x.subject || "") + '</span>' + (x.preview ? '<span style="font-size:12.5px;color:#44576b;' + (m ? "" : "white-space:nowrap;overflow:hidden;text-overflow:ellipsis") + '">' + escapeHTML(x.preview) + '</span>' : "") + '</div>' +
+      '<span style="display:flex;gap:4px">' + (x.webLink ? '<a href="' + escapeAttr(x.webLink) + '" target="_blank" rel="noopener" style="font:600 12px var(--font-sans);background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:' + (m ? "9px 11px" : "4px 8px") + ';text-decoration:none;white-space:nowrap">Apri</a>' : "") +
+      '<button onclick="ccMailTodo(' + i + ')" title="Nuova to-do da questa email" style="font:600 12px var(--font-sans);background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:' + (m ? "9px 11px" : "4px 8px") + ';cursor:pointer">+</button></span></div>').join("");
+  return wrap(rows + (M.list.length > L.length ? '<button onclick="ccMailMore()" style="all:unset;cursor:pointer;padding:10px 16px;border-top:1px solid rgba(10,27,46,.07);font:600 12.5px var(--font-sans);color:#1553d8">Mostra tutte (' + M.list.length + ')</button>' : ""));
+}
+
+// --- mobile --------------------------------------------------------------------------
+window.ccMobileHTML = function(){ const C = window._cc; C.mobile = true;
+  return '<div class="m6" style="gap:12px"><div class="m3-head"><div class="m3-h1">Cerca e copia</div></div>' +
+    '<div style="background:#fff;border:1.5px solid #1553d8;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#1553d8">NUMERO, NOME O TESTO DELL\'EMAIL</span>' +
+    '<textarea id="cc-q" rows="2" autocomplete="off" spellcheck="false" data-lpignore="true" placeholder="es. HQPO00188, MED LIGURIA, Wärtsilä" style="border:0;outline:0;resize:vertical;font:400 16px/1.4 var(--font-sans);background:transparent;color:#0a1b2e;padding:0;width:100%">' + escapeHTML(C.q) + '</textarea>' +
+    (C.q ? '<button onclick="ccClear()" style="align-self:flex-end;font:600 13px var(--font-sans);background:none;color:#44576b;border:0;padding:6px 0;cursor:pointer">✕ Pulisci</button>' : "") + '</div>' +
+    '<div id="cc-left" style="display:flex;flex-direction:column;gap:12px">' + ccLeftHTML() + '</div><div id="cc-right" style="display:flex;flex-direction:column;gap:12px;min-width:0">' + ccRightHTML() + '</div></div>'; };
+window.ccMobileBind = function(){ const ta = document.getElementById("cc-q"), C = window._cc; if(!ta) return;
+  ta.addEventListener("input", () => { C.q = ta.value; C.sel = ""; clearTimeout(window._ccT); window._ccT = setTimeout(ccPaint, 160); }); };
+
+// --- Cerca anche nelle 6 porte ---------------------------------------------------------
+(function(){ const o = window.renderSwitcher6; if(typeof o !== "function") return;
+  window.renderSwitcher6 = function(){ o(); const row = document.getElementById("pill-row"), sel = document.getElementById("vessel-select"); if(!row) return;
+    row.insertBefore(makeEl('<button class="pill' + (state.view === "cerca" ? " active" : "") + '" data-view="cerca" role="tab"><span>⌕ Cerca</span><span class="pill-key"></span></button>'), row.firstChild);
+    if(sel){ const op = document.createElement("option"); op.value = "__cerca"; op.textContent = "⌕ Cerca e copia"; if(state.view === "cerca") op.selected = true; sel.insertBefore(op, sel.firstChild); } };
+})();
+
+// --- Scoperti: + To-do -------------------------------------------------------------------
+window.vlTodo = function(id){ const x = vlAll(true).find(y => y.l.id === id); if(!x) return; const S = window._vl, c = S.port ? vlCallAt(S.port) : null;
+  const txt = "Sentire " + x.l.company + (S.port ? " per " + S.port : "") + (x.l.email ? " (" + x.l.email + ")" : "");
+  ccNewTodo({ vid: c ? c.vid : "", item: { description: txt }, text: txt }); };
+
+// --- Rubrica fornitori / agenzie per paese e porto ---------------------------------------
+window._rb = window._rb || { supplier: { country: "", port: "", q: "", sel: "" }, agency: { country: "", port: "", q: "", sel: "" } };
+const RB_STEPS = { supplier: ["In rubrica", "Contattato", "Ha quotato", "Ha avuto un PO"], agency: ["In rubrica", "Ha seguito uno scalo", "Più scali seguiti", "Nave in arrivo da loro"] };
+function rbPortEq(a, b){ return vlPortEq(rbPN(a), rbPN(b)); }
+function rbNameEq(a, b){ a = vlNorm(a); b = vlNorm(b); return a.length >= 4 && b.length >= 4 && (a === b || (b.length >= 6 && a.includes(b)) || (a.length >= 6 && b.includes(a))); }
+function rbAgLegs(name){ const today = new Date().toISOString().slice(0, 10), now = [], seen = new Set(); let n = 0;
+  (VESSELS || []).forEach(V => { const voy = getVoyage(V.vesselId) || {};
+    (voy.history || []).forEach(h => { const a = h && h.agency; if(a && rbNameEq(a.name || a, name)) n++; });
+    ["current", "next"].forEach(w => { const l = voy[w], a = l && l.agency; if(!a || !rbNameEq(a.name || a, name)) return; const d = String(l.etd || l.etb || l.eta || "").slice(0, 10); const k = V.vesselId + "|" + vlPN(l.to);
+      if(seen.has(k)) return; seen.add(k); n++; if(!d || d >= today) now.push({ vid: V.vesselId, vname: V.displayName, port: vlPN(l.to), eta: l.eta || l.etb || "", etd: l.etd || "" }); }); });
+  return { n, now }; }
+function rbInfo(kind, name, p, openBy){
+  if(kind === "agency"){ const A = rbAgLegs(name), st = A.now.length ? 3 : A.n >= 3 ? 2 : A.n >= 1 ? 1 : 0;
+    return { st, A, open: [], ev: ["Profilo in rubrica" + (p.rating ? " · tuo voto " + p.rating + "★" : ""), A.n ? A.n + (A.n > 1 ? " scali" : " scalo") + " nei viaggi" : "", A.n >= 3 ? A.n + " scali nei viaggi" : "", A.now.map(c => c.vname + " a " + c.port + (c.eta ? " " + vlFDs(c.eta) : "")).join(" · ")] }; }
+  const H = vlHist({ company: name, email: p.email }), byD = (a, b) => String((b.r && b.r.d) || "").localeCompare(String((a.r && a.r.d) || ""));
+  const rf = H.rfq.slice().sort(byD), off = rf.filter(x => typeof isxIsOffer === "function" && isxIsOffer(x.r)), po = H.po.slice().sort(byD), open = openBy[name] || [];
+  const st = po.length || open.some(it => it.poNumber) ? 3 : off.length ? 2 : (rf.length || H.rv.length || open.length) ? 1 : 0;
+  const ev = ["Profilo in rubrica" + (p.rating ? " · tuo voto " + p.rating + "★" : ""), rf.length ? rf.length + " RFQ · ultima " + rf[0].n + (rf[0].r.d ? " del " + vlFD(rf[0].r.d) : "") : open.length ? open.length + " pratiche" : "",
+    off.length ? off.length + (off.length > 1 ? " offerte" : " offerta") + " · ultima " + off[0].n : rf.length ? "Nessuna offerta finora" : "", po.length ? po.length + " PO · ultimo " + po[0].n + (po[0].r.d ? " del " + vlFD(po[0].r.d) : "") : ""];
+  if(st === 3 && !ev[3]) ev[3] = "PO in corso";
+  return { st, open, ev, nrfq: rf.length, npo: po.length }; }
+// Infoship scrive il paese come codice ISO (ITA, CHN, KOR…) o provincia (IT-GE, IT-NA, US-NJ): paese + porto/città leggibili
+const RB_ISO = { IT: "ITALY", ITA: "ITALY", CN: "CHINA", CHN: "CHINA", KR: "SOUTH KOREA", KOR: "SOUTH KOREA", SG: "SINGAPORE", SGP: "SINGAPORE", CH: "SWITZERLAND", CHE: "SWITZERLAND", DE: "GERMANY", DEU: "GERMANY", GR: "GREECE", GRC: "GREECE", IN: "INDIA", IND: "INDIA", JP: "JAPAN", JPN: "JAPAN", PL: "POLAND", POL: "POLAND", TR: "TURKEY", TUR: "TURKEY", TK: "TURKEY", US: "UNITED STATES", USA: "UNITED STATES", GB: "UNITED KINGDOM", GBR: "UNITED KINGDOM", UK: "UNITED KINGDOM", NL: "NETHERLANDS", NLD: "NETHERLANDS", BE: "BELGIUM", BEL: "BELGIUM", FR: "FRANCE", FRA: "FRANCE", ES: "SPAIN", ESP: "SPAIN", PT: "PORTUGAL", PRT: "PORTUGAL", DK: "DENMARK", DNK: "DENMARK", NO: "NORWAY", NOR: "NORWAY", SE: "SWEDEN", SWE: "SWEDEN", FI: "FINLAND", FIN: "FINLAND", MT: "MALTA", MLT: "MALTA", HR: "CROATIA", HRV: "CROATIA", CY: "CYPRUS", CYP: "CYPRUS", AE: "UNITED ARAB EMIRATES", ARE: "UNITED ARAB EMIRATES", BR: "BRAZIL", BRA: "BRAZIL", HK: "HONG KONG", HKG: "HONG KONG", TH: "THAILAND", THA: "THAILAND", PH: "PHILIPPINES", PHL: "PHILIPPINES", MY: "MALAYSIA", MYS: "MALAYSIA", ID: "INDONESIA", IDN: "INDONESIA", VN: "VIETNAM", VNM: "VIETNAM", EG: "EGYPT", EGY: "EGYPT", KE: "KENYA", KEN: "KENYA", ZA: "SOUTH AFRICA", ZAF: "SOUTH AFRICA", AT: "AUSTRIA", AUT: "AUSTRIA", CZ: "CZECHIA", CZE: "CZECHIA", RO: "ROMANIA", ROU: "ROMANIA", BG: "BULGARIA", BGR: "BULGARIA", SI: "SLOVENIA", SVN: "SLOVENIA", CA: "CANADA", CAN: "CANADA", MX: "MEXICO", MEX: "MEXICO", AR: "ARGENTINA", ARG: "ARGENTINA", AU: "AUSTRALIA", AUS: "AUSTRALIA", IL: "ISRAEL", ISR: "ISRAEL", SA: "SAUDI ARABIA", SAU: "SAUDI ARABIA", OM: "OMAN", OMN: "OMAN", QA: "QATAR", QAT: "QATAR", MA: "MOROCCO", MAR: "MOROCCO", TN: "TUNISIA", TUN: "TUNISIA", TW: "TAIWAN", TWN: "TAIWAN" };
+const RB_SUB = { IT: { GE: "Genova", SP: "La Spezia", NA: "Napoli", LI: "Livorno", CE: "Caserta", MI: "Milano", RM: "Roma", TO: "Torino", BO: "Bologna", VE: "Venezia", TS: "Trieste", PA: "Palermo", CT: "Catania", BA: "Bari", AN: "Ancona", RA: "Ravenna", SV: "Savona", MS: "Massa-Carrara", LU: "Lucca", PI: "Pisa", FI: "Firenze", BS: "Brescia", BG: "Bergamo", VA: "Varese", CO: "Como", MB: "Monza", PD: "Padova", VR: "Verona", VI: "Vicenza", TV: "Treviso", UD: "Udine", PN: "Pordenone", GO: "Gorizia", SA: "Salerno", ME: "Messina", CA: "Cagliari", SS: "Sassari", TA: "Taranto", BR: "Brindisi", LT: "Latina", PR: "Parma", MO: "Modena", RE: "Reggio Emilia", PC: "Piacenza", NO: "Novara", AL: "Alessandria", CN: "Cuneo", IM: "Imperia", FE: "Ferrara", RN: "Rimini", PE: "Pescara", AV: "Avellino", RC: "Reggio Calabria", TP: "Trapani", SR: "Siracusa", LE: "Lecce", CB: "Campobasso", BN: "Benevento", MN: "Mantova", CR: "Cremona", LC: "Lecco", PV: "Pavia" },
+  US: { NJ: "New Jersey", NY: "New York", AK: "Alaska", LA: "Louisiana", VA: "Virginia", TX: "Texas", FL: "Florida", CA: "California", WA: "Washington", MA: "Massachusetts", PA: "Pennsylvania", MD: "Maryland", GA: "Georgia", SC: "South Carolina", NC: "North Carolina", OR: "Oregon", IL: "Illinois", OH: "Ohio", MI: "Michigan", CT: "Connecticut", RI: "Rhode Island", MS: "Mississippi", AL: "Alabama" } };
+const RB_CITY_C = { MANILA: "PHILIPPINES", SHANGHAI: "CHINA", SINGAPORE: "SINGAPORE", ROTTERDAM: "NETHERLANDS", PIRAEUS: "GREECE", ISTANBUL: "TURKEY", DUBAI: "UNITED ARAB EMIRATES" };
+const RB_ALIAS = { GENOA: "GENOVA", NAPLES: "NAPOLI", LEGHORN: "LIVORNO", VENICE: "VENEZIA", SPEZIA: "LA SPEZIA", "LASPEZIA": "LA SPEZIA", SYRACUSE: "SIRACUSA", CARRARA: "MASSA-CARRARA" };
+function rbPN(s){ try { Object.assign(VL_CIT, { SWITZERLAND: "Svizzera", "HONG KONG": "Hong Kong", TAIWAN: "Taiwan", AUSTRIA: "Austria", CZECHIA: "Cechia" }); } catch(e) {} const x = vlPN(s); return RB_ALIAS[x] || RB_ALIAS[x.replace(/\s/g, "")] || x; }
+function rbGeo(p){ const raw = String(p.country || "").trim(), U = raw.toUpperCase(); let c = "", sub = "";
+  const m = U.match(/^([A-Z]{2})-([A-Z0-9]{1,3})$/);
+  if(m){ c = RB_ISO[m[1]] || m[1]; sub = (RB_SUB[m[1]] || {})[m[2]] || m[2]; }
+  else if(/^[A-Z]{2,3}$/.test(U)) c = RB_ISO[U] || U;
+  else if(U){ const pn = vlPN(U); if(RB_CITY_C[pn]){ c = RB_CITY_C[pn]; sub = sub || ccTitle(raw); } else c = U; }
+  let city = String(p.city || "").split(",")[0].replace(/\d+/g, "").trim(); if(!city) city = sub;
+  if(!c && city && RB_CITY_C[vlPN(city)]) c = RB_CITY_C[vlPN(city)];
+  return { c, city: city ? rbPN(city) : "", cityL: city ? ccTitle(city) : "" }; }
+function rbStars(r){ r = Math.max(0, Math.min(5, parseInt(r, 10) || 0)); return '<span style="color:#c98a00;letter-spacing:1px;font-size:12px">' + "★".repeat(r) + '<span style="color:#d5dce3">' + "★".repeat(5 - r) + '</span></span>'; }
+function rbModel(kind, names){
+  const calls = vlCalls(), openBy = {};
+  if(kind === "supplier") try { ccItems().forEach(it => { if(it.supplier && !ccClosed(it)) (openBy[it.supplier] = openBy[it.supplier] || []).push(it); }); } catch(e) {}
+  const X = names.map(n => { const p = getEntityProfile(kind, n) || {}, g = rbGeo(p); return { n, p, c: g.c, city: g.city, cityL: g.cityL, I: rbInfo(kind, n, p, openBy) }; });
+  const cmap = {}; try { Object.assign(cmap, vlCountryMap(vlAll())); } catch(e) {} X.forEach(x => { if(x.city && x.c) cmap[x.city] = x.c; });
+  X.forEach(x => { const L = x.city ? calls.filter(c => rbPortEq(c.port, x.city)) : []; (x.I.A ? x.I.A.now : []).forEach(c => { if(!L.some(y => y.vid === c.vid)) L.push(c); }); x.calls = L; });
+  return { X, calls, cmap };
+}
+function rbPageHTML(kind, names){
+  vlCss(); const S = window._rb[kind], M = rbModel(kind, names), X = M.X, cmap = M.cmap, steps = RB_STEPS[kind];
+  const callCountry = c => { const k = Object.keys(cmap).find(p => rbPortEq(p, c.port)); return k ? cmap[k] : ""; };
+  const C = {}; let noC = 0; X.forEach(x => { if(x.c) C[x.c] = (C[x.c] || 0) + 1; else noC++; });
+  const callC = {}; M.calls.forEach(c => { const k = callCountry(c); if(k && !callC[k]) callC[k] = c; });
+  const CL = Object.keys(C).sort((a, b) => (!!callC[b] - !!callC[a]) || C[b] - C[a] || a.localeCompare(b));
+  const cc = (v, l, n, call) => '<button class="vl-cc' + (S.country === v ? " on" : "") + (call ? " call" : "") + '" onclick="rbSet(\'' + kind + '\',\'country\',\'' + vlJ(v) + '\')"' + (call ? ' title="Scalo ' + vlE(call.vname) + ' a ' + vlE(call.port) + '"' : "") + '>' + vlE(l) + (call ? '<small>⚓ ' + vlE(call.vname) + '</small>' : "") + '<small>' + n + '</small></button>';
+  const countriesHTML = cc("", "Tutti i paesi", X.length) + CL.map(c => cc(c, vlCName(c), C[c], callC[c])).join("") + (noC ? cc("__none", "Paese non indicato", noC) : "");
+  const inC = x => !S.country || (S.country === "__none" ? !x.c : x.c === S.country);
+  const P = [], has = p => P.some(y => rbPortEq(y.p, p));
+  M.calls.forEach(c => { if(S.country === "__none") return; if(!S.country || callCountry(c) === S.country) if(!has(c.port)) P.push({ p: c.port, c }); });
+  const freq = {}; X.forEach(x => { if(x.city && inC(x)) freq[x.city] = (freq[x.city] || 0) + 1; });
+  Object.keys(freq).sort((a, b) => freq[b] - freq[a]).forEach(p => { if(P.length < (S.country ? 40 : 18) && !has(p)) P.push({ p }); });
+  if(S.port && !has(S.port)) P.unshift({ p: S.port });
+  const cnt = p => X.filter(x => (x.city && rbPortEq(x.city, p)) || (kind === "agency" && x.I.A.now.some(y => rbPortEq(y.port, p)))).length;
+  const pc = (v, l, n, c) => '<button class="vl-pc' + ((v ? rbPortEq(v, S.port) : !S.port) ? " on" : "") + (c ? " call" : "") + '" onclick="rbSet(\'' + kind + '\',\'port\',\'' + vlJ(v) + '\')"' + (c ? ' title="Scalo ' + vlE(c.vname) + (c.eta ? " · ETA " + vlFDs(c.eta) : "") + '"' : "") + '>' + vlE(l) + (c ? '<small>' + vlE(c.vname) + (c.eta ? " " + vlFDs(c.eta) : "") + '</small>' : "") + '<small>' + n + '</small></button>';
+  const portsHTML = pc("", S.country && S.country !== "__none" ? "Tutto " + vlCName(S.country) : "Tutti i porti", X.filter(inC).length) + P.map(y => pc(y.p, y.p, cnt(y.p), y.c)).join("");
+  const q = String(S.q || "").trim().toLowerCase();
+  let L = q ? X.filter(x => [x.n, x.p.city, x.cityL, x.p.country, vlCName(x.c), x.p.email, x.p.contact, x.p.code, x.p.notes].join(" ").toLowerCase().includes(q))
+    : S.port ? X.filter(x => (x.city && rbPortEq(x.city, S.port)) || (kind === "agency" && x.I.A.now.some(y => rbPortEq(y.port, S.port)))) : X.filter(inC);
+  L.sort((a, b) => (b.calls.length - a.calls.length) || (b.I.st - a.I.st) || ((parseInt(b.p.rating, 10) || 0) - (parseInt(a.p.rating, 10) || 0)) || a.n.localeCompare(b.n));
+  const tot = L.length; L = L.slice(0, 150);
+  if(S.sel && !X.some(x => x.n === S.sel)) S.sel = "";
+  const sel = X.find(x => x.n === S.sel) || L[0];
+  const rows = L.map(x => { const p = x.p, I = x.I, on = sel && sel.n === x.n, t = typeof ccLocal === "function" ? ccLocal(x.n, p) : null;
+    const tags = x.calls.slice(0, 3).map(c => '<span class="vl-tag b" title="' + vlE(c.port) + '">⚓ ' + vlE(c.vname) + (c.eta ? " " + vlFDs(c.eta) : "") + '</span>').join("");
+    return '<div class="vl-r' + (on ? " on" : "") + '" style="grid-template-columns:minmax(0,1fr) 150px" onclick="rbSet(\'' + kind + '\',\'sel\',\'' + vlJ(x.n) + '\')">' +
+      '<div style="min-width:0"><div class="vl-n">' + vlE(x.n) + (p.code ? '<span style="font:500 11px var(--font-mono);color:#6a7d90">' + vlE(p.code) + '</span>' : "") + tags + '</div>' +
+      ((p.contact || p.email) ? '<div class="vl-f">' + vlE([p.contact, p.email].filter(Boolean).join(" · ")) + '</div>' : "") +
+      '<div class="vl-s"><span>' + vlE([x.cityL, vlCName(x.c)].filter(Boolean).join(", ") || "città non indicata") + '</span>' + (p.rating ? '<span>' + rbStars(p.rating) + '</span>' : "") +
+        (t && t.tz !== "Europe/Rome" ? '<span style="color:' + (t.open ? "#14794e" : "#6a7d90") + '">· ' + vlE(t.t + " " + t.txt) + '</span>' : "") + (I.open.length ? '<span style="color:#1553d8;font-weight:600">· ' + I.open.length + (I.open.length > 1 ? " pratiche aperte" : " pratica aperta") + '</span>' : "") + '</div></div>' +
+      '<div class="vl-t"><div class="vl-seg">' + vlSegs(I.st, false) + '</div><div class="vl-sl" style="color:' + vlStepC(I.st, false) + '">' + steps[I.st] + '</div><div class="vl-ev">' + vlE(I.ev[I.st] || "") + '</div></div></div>'; }).join("");
+  const label = kind === "supplier" ? "fornitori" : "agenzie";
+  const empty = !L.length ? '<div class="vl-empty">' + (q ? "Nessun risultato per «" + vlE(S.q) + "»." : "Nessuno in rubrica per " + vlE(S.port || vlCName(S.country) || "questo filtro") + ".") + (kind === "supplier" && S.port ? ' Guarda in <a href="#" onclick="event.preventDefault();vlOpen(\'' + vlJ(S.port) + '\')">Scoperti</a> chi si è proposto per ' + vlE(S.port) + '.' : "") + '</div>' : "";
+  return '<div class="vl">' +
+    '<div class="vl-row"><span class="vl-eb">Paese</span><div class="vl-ports">' + countriesHTML + '</div></div>' +
+    '<div class="vl-row"><span class="vl-eb">Porto</span><div class="vl-ports">' + portsHTML + '</div></div>' +
+    '<div class="vl-bar"><input type="search" class="vl-q" id="rb-q" placeholder="Cerca tra tutti i ' + label + ': nome, città, email, codice…" value="' + escapeAttr(S.q || "") + '" autocomplete="off"><span style="flex:1"></span>' +
+      '<button class="vl-bt" onclick="state._rubLayout=\'list\';renderRubricaPage()">Vista elenco</button><button class="vl-bt" onclick="window.exportRubricaCSV(\'' + kind + '\')">⬇ CSV</button><button class="vl-bt p" onclick="window.addNewEntity(\'' + kind + '\')">+ Nuovo</button></div>' +
+    '<div class="vl-cols"><div class="vl-list">' + (q ? '<div class="vl-ag" style="background:#fff">Ricerca in tutti i paesi · ' + tot + ' risultati</div>' : "") +
+      '<div class="vl-hd" style="grid-template-columns:minmax(0,1fr) 150px"><div>' + (kind === "supplier" ? "Fornitore" : "Agenzia") + ' · contatto</div><div>Fiducia (dai tuoi dati)</div></div>' + rows + empty +
+      '<div class="vl-ft"><span>' + (tot > L.length ? "Mostro " + L.length + " di " + tot + ": affina con paese, porto o ricerca · " : "") + 'Paese e città dalla scheda in Rubrica · ⚓ = nave della flotta in arrivo in quel porto</span></div></div>' +
+    '<div class="vl-side">' + rbDetailHTML(kind, sel, steps) + '</div></div></div>';
+}
+function rbDetailHTML(kind, x, steps){ if(!x) return "";
+  const p = x.p, I = x.I, cp = window._rbCp = [], copy = (v, l) => { cp.push({ t: String(v), l }); return '<button onclick="event.stopPropagation();rbCopy(' + (cp.length - 1) + ')" style="font:600 11.5px var(--font-sans);background:#eaf0fd;color:#1553d8;border:0;border-radius:6px;padding:3px 8px;cursor:pointer">Copia</button>'; };
+  const kv = (k, v, mono) => '<span>' + k + '</span><span style="display:flex;gap:8px;align-items:center;justify-content:space-between;min-width:0"><span' + (mono ? ' class="vl-mono"' : "") + ' style="overflow-wrap:anywhere">' + (v ? vlE(v) : "—") + '</span>' + (v ? copy(v, k) : "") + '</span>';
+  const t = typeof ccLocal === "function" ? ccLocal(x.n, p) : null, nm = vlJ(x.n);
+  const lad = steps.map((s, i) => { const on = i <= I.st, c = I.st === 3 ? "#14794e" : "#1553d8";
+    return '<i style="' + (on ? "background:" + c + ";border-color:" + c : "background:#fff") + '"></i><div style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:' + (i === I.st ? 700 : 500) + ';color:' + (on ? "#0a1b2e" : "#6a7d90") + '">' + s + '</span><span style="font-size:11.5px;color:#6a7d90">' + vlE(I.ev[i] || "—") + '</span></div>'; }).join("");
+  const calls = x.calls.length ? '<div style="display:flex;flex-direction:column;gap:6px"><div class="vl-eb">Navi in arrivo</div>' + x.calls.map(c => '<div style="font-size:12.5px;display:flex;gap:6px;flex-wrap:wrap"><b>⚓ ' + vlE(c.vname) + '</b><span>' + vlE(c.port) + '</span><span style="color:#6a7d90">' + (c.eta ? "ETA " + vlFDs(c.eta) : "") + (c.etd ? " · ETD " + vlFDs(c.etd) : "") + '</span></div>').join("") + '</div>' : "";
+  const open = I.open.length ? '<div style="display:flex;flex-direction:column;gap:4px"><div class="vl-eb">Pratiche aperte con loro · ' + I.open.length + '</div>' + I.open.slice(0, 6).map(it => '<button onclick="openItemDetailPopover(\'' + vlJ(it.id) + '\')" style="all:unset;cursor:pointer;font-size:12.5px;display:flex;flex-direction:column;padding:5px 0;border-top:1px solid #eef0f3"><span class="vl-mono">' + vlE(it.poNumber || it.reqNumber || "") + '</span><span style="color:#44576b">' + vlE(ccVName(ccVid(it)) + " · " + (it.description || "")) + '</span></button>').join("") + (I.open.length > 6 ? '<span style="font-size:11.5px;color:#6a7d90">+ altre ' + (I.open.length - 6) + ' in Cerca</span>' : "") + '</div>' : "";
+  const ccKey = (kind === "supplier" ? "s:" : "a:") + x.n;
+  return '<div class="vl-card"><div><div style="font-size:18px;font-weight:700">' + vlE(x.n) + '</div><div style="font-size:12.5px;color:#44576b;margin-top:3px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + vlE([x.cityL, vlCName(x.c)].filter(Boolean).join(", ") || (kind === "supplier" ? "Fornitore" : "Agenzia")) + rbStars(p.rating) + '</div></div>' +
+    '<div class="vl-kv">' + kv("Referente", p.contact) + kv("Email", p.email, true) + kv("Telefono", p.phone, true) + kv("Codice", p.code, true) + kv("Indirizzo", p.address) +
+      '<span>Ora locale</span><span style="color:' + (t ? (t.open ? "#14794e" : "#6a7d90") : "#8a99a8") + '">' + (t ? vlE(t.t + " · " + t.txt) : "fuso non indicato (paese in scheda)") + '</span></div>' +
+    calls + open +
+    '<div style="display:flex;flex-direction:column;gap:7px"><div class="vl-eb">Scala di fiducia</div><div class="vl-lad">' + lad + '</div></div>' +
+    (p.notes ? '<div class="vl-quote" style="font-style:normal;white-space:pre-wrap">' + vlE(String(p.notes).slice(0, 400)) + '</div>' : "") +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #eef0f3">' +
+      '<button class="vl-bt p" onclick="window.' + (kind === "supplier" ? "openSupplierCard" : "openAgencyCard") + '(\'' + nm + '\')">Scheda completa ›</button>' +
+      '<button class="vl-bt" onclick="rbTodo(\'' + kind + '\',\'' + nm + '\')">+ To-do</button>' +
+      '<button class="vl-bt" onclick="window.copyEntityBlock(\'' + kind + '\',\'' + nm + '\')">📋 Copia blocco</button>' +
+      (p.email ? '<a class="vl-bt" href="mailto:' + escapeAttr(p.email) + '">✉ Scrivi</a>' : "") +
+      '<button class="vl-bt" onclick="window._cc.q=\'' + nm + '\';window._cc.sel=\'' + vlJ(ccKey) + '\';goCerca()">⌕ In Cerca</button></div></div>';
+}
+window.rbCopy = function(i){ const x = (window._rbCp || [])[i]; if(x) ccClip(x.t, x.l); };
+window.rbTodo = function(kind, name){ const S = window._rb[kind], c = S.port ? vlCallAt(S.port) : null, txt = "Sentire " + name + (S.port ? " per " + S.port : "");
+  ccNewTodo({ vid: c ? c.vid : "", item: { description: txt, supplier: kind === "supplier" ? name : "" }, text: txt }); };
+window.rbSet = function(kind, f, v){ const S = window._rb[kind]; S[f] = v; if(f === "country"){ S.port = ""; S.q = ""; S.sel = ""; } if(f === "port"){ S.q = ""; S.sel = ""; } renderRubricaPage(); if(f !== "sel") window.scrollTo({ top: 0, behavior: "smooth" }); };
+window.rbRender = function(root, kind, names, nSup, nAg){
+  const D = typeof vlData === "function" ? vlData() : null, nL = D ? Object.keys(D.leads || {}).length : 0;
+  let body; try { body = rbPageHTML(kind, names); } catch(e) { console.error("[rubrica paese]", e); state._rubLayout = "list"; return renderRubricaPage(); }
+  root.innerHTML = '<header class="todo-page-header"><div><h1>Rubrica</h1><div class="todo-page-stats"><span class="stat">' + nSup + ' fornitori · ' + nAg + ' agenzie</span><span class="stat">per paese e porto · ⚓ dove arrivano le navi</span></div></div></header>' +
+    '<div class="todo-mode-switch" role="tablist" style="margin-bottom:16px;">' +
+      '<button class="tms-btn' + (kind === "supplier" ? " active" : "") + '" onclick="window.setRubricaTab(\'supplier\')">🏭 Fornitori <span class="tms-badge">' + nSup + '</span></button>' +
+      '<button class="tms-btn' + (kind === "agency" ? " active" : "") + '" onclick="window.setRubricaTab(\'agency\')">⚓ Agenzie <span class="tms-badge">' + nAg + '</span></button>' +
+      '<button class="tms-btn" onclick="window.setRubricaTab(\'scoperti\')">🧭 Scoperti <span class="tms-badge">' + nL + '</span></button></div>' + body;
+  const q = document.getElementById("rb-q");
+  if(q) q.addEventListener("input", e => { clearTimeout(window._rbQt); const v = e.target.value; window._rbQt = setTimeout(() => { window._rb[kind].q = v; window._rb[kind].sel = ""; renderRubricaPage(); const q2 = document.getElementById("rb-q"); if(q2){ q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } }, 200); });
+};
 
 </script>
 
