@@ -11336,14 +11336,15 @@ function renderMobileApp(){
   const _v6 = typeof window.m6Fleet === "function";   // v1.05 — mobile v6
   app.classList.toggle("m6-on", _v6);
   if(_v6){
-    if(mstate.m6ct) html = m6Contact();
+    if(mstate.pcItem && mstate.vessel === mstate.pcItem.vid && typeof window.pcMobileCard === "function" && (html = window.pcMobileCard())) {}
+    else if(mstate.m6ct) html = m6Contact();
     else if(mstate.vessel) html = (mstate.detTab && mstate.detTab !== "ops") ? m3Vessel(mstate.vessel) : m6Vessel(mstate.vessel);
     else if(mstate.screen === "todo") html = m6Todo();
     else if(mstate.screen === "rubrica") html = m6Rubrica();
     else if(mstate.screen === "cerca") html = typeof window.ccMobileHTML === "function" ? window.ccMobileHTML() : '<div class="m6" style="gap:14px">' + m3Search() + '</div>';
     else if(mstate.screen === "cert") html = maCert();
     else html = m6Fleet();
-    app.innerHTML = html; m6Badge(); if(!mstate.m6ct && !mstate.vessel && mstate.screen === "cerca" && typeof window.ccMobileBind === "function") window.ccMobileBind(); return;
+    app.innerHTML = html; m6Badge(); document.body.classList.toggle("pc-m-open", !!(mstate.pcItem && document.getElementById("pc-m"))); if(!mstate.m6ct && !mstate.vessel && mstate.screen === "cerca" && typeof window.ccMobileBind === "function") window.ccMobileBind(); return;
   }
   app.innerHTML = '<div class="ma-empty" style="margin-top:40px">Modulo mobile non caricato: ricarica la pagina.</div>';
 }
@@ -31894,7 +31895,7 @@ function pcAll(vid){
 function pcFind(A, id){ return A.L.find(x => x.it.id === id) || A.closed.find(x => x.it.id === id) || null; }
 function pcMatch(x, q){ const it = x.it; return [it.description, it.supplier, it.poNumber, it.dnNumber, it.reqNumber, (it.rfqNumbers || []).join(" "), x.note, state.notes[it.id]].join(" ").toLowerCase().includes(q); }
 function pcRowHTML(x, vid, sel){
-  const it = x.it, esc = escapeHTML, id = pcJ(it.id), on = sel === it.id;
+  const it = x.it, esc = escapeHTML, id = pcJ(it.id), on = sel === it.id, mob = maIsMobile();
   const num = pvDoc(it), numL = it.dnNumber ? "DN" : it.poNumber ? "PO" : (it.rfqNumbers || []).filter(Boolean).length ? "RFQ" : "REQ";
   const sup = it.supplier && it.supplier !== "—" ? it.supplier : "", dep = String(it.department || "").replace(/ ?Department$/i, "").toUpperCase();
   const kc = x.k === "r" ? "#c0261c" : x.k === "a" ? "#a86200" : x.k === "s" ? "#8a99a8" : "#44576b";
@@ -31902,13 +31903,14 @@ function pcRowHTML(x, vid, sel){
   let dl = null; try { dl = getEffectiveDelivery(it, vid); } catch(e) {}
   const port = dl && dl.port ? ccTitle(dl.port) + (dl.date ? " " + pcFD(dl.date) : "") : "";
   const sg = x.cur < 4 ? getItemShipments(it.id).slice().reverse().find(s => s.number) : null, note = state.notes[it.id] || "";
-  return '<div onclick="pcSel(\'' + pcJ(vid) + '\',\'' + id + '\')" style="display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 14px;border-top:1px solid rgba(10,27,46,.06);cursor:pointer;background:' + (on ? "#f0f5ff" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + '">' +
+  const right = pcSeg(x.cur, x.k, false) + '<span style="display:flex;gap:6px;align-items:center"><span style="display:flex;flex-direction:' + (mob ? "row;gap:6px;align-items:baseline" : "column;align-items:flex-end") + '"><span style="font-size:10px;font-weight:700;color:#6a7d90">' + numL + '</span><span style="font:500 12px var(--font-mono)">' + esc(num) + '</span></span>' + pcCopyBtn(num, numL + " " + String(num).replace(/^\d{4}-/, "")) + '</span>';
+  return '<div onclick="pcSel(\'' + pcJ(vid) + '\',\'' + id + '\')" style="display:grid;grid-template-columns:' + (mob ? "16px minmax(0,1fr)" : "18px minmax(0,1fr) auto") + ';gap:10px;align-items:start;padding:' + (mob ? "12px 2px" : "10px 14px") + ';border-top:1px solid rgba(10,27,46,.06);cursor:pointer;background:' + (on ? "#f0f5ff" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + '">' +
     '<span style="margin-top:3px;width:15px;height:15px;border-radius:4px;display:grid;place-items:center;font:700 10px var(--font-sans);color:#fff;background:' + (x.crit ? "#c0261c" : "transparent") + '">' + (x.crit ? "C" : "") + '</span>' +
     '<div style="display:flex;flex-direction:column;gap:4px;min-width:0"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span style="font-size:13.5px;font-weight:600">' + esc(it.description || "—") + '</span>' + (dep ? '<span style="font-size:10.5px;font-weight:600;letter-spacing:.04em;color:#6a7d90">' + esc(dep) + '</span>' : "") + '</div>' +
       '<div style="display:flex;gap:3px 12px;flex-wrap:wrap;font-size:12.5px;color:#44576b"><span style="color:' + (sup ? "#44576b" : "#8a99a8") + '">' + esc(sup || "fornitore da indicare") + '</span><span style="color:' + kc + ';font-weight:' + (x.k === "r" ? 700 : 500) + '">' + esc(x.note || "") + '</span>' +
         (rd ? '<span>pronto ' + esc(pcFD(rd)) + '</span>' : "") + (x.cur < 4 ? '<span style="color:' + (port ? "#0a1b2e" : "#8a99a8") + '">⚓ ' + esc(port || "senza scalo") + '</span>' : "") + '</div>' +
-      (sg ? pcLegBar(sg, false) : "") + (note ? '<span style="align-self:flex-start;font-size:12px;background:#fff4d6;color:#7a5200;border-radius:5px;padding:2px 7px">✎ ' + esc(note) + '</span>' : "") + '</div>' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' + pcSeg(x.cur, x.k, false) + '<span style="display:flex;gap:6px;align-items:center"><span style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:10px;font-weight:700;color:#6a7d90">' + numL + '</span><span style="font:500 12px var(--font-mono)">' + esc(num) + '</span></span>' + pcCopyBtn(num, numL + " " + String(num).replace(/^\d{4}-/, "")) + '</span></div></div>';
+      (sg ? pcLegBar(sg, false) : "") + (note ? '<span style="align-self:flex-start;font-size:12px;background:#fff4d6;color:#7a5200;border-radius:5px;padding:2px 7px">✎ ' + esc(note) + '</span>' : "") + (mob ? '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:2px">' + right + '</div>' : "") + '</div>' +
+    (mob ? "" : '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' + right + '</div>') + '</div>';
 }
 function pcListHTML(vid, A){
   const S = window._pc, st = S.st[vid] || "all", q = String(S.q || "").trim().toLowerCase(), sel = S.sel[vid];
@@ -31978,7 +31980,7 @@ function pcCardHTML(vid, x){
         '<span>' + esc([s.carrier, s.pickup ? "partenza " + pcFD(s.pickup) : "", s.eta ? (s.status === "delivered" ? "consegnato " : "arrivo prev. ") + pcFD(s.eta) : ""].filter(Boolean).join(" · ")) + '</span></div>' +
       (n || s.partial ? '<span style="font-size:11.5px;color:#1553d8">' + (n ? "Spedizione unica con " + n + " altri PO" : "") + (s.partial ? (n ? " · " : "") + "solo una parte del PO" : "") + '</span>' : "") + '</div>'; }).join("");
   const poBody = poMeta + (pOpen ? '<div style="display:flex;flex-direction:column;gap:8px;padding-left:40px">' + (legs || '<span style="font-size:12.5px;color:#6a7d90">Nessuna spedizione registrata.</span>') +
-    '<div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="openItemDetailPopover(\'' + id + '\')" style="' + PC_B + '">+ Aggiungi o collega spedizione</button><button onclick="shipHubBoard()" style="' + PC_B + '">⇉ Hub e consolidati</button></div></div>' : "");
+    '<div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="pcFull(\'' + id + '\')" style="' + PC_B + '">+ Aggiungi o collega spedizione</button><button onclick="shipHubBoard()" style="' + PC_B + '">⇉ Hub e consolidati</button></div></div>' : "");
   // DN
   const dnH = '<span style="font:500 13px var(--font-mono);flex:1;min-width:0;overflow-wrap:anywhere;color:' + (it.dnNumber ? "#0a1b2e" : "#8a99a8") + '">' + esc(it.dnNumber || "da fare") + '</span>' + pcCopyBtn(it.dnNumber, "DN " + String(it.dnNumber || "").replace(/^\d{4}-/, ""));
   const dnB = '<span style="font-size:12px;color:#44576b;padding-left:40px">' + esc(it.dnNumber ? [pcShort(it.dnStatus), it.dnDeliveryDate ? "consegna " + pcFD(it.dnDeliveryDate) : it.dnDate ? pcFD(it.dnDate) : "", x.sid === "dn" ? "da chiudere in Infoship" : ""].filter(Boolean).join(" · ") : cur >= 2 ? "la crea la nave quando la merce è a bordo" : "") + '</span>' +
@@ -31993,7 +31995,7 @@ function pcCardHTML(vid, x){
     return '<button onclick="setDeliveryPlan(\'' + id + '\',{mode:\'voyage\',leg:\'' + w + '\',voyageLegId:' + (l.id ? "'" + pcJ(l.id) + "'" : "undefined") + ',updatedAt:new Date().toISOString()});pcPaint(\'' + V + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:8px;background:' + (on ? "#f0f5ff" : "#fff") + '"><span style="width:12px;height:12px;border-radius:50%;border:2px solid ' + (on ? "#1553d8" : "#b8c3ce") + ';background:' + (on ? "#1553d8" : "#fff") + '"></span><span style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:600">' + esc(ccTitle(l.to)) + '</span><span style="font-size:11.5px;color:#6a7d90">' + esc((w === "current" ? "viaggio in corso" : "viaggio successivo") + [l.eta ? " · ETA " + pcFD(l.eta) : "", l.etd ? " · ETD " + pcFD(l.etd) : ""].join("")) + '</span></span></button>'; }).join("");
   const delSum = dl && dl.port ? ccTitle(dl.port) + (dl.date ? " · " + pcFD(dl.date) : "") + (dl.legLabel ? " · " + dl.legLabel : "") : "nessuna consegna pianificata";
   const delBody = S.del ? '<div style="display:flex;flex-direction:column;gap:4px;padding-bottom:8px">' + (legOpt || '<span style="font-size:12.5px;color:#6a7d90">Nessuno scalo nel Viaggio della nave.</span>') +
-    '<div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px"><button onclick="setDeliveryPlan(\'' + id + '\',null);pcPaint(\'' + V + '\')" style="' + PC_B + '">Nessuna pianificazione</button><button onclick="openItemDetailPopover(\'' + id + '\')" style="' + PC_B + '">Altro porto o data…</button></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px"><button onclick="setDeliveryPlan(\'' + id + '\',null);pcPaint(\'' + V + '\')" style="' + PC_B + '">Nessuna pianificazione</button><button onclick="pcFull(\'' + id + '\')" style="' + PC_B + '">Altro porto o data…</button></div>' +
     '<span style="font-size:12px;color:#44576b;padding-top:4px">' + (lt != null ? "Lead time " + lt + " gg" + (rd ? " → pronto " + pcFD(rd) : "") : "Lead time non indicato") + ' · si cambia nella Scheda completa.</span></div>' : "";
   const note = state.notes[it.id] || "";
   const M = window._pc.mail[it.id];
@@ -32008,8 +32010,8 @@ function pcCardHTML(vid, x){
     '<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><div style="display:flex;gap:10px;align-items:center"><span style="' + PC_EB + ';width:100px">DOVE SI TROVA</span><span style="display:flex;gap:6px;align-items:center;font-size:13.5px;font-weight:600;flex:1"><span style="width:9px;height:9px;border-radius:50%;background:' + P.c + '"></span>' + esc(P.l) + (mp.partial ? " · parziale" : "") + '</span><button onclick="window._pc.pos=!window._pc.pos;pcPaint(\'' + V + '\')" style="' + PC_B + '">' + (S.pos ? "Chiudi" : "Cambia") + '</button></div>' + posChips + '</div>' +
     '<div style="display:flex;flex-direction:column;border-top:1px solid rgba(10,27,46,.08)"><button onclick="window._pc.del=!window._pc.del;pcPaint(\'' + V + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 0"><span style="' + PC_EB + '">CONSEGNA</span><span style="font-size:13px">' + esc(delSum) + '</span><span style="font-size:12px;color:#6a7d90">' + (S.del ? "▾" : "▸ cambia") + '</span></button>' + delBody + '</div>' +
     '<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + '">NOTA</span><textarea id="pc-note" rows="2" placeholder="Scrivi una nota… compare anche nella riga della lista" onblur="pcNote(\'' + V + '\',\'' + id + '\',this.value)" style="font:400 13.5px var(--font-sans);border:1px solid rgba(10,27,46,.15);border-radius:8px;padding:8px 10px;resize:vertical;outline:0">' + esc(note) + '</textarea></div>' +
-    '<div id="pc-mail" style="display:flex;flex-direction:column;gap:2px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px">' + pcMailHTML(it) + '</div></div>' +
-    '<div style="display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(10,27,46,.10);background:#fafbfc;position:sticky;bottom:0;flex-wrap:wrap"><button onclick="pcTodo(\'' + V + '\',\'' + id + '\')" style="' + PC_B + ';font-size:13px;padding:8px 12px">+ To-do</button><button onclick="pcEN(\'' + id + '\')" style="font:600 13px var(--font-sans);background:#0a1b2e;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">⧉ Copia testo EN</button><span style="flex:1"></span><button onclick="openItemDetailPopover(\'' + id + '\')" style="font:600 13px var(--font-sans);background:none;color:#1553d8;border:0;cursor:pointer">Scheda completa →</button></div>';
+    '<div id="pc-mail" data-id="' + escapeAttr(it.id) + '" style="display:flex;flex-direction:column;gap:2px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px">' + pcMailHTML(it) + '</div></div>' +
+    '<div style="display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(10,27,46,.10);background:#fafbfc;position:sticky;bottom:0;flex-wrap:wrap"><button onclick="pcTodo(\'' + V + '\',\'' + id + '\')" style="' + PC_B + ';font-size:13px;padding:8px 12px">+ To-do</button><button onclick="pcEN(\'' + id + '\')" style="font:600 13px var(--font-sans);background:#0a1b2e;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">⧉ Copia testo EN</button><span style="flex:1"></span><button onclick="pcFull(\'' + id + '\')" style="font:600 13px var(--font-sans);background:none;color:#1553d8;border:0;cursor:pointer">Scheda completa →</button></div>';
 }
 // --- posta dell'articolo (stesso webhook di Cerca) ------------------------------------------
 function pcMailTerms(it){ const T = []; [it.poNumber, it.dnNumber, it.reqNumber].concat(it.rfqNumbers || []).filter(Boolean).forEach(n => { const m = String(n).toUpperCase().match(/^(\d{4})-([A-Z]{2,4})-([A-Z]{3,5})-(\d{4,6})$/); if(m){ T.push(m[3] + "-" + m[4]); T.push(m[3] + m[4]); } else T.push(String(n)); }); return [...new Set(T)].slice(0, 8); }
@@ -32020,7 +32022,7 @@ function pcMailHTML(it){
   if(!M){ window._pc.mail[it.id] = { st: "load", list: [] }; const tok = String((state.settings || {}).mailSearchToken || "");
     fetch(url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(tok) + "&terms=" + encodeURIComponent(JSON.stringify(T)), { cache: "no-store" }).then(r => r.ok ? r.json() : Promise.reject(new Error("risposta " + r.status)))
       .then(d => { window._pc.mail[it.id] = { st: "ok", list: (d && d.messages) || [] }; }).catch(e => { window._pc.mail[it.id] = { st: "err", err: String(e.message || e), list: [] }; })
-      .then(() => { const el = document.getElementById("pc-mail"); if(el && (window._pc.sel[state.selectedVesselId] === it.id)) el.innerHTML = pcMailHTML(it); });
+      .then(() => { const el = document.getElementById("pc-mail"); if(el && el.dataset.id === it.id) el.innerHTML = pcMailHTML(it); });
     return head + '<span style="font-size:12.5px;color:#6a7d90">Cerco in Outlook…</span>'; }
   if(M.st === "load") return head + '<span style="font-size:12.5px;color:#6a7d90">Cerco in Outlook…</span>';
   if(M.st === "err") return head + '<span style="font-size:12.5px;color:#b3261e">Ricerca non riuscita: ' + escapeHTML(M.err) + ' <button onclick="delete window._pc.mail[\'' + pcJ(it.id) + '\'];document.getElementById(\'pc-mail\').innerHTML=pcMailHTML(faFindItem(\'' + pcJ(it.id) + '\'))" style="' + PC_B + '">Riprova</button></span>';
@@ -32059,14 +32061,55 @@ pvHTML = window.pvHTML = function(vid){
   if(!pcOn()) return '<div style="display:flex;justify-content:flex-end;margin:0 0 -6px"><button class="btn btn-sm" onclick="pcSetView(\'new\')">Vista nuova →</button></div>' + pvHTML0(vid);
   try { return pcPageHTML(vid); } catch(e) { console.error("[procurement compatto]", e); return pvHTML0(vid); }
 };
-window.pcPaint = function(vid){ const h = document.getElementById("pv-root"); if(!h) return; const c = document.getElementById("pc-card"), sc = c ? c.scrollTop : 0; h.innerHTML = pvHTML(vid); const c2 = document.getElementById("pc-card"); if(c2) c2.scrollTop = sc; };
-window.pcSel = function(vid, id){ if(window.innerWidth < 1100){ openItemDetailPopover(id); return; } const S = window._pc; if(S.sel[vid] !== id){ S.fo = {}; S.pos = false; S.del = false; } S.sel[vid] = id;
+window.pcPaint = function(vid){ if(maIsMobile()){ const y = window.scrollY; renderMobileApp(); window.scrollTo(0, y); return; } const h = document.getElementById("pv-root"); if(!h) return; const c = document.getElementById("pc-card"), sc = c ? c.scrollTop : 0; h.innerHTML = pvHTML(vid); const c2 = document.getElementById("pc-card"); if(c2) c2.scrollTop = sc; };
+window.pcSel = function(vid, id){ if(maIsMobile()){ const S = window._pc; S.fo = {}; S.pos = false; S.del = false; S.sel[vid] = id; mstate.pcItem = { vid, id, y: window.scrollY }; renderMobileApp(); window.scrollTo(0, 0); return; } if(window.innerWidth < 1100){ openItemDetailPopover(id); return; } const S = window._pc; if(S.sel[vid] !== id){ S.fo = {}; S.pos = false; S.del = false; } S.sel[vid] = id;
   const A = pcAll(vid), c = document.getElementById("pc-card"), l = document.getElementById("pc-list"); if(!A || !c || !l) return pcPaint(vid); l.innerHTML = pcListHTML(vid, A); c.innerHTML = pcCardHTML(vid, pcFind(A, id)); c.scrollTop = 0; };
-window.pcSt = function(vid, k){ window._pc.st[vid] = k; window._pc.q = ""; pcPaint(vid); };
+window.pcSt = function(vid, k){ window._pc.st[vid] = k; window._pc.q = ""; window._pc.mAll = false; pcPaint(vid); };
 window.pcQ = function(vid, v){ window._pc.q = v; clearTimeout(window._pcT); window._pcT = setTimeout(() => { const A = pcAll(vid), l = document.getElementById("pc-list"); if(A && l) l.innerHTML = pcListHTML(vid, A); }, 160); };
 window.pcNote = function(vid, id, val){ val = String(val || "").trim(); if((state.notes[id] || "") === val) return; if(val) state.notes[id] = val; else delete state.notes[id]; saveNotes(); const A = pcAll(vid), l = document.getElementById("pc-list"); if(A && l) l.innerHTML = pcListHTML(vid, A); showToast("Nota salvata"); };
 window.pcTodo = function(vid, id){ const it = faFindItem(id); if(it) ccNewTodo({ vid, item: it, text: (it.description || "") + (it.poNumber ? " · PO " + String(it.poNumber).replace(/^\d{4}-/, "") : "") }); };
 window.pcEN = function(id){ const it = faFindItem(id); if(!it) return; let t = ""; try { const n0 = window._cc.cp.length; t = ccItemCard(it).text; window._cc.cp.length = n0; } catch(e) { t = "Ref. " + (it.poNumber || it.reqNumber || "") + " — " + (it.description || ""); } ccClip(t, "Testo EN"); };
+// --- v2.5b TELEFONO: stessa lista nella scheda nave, la scheda a lato diventa a schermo intero -------------
+window.pcFull = function(id){ if(maIsMobile() && typeof window.m3Po === "function") window.m3Po(id); else openItemDetailPopover(id); };
+(function(){ try { const s = document.createElement("style"); s.id = "pc-m-css"; s.textContent = `
+#pc-mt button,#pc-m button{min-height:40px}
+#pc-m textarea,#pc-mt input{font-size:16px !important}
+body.pc-m-open #mobile-tabbar{display:none !important}
+#pc-m{padding-bottom:96px}
+#pc-m > div:last-child{position:fixed !important;left:0;right:0;bottom:0;z-index:60;box-shadow:0 -6px 20px rgba(10,27,46,.12);padding-bottom:calc(12px + env(safe-area-inset-bottom)) !important}
+#pc-m > div:last-child > button{flex:1 1 auto}
+.pc-m-ph{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;margin:0 -8px;padding-left:8px;scrollbar-width:none}
+.pc-m-ph::-webkit-scrollbar{display:none}
+`; document.head.appendChild(s); } catch(e) {} })();
+function pcMobileTop(vid, P, nTodo){
+  const A = pcAll(vid); if(!A) return ""; const esc = escapeHTML, V = pcJ(vid), S = window._pc, st = S.st[vid] || "all", cfg = VESSELS.find(x => x.vesselId === vid) || {};
+  const c = P.call, W = (() => { try { return mpWhere(vid); } catch(e) { return null; } })();
+  let lim = ""; if(c){ const cut = c.its && c.its[0] ? c.its[0].cut : c.etd - 1, dd = Math.floor(Math.max(0, cut)), hh = Math.floor((Math.max(0, cut) - dd) * 24); lim = cut < 0 ? "limite passato" : dd + "g " + String(hh).padStart(2, "0") + "h al limite"; }
+  const ln = c ? String(c.port).toUpperCase() + " · " + lim : W && W.port ? String(W.port).toUpperCase() + (W.eta ? " · ETA " + ccD(W.eta) : "") : "SCALO DA INSERIRE";
+  const judged = P.open - P.grey, ok = judged ? Math.round(P.green / judged * 100) : 100;
+  const head = '<div class="m7-hd"><button class="m6-back" onclick="maBack()">‹ Flotta</button><div class="h1" style="color:' + (typeof m6VCol === "function" ? m6VCol(vid) : "#0a1b2e") + '">' + esc(cfg.displayName || vid) + '</div><div class="ln" style="color:' + (/passato/.test(lim) || (c && c.its && c.its[0] && c.its[0].cut < 2) ? "#b3261e" : "#0a1b2e") + '">' + esc(ln) + '</div></div>';
+  const kpi = '<div style="display:flex;gap:4px 14px;flex-wrap:wrap;font-size:13.5px;color:#44576b"><span><b style="color:#0a1b2e">' + P.open + '</b> aperti</span><span><b style="color:' + (ok >= 75 ? "#14794e" : ok >= 50 ? "#a86200" : "#b3261e") + '">' + ok + '%</b> nei tempi</span><span><b style="color:#b3261e">' + P.red + '</b> fermi</span><span><b style="color:' + (P.critBad ? "#b3261e" : "#14794e") + '">' + P.critBad + '/' + P.crit + '</b> critici</span>' +
+    (P.stale ? '<button onclick="m3DnStart(\'' + V + '\')" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600">' + P.stale + ' DN vecchie ›</button>' : "") + '</div>';
+  const chip = (k, n, l, late) => { const on = st === k; return '<button onclick="pcSt(\'' + V + '\',\'' + k + '\')" style="flex:none;font:600 13.5px var(--font-sans);border-radius:999px;padding:8px 13px;cursor:pointer;white-space:nowrap;display:flex;gap:6px;align-items:baseline;background:' + (on ? "#0a1b2e" : "#fff") + ';color:' + (on ? "#fff" : "#0a1b2e") + ';border:1px solid ' + (on ? "#0a1b2e" : "rgba(10,27,46,.18)") + '">' + esc(l) + '<span style="font-family:var(--font-mono);font-weight:700;color:' + (on ? "#fff" : late ? "#b3261e" : n ? "#44576b" : "#aab6c3") + '">' + n + '</span></button>'; };
+  const chips = '<div class="pc-m-ph">' + chip("all", P.open, "Tutte", P.red) + P.S.map(s => chip(s.id, s.n, s.nm, s.r)).join("") + '</div>';
+  const q = String(S.q || "").trim().toLowerCase(), max = S.mAll ? 999 : 12;
+  let L = q ? A.L.concat(A.closed).filter(x => pcMatch(x, q)) : A.P.S.filter(s => st === "all" || s.id === st).flatMap(s => s.its.map(x => Object.assign({ sid: s.id, cur: PC_STEP[s.id], sn: s.nm }, x)));
+  const tot = L.length; L = L.slice(0, max);
+  let last = "", rows = "";
+  L.forEach(x => { if(!q && st === "all" && x.sn !== last){ last = x.sn; rows += '<div style="font:600 11px var(--font-mono);letter-spacing:.08em;color:#6a7d90;padding:14px 2px 4px;border-top:1px solid #e3e7ec">' + esc(String(x.sn).toUpperCase()) + '</div>'; } rows += pcRowHTML(x, vid, ""); });
+  const list = '<div id="pc-list">' + (rows || '<div class="m6-kv"><span>' + (q ? "Nessun articolo trovato." : "Niente in questa fase.") + '</span></div>') + '</div>' + (tot > L.length ? '<button class="m6-more" onclick="window._pc.mAll=true;pcPaint(\'' + V + '\')">Mostra tutti (' + tot + ')</button>' : "");
+  const search = '<input type="search" autocomplete="off" value="' + escapeAttr(S.q || "") + '" oninput="window._pc.q=this.value;clearTimeout(window._pcT);window._pcT=setTimeout(()=>{const y=window.scrollY;renderMobileApp();window.scrollTo(0,y);const i=document.querySelector(\'#pc-mt input\');if(i){i.focus();const n=i.value.length;try{i.setSelectionRange(n,n)}catch(e){}}},350)" placeholder="Trova: descrizione, fornitore, numero…" style="width:100%;border:1px solid rgba(10,27,46,.18);border-radius:10px;padding:10px 12px;font-family:var(--font-sans);outline:0">';
+  const btns = '<div class="m7-btns"><button onclick="var e=document.getElementById(\'m7-todo\');if(e)window.scrollTo({top:e.getBoundingClientRect().top+window.scrollY-70,behavior:\'smooth\'})">To-do · ' + (nTodo || 0) + '</button>' + (c && !c.past ? '<button onclick="rdShipPreAlert(\'' + pcJ(c.id) + '\')">✉ Pre-alert</button>' : "") + '</div>';
+  return head + '<div id="pc-mt" style="display:flex;flex-direction:column;gap:12px">' + kpi + '<div class="m6-sec" style="gap:8px"><div class="m6-eb">ACQUISTI · TOCCA UN ARTICOLO PER IL FLUSSO</div>' + chips + search + list + '</div></div>' + btns;
+}
+window.pcMobileCard = function(){
+  const pi = mstate.pcItem, A = pcAll(pi.vid), x = A ? pcFind(A, pi.id) : null; if(!x){ mstate.pcItem = null; return null; }
+  const cfg = VESSELS.find(v => v.vesselId === pi.vid) || {};
+  return '<div class="m6" style="gap:0;padding:4px 0 0"><div style="padding:0 8px"><button class="m6-back" onclick="pcBack()">‹ ' + escapeHTML(cfg.displayName || "Indietro") + '</button></div><div id="pc-m">' + pcCardHTML(pi.vid, x) + '</div></div>';
+};
+window.pcBack = function(){ const y = (mstate.pcItem || {}).y || 0; mstate.pcItem = null; window._pc.pos = false; window._pc.del = false; renderMobileApp(); setTimeout(() => window.scrollTo(0, y), 0); };
+if(typeof m7Top === "function"){ const m7Top0 = m7Top; m7Top = function(vid, P, nTodo){ if(!pcOn()) return m7Top0(vid, P, nTodo); try { return pcMobileTop(vid, P, nTodo); } catch(e) { console.error("[pc mobile]", e); return m7Top0(vid, P, nTodo); } }; }
+{ const mb0 = window.maBack; if(typeof mb0 === "function") window.maBack = function(){ mstate.pcItem = null; window._pc.mAll = false; window._pc.q = ""; return mb0.apply(this, arguments); }; }
 
 </script>
 
