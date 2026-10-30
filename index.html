@@ -8811,7 +8811,6 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
     <!-- Dropdown menu mobile -->
     <div class="mobile-menu" id="mobile-menu">
       <button data-mm-action="refresh"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-refresh"/></svg>Aggiorna dati</button>
-      <button data-mm-action="eod"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-moon"/></svg>Fine giornata</button>
       <div class="divider"></div>
       <button data-mm-action="todo-new"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-plus"/></svg>Nuova to-do</button>
       <button data-mm-action="todo-from-email"><svg class="icon icon-sm" style="margin-right:6px"><use href="#i-mail"/></svg>To-do da email</button>
@@ -9022,10 +9021,6 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
     <div class="modal-section">
       <h3>Strumenti</h3>
       <div class="setting-row">
-        <label>Apri Pulse del fornitore</label>
-        <button class="btn btn-sm" id="open-supplier-pulse">Apri →</button>
-      </div>
-      <div class="setting-row">
         <label>Rivedi tutorial</label>
         <button class="btn btn-sm" id="restart-onboarding">Avvia</button>
       </div>
@@ -9038,13 +9033,6 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
         <span style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-sm" onclick="window.mpdExportAll()">Scarica</button>
           <label class="btn btn-sm" style="cursor:pointer;">Ripristina<input type="file" accept=".json" style="display:none" onchange="window.mpdImportAll(this.files[0]); this.value='';"></label>
-        </span>
-      </div>
-      <div class="setting-row">
-        <label>Overview</label>
-        <span style="display:flex;gap:6px;">
-          <button class="btn btn-sm" onclick="window.setOverviewMode('radar')">Radar scali</button>
-          <button class="btn btn-sm" onclick="window.setOverviewMode('classic')">Classica</button>
         </span>
       </div>
       <div class="setting-row">
@@ -9076,21 +9064,7 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
   </div>
 </div>
 
-<!-- Modal: End of Day -->
-<div class="modal" id="modal-eod">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Fine giornata</h2>
-      <button class="close" data-close-modal>✕</button>
-    </div>
-    <p class="muted" style="font-size: var(--fs-sm);">Report sintetico di quanto è cambiato oggi, di quanto resta aperto e di quanto va ripreso domani. Copialo per il passaggio consegne o per Notion.</p>
-    <pre class="eod-report" id="eod-report">Generazione report…</pre>
-    <div class="flex gap-2">
-      <button class="btn btn-primary" id="eod-copy">Copia negli appunti</button>
-      <button class="btn" id="eod-snapshot">Aggiorna baseline mattutina</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- Modal: Onboarding -->
 <div class="modal" id="modal-onb">
@@ -10449,133 +10423,6 @@ function maybeMorningSnapshot() {
 
 function todayISO() { return new Date().toISOString().slice(0,10); }
 
-// End of Day: report testuale
-function buildEODReport() {
-  if (!state.data) return "Nessun dato disponibile.";
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("it-IT", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-  let r = `FINE GIORNATA · ${dateStr}\n${"=".repeat(40)}\n\n`;
-
-  // Cosa è cambiato vs baseline mattutina
-  if (state.morningSnapshot) {
-    const newSnap = buildSnapshot();
-    const diff = diffSnapshots(state.morningSnapshot, newSnap);
-    if (diff) {
-      r += "CAMBIAMENTI DI OGGI\n" + "-".repeat(40) + "\n";
-      let anyChange = false;
-      for (const [vid, c] of Object.entries(diff.vessels)) {
-        if (c.totalChanges === 0) continue;
-        anyChange = true;
-        const cfg = VESSELS.find(x => x.vesselId === vid);
-        const name = cfg ? cfg.displayName : vid;
-        r += `\n${name}:\n`;
-        if (c.newRefused) r += `  • ${c.newRefused} nuovo/i RFQ refused\n`;
-        if (c.newDNReceived) r += `  • ${c.newDNReceived} consegna/e ricevuta/e\n`;
-        if (c.newPOPublished) r += `  • ${c.newPOPublished} PO pubblicato/i\n`;
-        if (c.newRFQAck) r += `  • ${c.newRFQAck} offerta/e ricevuta/e\n`;
-      }
-      if (!anyChange) r += "  Nessun cambiamento di stato rilevato.\n";
-      r += "\n";
-    }
-  } else {
-    r += "(Nessuna baseline mattutina salvata: domani aprila al mattino.)\n\n";
-  }
-
-  // v0.10.2 — Riepilogo azioni COMPLETATE oggi (dal completionsHistory)
-  const today = todayISO();
-  const completedToday = (state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today);
-  if (completedToday.length > 0) {
-    r += "FATTE OGGI (" + completedToday.length + ")\n" + "-".repeat(40) + "\n";
-    // Raggruppo per nave per leggibilità
-    const byVessel = {};
-    for (const e of completedToday) {
-      const v = e.vesselName || "—";
-      if (!byVessel[v]) byVessel[v] = [];
-      byVessel[v].push(e);
-    }
-    for (const [vn, entries] of Object.entries(byVessel)) {
-      r += `\n${vn}:\n`;
-      for (const e of entries) {
-        const time = (e.completedAt || "").slice(11, 16);
-        const desc = (e.description || "").substring(0, 60);
-        r += `  ${time} · ${e.label} · ${desc}\n`;
-      }
-    }
-    r += "\n";
-  }
-
-  // To-do create oggi (utili come "ho aperto N nuove pratiche")
-  const todosCreatedToday = (state.todos || []).filter(t => {
-    if (!t.createdAt) return false;
-    return t.createdAt.slice(0, 10) === today;
-  });
-  if (todosCreatedToday.length > 0) {
-    r += "NUOVE TO-DO CREATE OGGI (" + todosCreatedToday.length + ")\n" + "-".repeat(40) + "\n";
-    for (const t of todosCreatedToday.slice(0, 10)) {
-      const ref = (t.reference || t.note || "").substring(0, 60);
-      r += `  • ${t.action || "(senza azione)"} · ${ref}\n`;
-    }
-    if (todosCreatedToday.length > 10) r += `  ... e altre ${todosCreatedToday.length - 10}\n`;
-    r += "\n";
-  }
-
-  // Azioni ancora aperte
-  r += "ANCORA APERTO\n" + "-".repeat(40) + "\n";
-  const actions = generateAllActions();
-  if (actions.length === 0) r += "  Nessuna azione aperta. Buon lavoro!\n";
-  else {
-    // Raggruppo per livello
-    const byLevel = { critical: [], warning: [], info: [] };
-    for (const a of actions) {
-      if (byLevel[a.level]) byLevel[a.level].push(a);
-    }
-    if (byLevel.critical.length > 0) {
-      r += `\n[URGENTE - ${byLevel.critical.length}]\n`;
-      for (const a of byLevel.critical.slice(0, 15)) {
-        const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
-        const descShort = (a.description || "").substring(0, 60);
-        r += `  ${vshort} · ${descShort}\n`;
-      }
-      if (byLevel.critical.length > 15) r += `  ... e altre ${byLevel.critical.length - 15}\n`;
-    }
-    if (byLevel.warning.length > 0) {
-      r += `\n[QUESTA SETTIMANA - ${byLevel.warning.length}]\n`;
-      for (const a of byLevel.warning.slice(0, 10)) {
-        const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
-        const descShort = (a.description || "").substring(0, 60);
-        r += `  ${vshort} · ${descShort}\n`;
-      }
-      if (byLevel.warning.length > 10) r += `  ... e altre ${byLevel.warning.length - 10}\n`;
-    }
-    if (byLevel.info.length > 0) {
-      r += `\n[QUANDO PUOI - ${byLevel.info.length}]\n`;
-      for (const a of byLevel.info.slice(0, 8)) {
-        const vshort = (a.vesselName || "").replace("M/V ", "").substring(0, 16);
-        const descShort = (a.description || "").substring(0, 60);
-        r += `  ${vshort} · ${descShort}\n`;
-      }
-      if (byLevel.info.length > 8) r += `  ... e altre ${byLevel.info.length - 8}\n`;
-    }
-  }
-  r += "\n";
-
-  // Snoozed che torneranno
-  const snoozedReturning = [];
-  for (const [k, dateStr] of Object.entries(state.snoozed)) {
-    if (new Date(dateStr) > now) snoozedReturning.push({ k, date: dateStr });
-  }
-  if (snoozedReturning.length > 0) {
-    r += "SNOOZATI PER DOPO\n" + "-".repeat(40) + "\n";
-    for (const s of snoozedReturning.slice(0, 10)) {
-      r += `  • Torna ${s.date.slice(0,10)} — ${s.k}\n`;
-    }
-    r += "\n";
-  }
-
-  r += "-".repeat(40) + "\n";
-  r += `Generato ${now.toLocaleString("it-IT")}\n`;
-  return r;
-}
 
 // ============================================================================
 // === SNOOZE =================================================================
@@ -10839,13 +10686,15 @@ function render() {
   if (state.view === "certificates") renderCertificatesContainer();
   else if (state.view === "overview") { renderOverview(); startWorldClockTimer(); }
   else if (state.view === "vessel") renderVesselDetail();
-  else if (state.view === "email") renderEmailPage();
-  else if (state.view === "supplier") renderSupplierPulse();
+  else if (state.view === "email" || state.view === "supplier") { state.view = "overview"; renderOverview(); }
   else if (state.view === "performance") renderPerformancePage();
   else if (state.view === "rubrica") renderRubricaPage();
   else if (state.view === "budget") renderBudgetPage();
   else if (state.view === "debug") renderDebug();
   else if (state.view === "todos") renderTodosPage();
+  else if (state.view === "cerca") { if (typeof renderCercaPage === "function") renderCercaPage(); else { state.view = "overview"; renderOverview(); } }
+  else if (state.view === "oggi") { if (typeof renderOggiPage === "function") renderOggiPage(); else { state.view = "overview"; renderOverview(); } }
+  if (typeof window.shellAfter === "function") { try { window.shellAfter(); } catch (e) { console.error("[guscio]", e); } }
 }
 
 function applySettings() {
@@ -10899,10 +10748,15 @@ function formatRelative(date) {
 }
 
 function renderSwitcher() {
+  if (typeof shellOn === "function" && shellOn() && typeof renderSwitcher6 === "function") { try { renderSwitcher6(); updateMobileTabBar(); return; } catch (e) { console.error("[guscio] barra", e); } }
   const row = document.getElementById("pill-row");
   const select = document.getElementById("vessel-select");
   row.innerHTML = "";
   select.innerHTML = "";
+
+  // v2.3 — CERCA E COPIA: prima pillola, pagina d'apertura
+  row.appendChild(makeEl(`<button class="pill ${state.view === "cerca" ? "active" : ""}" data-view="cerca" role="tab"><span>⌕ Cerca</span><span class="pill-key"></span></button>`));
+  { const o = document.createElement("option"); o.value = "__cerca"; o.textContent = "⌕ Cerca e copia"; if (state.view === "cerca") o.selected = true; select.appendChild(o); }
 
   const overviewPill = makeEl(`<button class="pill ${state.view === "overview" ? "active" : ""}" data-view="overview" role="tab">
     <span>Overview</span>
@@ -11121,20 +10975,6 @@ function maSyncBanner(){
   if(!pend.length) return "";
   return `<button class="ma-syncban" onclick="maOpenSync()"><span class="d"></span><span class="t">${pend.length} modific${pend.length>1?'he':'a'} da validare al PC</span><span class="go">›</span></button>`;
 }
-function maHome(){
-  let critCount=0, lateCount=0;
-  try{ (VESSELS||[]).forEach(cfg=>{ if(maStatusTok(cfg)==="crit") critCount++; }); }catch(_){}
-  try{ lateCount=(state.todos||[]).filter(t=>todoActive(t) && (typeof classifyDueDate==="function"?classifyDueDate(t.dueDate):"")==="overdue").length; }catch(_){}
-  const brief=`<button class="ma-brief-btn" onclick="maOpenBriefing()">
-    <span class="ma-brief-ic">☕</span>
-    <span class="ma-brief-tx"><b>Briefing mattutino</b><small>2 min · ${critCount} navi critiche · ${lateCount} to-do scadute</small></span>
-    <span class="ma-brief-go">Inizia ›</span></button>`;
-  const cards=(VESSELS||[]).map(maFleetCardHTML).join("");
-  return `${maSyncBanner()}${brief}
-    <div class="ma-striphead"><div class="ma-sec" style="margin:0">Flotta · ${(VESSELS||[]).length} navi</div><span class="ma-fleet-hint">toccane una per il dettaglio</span></div>
-    ${cards}`;
-}
-
 // === 1b — bottom sheet + toast infrastruttura ===============================
 function maCloseSheet(){ const h=document.getElementById("ma-sheet-host"); if(h) h.innerHTML=""; }
 function maRenderSheet(inner){
@@ -11278,29 +11118,6 @@ function maNoonBlock(vid){
   </div>`;
 }
 
-function maVesselDetail(vid){
-  const cfg = (VESSELS||[]).find(v=>v.vesselId===vid) || {};
-  const tok = maStatusTok(cfg);
-  const color = tok==="crit"?"#c8362f":tok==="warn"?"#b8860b":"#117a3a";
-  const bg = tok==="crit"?"#fbe6e6":tok==="warn"?"#fbf1dd":"#e7f5ec";
-  const word = tok==="crit"?"CRITICO":tok==="warn"?"ATTENZIONE":"OK";
-  const banner = `
-    <button class="ma-back" onclick="maBack()">‹ Flotta</button>
-    <div class="ma-vhead">
-      <div class="ma-vhead-top"><span class="ma-dot" style="background:${color};width:12px;height:12px"></span><span class="ma-vhead-name">${escapeHTML(cfg.displayName||vid)}</span><span class="ma-fstat" style="color:${color};background:${bg}">${word}</span></div>
-      <div class="ma-vhead-sub">📍 ${escapeHTML(maVesselPosLine(cfg))}</div>
-    </div>`;
-  const tabs=[["ops","Operativo"],["todo","To-do"],["email","Email"],["buy","Acquisti"],["docs","Documenti"]];
-  const active = mstate.detTab || "ops";
-  const tabBar = `<div class="ma-dtabs">${tabs.map(([id,l])=>`<button class="ma-dtab ${active===id?'on':''}" onclick="maDetTab('${id}')">${l}</button>`).join("")}</div>`;
-  let body="";
-  if(active==="ops") body=maOpsPane(vid,cfg);
-  else if(active==="todo") body=maVesselTodoPane(vid,cfg);
-  else if(active==="email") body=maVesselEmailPane(vid);
-  else if(active==="buy") body=maVesselBuyPane(vid,cfg);
-  else if(active==="docs") body=maVesselDocsPane(vid);
-  return banner+tabBar+body;
-}
 function maOpsPane(vid,cfg){
   const noon = maNoonBlock(vid);
   let anom="";
@@ -11516,7 +11333,6 @@ function renderMobileApp(){
   if(!app) return;
   if(!state.data){ app.innerHTML = `<div class="ma-empty" style="margin-top:40px">Caricamento…</div>`; return; }
   let html;
-  const _v3 = typeof m3Today === "function";
   const _v6 = typeof window.m6Fleet === "function";   // v1.05 — mobile v6
   app.classList.toggle("m6-on", _v6);
   if(_v6){
@@ -11525,20 +11341,11 @@ function renderMobileApp(){
     else if(mstate.screen === "todo") html = m6Todo();
     else if(mstate.screen === "rubrica") html = m6Rubrica();
     else if(mstate.screen === "cerca") html = '<div class="m6" style="gap:14px">' + m3Search() + '</div>';
-    else if(mstate.screen === "email") html = maEmail();
     else if(mstate.screen === "cert") html = maCert();
     else html = m6Fleet();
     app.innerHTML = html; m6Badge(); return;
   }
-  if(mstate.vessel) html = _v3 ? m3Vessel(mstate.vessel) : maVesselDetail(mstate.vessel);
-  else if(_v3 && mstate.screen==="navi") html = m3Navi();
-  else if(_v3 && mstate.screen==="cerca") html = m3Search();
-  else if(mstate.screen==="todo") html = maTodo();
-  else if(mstate.screen==="email") html = maEmail();
-  else if(mstate.screen==="cert") html = maCert();
-  else if(mstate.screen==="rubrica") html = maRubrica();
-  else html = _v3 ? m3Today() : maHome();
-  app.innerHTML = html;
+  app.innerHTML = '<div class="ma-empty" style="margin-top:40px">Modulo mobile non caricato: ricarica la pagina.</div>';
 }
 
 function mgo(screen){
@@ -11791,7 +11598,6 @@ window.maOpenAltro = function(){
   const row=(ic,title,sub,onclick)=>`<button class="ma-sheet-row" onclick="${onclick}"><span class="ic">${ic}</span><span class="tx"><b>${escapeHTML(title)}</b>${sub?`<small>${escapeHTML(sub)}</small>`:""}</span><span class="go">›</span></button>`;
   const inner = `<div class="ma-sheet-h">ALTRO</div>
     ${row("🔄","Aggiorna dati","",'maCloseSheet();(document.getElementById(\'btn-refresh\')||{click:()=>{}}).click();maToast(\'Aggiornamento avviato\')')}
-    ${row("🌙","Fine giornata","",'maCloseSheet();(document.getElementById(\'btn-eod\')||{click:()=>{}}).click()')}
     <div class="ma-sheet-h" style="margin-top:8px">NAVIGA</div>
     ${row("✓","To-do",(todosOpen().length||0)+" aperte",'mgo(\'todo\')')}
     ${row("↺","Pulizia DN","conferma le DN vecchie",'m3DnStart()')}
@@ -12864,6 +12670,18 @@ function renderAllSuppliersList(query) {
   document.getElementById("all-suppliers-count").textContent = `${arr.length} fornitori`;
 }
 
+// v2.1 — "Ultima visita · Novità" piccola nella barra in alto (accanto all'orologio)
+function hdrVisitPaint(){
+  const clk = document.getElementById("header-clock"); if (!clk) return;
+  let el = document.getElementById("hdr-visit");
+  if (!el) { el = document.createElement("div"); el.id = "hdr-visit"; el.style.cssText = "font-size:12px;color:#44576b;display:flex;gap:8px;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px"; clk.parentNode.insertBefore(el, clk.nextSibling); }
+  const v = window._hdrVisit, n = state.whatsNew && window._hdrNews ? window._hdrNews : "";
+  el.innerHTML = (v ? '<span title="Tempo dall\'ultimo accesso">via da <b style="color:#0a1b2e">' + escapeHTML(v) + '</b></span>' : "") +
+    (n ? '<span title="' + escapeAttr(n) + '" style="color:#1553d8;font-weight:600;overflow:hidden;text-overflow:ellipsis">Novità: ' + escapeHTML(n) + '</span><button onclick="dismissWhatsNew()" aria-label="Chiudi novità" style="border:0;background:none;color:#44576b;cursor:pointer;padding:0 2px">✕</button>' : "");
+}
+window.hdrVisitPaint = hdrVisitPaint;
+
+function qdOn(){ return false; } window.qdOn = qdOn; window.qdPaint = function(){};   // v2.1 — "Cosa fare oggi" tolta
 // ----- OVERVIEW VIEW -----------------------------------------------------
 function renderOverview() {
   const root = document.getElementById("view-root");
@@ -12889,14 +12707,13 @@ function renderOverview() {
         const m = Math.floor(diffMin / (60*24*30));
         timeAgo = `${m} mes${m === 1 ? "e" : "i"}`;
       }
-      lastVisitHTML = `<div class="last-visit-banner">
-        <span>📊 <strong>${timeAgo}</strong> dall'ultimo accesso</span>
-      </div>`;
+      lastVisitHTML = timeAgo;
     }
   }
   // Aggiorno timestamp ultima visita
   localStorage.setItem(LS_KEYS.lastVisitTs, String(now));
 
+  if (window._hdrVisit == null) window._hdrVisit = lastVisitHTML;
   const whatsNew = state.whatsNew;
   let whatsNewHTML = "";
   if (whatsNew && (whatsNew.refused + whatsNew.dn + whatsNew.po + whatsNew.ack > 0)) {
@@ -12905,6 +12722,7 @@ function renderOverview() {
     if (whatsNew.dn) parts.push(`${whatsNew.dn} consegna/e ricevuta/e`);
     if (whatsNew.po) parts.push(`${whatsNew.po} PO pubblicato/i`);
     if (whatsNew.ack) parts.push(`${whatsNew.ack} offerta/e ricevuta/e`);
+    window._hdrNews = parts.join(" · ");
     whatsNewHTML = `<div class="whats-new">
       <span><strong>Dall'ultima visita:</strong> ${parts.join(" · ")}</span>
       <button onclick="dismissWhatsNew()" aria-label="Chiudi">✕</button>
@@ -13067,75 +12885,16 @@ function renderOverview() {
   // l'Overview deve restare una panoramica veloce, non una lista lunga.
   // Le to-do sono accessibili dalla pill "To-do" in alto e via badge sulle vessel-card.
 
-  // v0.16 — Control Room KPI strip (6 numeri chiave aggregati)
-  const crStats = (() => {
-    let rfqOverdue = 0, readyPO = 0, dnPending = 0, certExpired = 0;
-    // v0.33bis — conteggi dalla STESSA fonte del drill (computePipeline) così numero === righe al click
-    try {
-      // v0.95 — RFQ e PO contati dalle STESSE azioni di Azioni flotta (prima: pipeline grezza,
-      // che non escludeva REQ chiuse, RFQ già quotate, rinvii e archiviate → numeri diversi)
-      const acts = generateAllActions();
-      rfqOverdue = acts.filter(a => /^(overdue|refused):/.test(a.key || "")).length;
-      readyPO = acts.filter(a => /^(readyPO|batch):/.test(a.key || "")).length;
-      dnPending = fleetItemsByCat("dn").length;
-    } catch(_) {}
-    try { const cg = getCertStatsGlobal(); certExpired = cg ? (cg.expired || 0) : 0; } catch(_) {}
-    let urgent = rfqOverdue;
-    try {
-      const td = (typeof todosOpen === "function") ? todosOpen() : [];
-      urgent += td.filter(t => t.priority === "urgent" || t.priority === "high").length;
-    } catch(_) {}
-    const today = new Date().toISOString().slice(0, 10);
-    const doneToday = ((state.completionsHistory || []).filter(e => (e.completedAt || "").slice(0,10) === today)).length;
-    return { urgent, certExpired, rfqOverdue, readyPO, dnPending, doneToday };
-  })();
-  const crStripHTML = `
-    <section style="margin-bottom:24px;">
-      <div class="section-title">
-        <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Cosa serve ora</h2>
-        <span class="section-meta">${VESSELS.length} navi · ${new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})}</span>
-      </div>
-      <div class="cn-grid">
-        <button class="cn-tile ${crStats.certExpired>0?'tier-red':'tier-calm'}" onclick="window.goCertificates&&window.goCertificates()">
-          <div class="cn-num">${crStats.certExpired}</div>
-          <div class="cn-lbl">Certificati scaduti</div>
-          <div class="cn-sub">${crStats.certExpired>0?'richiedono rinnovo':'tutti validi'}</div>
-          <div class="cn-go">Apri certificati →</div>
-        </button>
-        <button class="cn-tile ${crStats.rfqOverdue>0?'tier-amber':'tier-calm'}" onclick="window.goFleetActions('rfq')">
-          <div class="cn-num">${crStats.rfqOverdue}</div>
-          <div class="cn-lbl">RFQ da sollecitare</div>
-          <div class="cn-sub">${crStats.rfqOverdue>0?'in attesa risposta':'nessun sollecito'}</div>
-          <div class="cn-go">Azioni flotta →</div>
-        </button>
-        <button class="cn-tile ${crStats.readyPO>0?'tier-blue':'tier-calm'}" onclick="window.goFleetActions('po')">
-          <div class="cn-num">${crStats.readyPO}</div>
-          <div class="cn-lbl">Pronte a PO</div>
-          <div class="cn-sub">${crStats.readyPO>0?'offerte da chiudere':'niente in coda'}</div>
-          <div class="cn-go">Azioni flotta →</div>
-        </button>
-        <button class="cn-tile ${crStats.dnPending>0?'tier-slate':'tier-calm'}" onclick="window.openFleetDrill('dn')">
-          <div class="cn-num">${crStats.dnPending}</div>
-          <div class="cn-lbl">Consegne (DN) da controllare</div>
-          <div class="cn-sub">${crStats.dnPending>0?'DN aperte sulla flotta':'nessuna pendente'}</div>
-          <div class="cn-go">Azioni flotta →</div>
-        </button>
-      </div>
-    </section>
-  `;
 
-  const _ovRadar = overviewMode() === "radar";
+  const _ovRadar = true;
+  if (typeof hdrVisitPaint === "function") hdrVisitPaint();
   if (_ovRadar) setTimeout(() => { try { radarPaint(); } catch(e) { console.error("[radar]", e); } }, 0);
   root.innerHTML = `
-    ${lastVisitHTML}
-    ${whatsNewHTML}
 
-    ${typeof mbSectionHTML === "function" ? mbSectionHTML() : ""}
 
-    ${_ovRadar ? '<section id="radar-root" class="rd-root"></section>' : crStripHTML.replace('<span class="section-meta">', '<span class="section-meta"><button class="btn btn-sm" style="margin-right:8px" onclick="window.setOverviewMode(\'radar\')">Radar scali →</button>')}
+    <section id="radar-root" class="rd-root"></section>
 
-    ${(typeof qdOn === "function" && qdOn()) ? qdSection() : ""}
-    <section id="ov-fleet" style="${(typeof qdOn === "function" && qdOn()) ? "display:none;" : ""}">
+    <section id="ov-fleet">
       <div class="section-title">
         <h2><svg class="icon icon-md"><use href="#i-waves"/></svg>Flotta</h2>
         <span class="section-meta">${(() => {
@@ -13159,13 +12918,6 @@ function renderOverview() {
       ${_idle.length ? `<div class="mp-idle"><span class="mp-eb">SENZA ORDINI IN CORSO</span>${_idle.map(x => `<button class="mp-idle-v" onclick="window.goVessel('${x.cfg.vesselId}')"><b>${escapeHTML(x.cfg.displayName)}</b><span>${escapeHTML(x.sub)}${x.todo ? " · " + x.todo + " to-do" : ""}</span><i>→</i></button>`).join("")}</div>` : ""}
     </section>
 
-    <section>
-      <div class="section-title">
-        <h2><svg class="icon icon-md"><use href="#i-truck"/></svg>Carico settimana</h2>
-        <span class="section-meta">consegne, certificati, to-do e appuntamenti</span>
-      </div>
-      <div class="heatmap">${renderHeatmap()}</div>
-    </section>
 
     ${(() => {
       const r = getPeriodRange(state._perfPeriod || "365");
@@ -13268,6 +13020,7 @@ function renderOverview() {
   attachTodoHandlers(root);
   attachPerformanceHandlers(root);
   if (typeof initFxWidget === "function") initFxWidget();
+  if (typeof window.shellAfter === "function") { try { window.shellAfter(); } catch (e) { console.error("[guscio]", e); } }
 }
 
 // v0.38 — Widget USD/EUR: cambio attuale + andamento 30gg (dati BCE via frankfurter.app, cache locale)
@@ -13417,7 +13170,7 @@ function renderRubricaPage() {
     return `<button class="rub-row" onclick="window.${kind === "supplier" ? "openSupplierCard" : "openAgencyCard"}('${escapeAttr(name)}')">
       ${stars(p.rating)}
       ${p.code ? `<span class="rub-code">${escapeHTML(p.code)}</span>` : `<span class="rub-code rub-code-empty" title="SSSDAm da inserire a mano">—</span>`}
-      <span class="rub-line"><span class="rub-name">${escapeHTML(name)}</span>${loc ? `<span class="rub-loc">· ${escapeHTML(loc)}</span>` : ""}</span>
+      <span class="rub-line"><span class="rub-name">${escapeHTML(name)}</span>${loc ? `<span class="rub-loc">· ${escapeHTML(loc)}</span>` : ""}</span>${typeof ctTimeHTML === "function" ? ctTimeHTML(name, p) : ""}
       <span class="rub-chips">${chips}</span>
       <span class="rub-go">›</span>
     </button>`;
@@ -13490,10 +13243,8 @@ function renderPerformancePage() {
   root.innerHTML = section
     ? section
     : `<div class="empty-state" style="padding:48px 24px;text-align:center;"><p style="font-weight:600;color:#3a4250;">Ancora nessun dato di procurement da analizzare.</p></div>`;
-  root.innerHTML = section
-    ? section
-    : `<div class="empty-state" style="padding:48px 24px;text-align:center;"><p style="font-weight:600;color:#3a4250;">Ancora nessun dato di procurement da analizzare.</p></div>`;
   attachPerformanceHandlers(root);
+  if (typeof window.shellAfter === "function") { try { window.shellAfter(); } catch (e) {} }
 }
 
 // Naviga a una nave e applica un filtro KPI specifico
@@ -13842,167 +13593,6 @@ window.itemMailThreads = itemMailThreads;
 
 // Render della PAGINA dedicata "Assistente Email" (v0.48 — triage su tutta la posta + workspace strumenti scrittura)
 window._emailFilter = window._emailFilter || "all";
-function renderEmailPage(){
-  // === v0.67 — "Posta + AI": vista a 4 colonne (cartelle · lista · lettura · Copilot) su dati REALI ===
-  const P = paixState();
-  const all = getEmailThreads();
-  const connectedBroad = state.recentEmails != null;
-
-  // arricchisco ogni thread con campi di presentazione
-  all.forEach(r=>{
-    const _sent = (window._paixSent||{})[r.id];
-    if(_sent && _sent.length){ r.messages = (r.messages||[]).concat(_sent); r.waiting = false; }
-    r._subjClean = paixStripPrefix(r.subject);
-    r._initials = paixInitials(r.fromName);
-    r._ava = paixAva(r.fromEmail || r.fromName);
-    r._pending = paixPendingKind(r);
-    r._dls = paixDeadlines(r);
-  });
-
-  // selezione corrente valida?
-  let sel = P.selId!=null ? all.find(r=>r.id===P.selId && !PAIX_NOISE.has(r.category) && !paixIsMuted(r)) : null;
-
-  const list = paixVisible(all);
-  if(!sel && list.length && !P.query.trim()) { sel = list[0]; P.selId = sel.id; }
-  if(P.selId!=null && !sel) { sel = all.find(r=>r.id===P.selId) || null; }
-
-  // -- COL 1: viste AI + albero cartelle --
-  const todoN = all.filter(r=>!paixIsMuted(r) && r._pending==="todo").length;
-  const awaitN = all.filter(r=>!paixIsMuted(r) && r._pending==="await").length;
-  const dlN = all.filter(r=>!paixIsMuted(r) && !PAIX_NOISE.has(r.category) && r._dls.length).length;
-
-  const smart = [
-    {key:"ai_todo",label:"Tocca a te",count:todoN,dot:"#c8362f",icon:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'},
-    {key:"ai_await",label:"Da sollecitare",count:awaitN,dot:"#b8860b",icon:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'},
-    {key:"ai_deadlines",label:"Scadenze",count:dlN,dot:"#0e54c1",icon:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'}
-  ];
-  const smartHTML = smart.map(v=>{
-    const on = P.folder===v.key;
-    const badge = v.count ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#fff;background:'+v.dot+';padding:1px 7px;border-radius:20px;">'+v.count+'</span>' : "";
-    return '<button onclick="window.paixSetFolder(\''+v.key+'\')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;font-family:inherit;font-size:12.5px;font-weight:'+(on?700:600)+';color:'+(on?"#3a2f6b":"#4a4270")+';background:'+(on?"#efeafb":"transparent")+';border:none;border-radius:8px;padding:8px 9px;cursor:pointer;margin-bottom:1px;">'
-      +'<span style="width:16px;display:flex;justify-content:center;color:'+(on?"#6a4bff":"#9a90c0")+';">'+v.icon+'</span>'
-      +'<span style="flex:1;">'+v.label+'</span>'+badge+'</button>';
-  }).join("");
-
-  // categorie e navi presenti nei dati (solo quelle non-rumore)
-  const activeAll = all.filter(r=>!PAIX_NOISE.has(r.category) && !paixIsMuted(r));
-  const catCounts = {}; activeAll.forEach(r=>{ catCounts[r.category]=(catCounts[r.category]||0)+1; });
-  const vesselCounts = {}; activeAll.forEach(r=>{ if(r.vesselId) vesselCounts[r.vesselId]=(vesselCounts[r.vesselId]||0)+1; });
-  const noiseN = all.filter(r=>!paixIsMuted(r) && PAIX_NOISE.has(r.category)).length + all.filter(r=>paixIsMuted(r)).length;
-  const archN = paixArchivedDeduped(all).length;
-
-  const treeRows = [];
-  const folderBtn = (key,label,count,depth,strong)=>{
-    const on = P.folder===key;
-    const cnt = count ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#0e54c1;">'+count+'</span>' : "";
-    return '<button onclick="window.paixSetFolder(\''+key+'\')" style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:\'Inter\',system-ui,sans-serif;font-size:'+(strong?13:12.5)+'px;font-weight:'+(on?700:(strong?700:500))+';color:'+(on?"#0a3f93":(strong?"#14181f":"#3a4250"))+';background:'+(on?"#e6eefb":"transparent")+';border:none;border-radius:7px;padding:6px 8px 6px '+(8+depth*14)+'px;cursor:pointer;margin-bottom:1px;min-width:0;">'
-      +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+label+'</span>'+cnt+'</button>';
-  };
-  treeRows.push(folderBtn("all","Tutta la posta",activeAll.length,0,true));
-  treeRows.push('<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa3b0;padding:10px 8px 5px;">Categorie</div>');
-  const catBtn = (key,label,dot,count)=>{ const on=P.folder===key;
-    const cnt = count ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:#0e54c1;">'+count+'</span>' : "";
-    return '<button onclick="window.paixSetFolder(\''+key+'\')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;font-family:\'Inter\',system-ui,sans-serif;font-size:12.5px;font-weight:'+(on?700:500)+';color:'+(on?"#0a3f93":"#3a4250")+';background:'+(on?"#e6eefb":"transparent")+';border:none;border-radius:7px;padding:6px 9px;cursor:pointer;margin-bottom:1px;"><span style="width:11px;height:11px;border-radius:3px;background:'+dot+';flex-shrink:0;"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+label+'</span>'+cnt+'</button>';
-  };
-  Object.keys(catCounts).sort((a,b)=>catCounts[b]-catCounts[a]).forEach(k=>{
-    const m = EMAIL_CATS[k]||EMAIL_CATS.generic;
-    treeRows.push(catBtn("cat:"+k, escapeHTML(m.label), m.color||"#94a3b8", catCounts[k]));
-  });
-  if(Object.keys(vesselCounts).length){
-    treeRows.push('<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa3b0;padding:10px 8px 5px;">Navi</div>');
-    (VESSELS||[]).forEach(v=>{ if(vesselCounts[v.vesselId]) treeRows.push(folderBtn("ves:"+v.vesselId, escapeHTML(v.displayName), vesselCounts[v.vesselId], 1)); });
-  }
-  // v0.68 — Categorie-colore native di Outlook (dal feed n8n): visibili e filtrabili come nel client.
-  const ocatCounts={}; activeAll.forEach(r=>{ (Array.isArray(r.categories)?r.categories:[]).forEach(c=>{ const k=String(c).trim(); if(k) ocatCounts[k]=(ocatCounts[k]||0)+1; }); });
-  const ocatKeys=Object.keys(ocatCounts).sort((a,b)=>a.localeCompare(b));
-  if(ocatKeys.length){
-    treeRows.push('<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9aa3b0;padding:10px 8px 5px;">Categorie Outlook</div>');
-    ocatKeys.forEach(k=>treeRows.push(catBtn("ocat:"+k, escapeHTML(k), outlookCatColor(k), ocatCounts[k])));
-  }
-  treeRows.push('<div style="height:1px;background:#e5e9ee;margin:10px 6px;"></div>');
-  treeRows.push(folderBtn("arch","📌 Offerte archiviate",archN,1));
-  treeRows.push(folderBtn("noise","Rumore / filtrate",noiseN,1));
-
-  // -- COL 2: lista messaggi --
-  const titles = {ai_todo:"Tocca a te",ai_await:"Da sollecitare",ai_deadlines:"Scadenze",all:"Tutta la posta",noise:"Rumore / filtrate",arch:"Offerte fornitori archiviate"};
-  let listTitle = titles[P.folder] || P.folder;
-  if(P.folder.startsWith("cat:")){ const m=EMAIL_CATS[P.folder.slice(4)]||EMAIL_CATS.generic; listTitle=m.label; }
-  if(P.folder.startsWith("ves:")){ listTitle=vNameSafe(P.folder.slice(4)); }
-  if(P.folder.startsWith("ocat:")){ listTitle="Outlook · "+P.folder.slice(5); }
-  if(P.query.trim()) listTitle = 'Ricerca: "'+escapeHTML(P.query.trim())+'"';
-  const hints = {
-    ai_todo:"Thread dove l'ultima mossa è dell'altra parte: aspettano un tuo riscontro.",
-    ai_await:"Thread dove hai già risposto o inviato tu: la palla è al fornitore — valuta se sollecitare.",
-    ai_deadlines:"Email con una scadenza rilevata. Trasformale in to-do con un click.",
-    arch:"Fornitori che si sono proposti da soli, messi da parte per zona. Riaprili quando una nave passa da quell'area."
-  };
-  const listHTML = list.length ? list.map(r=>{
-    const isSel = sel && sel.id===r.id;
-    const meta = EMAIL_CATS[r.category]||EMAIL_CATS.generic;
-    let waitLabel="", waitColor="#c8362f", waitBg="#fdeeed";
-    if(r._pending==="todo"){ waitLabel="tocca a te · "+r.days+"g"; }
-    else if(r._pending==="await"){ waitLabel="sollecita · "+r.days+"g"; waitColor="#b8860b"; waitBg="#fbf3e0"; }
-    const vtag = r.vesselId ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#0a3f93;background:#eaf1fd;padding:2px 7px;border-radius:5px;">'+escapeHTML(vNameSafe(r.vesselId))+'</span>' : "";
-    const doc = r.link ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#475569;background:#eef1f5;padding:2px 7px;border-radius:5px;">'+escapeHTML(r.link.docLabel)+' '+escapeHTML(r.link.docNumber)+'</span>' : "";
-    const att = r.hasAttachments ? '<span style="display:inline-flex;align-items:center;gap:3px;font-size:9.5px;color:#8a93a0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.48-8.49"/></svg></span>' : "";
-    const wl = waitLabel ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+waitColor+';background:'+waitBg+';padding:2px 7px;border-radius:5px;">'+waitLabel+'</span>' : "";
-    const dl = r._dls.length ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#b8860b;background:#fbf3e0;padding:2px 7px;border-radius:5px;">📅 '+escapeHTML(r._dls[0].dateLabel)+'</span>' : "";
-    const am = paixArchMeta(r);
-    const archTag = am ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:#5b3fb0;background:#efeafb;padding:2px 7px;border-radius:5px;">📌 '+escapeHTML(am.area||am.port||"archiviata")+(r._dupCount>1?' ×'+r._dupCount:"")+'</span>' : "";
-    return '<div onclick="window.paixSelect(\''+escapeAttr(r.id)+'\')" style="display:flex;gap:11px;padding:11px 15px;border-bottom:1px solid #f1f3f6;cursor:pointer;background:'+(isSel?"#eef4ff":"#fff")+';border-left:3px solid '+(isSel?"#0e54c1":"transparent")+';">'
-      +'<div style="width:34px;height:34px;border-radius:50%;background:'+r._ava+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">'+escapeHTML(r._initials)+'</div>'
-      +'<div style="flex:1;min-width:0;">'
-        +'<div style="display:flex;align-items:baseline;gap:8px;"><span style="font-weight:'+(isSel?700:600)+';font-size:13px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(r.fromName)+'</span><span style="font-size:10.5px;color:#9aa3b0;flex-shrink:0;font-family:\'JetBrains Mono\',monospace;">'+paixTimeLabel(r)+'</span></div>'
-        +'<div style="font-weight:'+(isSel?600:500)+';font-size:12.5px;color:#2b3240;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:1px 0 2px;">'+escapeHTML(r._subjClean)+'</div>'
-        +'<div style="font-size:11.5px;color:#8a93a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML((r.preview||"").replace(/\s+/g," ").slice(0,90))+'</div>'
-        +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:600;color:'+meta.color+';background:'+meta.bg+';padding:2px 7px;border-radius:5px;">'+escapeHTML(meta.label)+'</span>'+vtag+doc+att+wl+dl+archTag+outlookCatPills(r.categories,true)+'</div>'
-      +'</div></div>';
-  }).join("") : '<div style="padding:60px 24px;text-align:center;color:#9aa3b0;font-size:13px;">'+(P.folder==="noise"?"Nessun messaggio filtrato.":"Nessuna email in questa vista.")+'</div>';
-
-  // -- COL 3 + 4 --
-  let readHTML, copilotHTML="";
-  if(sel){
-    readHTML = paixReadingHTML(sel);
-    copilotHTML = paixCopilotHTML(sel);
-  } else {
-    readHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#c1c9d2;gap:12px;"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg><div style="font-size:13px;">Seleziona un\'email</div></div>';
-  }
-
-  const notConnected = !connectedBroad ? '<div style="font-size:11.5px;color:#b8860b;background:#fbf3e0;border-bottom:1px solid #f0e6c8;padding:8px 16px;line-height:1.4;">Triage limitato alle email in attesa — collega il workflow "Recent Emails Sync" in n8n per vedere tutta la posta.</div>' : "";
-
-  document.getElementById("view-root").innerHTML =
-  '<div class="paix-shell" style="width:100%;height:calc(100vh - var(--header-h) - var(--switcher-h) - 170px);min-height:560px;display:flex;flex-direction:column;font-family:\'Inter\',system-ui,sans-serif;color:#14181f;background:#eef1f5;border:1px solid var(--border);border-radius:16px;overflow:hidden;">'
-    // topbar
-    +'<div style="display:flex;align-items:center;gap:16px;padding:10px 18px;background:linear-gradient(90deg,#0a3f93,#0e54c1);color:#fff;flex-shrink:0;">'
-      +'<div style="display:flex;align-items:center;gap:10px;"><div style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg></div><div style="font-weight:700;font-size:15px;letter-spacing:-.2px;">Posta <span style="font-weight:500;opacity:.85;">+ AI</span></div></div>'
-      +'<div style="flex:1;max-width:560px;position:relative;"><svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a93a0" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="paix-search" value="'+escapeAttr(P.query)+'" oninput="window.paixSearch(this.value)" placeholder="Cerca in oggetto, mittente e testo…" style="width:100%;font-family:inherit;font-size:13.5px;border:none;border-radius:8px;padding:9px 12px 9px 34px;background:rgba(255,255,255,.94);color:#14181f;outline:none;"></div>'
-      +'<div style="display:flex;align-items:center;gap:8px;font-family:\'JetBrains Mono\',monospace;font-size:10.5px;background:rgba(255,255,255,.16);padding:5px 11px;border-radius:20px;"><span style="width:7px;height:7px;border-radius:50%;background:#7ee0a3;"></span>AI attiva</div>'
-      +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">MD</div>'
-    +'</div>'
-    // body
-    +'<div class="paix-body" style="flex:1;display:flex;min-height:0;">'
-      // col1
-      +'<div class="paix-col1" style="flex:0 1 236px;min-width:0;background:#f7f9fb;border-right:1px solid #dde3ea;display:flex;flex-direction:column;overflow-y:auto;padding:14px 10px;">'
-        +'<div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7a6fb0;padding:4px 8px 6px;">Assistente AI</div>'+smartHTML
-        +'<div style="height:1px;background:#e5e9ee;margin:12px 6px;"></div>'+treeRows.join("")
-      +'</div>'
-      // col2
-      +'<div class="paix-col2" style="flex:0 1 392px;min-width:0;background:#fff;border-right:1px solid #dde3ea;display:flex;flex-direction:column;min-height:0;">'
-        +'<div style="padding:12px 16px 10px;border-bottom:1px solid #eef1f5;"><div style="font-weight:700;font-size:15px;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escapeHTML(listTitle)+'</div><div style="font-size:11.5px;color:#8a93a0;">'+list.length+' messaggi</div></div>'
-        +notConnected
-        +(hints[P.folder]?'<div style="font-size:11.5px;color:#6b6488;background:#f6f4fd;border-bottom:1px solid #ece8f7;padding:9px 16px;line-height:1.45;">'+hints[P.folder]+'</div>':"")
-        +'<div style="flex:1;overflow-y:auto;">'+listHTML+'</div>'
-      +'</div>'
-      // col3
-      +'<div class="paix-col3" style="flex:1 1 300px;min-width:260px;background:#fbfcfd;display:flex;flex-direction:column;min-height:0;">'+readHTML+'</div>'
-      // col4
-      +copilotHTML
-    +'</div>'
-  +'</div>';
-
-  if(P._focusSearch){ const si=document.getElementById("paix-search"); if(si){ si.focus(); const v=si.value; si.value=""; si.value=v; } P._focusSearch=false; }
-}
-
 // ---------- Posta+AI: costanti e helper ----------
 const PAIX_NOISE = new Set(["noise","agency_ops"]);
 const PAIX_QUICK = [
@@ -14260,120 +13850,7 @@ function paixCopilotHTML(sel){
     +'</div></div>';
 }
 
-// ---------- Interazioni ----------
-window.paixSetFolder = function(k){ const P=paixState(); P.folder=k; P.selId=null; renderEmailPage(); };
-window.paixSelect = function(id){ const P=paixState(); P.selId=id; renderEmailPage(); };
-window.paixSearch = function(v){ const P=paixState(); P.query=v; P._focusSearch=true; renderEmailPage(); };
-window.paixLang = function(l){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.lang=l; c.draft=null; renderEmailPage(); };
-window.paixTone = function(t){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.tone=t; c.draft=null; renderEmailPage(); };
-window.paixQuick = function(i){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); const q=PAIX_QUICK[i]; const first=String(r.fromName||"").split(/[\s\/,<]/)[0]||(c.lang==="it"?"Salve":"Hello"); const it=c.lang==="it"; const core=it?q.it:q.en; const greet=it?"Buongiorno "+first+",":"Dear "+first+","; const sign=it?"Cordiali saluti,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA":"Best regards,\nMichele Del Vecchio\nPurchasing — Perseveranza SpA"; c.draft=greet+"\n\n"+core.charAt(0).toUpperCase()+core.slice(1)+"\n\n"+sign; renderEmailPage(); };
-window.paixDraftEdit = function(v){ const r=paixCurrent(); if(!r)return; paixCache(r).draft=v; };
-// v0.69 — Risposta rapida "a comando": tu scrivi l'intento (es. CONFERMA PREVENTIVO), l'AI prepara la bozza.
-window.paixQuickAI = async function(){
-  const r=paixCurrent(); if(!r)return;
-  const inp=document.getElementById("paix-quick-intent");
-  const intent=inp?inp.value.trim():"";
-  if(!intent){ showToast("Scrivi cosa vuoi dire (es. CONFERMA PREVENTIVO)"); if(inp) inp.focus(); return; }
-  const c=paixCache(r); c.draft="Genero la bozza…"; renderEmailPage();
-  const convo=(r.messages&&r.messages.length)?r.messages.map(m=>"["+(m.date||"")+"] "+(m.fromName||m.from||"?")+": "+(m.preview||"").slice(0,300)).join("\n"):(r.subject+"\n"+(r.preview||""));
-  const prompt="Sei l'assistente email di un purchasing manager marittimo (Michele Del Vecchio). Scrivi SOLO il corpo di una risposta professionale in "+(c.lang==="it"?"italiano":"inglese")+", tono "+c.tone+", pronta da inviare, senza oggetto e senza markdown. L'intento della risposta è: \""+intent+"\". Adatta il contenuto al thread qui sotto e resta conciso.\n\nMittente: "+r.fromName+" <"+r.fromEmail+">\nOggetto: "+r.subject+"\nScambio:\n"+convo+"\n\nFirma con \"Michele Del Vecchio\".";
-  try{ const txt=await aiComplete(prompt); c.draft=String(txt||"").trim()||paixGenDraft(r,c.lang,c.tone); }
-  catch(e){ c.draft=paixGenDraft(r,c.lang,c.tone); showToast("Bozza AI non disponibile"); }
-  renderEmailPage();
-};
-window.paixCopy = function(){ const ta=document.getElementById("paix-draft"); const t=ta?ta.value:""; if(t&&navigator.clipboard){ navigator.clipboard.writeText(t); showToast("Bozza copiata"); } };
-window.paixOutlook = function(){ const r=paixCurrent(); if(!r)return; const ta=document.getElementById("paix-draft"); const body=ta?ta.value:paixDraftFor(r); const subj=/^re:/i.test(r.subject)?r.subject:"RE: "+r.subject;
-  window._paixSent = window._paixSent||{}; (window._paixSent[r.id]=window._paixSent[r.id]||[]).push({ from:"purchasing@sssdam.com", fromName:"Michele Del Vecchio", date:new Date().toISOString().slice(0,16).replace("T"," "), preview:body, direction:"out" });
-  // Opzione A: apri la CONVERSAZIONE vera di Outlook (la risposta resta agganciata al thread) e copia la bozza da incollare
-  if(r.webLink){
-    if(navigator.clipboard){ navigator.clipboard.writeText(body).catch(()=>{}); }
-    window.open(r.webLink, "_blank", "noopener");
-    showToast("Aperta la conversazione in Outlook · bozza copiata — premi Rispondi e incolla");
-  } else if(typeof openComposeMail==="function"&&typeof buildComposeHref==="function"){
-    openComposeMail(buildComposeHref(subj, body, paixReplyTo(r)));
-    showToast("Nessun link al thread: apro una nuova risposta · bozza pronta");
-  }
-  renderEmailPage(); };
-window.paixNewTodo = function(){ const r=paixCurrent(); if(!r)return; if(typeof window.replyToTodo==="function") window.replyToTodo(r.id); };
-window.paixDeadlineTodo = function(iso){ const r=paixCurrent(); if(!r)return; if(typeof window.replyToTodo==="function"){ window.replyToTodo(r.id); if(iso){ const df=document.getElementById("todo-when"); const dd=document.getElementById("todo-date"); if(df&&dd){ df.value="custom"; dd.value=iso; } } } };
-window.paixMute = function(){ const r=paixCurrent(); if(!r)return; const set=paixLoadMuted(); set.add(paixDomain(r.fromEmail)); paixSaveMuted(set); const P=paixState(); const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null; showToast("Mittente "+paixDomain(r.fromEmail)+" silenziato → Rumore"); renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher(); };
-window.paixSummarize = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.summary=["Riassumo…"]; renderEmailPage(); const convo=(r.messages||[]).map(m=>"["+(m.date||"")+"] "+(m.fromName||m.from||"?")+": "+(m.preview||"").slice(0,300)).join("\n")||(r.subject+"\n"+(r.preview||"")); const prompt='Riassumi in italiano in massimo 4 righe puntate (ogni riga inizia con "- ") questo scambio email di un purchasing manager marittimo. Solo decisioni/azioni aperte, niente saluti, nessun markdown oltre il trattino.\n\nOggetto: '+r.subject+'\n\nScambio:\n'+convo; try{ const txt=await aiComplete(prompt); c.summary=String(txt||"").split("\n").map(s=>s.replace(/^[-•]\s*/,"").trim()).filter(Boolean).map(escapeHTML); if(!c.summary.length) c.summary=paixSummaryClient(r); }catch(e){ c.summary=paixSummaryClient(r); showToast("Riassunto AI non disponibile"); } renderEmailPage(); };
-window.paixTranslate = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); if(c.showTrans){ c.showTrans=false; renderEmailPage(); return; } c.showTrans=true; if(c.translation){ renderEmailPage(); return; } renderEmailPage(); const orig=(r.messages&&r.messages.length?r.messages.map(m=>m.preview||"").join("\n\n"):(r.preview||r.subject)); const prompt="Traduci in italiano SOLO il testo seguente, mantenendo senso e tono. Nessuna spiegazione, nessun markdown:\n\n"+orig; try{ const txt=await aiComplete(prompt); c.translation=String(txt||"").trim(); }catch(e){ c.translation="Traduzione non disponibile."; showToast("Traduzione AI non disponibile"); } renderEmailPage(); };
-window.paixDraftAI = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.draft="Genero la bozza…"; renderEmailPage(); const prompt="Sei l'assistente email di un purchasing manager marittimo. Scrivi SOLO il corpo di una bozza di risposta professionale in "+(c.lang==="it"?"italiano":"inglese")+", tono "+c.tone+", pronta da inviare, senza oggetto e senza markdown.\nEmail da: "+r.fromName+" <"+r.fromEmail+">\nOggetto: "+r.subject+"\nEstratto: "+(r.preview||"").slice(0,400)+"\nContesto: "+(typeof wsContextBits==="function"?wsContextBits(r):"")+'\nFirma con "Michele Del Vecchio".'; try{ const txt=await aiComplete(prompt); c.draft=String(txt||"").trim(); }catch(e){ c.draft=paixGenDraft(r,c.lang,c.tone); showToast("Bozza AI non disponibile"); } renderEmailPage(); };
-window.paixDetectAI = async function(){ const r=paixCurrent(); if(!r)return; const c=paixCache(r); c.aiDl="loading"; renderEmailPage(); const today=(typeof todayISO==="function")?todayISO():new Date().toISOString().slice(0,10); const convo=(r.messages&&r.messages.length)?r.messages.map(m=>"["+(m.date||"")+"] "+(m.fromName||m.from||"?")+": "+(m.preview||"").slice(0,300)).join("\n"):(r.subject+"\n"+(r.preview||"")); const prompt='Oggi è '+today+'. Individua scadenze/termini d\'azione (date esplicite o relative come "tra una settimana", "entro venerdì") in questo scambio. Rispondi SOLO con un array JSON tipo [{"date":"2026-07-20","label":"Confermare l\'ordine"}]. Se nessuna, rispondi [].\n\nOggetto: '+r.subject+'\nScambio:\n'+convo; try{ const txt=await aiComplete(prompt); const s=String(txt||""); const arr=JSON.parse(s.slice(s.indexOf("["),s.lastIndexOf("]")+1)).filter(x=>x&&x.date&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)); if(!arr.length){ c.aiDl="none"; renderEmailPage(); showToast("Nessuna scadenza rilevata"); return; } arr.forEach(d=>{ addTodo({ action:d.label||("Rispondere a "+r.fromName), vessel:r.vesselId||null, category:"Email", reference:r.subject||"", dueDate:d.date, note:"Scadenza rilevata dall'AI." }); }); c.aiDl="done"; renderEmailPage(); showToast("✓ "+arr.length+" to-do create dalle scadenze rilevate"); }catch(e){ c.aiDl=null; renderEmailPage(); showToast("Rilevamento AI non disponibile"); } };
-window.paixDone = function(){ const r=paixCurrent(); if(!r)return; if(typeof dismissReply==="function") dismissReply(r.id); const P=paixState(); const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null; showToast("Fatto — tolto dalle viste AI (pipeline e to-do non toccate)"); renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher(); };
-window.paixCloseAll = function(){
-  const r=paixCurrent(); if(!r)return;
-  const pieces=["email"];
-  if(typeof dismissReply==="function") dismissReply(r.id);
-  if(r.link && typeof setItemOverride==="function"){ setItemOverride(r.link.itemId,{emailHandled:true, emailHandledAt:new Date().toISOString()}); pieces.push("pipeline "+r.link.docLabel+" "+r.link.docNumber); }
-  let nTodo=0; const subjKey=paixStripPrefix(r.subject).toLowerCase().slice(0,20);
-  (state.todos||[]).forEach(t=>{ if(t.done) return; const ref=((t.reference||"")+" "+(t.outlookLinkedName||"")).toLowerCase(); if(subjKey && ref.includes(subjKey)){ updateTodo(t.id,{done:true}); nTodo++; } });
-  if(nTodo) pieces.push(nTodo+(nTodo===1?" to-do":" to-do"));
-  const P=paixState(); const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null;
-  showToast("Chiuso insieme: "+pieces.join(" · "));
-  renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
-};
-window.setEmailFilter = function(k){ window._emailFilter = k; renderEmailPage(); };
-// v0.68 — Archiviazione offerta fornitore spontanea (pre-compilata, recuperabile per zona/porto)
-window.paixArchiveOpen = function(){
-  const r=paixCurrent(); if(!r)return;
-  const txt=(r.subject||"")+" "+(r.preview||"")+" "+((r.messages||[]).map(m=>m.preview||"").join(" "));
-  const existing=paixArchMeta(r);
-  const area=existing?existing.area:paixGuessArea(txt);
-  const port=existing?existing.port:paixGuessPort(txt);
-  const note=existing?(existing.note||""):"";
-  const vsel=existing?(existing.vessels||[]):paixGuessVessels(txt);
-  const areaOpts=["","Africa Occidentale","Africa Australe/Orientale","Sud-Est Asiatico","Cina / Hong Kong","Estremo Oriente (Corea/Giappone)","Subcontinente Indiano","Golfo Persico / Mar Rosso","Nord Europa","Mediterraneo","Americhe","Oceania"];
-  if(area && !areaOpts.includes(area)) areaOpts.push(area);
-  const old=document.getElementById("paix-arch-modal"); if(old) old.remove();
-  const vChips=(VESSELS||[]).map(v=>{ const on=vsel.includes(v.vesselId); return '<button type="button" data-vid="'+v.vesselId+'" onclick="this.dataset.on=this.dataset.on===\'1\'?\'0\':\'1\';this.style.background=this.dataset.on===\'1\'?\'#0a3f93\':\'#fff\';this.style.color=this.dataset.on===\'1\'?\'#fff\':\'#3a4250\';" data-on="'+(on?"1":"0")+'" style="font-family:inherit;font-size:12px;font-weight:600;color:'+(on?"#fff":"#3a4250")+';background:'+(on?"#0a3f93":"#fff")+';border:1px solid #cbd3dd;border-radius:20px;padding:6px 12px;cursor:pointer;">'+escapeHTML(v.displayName)+'</button>'; }).join("");
-  const el=document.createElement("div");
-  el.id="paix-arch-modal";
-  el.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.42);display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;";
-  el.onclick=function(e){ if(e.target===el) el.remove(); };
-  el.innerHTML='<div style="width:min(560px,92vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(15,23,42,.32);">'
-    +'<div style="display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid #eef1f5;">'
-      +'<div style="width:30px;height:30px;border-radius:8px;background:#efeafb;color:#5b3fb0;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8M9 12h6"/></svg></div>'
-      +'<div style="flex:1;"><div style="font-weight:700;font-size:15px;">Archivia offerta fornitore</div><div style="font-size:12px;color:#8a93a0;">La ritrovi in "Offerte archiviate", ordinata per zona.</div></div>'
-      +'<button onclick="document.getElementById(\'paix-arch-modal\').remove()" style="border:none;background:transparent;font-size:20px;color:#8a93a0;cursor:pointer;line-height:1;">✕</button>'
-    +'</div>'
-    +'<div style="padding:18px 22px;display:flex;flex-direction:column;gap:15px;">'
-      +'<div style="background:#f7f9fb;border:1px solid #eef1f5;border-radius:10px;padding:11px 13px;"><div style="font-size:12px;font-weight:600;color:#2b3240;">'+escapeHTML(r.fromName||"")+'</div><div style="font-size:11.5px;color:#8a93a0;">'+escapeHTML(r.fromEmail||"")+'</div><div style="font-size:12px;color:#3a4250;margin-top:5px;line-height:1.4;">'+escapeHTML(paixStripPrefix(r.subject))+'</div></div>'
-      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Zona / area operativa</label><select id="pa-area" style="width:100%;font-family:inherit;font-size:13.5px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;background:#fff;color:#14181f;">'+areaOpts.map(o=>'<option value="'+escapeAttr(o)+'"'+(o===area?" selected":"")+'>'+(o?escapeHTML(o):"— nessuna —")+'</option>').join("")+'</select></div>'
-      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Porti citati</label><input id="pa-port" value="'+escapeAttr(port)+'" placeholder="es. Takoradi, Tema" style="width:100%;font-family:inherit;font-size:13.5px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;outline:none;"></div>'
-      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Navi interessate (facoltativo)</label><div id="pa-vessels" style="display:flex;flex-wrap:wrap;gap:7px;">'+vChips+'</div></div>'
-      +'<div><label style="display:block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7a8290;margin-bottom:6px;">Nota (facoltativo)</label><textarea id="pa-note" placeholder="es. prezzi competitivi provviste di coperta, credito 90gg" style="width:100%;min-height:64px;font-family:inherit;font-size:13px;padding:9px 11px;border:1px solid #cbd3dd;border-radius:9px;outline:none;resize:vertical;">'+escapeHTML(note)+'</textarea></div>'
-    +'</div>'
-    +'<div style="display:flex;gap:9px;padding:16px 22px;border-top:1px solid #eef1f5;">'
-      +(existing?'<button onclick="window.paixArchiveRemove()" style="font-family:inherit;font-size:13px;font-weight:600;color:#c8362f;background:#fdeeed;border:1px solid #f4cdc9;border-radius:9px;padding:10px 15px;cursor:pointer;">Rimuovi dall\'archivio</button>':"")
-      +'<div style="flex:1;"></div>'
-      +'<button onclick="document.getElementById(\'paix-arch-modal\').remove()" style="font-family:inherit;font-size:13px;font-weight:600;color:#3a4250;background:#f1f3f6;border:1px solid #e5e9ee;border-radius:9px;padding:10px 15px;cursor:pointer;">Annulla</button>'
-      +'<button onclick="window.paixArchiveSave()" style="font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:#6a4bff;border:none;border-radius:9px;padding:10px 18px;cursor:pointer;">'+(existing?"Salva modifiche":"Archivia")+'</button>'
-    +'</div></div>';
-  document.body.appendChild(el);
-};
-window.paixArchiveSave = function(){
-  const r=paixCurrent(); if(!r)return;
-  const area=(document.getElementById("pa-area")||{}).value||"";
-  const port=((document.getElementById("pa-port")||{}).value||"").trim();
-  const note=((document.getElementById("pa-note")||{}).value||"").trim();
-  const vessels=[...document.querySelectorAll('#pa-vessels [data-vid]')].filter(b=>b.dataset.on==="1").map(b=>b.dataset.vid);
-  const o=paixLoadArchived();
-  o[r.id]={ savedAt:new Date().toISOString(), company:r.fromName||"", fromEmail:r.fromEmail||"", subject:r.subject||"", webLink:r.webLink||"", area, port, vessels, note };
-  paixSaveArchived(o);
-  const m=document.getElementById("paix-arch-modal"); if(m) m.remove();
-  const P=paixState(); if(P.folder!=="arch"){ const next=paixVisible(getEmailThreads()).find(x=>x.id!==r.id); P.selId=next?next.id:null; }
-  showToast("📌 Offerta archiviata"+(area?" — "+area:""));
-  renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
-};
-window.paixArchiveRemove = function(){
-  const r=paixCurrent(); if(!r)return;
-  const o=paixLoadArchived(); delete o[r.id]; paixSaveArchived(o);
-  const m=document.getElementById("paix-arch-modal"); if(m) m.remove();
-  showToast("Offerta rimossa dall'archivio");
-  renderEmailPage(); if(typeof renderSwitcher==="function") renderSwitcher();
-};
+
 
 // Markup della modale Email Workspace, condiviso da desktop (dentro view-root) e mobile
 // (appeso al body on-demand, così l'assistente funziona anche quando la vista desktop email
@@ -14942,103 +14419,6 @@ function collectWeekEvents(fromISO, toISO, opts) {
   return byDay;
 }
 
-function renderHeatmap() {
-  // Settimana corrente: lunedì → domenica (+ offset navigazione)
-  const today = new Date();
-  const day = today.getDay() === 0 ? 7 : today.getDay();
-  const weekOffset = state._calWeekOffset || 0;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (day - 1) + weekOffset * 7);
-  monday.setHours(0,0,0,0);
-  const weekDays = [];
-  for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDays.push(d); }
-  const isoOf = d => { const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); };
-  const labels = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
-  const months = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
-  const todayStr = isoOf(new Date());
-  const fromISO = isoOf(monday), toISO = isoOf(weekDays[6]);
-  const showTodos = !!state._calShowTodos;
-  const events = collectWeekEvents(fromISO, toISO, { includeTodos: showTodos });
-
-  // Indicizzo per nave + giorno (e "generale" per eventi senza nave)
-  const map = {}, general = {};
-  Object.entries(events).forEach(([dISO, evs]) => {
-    evs.forEach(ev => {
-      if (ev.vesselId) { (map[ev.vesselId] = map[ev.vesselId] || {}); (map[ev.vesselId][dISO] = map[ev.vesselId][dISO] || []).push(ev); }
-      else { (general[dISO] = general[dISO] || []).push(ev); }
-    });
-  });
-
-  const typeMeta = {
-    cert:     { ic: "🛡️", short: "cert.",     cls: "ev-cert" },
-    delivery: { ic: "📦", short: "consegne",  cls: "ev-delivery" },
-    outlook:  { ic: "📅", short: "appunt.",   cls: "ev-outlook" },
-    personal: { ic: "🍎", short: "personale", cls: "ev-personal" },
-    todo:     { ic: "✓",  short: "to-do",     cls: "ev-todo" }
-  };
-  const typeOrder = ["cert", "delivery", "outlook", "personal", "todo"];
-
-  function cellHTML(vesselId, dISO, evs) {
-    const isToday = dISO === todayStr;
-    const isWeekend = new Date(dISO + "T00:00:00").getDay() % 6 === 0;
-    const cls = `calg-cell ${isToday ? "is-today" : ""} ${isWeekend ? "is-weekend" : ""}`;
-    if (!evs || !evs.length) return `<div class="${cls}"></div>`;
-    const byType = {};
-    evs.forEach(e => { (byType[e.type] = byType[e.type] || []).push(e); });
-    const badges = typeOrder.filter(t => byType[t]).map(t => {
-      const m = typeMeta[t]; const arr = byType[t]; const n = arr.length;
-      const label = n === 1 ? truncate(arr[0].label, 14) : `${n} ${m.short}`;
-      const tip = arr.map(e => e.label + (e.sub ? " (" + e.sub + ")" : "")).join("\n");
-      return `<span class="calg-badge ${m.cls}" title="${escapeAttr(tip)}"><span class="calg-bic">${m.ic}</span><span class="calg-btx">${escapeHTML(label)}</span></span>`;
-    }).join("");
-    return `<div class="${cls} has-ev" data-vid="${escapeAttr(vesselId || "")}" data-date="${dISO}">${badges}</div>`;
-  }
-
-  // Intestazione giorni
-  let head = `<div class="calg-corner"></div>`;
-  weekDays.forEach((d, i) => {
-    const dISO = isoOf(d), isToday = dISO === todayStr, isWeekend = i >= 5;
-    head += `<div class="calg-dhead ${isToday ? "is-today" : ""} ${isWeekend ? "is-weekend" : ""}">
-      <span class="calg-dow">${labels[i]}</span><span class="calg-dnum">${d.getDate()}<span class="calg-dmon"> ${months[d.getMonth()]}</span></span></div>`;
-  });
-
-  // Righe nave
-  let rows = "";
-  for (const cfg of VESSELS) {
-    rows += `<div class="calg-vname" data-vid="${cfg.vesselId}"><span class="calg-vbar" data-vid="${cfg.vesselId}"></span><span class="calg-vtx">${cfg.displayName}</span></div>`;
-    weekDays.forEach(d => { rows += cellHTML(cfg.vesselId, isoOf(d), (map[cfg.vesselId] || {})[isoOf(d)]); });
-  }
-  // Riga "Ufficio" per appuntamenti senza nave — sempre visibile (anche vuota)
-  rows += `<div class="calg-vname general"><span class="calg-vbar general"></span><span class="calg-vtx">🏢 Ufficio</span></div>`;
-  weekDays.forEach(d => { rows += cellHTML(null, isoOf(d), general[isoOf(d)]); });
-
-  const grid = `<div class="calg">${head}${rows}</div>`;
-
-  // Barra: legenda + toggle to-do
-  const hasOutlook = !!(state.outlookCalendar && Array.isArray(state.outlookCalendar.events) && state.outlookCalendar.events.length);
-  const hasPersonal = !!(state.personalCalendar && Array.isArray(state.personalCalendar.events) && state.personalCalendar.events.length);
-  const legend = `<div class="cal-legend">
-    <span class="cal-leg"><span class="cal-leg-sw ev-cert"></span>Certificati</span>
-    <span class="cal-leg"><span class="cal-leg-sw ev-delivery"></span>Consegne</span>
-    <span class="cal-leg ${hasOutlook ? "" : "cal-leg-off"}"><span class="cal-leg-sw ev-outlook"></span>Outlook${hasOutlook ? "" : " (non collegato)"}</span>
-    <span class="cal-leg ${hasPersonal ? "" : "cal-leg-off"}"><span class="cal-leg-sw ev-personal"></span>Personale${hasPersonal ? "" : " (non collegato)"}</span>
-    ${showTodos ? `<span class="cal-leg"><span class="cal-leg-sw ev-todo"></span>To-do</span>` : ""}
-  </div>`;
-  const toggle = `<button class="cal-todo-toggle ${showTodos ? "on" : ""}" onclick="window.toggleCalTodos()">${showTodos ? "✓ To-do mostrate" : "Mostra to-do"}</button>`;
-
-  // Navigazione settimane (una sola settimana visibile; si scorre avanti/indietro)
-  const rangeLabel = weekOffset === 0 ? "Questa settimana"
-    : `${monday.getDate()} ${months[monday.getMonth()]} – ${weekDays[6].getDate()} ${months[weekDays[6].getMonth()]}`;
-  const nav = `<div class="calg-nav">
-    <button class="calg-nav-btn" onclick="window.calWeekShift(-1)" title="Settimana precedente">‹</button>
-    <span class="calg-nav-lbl">${rangeLabel}</span>
-    <button class="calg-nav-btn" onclick="window.calWeekShift(1)" title="Settimana successiva">›</button>
-    ${weekOffset !== 0 ? `<button class="calg-nav-today" onclick="window.calWeekReset()">Oggi</button>` : ""}
-  </div>`;
-
-  return `<div class="calg-top">${nav}<div class="calg-top-right">${legend}${toggle}</div></div>${grid}`;
-}
-
 window.calWeekShift = function(delta) {
   state._calWeekOffset = (state._calWeekOffset || 0) + delta;
   refreshHeatmapOnly();
@@ -15050,8 +14430,7 @@ window.calWeekReset = function() {
 // Ridisegna solo il calendario nella Overview senza ricostruire tutta la pagina
 function refreshHeatmapOnly() {
   const host = document.querySelector(".heatmap");
-  if (host) { host.innerHTML = renderHeatmap(); attachHeatmapHandlers(host); }
-  else render();
+  render();
 }
 function attachHeatmapHandlers(root) {
   root.querySelectorAll(".calg-cell.has-ev").forEach(cell => {
@@ -17266,68 +16645,6 @@ function togglePipelineFilter(stage) {
 function clearPipelineFilter() { state.pipelineFilter = null; state._kpiFilter = null; state.portFilter = ""; render(); }
 
 // ----- SUPPLIER PULSE VIEW -----------------------------------------------
-function renderSupplierPulse() {
-  const stats = {};
-  for (const v of state.data.vessels) {
-    for (const it of (v.items || [])) {
-      if (!it.supplier || it.supplier === "—") continue;
-      const s = stats[it.supplier] = stats[it.supplier] || {
-        name: it.supplier, totalItems: 0, openRFQ: 0, refused: 0, ackDaysSum: 0, ackDaysN: 0, vessels: new Set()
-      };
-      s.totalItems++;
-      s.vessels.add(v.vesselId);
-      if (it.rfqStatus && it.rfqStatus !== "RFQ Offer Acknowledged" && it.rfqStatus !== "" && (!it.poStatus || it.poStatus === ""))
-        s.openRFQ++;
-      if (it.rfqStatus === "RFQ Refused") s.refused++;
-      if (it.rfqDays != null) { s.ackDaysSum += it.rfqDays; s.ackDaysN++; }
-    }
-  }
-  const arr = Object.values(stats)
-    .map(s => ({
-      ...s,
-      avgDays: s.ackDaysN ? Math.round(s.ackDaysSum / s.ackDaysN) : null,
-      refusedRate: s.totalItems ? Math.round((s.refused / s.totalItems) * 100) : 0,
-      vesselsList: [...s.vessels].map(vid => VESSELS.find(c => c.vesselId === vid)?.displayName || vid)
-    }))
-    .sort((a, b) => b.totalItems - a.totalItems)
-    .slice(0, 15);
-
-  document.getElementById("view-root").innerHTML = `
-    <header class="vessel-detail-head">
-      <h1>Pulse del fornitore</h1>
-      <div class="sub">Top fornitori per volume — clicca su una nave per filtrare lì</div>
-    </header>
-    <div class="items-table-wrap">
-      <table class="items-table">
-        <thead>
-          <tr>
-            <th>Fornitore</th>
-            <th>Item</th>
-            <th>RFQ aperti</th>
-            <th>Refused</th>
-            <th>Tempo medio</th>
-            <th>Navi</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${arr.map(s => `
-            <tr>
-              <td data-label="Fornitore"><strong>${escapeHTML(s.name)}</strong></td>
-              <td data-label="Item" class="num">${s.totalItems}</td>
-              <td data-label="RFQ aperti" class="num">${s.openRFQ}</td>
-              <td data-label="Refused"><span class="tag ${s.refused > 0 ? "crit" : ""}">${s.refused} (${s.refusedRate}%)</span></td>
-              <td data-label="Tempo medio" class="days-cell">${s.avgDays != null ? s.avgDays + "g" : "—"}</td>
-              <td data-label="Navi" class="faint">${s.vesselsList.join(", ")}</td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
-    </div>
-    <div style="margin-top: 20px;">
-      <button class="btn" onclick="goOverview()">← Torna alla flotta</button>
-    </div>
-  `;
-}
-
 // ----- TO-DO PAGE DEDICATA ----------------------------------------------
 function renderTodosPage() {
   const filter = state._todoFilter || { category: "all", vessel: "all", priority: "all" };
@@ -17442,7 +16759,7 @@ function renderTodosPage() {
   const lastExcel = localStorage.getItem(LS_KEYS.lastExcelDate);
 
   // v0.22 — Modalità pagina: "todos" (le mie to-do) | "actions" (azioni flotta cross-nave)
-  const pageMode = state._todoPageMode === "actions" ? "actions" : state._todoPageMode === "mail" ? "mail" : "todos";
+  const pageMode = state._todoPageMode === "actions" ? "actions" : "todos";
   const fleetActionsCount = (() => {
     try { return generateAllActions().length + (state.todos||[]).filter(todoActive).length; }
     catch(e){ return 0; }
@@ -17511,10 +16828,6 @@ function renderTodosPage() {
       <button class="tms-btn ${pageMode==='actions'?'active':''}" role="tab" onclick="window.setTodoPageMode('actions')">
         <svg class="icon icon-sm"><use href="#i-anchor"/></svg> Azioni flotta
         ${fleetActionsCount>0?`<span class="tms-badge">${fleetActionsCount}</span>`:""}
-      </button>
-      <button class="tms-btn ${pageMode==='mail'?'active':''}" role="tab" onclick="window.setTodoPageMode('mail')" title="Email della notte incrociate con viaggi, radar e pratiche">
-        ✉ Posta del mattino
-        ${(() => { const n = window.mbOpenCount ? window.mbOpenCount() : 0; return n > 0 ? `<span class="tms-badge">${n}</span>` : ""; })()}
       </button>
       <button class="tms-btn" onclick="window.remOpen && window.remOpen()" title="Email periodiche precompilate alle navi (es. TEKOMAR XPERT)">
         ✉ Avvisi navi
@@ -17635,7 +16948,6 @@ function renderTodosPage() {
     </div>
     </div><!-- /todo-mode-todos -->
 
-    ${pageMode === "mail" ? '<div id="todo-mode-mail">' + (typeof mbSectionHTML === "function" ? mbSectionHTML(true) : "") + '</div>' : ""}
 
     <div id="todo-mode-actions" style="display:${pageMode==='actions'?'':'none'};">
       ${state._fleetActionCat ? `<div class="fleet-cat-banner"><span>Filtro attivo: <strong>${{rfq:"RFQ da sollecitare",po:"Pronte a PO",dn:"Consegne (DN)"}[state._fleetActionCat]}</strong></span><button class="btn-mini-link" onclick="window.clearFleetActionCat()">✕ mostra tutte</button></div>` : ""}
@@ -20292,6 +19604,7 @@ function itemsForLeg(vesselId, which){
   return out;
 }
 window.emailPortArrival = function(vesselId, which){
+  if (typeof spaFind === "function" && spaFind(vesselId + ":" + which)) return window.rdShipPreAlert(vesselId + ":" + which);   // v2.1
   const cfg = VESSELS.find(v=>v.vesselId===vesselId);
   const voy = getVoyage(vesselId);
   const leg = which==='next' ? (voy.next||{}) : (voy.current||{});
@@ -20330,6 +19643,49 @@ Best regards,`;
   openComposeMail(buildComposeHref(subject, body, to));
 };
 
+
+// v2.1 — PRE-ALERT ALLA NAVE: elenco dei PO in arrivo a bordo a uno scalo, con la spedizione di ciascuno (AWB, corriere,
+// partenza, ETA, parziale) o dove si trova adesso. Email al Comandante + Direttore di macchina. Dal radar (scheda scalo)
+// e dal Viaggio della nave. Traccia l'invio in mpd.shipPreAlert {chiave scalo: ts} (sync per voce).
+function spaKey(c){ return c.vid + "|" + String(c.port || "").toUpperCase() + "|" + String(c.etbS || c.etaS || "").slice(0, 10); }
+function spaFind(cid){ let M = null; try { M = rdModel(); } catch(e) {} return M ? (M.allCalls || M.calls || []).find(c => c.id === cid) || null : null; }
+window.spaSentAt = function(c){ const r = c ? rdLoadJSON("mpd.shipPreAlert")[spaKey(c)] : null; return (r && r.at) || ""; };
+window.rdShipPreAlert = function(cid){
+  const c = spaFind(cid); if(!c){ showToast("Scalo non trovato nel radar"); return; }
+  const now = Date.now(), its = (c.its || []).map(x => x.it).filter(it => { const p = typeof mpOf === "function" ? mpOf(it, now) : null; return !(p && p.pos === "onboard"); });
+  if(!its.length){ showToast("Nessun PO da consegnare a bordo su questo scalo"); return; }
+  const cfg = (VESSELS || []).find(v => v.vesselId === c.vid) || {}, nm = String(cfg.displayName || c.vid).replace(/^M\/[VB]\s*/i, "").trim();
+  const fd = s => { if(!s) return ""; const d = String(s).slice(0, 10).split("-"); return d.length === 3 ? d[2] + "." + d[1] + "." + d[0] : String(s); };
+  const where = it => { const p = (typeof mpOf === "function" ? mpOf(it, now) : null) || {};
+    if(p.pos === "hub") return "at forwarder warehouse" + (p.hub ? " (" + (((typeof TML_HUBS !== "undefined" ? TML_HUBS : []).find(h => h.id === p.hub) || {}).name || p.hub) + ")" : "");
+    if(p.pos === "customs") return "under customs clearance";
+    if(p.pos === "agency") return "with the agents, for delivery on board";
+    if(p.pos === "supplier") return "ready at supplier, shipment being arranged";
+    if(p.pos === "transit") return "in transit";
+    return ""; };
+  const byAwb = {}, loose = [];
+  its.forEach(it => { const segs = (typeof getItemShipments === "function" ? getItemShipments(it.id) : []) || [], sg = segs.filter(x => x.number).slice(-1)[0];
+    if(sg){ const k = String(sg.number); (byAwb[k] = byAwb[k] || { s: sg, its: [] }).its.push({ it, partial: !!sg.partial }); } else loose.push(it); });
+  const poLine = (it, n, partial) => "   " + n + ") PO " + (it.poNumber || "—") + " · " + (it.description || "(no description)") + (it.supplier && it.supplier !== "—" ? " · " + it.supplier : "") + (partial ? " · PARTIAL" : "") + (it._crit || (typeof critInfo === "function" && critInfo(it.id)) ? " · CRITICAL" : "");
+  let n = 0, blocks = [];
+  Object.keys(byAwb).forEach(k => { const g = byAwb[k], sg = g.s;
+    blocks.push("AWB / Tracking " + k + (sg.carrier ? " · " + sg.carrier : "") + (sg.hub ? " · from " + sg.hub : "") + (sg.pickup ? " · departed " + fd(sg.pickup) : "") + (sg.eta ? " · ETA " + fd(sg.eta) : "") + "\n" + g.its.map(x => poLine(x.it, ++n, x.partial)).join("\n")); });
+  if(loose.length) blocks.push((blocks.length ? "Not yet shipped / no tracking yet:\n" : "") + loose.map(it => { const w = where(it); return poLine(it, ++n) + (w ? "\n      status: " + w : ""); }).join("\n"));
+  const ag = (() => { try { const voy = getVoyage(c.vid) || {}, leg = voy[c.which] || {}; return (leg.agency && leg.agency.name) || ((typeof rdProfile === "function" ? rdProfile(c.port) : {}) || {}).agent || ""; } catch(e) { return ""; } })();
+  const when = c.etbS ? "ETB " + fd(c.etbS) : c.etaS ? "ETA " + fd(c.etaS) : "";
+  const prev = window.spaSentAt(c);
+  const subject = "M/V " + nm + " - PRE-ALERT deliveries on board at " + c.port + (when ? " (" + when + ")" : "") + " - " + its.length + " PO" + (prev ? " - update" : "");
+  const body = "Dear Captain, dear Chief Engineer,\n\n" +
+    "please be pre-alerted that the following orders are planned for delivery on board at " + c.port + (when ? ", " + when : "") + (ag ? ", through " + ag : "") + ":\n\n" +
+    blocks.join("\n\n") + "\n\n" +
+    "On delivery, please:\n1. Check all materials are complete and in good condition, and report any shortage or damage immediately.\n2. Sign/stamp the supplier delivery notes.\n3. Close the related DN in Infoship as \"Received on Board\".\n\n" +
+    "Please also advise if anything above is not needed any more, or if anything urgent is missing from this list.\n\nThank you and best regards,";
+  const ok = e => e && !/example\.com|_{2,}/.test(e) ? e : "", to = [ok(cfg.masterEmail), ok(cfg.chiefEngEmail)].filter(Boolean).join(";");
+  if(!to) showToast("Email della nave non impostata: apro la bozza senza destinatario");
+  openComposeMail(buildComposeHref(subject, body, to));
+  const o = rdLoadJSON("mpd.shipPreAlert"), ts = new Date().toISOString(); o[spaKey(c)] = { at: ts, n: its.length, updatedAt: ts }; rdSaveJSON("mpd.shipPreAlert", o);
+  try { if(document.getElementById("radar-root")) radarPaint(); } catch(e) {}
+};
 // === v0.75 — Email all'AGENZIA: conferma arrivo e consegna a bordo (AWB · PO · descrizione · fornitore) ===
 function itemAWB(it){ try{ const segs=getItemShipments(it.id)||[]; const s=segs.find(x=>x.number); return s?String(s.number):""; }catch(e){ return ""; } }
 function voyageAgencyEmail(ag){
@@ -24689,7 +24045,7 @@ function goVessel(vesselId) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function goSupplierPulse() {
-  state.view = "supplier";
+  state.view = "performance";
   render();
 }
 
@@ -24711,7 +24067,7 @@ function goEmail() {
 }
 
 window.setTodoPageMode = function(mode){
-  state._todoPageMode = (mode === "actions" || mode === "mail") ? mode : "todos";
+  state._todoPageMode = mode === "actions" ? "actions" : "todos";
   if (mode !== "actions") state._fleetActionCat = null;
   renderTodosPage();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -24869,7 +24225,7 @@ function bdCss(){ if(document.getElementById("bd-css")) return; const s = docume
   '.bd-eb{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#44576b}.bd-h{font-size:22px;font-weight:700;letter-spacing:-.015em;line-height:1.3;margin-top:6px;text-wrap:pretty}' +
   '.bd-tabs{display:flex;gap:4px;background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:12px;padding:4px}.bd-tabs button{font:600 13px inherit;font-family:inherit;border:0;border-radius:8px;padding:8px 16px;cursor:pointer;background:transparent;color:#44576b}.bd-tabs button.on{background:#0a1b2e;color:#fff}';
   document.head.appendChild(s); }
-function renderBudgetPage(){ bdCss(); const root = document.getElementById("view-root"); if(root) root.innerHTML = bdHTML(); }
+function renderBudgetPage(){ bdCss(); const root = document.getElementById("view-root"); if(root) root.innerHTML = bdHTML(); if (typeof window.shellAfter === "function") { try { window.shellAfter(); } catch (e) {} } }
 window.goBudget = function(){ state.view = "budget"; render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
 window.bdPick = function(v){ state._budgetVid = v; renderBudgetPage(); };
 window.bdDelLast = function(vid){ const o = bdLoad(); const L = (o.reports[vid] || []).sort((a, b) => a.date.localeCompare(b.date)); if(!L.length || !confirm("Tolgo il report del " + mpFD(L[L.length - 1].date) + "?")) return; L.pop(); o.reports[vid] = L; bdSave(o); renderBudgetPage(); };
@@ -24901,7 +24257,7 @@ window.bdImport = async function(files){
   bdSave(o); if(typeof showToast === "function" && done.length) showToast("Budget caricato: " + done.join(", ")); if(state.view === "budget") renderBudgetPage(); else window.goBudget();
 };
 
-window.goMailBrief = function(){ state.view = "todos"; state._todoPageMode = "mail"; state._fleetActionCat = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+window.goMailBrief = function(){ goOverview(); window.scrollTo({ top: 0, behavior: "smooth" }); };   // v2.1 — posta completa tolta: resta "Da decidere" in Overview
 window.clearFleetActionCat = function(){ state._fleetActionCat = null; render(); };
 window.clearFleetActionQuery = function(){ state._fleetActionQ = ""; renderTodosPage(); };
 
@@ -25614,6 +24970,7 @@ function buildStatePayload() {
     chaseOff: (typeof loadChaseOff === "function" ? loadChaseOff() : {}),
     leadMarks: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.leadMarks") : {}),
     vlMoveOff: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.vlMoveOff") : {}),
+    shipPreAlert: (typeof rdLoadJSON === "function" ? rdLoadJSON("mpd.shipPreAlert") : {}),
     sourceDevice: (typeof ghGetSourceDevice === "function" ? ghGetSourceDevice() : null),
     collMeta: (typeof ghLoadCollMeta === "function" ? ghLoadCollMeta() : {}),
     recRev: (typeof recTrack === "function" ? recTrack() : {})
@@ -25867,6 +25224,7 @@ function driveSchedulePush() {
   // altrimenti su iPhone (dove Drive non è connesso) non partirebbe mai.
   if (typeof stateSyncSchedulePush === "function") stateSyncSchedulePush();
   if (typeof ghSyncSchedulePush === "function") ghSyncSchedulePush();
+  if (typeof sbSchedulePush === "function") sbSchedulePush();   // v2.1 — database centrale
   if (!state.drive.token || state.drive.status === "disconnected") return;
   if (state.drive.pushTimer) clearTimeout(state.drive.pushTimer);
   state.drive.pushTimer = setTimeout(() => {
@@ -26093,7 +25451,7 @@ function ghSetDirty(v) {
 // senza modifiche invasive ai save*(). Push sempre come pull→merge→push: prima
 // assorbo le collezioni remote più recenti, poi ripubblico l'unione, quindi un
 // device stantìo non può mai sovrascrivere il lavoro fatto su un altro.
-const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","infoshipLedger","rfqGenuine","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook","leadMarks","vlMoveOff"];
+const COLLS = ["todos","notes","snoozed","archivedActions","completionsHistory","supplierTimezones","supplierLanguages","pinnedActions","certificates","certExtras","voyages","outlookCompletionQueue","manualOrders","deliveries","vesselPos","supplierProfiles","agencyProfiles","worldClockCities","itemOverrides","repliesDismissed","shipments","rfqChases","rfqVendors","infoshipLedger","rfqGenuine","todoTombs","portProfiles","critFlags","matPos","delivGoal","reminders","chaseOff","logbook","leadMarks","vlMoveOff","shipPreAlert"];
 
 function ghLoadObj(key){ try{ const o=JSON.parse(localStorage.getItem(key)||"{}"); return (o&&typeof o==="object")?o:{}; }catch{ return {}; } }
 function ghSaveObj(key,o){ try{ localStorage.setItem(key, JSON.stringify(o)); }catch{} }
@@ -26230,7 +25588,8 @@ function collSnapshot(){
     reminders: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.reminders"):{}),
     chaseOff: f(typeof loadChaseOff==="function"?loadChaseOff():{}),
     leadMarks: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.leadMarks"):{}),
-    vlMoveOff: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.vlMoveOff"):{})
+    vlMoveOff: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.vlMoveOff"):{}),
+    shipPreAlert: f(typeof rdLoadJSON==="function"?rdLoadJSON("mpd.shipPreAlert"):{})
   };
 }
 
@@ -26369,7 +25728,7 @@ function mpdMergeRemote(remote, force){
       }
     }
     // v0.96 — profili porto e flag critico: unione per voce, vince updatedAt più recente
-    ["portProfiles", "critFlags", "matPos", "delivGoal", "reminders", "chaseOff", "logbook", "leadMarks", "vlMoveOff"].forEach(cn => {
+    ["portProfiles", "critFlags", "matPos", "delivGoal", "reminders", "chaseOff", "logbook", "leadMarks", "vlMoveOff", "shipPreAlert"].forEach(cn => {
       const rv = remote[cn]; if (!rv || typeof rv !== "object") return;
       const lk = "mpd." + cn;
       let local = {}; try { local = JSON.parse(localStorage.getItem(lk) || "{}") || {}; } catch {}
@@ -27194,7 +26553,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const a = btn.dataset.mmAction;
       mobileMenu.classList.remove("open");
       if (a === "refresh") { loadData(); showToast("Aggiornamento…"); }
-      else if (a === "eod") openEOD();
       else if (a === "todo-new") openTodoModal(null);
       else if (a === "todo-from-email") window.openEmailCapture();
       else if (a === "palette") openPalette();
@@ -27227,11 +26585,15 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (pill.dataset.view === "performance") goPerformance();
     else if (pill.dataset.view === "rubrica") { state.view = "rubrica"; render(); window.scrollTo({top:0,behavior:"smooth"}); }
     else if (pill.dataset.view === "budget") window.goBudget();
+    else if (pill.dataset.view === "cerca") window.goCerca();
+    else if (pill.dataset.view === "navi") goVessel(window._shLastVid || state.selectedVesselId || ((VESSELS || [])[0] || {}).vesselId);
+    else if (pill.dataset.view === "oggi") { state.view = "oggi"; state.selectedVesselId = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
     else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
   document.getElementById("vessel-select").addEventListener("change", e => {
     const v = e.target.value;
-    if (v === "__overview" || v === "") goOverview();
+    if (v === "__cerca") window.goCerca();
+    else if (v === "__overview" || v === "") goOverview();
     else if (v === "__todos") goTodos();
     else if (v === "__email") goEmail();
     else if (v === "__certificates") window.goCertificates();
@@ -27278,10 +26640,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Settings other buttons
-  document.getElementById("open-supplier-pulse").addEventListener("click", () => {
-    document.getElementById("modal-settings").classList.remove("open");
-    goSupplierPulse();
-  });
+
   document.getElementById("restart-onboarding").addEventListener("click", () => {
     document.getElementById("modal-settings").classList.remove("open");
     openOnboarding();
@@ -27342,15 +26701,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("modal-onb").classList.remove("open");
   });
 
-  // EOD buttons
-  document.getElementById("eod-copy").addEventListener("click", () => {
-    const txt = document.getElementById("eod-report").textContent;
-    navigator.clipboard.writeText(txt).then(() => showToast("Copiato negli appunti"));
-  });
-  document.getElementById("eod-snapshot").addEventListener("click", () => {
-    saveSnapshot(buildSnapshot());
-    showToast("Baseline aggiornata");
-  });
 
   // Hotkey
   document.addEventListener("keydown", e => {
@@ -27452,10 +26802,7 @@ function onbGo(delta) {
 // ============================================================================
 // === EOD ====================================================================
 // ============================================================================
-function openEOD() {
-  document.getElementById("eod-report").textContent = buildEODReport();
-  document.getElementById("modal-eod").classList.add("open");
-}
+
 
 // ============================================================================
 // === MODALE TO-DO ===========================================================
@@ -27843,8 +27190,8 @@ function rdCrit(id){ return !!critInfo(id); }
 function rdSetCrit(id, v){ const all = loadCritFlags(); all[id] = { v: !!v, updatedAt: new Date().toISOString() }; rdSaveJSON("mpd.critFlags", all); }
 function rdPrefs(){ const p = rdLoadJSON("mpd.radarPrefs"); return { H: [14,21,30].includes(+p.H) ? +p.H : 21, basis: p.basis === "media" ? "media" : "pessimistica" }; }
 function rdSetPref(k, v){ const p = rdLoadJSON("mpd.radarPrefs"); p[k] = v; try{ localStorage.setItem("mpd.radarPrefs", JSON.stringify(p)); }catch(e){} }
-function overviewMode(){ try{ return localStorage.getItem("mpd.overviewMode") === "classic" ? "classic" : "radar"; }catch(e){ return "radar"; } }
-window.setOverviewMode = function(m){ try{ localStorage.setItem("mpd.overviewMode", m === "classic" ? "classic" : "radar"); }catch(e){} render(); };
+function overviewMode(){ return "radar"; }   // v2.1 — vista classica tolta
+window.setOverviewMode = function(){ render(); };
 function rdCancelled(it){ return /cancel|reject/i.test(it.poStatus||"") || /cancel/i.test(it.reqStatus||""); }
 function rdStaleDN(it, now){
   if(!/Shipped to Vessel|Ready for Shipment/.test(it.dnStatus||"")) return false;
@@ -28286,6 +27633,7 @@ function radarPaint(){
       '<div class="rd-mono">' + [sel.etaS ? "ETA " + rdFDT(sel.eta, now) : "", sel.etbS ? "ETB " + rdFDT(sel.etb, now) : "", "ETD " + rdFDT(sel.etd, now) + (sel.etdS ? "" : " (stimata: ETB + 1 g)")].filter(Boolean).join(" · ") + '</div>' +
       '<div class="rd-cutrow"><span class="rd-cutp">Limite di consegna ' + rdFDT(cut, now) + '</span><span class="rd-sub">ETD − ' + pr.notice + ' h di preavviso</span></div>' +
       '<div class="rd-mix"><i style="flex:' + sel.n.ok + ';background:#14794e"></i><i style="flex:' + sel.n.risk + ';background:#c07800"></i><i style="flex:' + sel.n.late + ';background:#c0261c"></i></div>' +
+      (() => { const nTo = sel.its.filter(x => !x.onb).length; if(!nTo) return ""; const sa = window.spaSentAt(sel); return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 4px"><button class="btn btn-sm btn-primary" onclick="window.rdShipPreAlert(\'' + ea(sel.id) + '\')" title="Email al Comandante e al Direttore di macchina: PO in arrivo a bordo, con AWB e stato">✉ Pre-alert alla nave · ' + nTo + ' PO</button>' + (sa ? '<span style="font-size:12px;color:#14794e;font-weight:600">inviato il ' + esc(mpFD(sa)) + ' · rimanda se cambia</span>' : '<span style="font-size:12px;color:#44576b">non ancora inviato</span>') + '</div>'; })() +
       '<div class="rd-sum"><b style="color:' + TINT[sel.worst][1] + '">' + verdict + '</b> · ' + sel.its.length + ' PO · ' + (sel.n.ok - (sel.onb || 0)) + ' in tempo · ' + sel.n.risk + ' a rischio · ' + sel.n.late + ' non arrivano' + (sel.onb ? ' · <span style="color:#14794e;font-weight:700">' + sel.onb + ' già a bordo</span>' + (sel.onbIfx ? ' <a href="#" onclick="if(window.ifxOpen)window.ifxOpen();return false;" style="color:#1553d8;font-weight:700">(' + sel.onbIfx + ' DN da chiudere in Infoship →)</a>' : '') : '') + '</div></div>' +
       '<div class="rd-prof"><div class="rd-prof-h"><b>Profilo porto · ' + esc(sel.port) + '</b><span class="rd-src ' + (pr.set ? "set" : "") + '">' + (pr.set ? "tuo profilo" : "valori standard") + '</span><button class="btn btn-sm" onclick="window.rdEditProfile(\'' + ea(sel.port) + '\')">Modifica</button></div>' +
       '<div class="rd-prof-g"><div><em>Dogana</em><b>' + rdF1(pr.customs[0]) + '–' + rdF1(pr.customs[1]) + ' gg' + (pr.eu ? " · 0 se UE" : "") + '</b></div><div><em>Preavviso agente</em><b>' + pr.notice + ' h</b></div><div><em>Affidabilità</em><b style="color:' + relC + '">' + rel + '</b></div></div>' +
@@ -28315,7 +27663,7 @@ function radarPaint(){
     '<button class="btn btn-sm" onclick="window.shipHubBoard()" title="PO negli hub TML, spedizioni con più PO sotto un solo AWB e pre-alert all\'agenzia">⇉ Hub e consolidati</button>' +
     (n => '<button class="btn btn-sm" onclick="window.ifxOpen()" title="DN ancora aperte in Infoship (confermate a bordo + spedite da oltre 30 gg): email a Comandante e Direttore di macchina">☑ DN da far chiudere' + (n ? " · " + n : "") + '</button>')(typeof ifxList === "function" ? ifxList().length + ifxVerifyList().length : 0) +
     '<button class="btn btn-sm" onclick="window.mpdExportAll()" title="Scarica TUTTI i dati salvati in questo browser">⤓ Backup dati</button>' +
-    '<button class="btn btn-sm" onclick="window.setOverviewMode(\'classic\')">Vista classica</button></span></div>' +
+    '</span></div>' +
     '<div class="rd-hero-row"><div class="rd-hero"><div class="rd-eyebrow">RADAR SCALI · PROSSIMI ' + H + ' GIORNI</div><div class="rd-hl">' + esc(headline) + '</div><div class="rd-sl">' + esc(subline) + '</div>' +
     '<div class="rd-stats"><div><b>' + risky.length + '</b><span>scali scoperti su ' + M.calls.length + '</span></div><div><b>' + all.filter(x => x.k === "late").length + '</b><span>PO non arrivano</span></div><div><b>' + all.filter(x => x.k === "risk").length + '</b><span>PO a rischio</span></div><div class="w"><b>' + critBad.length + '</b><span>critici scoperti</span></div></div></div>' +
     '<div class="rd-card rd-moves"><div class="rd-ch"><b>Le mosse di oggi</b><span>critici prima, poi per ripartenza</span></div>' +
@@ -29180,25 +28528,6 @@ function m3NaviRows(){
       (pct != null ? '<span class="m3-bar"><i style="width:' + pct + '%"></i></span>' : "") + (chips ? '<span class="m3-chips">' + chips + '</span>' : "") + '</button>';
   }).join("");
 }
-function m3Today(){
-  try { window._m3M = rdModel(); } catch(e) { window._m3M = null; }
-  const d = new Date();
-  const when = d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase() + " · " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
-  const props = (VESSELS || []).map(c => ({ c, p: mpProposal(c.vesselId) })).filter(x => x.p);
-  const moves = m3Moves();
-  let stale = 0; (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { const p = mpOf(it); if(p && p.stale) stale++; }));
-  const sub = [props.length ? props.length + (props.length > 1 ? " scali da confermare" : " scalo da confermare") : "", moves.length ? moves.length + (moves.length > 1 ? " mosse" : " mossa") : ""].filter(Boolean).join(", ") || "Niente da fare adesso.";
-  const propHTML = props.length ? m3Eb("DAI NOON DI STANOTTE", "#1553d8") + '<div class="m3-card m3-blue">' + props.map(({ c, p }) => {
-    const txt = p.guess ? "A " + Math.round(p.mtg) + " nm da <b>" + escapeHTML(m3Cap(p.port)) + "</b>. Il noon non indica il porto: l'ho dedotto dalla posizione." : "In rotta per <b>" + escapeHTML(m3Cap(p.port)) + "</b>" + (p.eta ? ", ETA " + mpFD(p.eta) + " " + (String(p.eta).split("T")[1] || "").slice(0,5) : "") + ". Manca l'ETD.";
-    return '<div class="m3-prop"><div class="m3-row-h"><b>' + escapeHTML(c.displayName) + '</b><span class="m3-mono">NOON ' + mpFD(p.date) + '</span></div><div class="m3-txt">' + txt + '</div>' +
-      '<div class="m3-btns"><button class="m3-btn pri" onclick="window.mpApplyNoon(\'' + m3E(c.vesselId) + '\')">' + (p.guess ? "Conferma " + escapeHTML(m3Cap(p.port)) : "Imposta scalo") + '</button><button class="m3-btn" onclick="window.openVoyageEditor(\'' + m3E(c.vesselId) + '\')">' + (p.guess ? "Altro porto" : "Correggi") + '</button></div></div>';
-  }).join("") + '</div>' : "";
-  const movesHTML = moves.length ? m3Eb("LE MOSSE") + '<div class="m3-card">' + moves.map(m => '<button class="m3-move" onclick="' + m.go + '"><span class="m3-n' + (m.red ? " red" : "") + '">' + m.n + '</span><span class="m3-move-t"><b>' + escapeHTML(m.t) + '</b><small>' + escapeHTML(m.s) + '</small></span><span class="m3-cta">' + m.cta + '</span></button>').join("") + '</div>' : "";
-  const clean = stale ? '<div class="m3-dark"><div><b>5 minuti di pulizia</b><small>' + stale + ' DN "in viaggio" da oltre 30 giorni. Confermane qualcuna mentre aspetti.</small></div><button onclick="m3DnStart()">Inizia</button></div>' : "";
-  return '<div class="m3-head"><div class="m3-mono">' + escapeHTML(when) + '</div><div class="m3-h1">Oggi</div><div class="m3-sub">' + escapeHTML(sub) + '</div></div>' +
-    propHTML + movesHTML + m3Eb("NAVI") + '<div class="m3-card">' + m3NaviRows() + '</div>' + clean;
-}
-function m3Navi(){ try { window._m3M = rdModel(); } catch(e) {} return '<div class="m3-head"><div class="m3-h1">Navi</div></div><div class="m3-card">' + m3NaviRows() + '</div>'; }
 
 function m3Vessel(vid){
   try { window._m3M = rdModel(); } catch(e) {}
@@ -29886,7 +29215,7 @@ function m3SearchHTML(q){
   const itHTML = items.length ? m3Eb("ORDINI E RICHIESTE · " + items.length) + '<div class="m3-card">' + items.slice(0, 30).map(x => m3ItemRow(x.it, x.v, true)).join("") + '</div>' + (items.length > 30 ? '<div class="m3-empty">Mostro i primi 30: affina la ricerca.</div>' : "") : "";
   return supHTML + itHTML || '<div class="m3-empty">Nessun risultato per "' + escapeHTML(q) + '".</div>';
 }
-window.m3Today = m3Today;
+window.m3Today = true;   // v2.1 — vecchia home mobile tolta (marcatore di modulo caricato)
 
 // ============================================================================
 // === v1.05 MOBILE v6 — "tutto l'ufficio, stesso ordine" ===================
@@ -30023,7 +29352,7 @@ function m6Fleet(){
   try { emN = getEmailThreads().filter(r => !/^(noise|agency_ops)$/.test(r.category)).length; } catch(e) {}
   try { (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { const p = mpOf(it); if(p && p.stale) stale++; })); } catch(e) {}
   try { ifx = ifxList().length; } catch(e) {}
-  const also = ['<button onclick="mgo(\'email\')">Posta' + (emN ? " · " + emN : "") + '</button>', '<button onclick="maGoCert(\'all\')">Certificati</button>', stale ? '<button onclick="m3DnStart()">Pulizia DN · ' + stale + '</button>' : "", '<button onclick="maOpenAltro()">Impostazioni e altro</button>'].join("");
+  const also = ['<button onclick="maGoCert(\'all\')">Certificati</button>', stale ? '<button onclick="m3DnStart()">Pulizia DN · ' + stale + '</button>' : "", '<button onclick="maOpenAltro()">Impostazioni e altro</button>'].join("");
   const tiles = typeof m7Tiles === "function" ? m7Tiles() : "";
   return '<div class="m6"><div class="m6-hd"><div class="m6-when">' + esc(when) + '</div><div class="m6-h1">Flotta</div></div>' +
     (tiles || '<div class="m6-lead">' + lead + '</div><div class="m6-list">' + list + '</div>') +
@@ -30118,85 +29447,7 @@ function m6Vessel(vid){
 // Non aggiunge informazioni: mette in fila le mosse che la dashboard già conosce (avvisi, to-do, flusso
 // acquisti per nave, certificati, DN da far chiudere, pulizia DN). Max 7, un pulsante per riga, «Rimanda a
 // domani» le nasconde fino al giorno dopo (mpd.qdSnooze). Le mosse degli scali restano nel Radar.
-function qdOn(){ return false; } // v1.15 — tolta: duplicava le altre sezioni
-window.qdOn = qdOn;
-window.qdSet = function(on){ try { localStorage.setItem("mpd.ovQueue", on ? "queue" : "fleet"); } catch(e) {} render(); };
-function qdSnz(){ return rdLoadJSON("mpd.qdSnooze"); }
-window.qdSnooze = function(k){ const o = qdSnz(), d = new Date(); d.setDate(d.getDate() + 1); o[k] = remIso(d);
-  Object.keys(o).forEach(x => { if(o[x] < remIso(new Date())) delete o[x]; }); rdSaveJSON("mpd.qdSnooze", o); showToast("Rimandata a domani"); qdPaint(); };
-window.qdGoFlow = function(vid, st){ window._pv = window._pv || { st: {}, q: "" }; window._pv.st[vid] = st; state.detailTab = "procurement"; goVessel(vid); };
-window.qdTodoDone = function(id){ updateTodo(id, { done: true, doneAt: new Date().toISOString() }); try { if(typeof ghSetDirty === "function") ghSetDirty(); } catch(e) {} showToast("To-do completata"); qdPaint(); };
-window.qdRem = function(tid, v, mode){ if(mode === "send") window.remSend(tid, v); else window.remDone(tid, v); qdPaint(); };
-function qdItems(){
-  const out = [], today = remIso(new Date()), ea = s => String(s == null ? "" : s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-  const vn = v => m3VName(v);
-  // avvisi periodici
-  try { const o = remLoad(); remTpls(o).filter(t => t.active !== false).forEach(t => { const c = remCycle(t); if(!c) return;
-    const due = remTargets(t).filter(v => remState(o, t, v, c).s === "due"), late0 = Math.round((new Date(today) - new Date(c.due)) / 864e5);
-    if(due.length > 1){ out.push({ key: "rem:" + t.id + "|*|" + c.key, score: 72 + Math.min(20, late0 * 3), tone: late0 > 3 ? "r" : "a", kind: "Avviso", who: due.length + " navi",
-      title: t.name + " · da inviare a " + due.length + " navi", why: due.map(v => m3VName(v)).join(", ") + " · " + c.label + (late0 > 0 ? " · da " + late0 + " gg" : " · scade oggi"),
-      acts: [{ l: "Apri gli avvisi", go: "remOpen()", pri: 1 }] }); return; }
-    due.forEach(v => {
-      const late = Math.round((new Date(today) - new Date(c.due)) / 864e5), mail = remHasMail(t, v);
-      out.push({ key: "rem:" + t.id + "|" + v + "|" + c.key, score: 72 + Math.min(20, late * 3), tone: late > 3 ? "r" : "a", kind: "Avviso", who: v === "_office" ? "Ufficio" : vn(v),
-        title: remFill(t.subject, t, v, c), why: t.name + " · " + c.label + (late > 0 ? " · da " + late + " gg" : " · scade oggi"),
-        acts: [t.tool === "ihm" ? { l: "⬇ Report IHM", go: "remTool('" + ea(t.id) + "')" } : null,
-          mail ? { l: "✉ Invia", go: "qdRem('" + ea(t.id) + "','" + ea(v) + "','send')", pri: 1 } : { l: "✓ Fatto", go: "qdRem('" + ea(t.id) + "','" + ea(v) + "','done')", pri: 1 }].filter(Boolean) }); }); }); } catch(e) { console.warn("[coda] avvisi", e); }
-  // to-do scadute / di oggi (le più importanti una per una, le altre in un'unica riga)
-  try { const P = { alta: 15, media: 5, bassa: 0 };
-    const tds = (state.todos || []).filter(t => !t.done && !t.remKey && (typeof todoActive !== "function" || todoActive(t)) && t.dueDate && String(t.dueDate).slice(0, 10) <= today)
-      .map(t => { const d = Math.round((new Date(today) - new Date(String(t.dueDate).slice(0, 10))) / 864e5); return { t, d, s: (d > 0 ? 58 + Math.min(12, d) : 55) + (P[t.priority] || 0) }; }).sort((a, b) => b.s - a.s);
-    tds.slice(0, 3).forEach(x => { const t = x.t, cfg = (VESSELS || []).find(v => v.vesselId === t.vessel);
-      out.push({ key: "td:" + t.id, score: x.s, tone: x.d > 0 ? "r" : "a", kind: "To-do", who: cfg ? cfg.displayName : (t.category || "Ufficio"),
-        title: t.reference || t.action || "To-do", why: (x.d > 0 ? "scaduta da " + x.d + " gg" : "scade oggi") + (t.priority === "alta" ? " · priorità alta" : ""),
-        acts: [{ l: "Apri", go: "openTodoModal('" + ea(t.id) + "')" }, { l: "✓ Fatto", go: "qdTodoDone('" + ea(t.id) + "')", pri: 1 }] }); });
-    if(tds.length > 3) out.push({ key: "td:rest", score: 45, tone: "a", kind: "To-do", who: "Tutte", title: "Altre " + (tds.length - 3) + " to-do scadute o di oggi", why: "le trovi in ordine nella pagina To-do",
-      acts: [{ l: "Apri le to-do", go: "state.view='todos';render();", pri: 1 }] }); } catch(e) { console.warn("[coda] todo", e); }
-  // flusso acquisti di ogni nave: stazioni con articoli fermi oltre il doppio
-  const TXT = { req: n => "Manda le RFQ per " + n + (n === 1 ? " richiesta ferma" : " richieste ferme"), rfq: n => "Sollecita " + n + (n === 1 ? " RFQ senza risposta" : " RFQ senza risposta"),
-    ord: n => "Emetti " + n + " PO: " + (n === 1 ? "offerta ricevuta" : "offerte ricevute") + " e ferm" + (n === 1 ? "a" : "e"), rdy: n => "Organizza la spedizione di " + n + (n === 1 ? " PO pronto" : " PO pronti") };
-  (VESSELS || []).forEach(cfg => { const vid = cfg.vesselId; let P = null; try { P = pvModel(vid); } catch(e) {} if(!P) return;
-    P.S.filter(s => TXT[s.id] && s.r).forEach(s => { const reds = s.its.filter(x => x.k === "r"), cr = reds.filter(x => x.crit).length, old = reds.slice().sort((a, b) => b.age - a.age)[0];
-      out.push({ key: "pv:" + vid + "|" + s.id, score: 48 + Math.min(14, s.r * 2) + (cr ? 16 : 0), tone: "r", kind: "Acquisti", who: cfg.displayName,
-        title: TXT[s.id](s.r) + (cr ? " · " + cr + " critic" + (cr === 1 ? "o" : "i") : ""),
-        why: old ? "il più vecchio: " + String(old.it.description || "").slice(0, 60) + " · " + old.age + " gg (tempo giusto " + (s.tgt || 1) + ")" : "",
-        acts: [{ l: "Apri il flusso", go: "qdGoFlow('" + ea(vid) + "','" + s.id + "')", pri: 1 }] }); });
-    if(P.stale >= 5) out.push({ key: "dnold:" + vid, score: 24, tone: "s", kind: "Dati", who: cfg.displayName, title: "Verifica " + P.stale + " DN vecchie", why: "spedite da oltre 30 gg senza tracking: probabilmente già a bordo",
-      acts: [{ l: "Pulizia DN", go: "m3DnStart('" + ea(vid) + "')", pri: 1 }] }); });
-  // DN da far chiudere alla nave
-  try { const by = {}; ifxList().forEach(x => { (by[x.vid] = by[x.vid] || []).push(x); });
-    Object.keys(by).forEach(vid => { const L = by[vid], asked = L.map(x => x.m.ifxAskedAt).filter(Boolean).sort().pop(), ad = asked ? mpDaysSince(asked) : null;
-      if(ad != null && ad <= 7) return;
-      out.push({ key: "ifx:" + vid, score: ad != null ? 50 : 38, tone: ad != null ? "a" : "s", kind: "Infoship", who: vn(vid), title: (ad != null ? "Sollecita " : "Chiedi a ") + vn(vid) + " di chiudere " + L.length + " DN in Infoship",
-        why: ad != null ? "chiesto " + ad + " gg fa, ancora aperte" : "merce a bordo, DN ancora aperte", acts: [{ l: "✉ " + (ad != null ? "Sollecita" : "Chiedi alla nave"), go: "ifxAskShip('" + ea(vid) + "');qdPaint()", pri: 1 }] }); }); } catch(e) {}
-  const snz = qdSnz();
-  return out.filter(x => !(snz[x.key] && snz[x.key] > today)).sort((a, b) => b.score - a.score);
-}
-function qdInner(){
-  const esc = escapeHTML, L = qdItems(), n = window._qdAll ? L.length : Math.min(7, L.length), d = new Date();
-  const TONE = { r: "#c0261c", a: "#c07800", s: "#8a99a8" };
-  const btn = "border:1px solid rgba(10,27,46,.14);background:#fff;border-radius:10px;padding:0 12px;min-height:38px;font-size:12.5px;font-weight:700;cursor:pointer;color:#0a1b2e;font-family:var(--font-sans);white-space:nowrap;";
-  const pri = "border:0;background:#1553d8;color:#fff;border-radius:10px;padding:0 14px;min-height:38px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;";
-  const row = (x, i) => '<div style="display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 18px;border-top:' + (i ? "1px solid rgba(10,27,46,.08)" : "0") + ';">' +
-    '<span style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#8a99a8;text-align:right;">' + (i + 1) + '</span>' +
-    '<div style="min-width:0;display:flex;flex-direction:column;gap:4px;"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><i style="width:8px;height:8px;border-radius:50%;background:' + TONE[x.tone] + ';flex:none;"></i>' +
-      '<span style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#6a7d90;">' + esc(x.kind) + ' · ' + esc(x.who) + '</span></div>' +
-      '<div style="font-size:14.5px;font-weight:700;color:#0a1b2e;line-height:1.3;text-wrap:pretty;">' + esc(x.title) + '</div>' + (x.why ? '<div style="font-size:12.5px;color:#44576b;line-height:1.35;">' + esc(x.why) + '</div>' : "") + '</div>' +
-    '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' + x.acts.map(a => '<button style="' + (a.pri ? pri : btn) + '" onclick="' + a.go.replace(/"/g, "&quot;") + '">' + esc(a.l) + '</button>').join("") +
-      '<button title="Nascondi fino a domani" style="' + btn + 'color:#6a7d90;" onclick="qdSnooze(\'' + String(x.key).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, "&quot;") + '\')">Domani</button></div></div>';
-  const head = '<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:16px 18px 12px;border-bottom:1px solid rgba(10,27,46,.08);">' +
-    '<div style="flex:1;min-width:220px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#6a7d90;">' + esc((REM_WD[d.getDay()] + " " + d.getDate() + " " + REM_MON_IT[d.getMonth()]).toUpperCase()) + '</div>' +
-    '<div style="font-size:19px;font-weight:800;color:#0a1b2e;margin-top:2px;">Cosa fare oggi</div></div>' +
-    '<span style="font-size:12.5px;color:#44576b;">' + (L.length ? (L.length > 7 && !window._qdAll ? "le prime 7 di " + L.length : L.length + (L.length === 1 ? " mossa" : " mosse")) + " · gli scali sono nel Radar" : "") + '</span>' +
-    '<button class="btn btn-sm" onclick="window.qdSet(false)">Vista Flotta</button></div>';
-  const body = L.length ? L.slice(0, n).map(row).join("") + (L.length > 7 ? '<div style="padding:10px 18px;border-top:1px solid rgba(10,27,46,.08);"><button style="background:none;border:0;color:#1553d8;font-weight:700;font-size:13px;cursor:pointer;padding:4px 0;" onclick="window._qdAll=!window._qdAll;qdPaint()">' + (window._qdAll ? "Mostra solo le prime 7" : "Mostra tutte (" + L.length + ")") + '</button></div>' : "")
-    : '<div style="padding:28px 18px;display:flex;flex-direction:column;gap:4px;"><b style="font-size:17px;color:#14794e;">Finito per oggi.</b><span style="font-size:13px;color:#44576b;">Niente in coda: avvisi inviati, nessuna to-do scaduta, nessun articolo fermo oltre il doppio.</span></div>';
-  return '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:18px;overflow:hidden;">' + head + body + '</div>';
-}
-function qdSection(){ let inner = ""; try { inner = qdInner(); } catch(e) { console.warn("[coda]", e); } return '<section id="qd-root">' + inner + '</section>'; }
-window.qdSection = qdSection;
-function qdPaint(){ const h = document.getElementById("qd-root"); if(h) try { h.innerHTML = qdInner(); } catch(e) { console.warn("[coda]", e); } }
-window.qdPaint = qdPaint;
+
 
 // === v1.13 MOBILE — Cruscotto acquisti nella scheda nave (le 7 stazioni in verticale) ==========
 (function(){ try { const s = document.createElement("style"); s.id = "m6f-css"; s.textContent = `
@@ -30678,12 +29929,20 @@ function mbSectionHTML(full){ const b = mbData(); if(!b) return full ? '<div id=
   h += '<div class="mb-ft"><span><b style="color:#0a1b2e">Senza conseguenze:</b> ' + (M.noon ? M.noon + " noon report (già nel diario) · " : "") + M.routine + " altre" + (restTxt ? " (" + restTxt + (M.routine > 6 ? "…" : "") + ")" : "") + '</span>' +
     '<span><b style="color:#0a1b2e">Ignorate:</b> ' + M.spam + ' spam · ' + (c.noise || 0) + ' automatiche</span></div>';
   return h + '</section>'; }
-function mbMobileHTML(){ const b = mbData(); if(!b || b.version !== 2) return ""; mbCss2(); const M = mbModel(b), w = mbWhen(b);
-  return '<div class="mb2"><div class="mb-eb">POSTA DELLA NOTTE · ' + escapeHTML(w.at) + '</div><div class="mb-h">' + escapeHTML(M.head) + '</div>' +
-    M.D.filter(d => !d.done).slice(0, 3).map((d, i) => mbCardHTML(d, i, true)).join("") + (M.Q.length ? '<div>' + M.Q.filter(e => !e.done).map(mbQHTML).join("") + '</div>' : "") + '</div>'; }
+// v2.1 — della posta resta SOLO l'incrocio: email che contraddicono la dashboard (posizione/viaggio, pratica citata, richiesta nave senza REQ)
+function mbDecideHTML(){ const b = mbData(); if(!b || b.version !== 2) return '<div id="mb-root" data-mb-decide="1"></div>'; mbCss2();
+  const M = mbModel(b), Dop = M.D.filter(d => !d.done); if(!Dop.length) return '<div id="mb-root" data-mb-decide="1"></div>'; const w = mbWhen(b);
+  return '<section id="mb-root" data-mb-decide="1" class="mb2"><div class="mb-eb" style="color:#c0261c">Da decidere · ' + Dop.length + ' email della notte non tornano con la dashboard · ' + escapeHTML(w.at) + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:9px">' + Dop.slice(0, 4).map(d => mbCardHTML(d, M.D.indexOf(d))).join("") +
+    (Dop.length > 4 ? '<details' + (window._mbMore ? " open" : "") + ' ontoggle="window._mbMore=this.open"><summary style="cursor:pointer;font-size:13px;font-weight:700;color:#1553d8;padding:4px 0">Altre ' + (Dop.length - 4) + ' da decidere</summary><div style="display:flex;flex-direction:column;gap:9px;margin-top:9px">' + Dop.slice(4).map(d => mbCardHTML(d, M.D.indexOf(d))).join("") + '</div></details>' : "") + '</div></section>'; }
+window.mbDecideHTML = mbDecideHTML;
+function mbMobileHTML(){ return ""; }   // v2.3 — "Da decidere" tolta anche dal mobile (doppione di Outlook)
+function mbMobileHTML_old(){ const b = mbData(); if(!b || b.version !== 2) return ""; mbCss2(); const M = mbModel(b), w = mbWhen(b), Dop = M.D.filter(d => !d.done); if(!Dop.length) return "";
+  return '<div class="mb2"><div class="mb-eb">DA DECIDERE · POSTA ' + escapeHTML(w.at) + '</div>' +
+    Dop.slice(0, 3).map((d, i) => mbCardHTML(d, i, true)).join("") + '</div>'; }
 function mbIsOpen(b){ try { const o = JSON.parse(localStorage.getItem("mpd.mbOpen") || "{}"); return o.at === b.generatedAt ? !!o.open : true; } catch(e) { return true; } }
 function mbRepaint(){ window._mbM = null; if(typeof maIsMobile === "function" && maIsMobile()){ try { renderMobileApp(); } catch(e) {} return; }
-  const el = document.getElementById("mb-root"); if(el) el.outerHTML = mbSectionHTML(!el.hasAttribute("data-mb-compact") && state.view === "todos"); }
+  const el = document.getElementById("mb-root"); if(el) el.outerHTML = mbDecideHTML(); }
 window.mbDoneK = function(k){ const o = mbDoneMap(); mbSetDone(k, !o[k]); window._mbM = null; mbRepaint(); };
 window.mbOpenToggle = function(){ const b = mbData(); if(!b) return; try { localStorage.setItem("mpd.mbOpen", JSON.stringify({ at: b.generatedAt, open: !mbIsOpen(b) })); } catch(e) {} mbRepaint(); };
 window.mbTodoE = function(id){ const b = mbData(); const e = b && (b.emails || []).find(x => x.id === id); if(!e) return; const v = mbVes(e);
@@ -31246,7 +30505,10 @@ function importBackup(e) {
   function mount(){
     var host = main();
     if (!host) return;
-    [].forEach.call(document.querySelectorAll(".g4-hello,.g4-row,.g4-rail"), function(n){ n.remove(); });
+    [].forEach.call(document.querySelectorAll(".g4-hello,.g4-row,.g4-rail,#rd-orders"), function(n){ n.remove(); });
+    // v2.1 — ORDINI IN CORSA fusi nel Radar: sotto gli scali, stessa pagina
+    var rr = overview() && document.getElementById("radar-root");
+    if (rr) { var ob = ordersBoard(); if (ob) { ob.id = "rd-orders"; ob.style.margin = "0 0 22px"; ob.style.background = "#fff"; ob.style.border = "1px solid rgba(10,27,46,.10)"; ob.style.borderRadius = "16px"; ob.style.padding = "16px 18px"; rr.parentNode.insertBefore(ob, rr.nextSibling); } }
     if (!glass()) return;
     document.body.appendChild(rail());
     if (!overview()) return;
@@ -31269,7 +30531,7 @@ function importBackup(e) {
 
   var t = null;
   function schedule(){ clearTimeout(t); t = setTimeout(mount, 160); }
-  window.g4Refresh = mount;
+  window.g4Refresh = mount; window.g4ChaseQueue = chaseQueue; window.g4OrdersBoard = ordersBoard;
 
   /* barre in alto: si ritraggono scorrendo in giù, tornano risalendo */
   function autoHideBars(){
@@ -31783,7 +31045,7 @@ async function dbClient(){
   const c = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "mpd.sbAuth" } });
   window._db.client = c;
   const { data } = await c.auth.getSession(); window._db.user = data && data.session ? data.session.user : null;
-  c.auth.onAuthStateChange((ev, s) => { window._db.user = s ? s.user : null; dbRenderRow(); if(ev === "SIGNED_IN") dbSubscribe(); });
+  c.auth.onAuthStateChange((ev, s) => { window._db.user = s ? s.user : null; dbRenderRow(); if(ev === "SIGNED_IN"){ dbSubscribe(); if(typeof sbInit === "function") setTimeout(() => sbInit(), 300); } });
   if(window._db.user) dbSubscribe();
   return c;
 }
@@ -31926,6 +31188,7 @@ function dbRenderRow(){
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px"><span style="font-size:12.5px;color:#44576b">Pratiche:</span>' + seg("db", "dal database (nuovo)") + seg("github", "da Notion/GitHub (vecchio)") + '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-sm" onclick="dbPickFiles()">⇧ Carica Excel Infoship</button><button class="btn btn-sm" onclick="dbCompare()">Confronta con il vecchio</button>' + (src === "db" ? '<button class="btn btn-sm" onclick="dbReloadProc()">↻ Rileggi</button>' : '') + '</div>' +
       (window._db.last ? '<div style="font-size:12.5px;margin-top:8px;font-weight:600;color:' + (/^✕/.test(window._db.last) ? '#c0261c' : '#14794e') + '">' + esc(window._db.last) + '</div>' : '') +
+      (typeof sbStatusHTML === "function" ? sbStatusHTML() : "") +
       '<div style="font-size:11.5px;color:#6a7d90;margin-top:8px;text-wrap:pretty">Puoi anche trascinare gli Excel ovunque nella dashboard: lista documenti, RFQ e PO, anche insieme e di periodi sovrapposti. Un export più vecchio non riporta indietro gli stati.</div>';
 }
 (function(){
@@ -31935,6 +31198,427 @@ function dbRenderRow(){
   if(localStorage.getItem("mpd.sbAuth")) dbClient().then(() => dbRenderRow()).catch(() => {});
 })();
 setTimeout(() => { if(dbSource() === "db" && state.data && !(state.data.source === "db")) window.dbReloadProc(true); }, 2500);
+
+// ============================================================================
+// v2.1 — FASE 2: DATI MANUALI NEL DATABASE, IN TEMPO REALE (to-do, posizioni, viaggi, certificati, rubrica, ...)
+// Ogni collezione di buildStatePayload() è una riga di records (coll "state", id = nome collezione).
+// Stesso merge del sync GitHub (mpdMergeRemote: per voce con recRev, to-do per id + tombe): il database è solo
+// un trasporto più veloce. Si invia solo ciò che è cambiato; collMeta/recRev viaggiano insieme ma da soli non
+// fanno partire un invio (niente rimpallo tra dispositivi). Un altro dispositivo che scrive → arriva qui da solo.
+// ============================================================================
+window._sb = window._sb || { on: false, busy: false, again: false, timer: null, ch: null, lastPush: null, lastPull: null, err: null, n: 0 };
+const SB_META_KEYS = { collMeta: 1, recRev: 1, pushedAt: 1, todosCount: 1, deviceId: 1, schemaVersion: 1, sourceDevice: 1 };
+function sbEnabled(){ return localStorage.getItem("mpd.sbState") !== "off"; }
+function sbH(v){ const t = JSON.stringify(v === undefined ? null : v); let h = 2166136261; for(let i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + t.length.toString(36); }
+function sbHashes(){ try { return JSON.parse(localStorage.getItem("mpd.sbHashes") || "{}") || {}; } catch(e) { return {}; } }
+function sbSaveHashes(o){ try { localStorage.setItem("mpd.sbHashes", JSON.stringify(o)); } catch(e) {} }
+async function sbFetchState(){
+  const c = await dbClient(), out = {};
+  const { data, error } = await c.from("records").select("id,data,deleted,updated_at").eq("coll", "state");
+  if(error) throw error;
+  (data || []).forEach(r => { if(!r.deleted) out[r.id] = r.data; });
+  return out;
+}
+async function sbPull(opts){
+  if(!sbEnabled() || !(await dbReady())) return false;
+  const remote = await sbFetchState(), H = sbHashes();
+  Object.keys(remote).forEach(k => H[k] = sbH(remote[k])); sbSaveHashes(H);
+  let changed = false;
+  if(Object.keys(remote).length){
+    try { GH_SYNC.suppressPush = true; changed = mpdMergeRemote(remote, false); } finally { GH_SYNC.suppressPush = false; }
+    if(changed && (!opts || opts.render !== false)) { try { syncRender(); } catch(e) {} }
+  }
+  window._sb.lastPull = new Date().toISOString(); window._sb.err = null;
+  return changed;
+}
+function sbDiff(){
+  const p = buildStatePayload(), H = sbHashes(), items = [];
+  let real = false;
+  Object.keys(p).forEach(k => { if(k === "pushedAt" || k === "todosCount" || p[k] === undefined) return; const h = sbH(p[k]); if(h !== H[k]){ items.push({ k, v: p[k], h }); if(!SB_META_KEYS[k]) real = true; } });
+  return real ? items : [];
+}
+async function sbPush(){
+  if(!sbEnabled()) return;
+  if(window._sb.busy){ window._sb.again = true; return; }
+  window._sb.busy = true;
+  try {
+    if(!(await dbReady())) return;
+    await sbPull({ render: true });
+    const items = sbDiff(); if(!items.length) return;
+    const c = window._db.client, now = new Date().toISOString(), dev = (typeof ghDeviceId === "function" ? ghDeviceId() : "web"), H = sbHashes();
+    let batch = [], size = 0;
+    const flush = async () => { if(!batch.length) return; const { error } = await c.rpc("put_records", { items: batch.map(x => ({ coll: "state", id: x.k, data: x.v, deleted: false, updated_at: now, device: dev })) }); if(error) throw error; batch.forEach(x => H[x.k] = x.h); batch = []; size = 0; };
+    for(const x of items){ const sz = JSON.stringify(x.v).length; if(size + sz > 900000) await flush(); batch.push(x); size += sz; }
+    await flush(); sbSaveHashes(H);
+    window._sb.lastPush = now; window._sb.n += items.length; window._sb.err = null;
+  } catch(e) { console.warn("[sb] invio", e); window._sb.err = e.message || String(e); }
+  finally { window._sb.busy = false; sbPaintStatus(); if(window._sb.again){ window._sb.again = false; sbSchedulePush(1500); } }
+}
+function sbSchedulePush(ms){
+  if(!sbEnabled() || !window._sb.on) return;
+  clearTimeout(window._sb.timer); window._sb.timer = setTimeout(() => { window._sb.timer = null; sbPush(); }, ms == null ? 2500 : ms);
+}
+window.sbSchedulePush = sbSchedulePush;
+function sbSubscribe(){
+  const c = window._db.client; if(!c || window._sb.ch) return;
+  const me = (typeof ghDeviceId === "function" ? ghDeviceId() : ""); let t = null;
+  window._sb.ch = c.channel("mpd-state").on("postgres_changes", { event: "*", schema: "public", table: "records", filter: "coll=eq.state" }, ev => {
+    if(ev && ev.new && ev.new.device === me) return;
+    clearTimeout(t); t = setTimeout(() => { sbPull({ render: true }).then(() => sbPaintStatus()).catch(e => { window._sb.err = e.message; sbPaintStatus(); }); }, 1200);
+  }).subscribe();
+}
+async function sbInit(){
+  if(window._sb.on || !sbEnabled() || !(await dbReady())) return;
+  window._sb.on = true;
+  try { await sbPull({ render: true }); } catch(e) { window._sb.err = e.message || String(e); }
+  sbSubscribe(); sbSchedulePush(500);
+  setInterval(() => { if(!window._sb.busy && !window._sb.timer && sbDiff().length) sbPush(); }, 30000);
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "hidden"){ if(sbDiff().length) sbPush(); } else sbPull({ render: true }).catch(() => {}); });
+  sbPaintStatus();
+}
+window.sbInit = sbInit;
+window.sbToggle = function(){ const on = !sbEnabled(); localStorage.setItem("mpd.sbState", on ? "on" : "off"); if(on){ window._sb.on = false; sbInit(); } else { window._sb.on = false; if(window._sb.ch){ try { window._db.client.removeChannel(window._sb.ch); } catch(e) {} window._sb.ch = null; } } dbRenderRow(); };
+window.sbNow = function(){ sbPush().then(() => showToast(window._sb.err ? "Sync non riuscito: " + window._sb.err : "Dati manuali sincronizzati")); };
+function sbStatusHTML(){
+  const S = window._sb, t = x => x ? new Date(x).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "—";
+  const on = sbEnabled();
+  return '<div id="sb-st" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(10,27,46,.08);display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px">' +
+    '<span style="flex:1;min-width:200px;text-wrap:pretty"><b>Dati manuali</b> (to-do, posizioni, viaggi, certificati, rubrica…): ' +
+    (!on ? '<span style="color:#b06a00">spenti su questo dispositivo</span>' : S.err ? '<span style="color:#c0261c">errore · ' + escapeHTML(S.err) + '</span>' : S.on ? '<span style="color:#14794e">in tempo reale</span> · ricevuti ' + t(S.lastPull) + ' · inviati ' + t(S.lastPush) : 'in avvio…') + '</span>' +
+    (on ? '<button class="btn btn-sm" onclick="sbNow()">↻ Sincronizza ora</button>' : '') + '<button class="btn btn-sm" onclick="sbToggle()">' + (on ? "Spegni" : "Accendi") + '</button></div>';
+}
+function sbPaintStatus(){ const el = document.getElementById("sb-st"); if(el) el.outerHTML = sbStatusHTML(); }
+setTimeout(() => { if(localStorage.getItem("mpd.sbAuth")) sbInit().catch(e => console.warn("[sb] avvio", e)); }, 3500);
+
+
+// ============================================================================
+// v2.2 — GUSCIO A 6 PORTE (Oggi · Radar · Navi · Certificati · Rubrica · Numeri). Prova: mpd.shell "6" (default) | "old".
+// Riusa le pagine esistenti: Radar = overview senza card/salute/cambio, Navi = vessel con testata 1a, Numeri = budget|performance
+// con i report del mese in cima. Oggi = Da decidere (posta) + Da sollecitare + To-do scadute/oggi + DN da chiudere + import.
+// Fusi orari: striscia "Ora di chi chiami" sotto la barra, su tutte le porte; in Rubrica ogni contatto mostra la sua ora.
+// ============================================================================
+function shellOn(){ return localStorage.getItem("mpd.shell") === "6"; }   // v2.2b — bocciato dall'utente: di default le pillole di prima
+window.shellSet = function(v){ localStorage.setItem("mpd.shell", v === "old" ? "old" : "6"); if(v === "old" && state.view === "oggi") state.view = "overview"; const st = document.getElementById("shell-clocks"); if(st && v === "old") st.remove(); renderSwitcher(); render(); };
+function shDoor(){ const v = state.view; return v === "oggi" ? "oggi" : v === "overview" ? "radar" : v === "vessel" ? "navi" : v === "certificates" ? "cert" : v === "rubrica" ? "rub" : (v === "budget" || v === "performance") ? "num" : v === "todos" ? "oggi" : ""; }
+function shToday(){ const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function shTodoDue(){ const t = shToday(); return (typeof todosOpen === "function" ? todosOpen() : []).filter(x => x.dueDate && String(x.dueDate).slice(0, 10) <= t).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate))); }
+function renderSwitcher6(){
+  const row = document.getElementById("pill-row"), select = document.getElementById("vessel-select"); if(!row) return;
+  row.innerHTML = ""; if(select) select.innerHTML = "";
+  let late = 0; try { const M = rdModel(); late = (M.calls || []).filter(c => c.worst === "late").length; } catch(e) {}
+  let dec = 0; try { const b = mbData(); if(b && b.version === 2) dec = mbModel(b).D.filter(d => !d.done).length; } catch(e) {}
+  const cg = (typeof getCertStatsGlobal === "function" ? getCertStatsGlobal() : {}) || {};
+  const vid = state.selectedVesselId || window._shLastVid || ((VESSELS || [])[0] || {}).vesselId || "";
+  const D = [["oggi", "Oggi", 'data-view="oggi"', shTodoDue().length + dec], ["radar", "Radar", 'data-view="overview"', late], ["navi", "Navi", 'data-view="navi"', 0],
+    ["cert", "Certificati", 'data-view="certificates"', (cg.expired || 0) + (cg.urgent || 0)], ["rub", "Rubrica", 'data-view="rubrica"', 0], ["num", "Numeri", 'data-view="budget"', 0]];
+  const cur = shDoor();
+  D.forEach(([k, l, attr, n]) => {
+    row.appendChild(makeEl('<button class="pill' + (cur === k ? " active" : "") + '" ' + attr + ' role="tab"><span>' + l + '</span><span class="pill-key">' + (n || "") + '</span></button>'));
+    if(select){ const o = document.createElement("option"); o.value = k === "navi" ? vid : k === "radar" ? "__overview" : k === "num" ? "__budget" : k === "cert" ? "__certificates" : k === "rub" ? "__rubrica" : "__oggi"; o.textContent = l + (n ? " (" + n + ")" : ""); if(cur === k) o.selected = true; select.appendChild(o); }
+  });
+}
+window.renderSwitcher6 = renderSwitcher6;
+// --- ora dei contatti -------------------------------------------------------------
+const CT_TZ = { italy: "Europe/Rome", italia: "Europe/Rome", netherlands: "Europe/Amsterdam", holland: "Europe/Amsterdam", germany: "Europe/Berlin", france: "Europe/Paris", spain: "Europe/Madrid", portugal: "Europe/Lisbon",
+  uk: "Europe/London", "united kingdom": "Europe/London", england: "Europe/London", greece: "Europe/Athens", turkey: "Europe/Istanbul", "türkiye": "Europe/Istanbul", malta: "Europe/Malta", croatia: "Europe/Zagreb", norway: "Europe/Oslo",
+  sweden: "Europe/Stockholm", denmark: "Europe/Copenhagen", finland: "Europe/Helsinki", poland: "Europe/Warsaw", belgium: "Europe/Brussels", cyprus: "Asia/Nicosia", egypt: "Africa/Cairo", kenya: "Africa/Nairobi", "south africa": "Africa/Johannesburg",
+  mauritius: "Indian/Mauritius", uae: "Asia/Dubai", "united arab emirates": "Asia/Dubai", india: "Asia/Kolkata", singapore: "Asia/Singapore", china: "Asia/Shanghai", "hong kong": "Asia/Hong_Kong", korea: "Asia/Seoul", "south korea": "Asia/Seoul",
+  japan: "Asia/Tokyo", brazil: "America/Sao_Paulo", brasil: "America/Sao_Paulo", usa: "America/New_York", "united states": "America/New_York", canada: "America/Toronto", panama: "America/Panama", mexico: "America/Mexico_City" };
+function ctTz(name, p){ p = p || {}; return (state.supplierTimezones && state.supplierTimezones[name]) || p.tz || CT_TZ[String(p.country || "").trim().toLowerCase()] || ""; }
+function ctTime(tz){ try { const n = new Date(), t = n.toLocaleTimeString("it-IT", { timeZone: tz, hour: "2-digit", minute: "2-digit" }), wd = n.toLocaleDateString("en-US", { timeZone: tz, weekday: "short" }), h = parseInt(t, 10);
+  const open = !/Sat|Sun/.test(wd) && h >= 9 && h < 18; return { t, open, txt: open ? "in ufficio" : (/Sat|Sun/.test(wd) ? "weekend" : h < 9 ? "non ancora in ufficio" : "fuori orario") }; } catch(e) { return null; } }
+function ctTimeHTML(name, p){ const tz = ctTz(name, p); if(!tz || tz === "Europe/Rome") return ""; const c = ctTime(tz); if(!c) return "";
+  return '<span title="Ora locale (' + escapeAttr(tz) + ') · ' + c.txt + '" style="flex:none;font:600 11.5px var(--font-mono);padding:2px 7px;border-radius:6px;white-space:nowrap;' + (c.open ? "background:#e3f2ea;color:#14794e" : "background:#eef1f4;color:#6a7d90") + '">' + c.t + ' · ' + c.txt + '</span>'; }
+window.ctTimeHTML = ctTimeHTML;
+function shClocksHTML(){
+  const C = (typeof loadWorldClockCities === "function" ? loadWorldClockCities() : []) || [], n = new Date();
+  const L = C.map(c => { try { const tz = c.tz === "UTC" ? "Etc/UTC" : c.tz, t = n.toLocaleTimeString("it-IT", { timeZone: tz, hour: "2-digit", minute: "2-digit" }), h = parseInt(t, 10),
+    wd = n.toLocaleDateString("en-US", { timeZone: tz, weekday: "short" }), we = /Sat|Sun/.test(wd), open = !we && h >= 9 && h < 18, home = /napoli|naples/i.test(c.label || "") || c.code === "NAP";
+    const off = new Date(n.toLocaleString("en-US", { timeZone: tz, hour12: false })).getTime();
+    return { c, t, open, we, home, off, tip: (c.label || c.code) + " · " + (open ? "in ufficio" : we ? "weekend" : h < 9 ? "non ancora in ufficio" : "fuori orario") }; } catch(e) { return null; } }).filter(Boolean).sort((x, y) => x.off - y.off);
+  return L.map(x => '<span title="' + escapeAttr(x.tip) + '" style="display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap;padding:3px 8px;border-radius:6px;font-family:var(--font-mono);' +
+    (x.home ? "background:#0a1b2e;color:#fff" : x.open ? "background:#e3f2ea;color:#0a1b2e" : "background:#f1f3f6;color:#6a7d90") + '"><span style="font-size:10.5px;font-weight:700;letter-spacing:.05em">' + escapeHTML(x.c.code || x.c.label || "") + '</span><b style="font-size:13px;font-weight:600">' + escapeHTML(x.t) + '</b>' + (x.open && !x.home ? '<i style="width:6px;height:6px;border-radius:50%;background:#14794e;align-self:center"></i>' : "") + '</span>').join("");
+}
+function shClocks(){
+  const root = document.getElementById("view-root"); if(!root) return;
+  const old = document.getElementById("shell-clocks"); if(old && !root.contains(old)) old.remove();
+  let el = document.getElementById("shell-clocks");
+  if(!el){ el = document.createElement("div"); el.id = "shell-clocks"; root.insertBefore(el, root.firstChild); }
+  el.style.cssText = "display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:0 0 12px;border-bottom:1px solid rgba(10,27,46,.08)";
+  el.innerHTML = '<span title="Prima di telefonare: che ora è da loro? Verde = in orario d\'ufficio" style="flex:none;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#44576b;white-space:nowrap">ORA DI CHI CHIAMI</span>' +
+    '<div id="sh-clock-list" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;min-width:0;flex:1">' + shClocksHTML() + '</div>' +
+    '<button class="btn btn-sm" style="flex:none;white-space:nowrap" onclick="window.openWorldClockSettings()" title="Aggiungi o togli città di fornitori, agenzie, uffici">Città…</button>';
+  if(!window._shClockT){ window._shClockT = setInterval(() => { const st = document.getElementById("sh-clock-list"); if(st && shellOn()) st.innerHTML = shClocksHTML(); try { updateHeaderClock(); } catch(e) {} }, 60000); }
+}
+// --- OGGI --------------------------------------------------------------------------
+const SH_CARD = "background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:14px;display:flex;flex-direction:column;overflow:hidden";
+const SH_H = "display:flex;align-items:baseline;gap:10px;padding:14px 16px 10px;flex-wrap:wrap";
+function shTodoText(t){ return [t.action && t.action !== "Altro" ? t.action : "", t.reference || t.title || t.text || t.description || ""].filter(Boolean).join(" · ") || "(senza testo)"; }
+function renderOggiPage(){
+  const root = document.getElementById("view-root"); if(!root) return; const esc = escapeHTML, ea = s => escapeAttr(String(s)).replace(/'/g, "\\'"), today = shToday();
+  const d = new Date(), when = d.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" });
+  const T = shTodoDue();
+  const todoRows = T.slice(0, 12).map(t => { const od = String(t.dueDate).slice(0, 10) < today, vn = t.vessel ? (vNameSafe(t.vessel) || t.vessel) : (t.category || "");
+    return '<div style="border-top:1px solid rgba(10,27,46,.08);padding:9px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center">' +
+      '<button onclick="shTodoDone(\'' + ea(t.id) + '\')" title="Fatta" style="width:22px;height:22px;border-radius:6px;border:1.5px solid rgba(10,27,46,.35);background:#fff;cursor:pointer;padding:0"></button>' +
+      '<button onclick="openTodoModal(\'' + ea(t.id) + '\')" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:14px;color:#0a1b2e;overflow-wrap:anywhere">' + esc(shTodoText(t)) + '</span><span style="font-size:12px;color:#44576b">' + esc(vn) + (t.priority === "alta" || t.priority === "high" || t.priority === "urgent" ? ' · <b style="color:#c0261c">ALTA</b>' : "") + '</span></button>' +
+      '<span style="font:600 11.5px var(--font-mono);color:' + (od ? "#c0261c" : "#c07800") + ';white-space:nowrap">' + (od ? mpFD(t.dueDate) : "oggi") + '</span></div>'; }).join("");
+  const open = (typeof todosOpen === "function" ? todosOpen() : []).length;
+  let A = [], B = []; try { A = ifxList(); B = ifxVerifyList(); } catch(e) {}
+  const dnRows = (VESSELS || []).map(c => { const a = A.filter(x => x.vid === c.vesselId), b = B.filter(x => x.vid === c.vesselId); if(!a.length && !b.length) return "";
+    const ask = a.concat(b).map(x => x.m.ifxAskedAt).filter(Boolean).sort().pop(), age = ask ? mpDaysSince(ask) : null;
+    return '<div style="border-top:1px solid rgba(10,27,46,.08);padding:10px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:14px">' + esc(c.displayName) + '</span>' +
+      '<span style="font-size:12.5px;color:#44576b">' + (a.length ? a.length + " a bordo da chiudere" : "") + (a.length && b.length ? " · " : "") + (b.length ? b.length + " da verificare" : "") + (ask ? ' · chiesto il ' + esc(mpFD(ask)) + (age > 7 ? ' <b style="color:#c0261c">nessuna risposta</b>' : "") : "") + '</span></div>' +
+      '<button class="btn btn-sm" style="white-space:nowrap" onclick="ifxAskShip(\'' + ea(c.vesselId) + '\')">' + (ask ? "Sollecita la nave" : "✉ Chiedi alla nave") + '</button></div>'; }).join("");
+  root.innerHTML = '<div style="display:flex;flex-direction:column;gap:18px">' +
+    '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 style="margin:0;font-size:26px;font-weight:800;color:#0a1b2e">Oggi</h1><span style="font-size:14px;color:#44576b">' + esc(when) + ' · cosa devi fare tu</span>' +
+      '<span style="flex:1"></span><button class="btn btn-sm" onclick="dbPickFiles ? dbPickFiles() : null" title="Lista documenti, RFQ e PO Infoship: anche insieme. Puoi anche trascinarli qui.">⇧ Carica Excel Infoship</button></div>' +
+    (typeof mbDecideHTML === "function" ? mbDecideHTML() : "") +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:18px;align-items:start">' +
+      '<div style="display:flex;flex-direction:column;gap:18px"><section style="' + SH_CARD + '"><div style="' + SH_H + '"><h2 style="margin:0;font-size:16px;font-weight:700">Da sollecitare</h2><span style="font-size:13px;color:#44576b">RFQ senza risposta, per fornitore e nave</span></div><div id="sh-chase" style="padding:0 16px 14px"></div></section></div>' +
+      '<div style="display:flex;flex-direction:column;gap:18px">' +
+        '<section style="' + SH_CARD + '"><div style="' + SH_H + ';align-items:center"><h2 style="margin:0;font-size:16px;font-weight:700">To-do</h2><span style="font-size:13px;color:#44576b">scadute e di oggi · ' + T.length + ' su ' + open + ' aperte</span><span style="flex:1"></span>' +
+          '<button class="btn btn-sm btn-primary" onclick="openTodoModal(null)">+ Nuova</button><button class="btn btn-sm" onclick="goTodos()">Tutte →</button></div>' +
+          (todoRows || '<div style="border-top:1px solid rgba(10,27,46,.08);padding:14px 16px;font-size:13.5px;color:#14794e;font-weight:600">✓ Niente in scadenza oggi</div>') + (T.length > 12 ? '<div style="border-top:1px solid rgba(10,27,46,.08);padding:9px 16px;font-size:12.5px;color:#44576b">+ altre ' + (T.length - 12) + ' in To-do</div>' : "") + '</section>' +
+        '<section style="' + SH_CARD + '"><div style="' + SH_H + ';align-items:center"><h2 style="margin:0;font-size:16px;font-weight:700">DN da chiudere</h2><span style="font-size:13px;color:#44576b">le chiude solo la nave · una email per nave</span><span style="flex:1"></span><button class="btn btn-sm" onclick="ifxOpen()">Elenco →</button></div>' +
+          (dnRows || '<div style="border-top:1px solid rgba(10,27,46,.08);padding:14px 16px;font-size:13.5px;color:#14794e;font-weight:600">✓ Nessuna DN da chiudere</div>') + '</section>' +
+      '</div></div></div>';
+  const ch = document.getElementById("sh-chase");
+  if(ch){ try { const q = window.g4ChaseQueue && window.g4ChaseQueue(); if(q){ q.className = "sh-chase"; const h3 = q.querySelector("h3"); if(h3) h3.remove(); ch.appendChild(q); } else ch.innerHTML = '<div style="font-size:13px;color:#44576b">Dati non ancora caricati.</div>'; } catch(e) { ch.innerHTML = '<div style="font-size:13px;color:#c0261c">Solleciti non disponibili: ' + esc(e.message) + '</div>'; } }
+}
+window.renderOggiPage = renderOggiPage;
+window.shTodoDone = function(id){ updateTodo(id, { done: true, doneAt: new Date().toISOString() }); try { if(typeof ghSetDirty === "function") ghSetDirty(); } catch(e) {} showToast("To-do completata"); render(); };
+// --- dopo ogni render: adatta la pagina alla porta -----------------------------------
+function shellAfter0(){
+  if(!shellOn() || (typeof maIsMobile === "function" && maIsMobile())) return;
+  if(!window._shBooted){ window._shBooted = true; if(state.view === "overview" && !location.hash){ state.view = "oggi"; render(); return; } }
+  const root = document.getElementById("view-root"); if(!root) return; const esc = escapeHTML;
+  if(state.view === "overview"){
+    ["#mb-root", "#ov-fleet", "#fx-widget", ".fusi-section"].forEach(q => root.querySelectorAll(q).forEach(n => n.remove()));
+    root.querySelectorAll(".perf-banner").forEach(b => { const s = b.closest("section"); (s || b).remove(); });
+    if(!document.getElementById("sh-hist")){ const s = document.createElement("section"); s.id = "sh-hist"; s.style.cssText = SH_CARD + ";margin-top:18px";
+      s.innerHTML = '<div style="' + SH_H + ';align-items:center"><h2 style="margin:0;font-size:16px;font-weight:700">Storico consegne</h2><span style="font-size:13px;color:#44576b">cosa è arrivato a bordo, dove e quando · tutta la flotta, con export Excel</span><span style="flex:1"></span>' +
+        '<button class="btn btn-sm" onclick="(document.getElementById(\'btn-delivery-archive\')||{click(){}}).click()">Apri lo storico →</button><button class="btn btn-sm" onclick="window.shipHubBoard && window.shipHubBoard()">⇉ Hub e consolidati</button></div>';
+      root.appendChild(s); }
+  }
+  if(state.view === "vessel" && state.selectedVesselId){
+    window._shLastVid = state.selectedVesselId;
+    if(!document.getElementById("sh-ships")){
+      const vid = state.selectedVesselId, bar = document.createElement("div"); bar.id = "sh-ships"; bar.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px";
+      bar.innerHTML = (VESSELS || []).map(c => { const on = c.vesselId === vid; return '<button onclick="goVessel(\'' + escapeAttr(c.vesselId) + '\')" style="white-space:nowrap;font:600 13.5px var(--font-sans);padding:8px 14px;border-radius:999px;cursor:pointer;border:1px solid ' + (on ? "#0a1b2e" : "rgba(10,27,46,.15)") + ';background:' + (on ? "#0a1b2e" : "#fff") + ';color:' + (on ? "#fff" : "#0a1b2e") + '">' + esc(c.displayName) + '</button>'; }).join("");
+      root.insertBefore(bar, root.firstChild);
+      try { const cfg = VESSELS.find(c => c.vesselId === vid), v = (state.data.vessels || []).find(x => x.vesselId === vid);
+        if(cfg && typeof mpCardHTML === "function"){ const M = rdModel(), w = document.createElement("div"); w.id = "sh-head"; w.style.cssText = "margin:0 0 16px;max-width:760px";
+          w.innerHTML = mpCardHTML(cfg, v || { items: [] }, M, [], (!v || !(v.items || []).length) ? { manual: true, todo: todosForVessel(vid, false).length } : undefined); bar.after(w); } } catch(e) { console.warn("[guscio] testata nave", e); }
+    }
+  }
+  if((state.view === "budget" || state.view === "performance") && !document.getElementById("sh-num")){
+    const ym = new Date(); ym.setMonth(ym.getMonth() - 1); const prevM = ym.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+    const tab = (v, l) => '<button onclick="' + (v === "budget" ? "goBudget()" : "goPerformance()") + '" style="white-space:nowrap;font:600 14px var(--font-sans);padding:9px 14px;border:0;background:none;cursor:pointer;color:' + (state.view === v ? "#0a1b2e" : "#44576b") + ';border-bottom:2px solid ' + (state.view === v ? "#1553d8" : "transparent") + ';margin-bottom:-1px">' + l + '</button>';
+    const card = (t, d, b, fn) => '<div style="border:1px solid rgba(10,27,46,.10);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:#fff"><b style="font-size:14px">' + t + '</b><span style="font-size:12.5px;color:#44576b;line-height:1.45;text-wrap:pretty">' + d + '</span><button class="btn btn-sm btn-primary" style="align-self:flex-start;white-space:nowrap" onclick="' + fn + '">' + b + '</button></div>';
+    const s = document.createElement("div"); s.id = "sh-num"; s.style.cssText = "display:flex;flex-direction:column;gap:14px;margin:0 0 18px";
+    s.innerHTML = '<section style="' + SH_CARD + ';padding:16px;gap:12px"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h2 style="margin:0;font-size:16px;font-weight:700">Report del mese</h2><span style="font-size:13px;color:#44576b">scegli il mese nella finestra di ciascun report</span></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">' +
+        card("Report IHM", "Ordini del mese per nave in Excel. Scegli il mese nella finestra.", "⬇ Scarica Excel", "openIhmReport()") +
+        card("Report procurement", "Salute, puntualità, RFQ senza risposta, reparto più lento: email pronta.", "✉ Prepara email", "emailPerformanceReport()") +
+        card("Report certificati", "Scadenze per nave e per chi se ne occupa, IT/EN.", "✉ Prepara email", "openCertReport()") +
+      '</div></section>' +
+      '<div style="display:flex;gap:4px;border-bottom:1px solid rgba(10,27,46,.12)">' + tab("budget", "Budget") + tab("performance", "Fornitori e salute procurement") + '</div>';
+    root.insertBefore(s, root.firstChild);
+    if(state.view === "performance" && !document.getElementById("fx-bar")){ const fx = document.createElement("section"); fx.className = "fx-section"; fx.id = "fx-widget"; fx.style.marginTop = "18px"; fx.innerHTML = '<div class="fx-bar" id="fx-bar"><span class="fx-title">USD / EUR</span><span class="fx-loading">carico cambio…</span></div>'; root.appendChild(fx); try { initFxWidget(); } catch(e) {} }
+  }
+}
+window.shellAfter = function(){ shellAfter0(); if(shellOn() && !(typeof maIsMobile === "function" && maIsMobile())) shClocks(); };
+// Impostazioni: torna al vecchio guscio
+(function(){ const host = document.querySelector("#modal-settings .modal-section"); if(!host || document.getElementById("shell-row")) return;
+  const s = document.createElement("div"); s.className = "modal-section"; s.id = "shell-row";
+  s.innerHTML = '<h3>Navigazione</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px"><span style="flex:1;min-width:200px">Nuova a 6 porte (Oggi · Radar · Navi · Certificati · Rubrica · Numeri) oppure le pillole di prima.</span>' +
+    '<button class="btn btn-sm" onclick="shellSet(\'6\')">6 porte</button><button class="btn btn-sm" onclick="shellSet(\'old\')">Pillole di prima</button></div>';
+  host.parentNode.insertBefore(s, host); })();
+setTimeout(() => { try { if(shellOn()){ renderSwitcher(); render(); } } catch(e) { console.error("[guscio] avvio", e); } }, 0);
+
+
+// ============================================================================
+// v2.3 — CERCA E COPIA (prototipo "Cerca e Copia.dc.html", variante 1b scelta dall'utente il 30.10.2026)
+// La dashboard sta ACCANTO a Outlook: incolli numero / nome / testo dell'email → scheda con tutto copiabile + testo EN.
+// A sinistra: casella, riconosciuti, risultati, flotta. A destra: scheda (Pratica · Nave · Fornitore · Agenzia).
+// ============================================================================
+window._cc = window._cc || { q: "", sel: "", res: [], cp: [] };
+window.goCerca = function(){ state.view = "cerca"; state.selectedVesselId = null; render(); window.scrollTo({ top: 0 }); };
+function ccN(s){ return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+function ccShort(n){ return String(n || "").replace(/^\d{4}-/, ""); }
+function ccVid(it){ return it._vid || mpVidOf(it.id); }
+function ccItems(){ const L = []; (VESSELS || []).forEach(c => m3Items(c.vesselId).forEach(it => { if(!it._vid) try { Object.defineProperty(it, "_vid", { value: c.vesselId, enumerable: false, configurable: true }); } catch(e) {} L.push(it); })); return L; }
+function ccVName(vid){ return vNameSafe(vid) || vid; }
+function ccClosed(it){ return (typeof rdCancelled === "function" && rdCancelled(it)) || it.dnStatus === "DN Received on Board"; }
+function ccKeys(it){
+  const K = (typeof itemMailKeys === "function" ? itemMailKeys(it) : []).slice();
+  [it.reqNumber, it.poNumber, it.dnNumber].concat(it.rfqNumbers || []).filter(Boolean).forEach(n => { const m = String(n).toUpperCase().match(/^(\d{4})-([A-Z]{2,4})-([A-Z]{3,5})-(\d{4,6})$/); if(m) K.push([m[2] + m[4], ccShort(n)]); });
+  return K;
+}
+function ccWhere(vid){ try { return mpWhere(vid); } catch(e) { return null; } }
+function ccAgency(vid){
+  const W = ccWhere(vid), leg = (W && W.leg) || (typeof mpVoyFuture === "function" ? mpVoyFuture(vid) : null), ag = leg && leg.agency;
+  const name = ag && (ag.name || (typeof ag === "string" ? ag : "")) || ""; if(!name) return null;
+  const key = entityKeyOf("agency", name) || name, p = getEntityProfile("agency", key) || {};
+  return { name, p, email: (ag && ag.email) || p.email || "", phone: (ag && ag.phone) || p.phone || "", contact: (ag && ag.contact) || p.contact || "" };
+}
+function ccSup(name){ const key = entityKeyOf("supplier", name) || name, p = getEntityProfile("supplier", key) || {}; let em = p.email || ""; if(!em) try { em = rfqSupplierEmail(name) || ""; } catch(e) {} return { name, p, email: em, phone: p.phone || "", contact: p.contact || "" }; }
+function ccLocal(name, p){ if(typeof ctTz !== "function") return null; const tz = ctTz(name, p || {}); if(!tz) return null; const c = ctTime(tz); return c ? Object.assign({ tz }, c) : null; }
+function ccShipTime(vid){ try { const nc = mpNoon(vid), lon = nc && (nc.lon != null ? nc.lon : nc.lng); const t = lon != null ? shipLocalTime(lon) : null; return t ? (t.time || t.t || (typeof t === "string" ? t : "")) : ""; } catch(e) { return ""; } }
+function ccD(d){ if(!d) return ""; const x = new Date(String(d).length > 10 ? String(d).replace(" ", "T") : d + "T00:00:00"); if(isNaN(x)) return String(d); const hm = String(d).length > 10 ? " " + x.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : ""; return x.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }) + hm; }
+function ccDE(d){ if(!d) return ""; const x = new Date(String(d).length > 10 ? String(d).replace(" ", "T") : d + "T00:00:00"); if(isNaN(x)) return String(d); return x.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) + (String(d).length > 10 ? " " + x.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) + " LT" : ""); }
+function ccTitle(s){ return String(s || "").toLowerCase().replace(/(^|[\s(\/-])([a-zà-ü])/g, (m, a, c) => a + c.toUpperCase()); }
+function ccWordRe(w){ w = String(w).toLowerCase().replace(/[^a-z0-9à-ü ]/g, "").trim(); return w ? new RegExp("(^|[^a-z0-9à-ü])" + w + "($|[^a-z0-9à-ü])", "i") : null; }
+// --- ricerca -----------------------------------------------------------------------
+function ccSearch(q){
+  q = String(q || ""); const Q = ccN(q), ql = q.toLowerCase(), qt = ql.trim(), long = qt.length > 40 || /\n/.test(q);
+  const out = [], recog = new Set(); if(qt.length < 2) return { out, recog: [] };
+  const digits = (q.match(/\b\d{3,6}\b/g) || []).map(d => d.padStart(5, "0")), onlyNum = /^\s*\d{3,6}\s*$/.test(q);
+  const items = ccItems(), sups = new Set(), ags = new Set();
+  items.forEach(it => { if(it.supplier) sups.add(it.supplier); });
+  try { Object.keys(loadEntityProfiles("supplier") || {}).forEach(n => sups.add(n)); } catch(e) {}
+  try { Object.keys(loadEntityProfiles("agency") || {}).forEach(n => ags.add(n)); } catch(e) {}
+  const STOP = /^(marine|ltd|limited|group|services?|shipping|company|trading|italia|italy|international|srl|spa|gmbh|agency|agenzia|supply|supplies|technical|engineering)$/;
+  const nameHit = n => { const nl = String(n).toLowerCase().trim(); if(nl.length < 3) return false; if(!long && nl.includes(qt)) return true; const w = nl.split(/[\s,.()\/-]+/).filter(x => x.length >= 4 && !STOP.test(x))[0]; const re = w && ccWordRe(w); return !!re && re.test(ql); };
+  items.forEach(it => {
+    let sc = 0; const vid = ccVid(it);
+    ccKeys(it).forEach(([k, short]) => { if(k.length >= 8 && Q.includes(k)){ sc += 20; recog.add(short); } });
+    if(!sc && onlyNum){ [it.reqNumber, it.poNumber, it.dnNumber].concat(it.rfqNumbers || []).filter(Boolean).forEach(n => { if(String(n).endsWith("-" + digits[0])){ sc += 12; recog.add(ccShort(n)); } }); }
+    if(!sc && !long && qt.length >= 3 && String(it.description || "").toLowerCase().includes(qt)) sc += 6;
+    if(!sc && it.supplier && nameHit(it.supplier) && !ccClosed(it)) sc += long ? 4 : 5;
+    if(sc && !ccClosed(it)) sc += 2;
+    if(sc) out.push({ key: "i:" + it.id, sc, kind: "Pratica", title: it.description || "(senza descrizione)", sub: ccVName(vid) + " · " + (it.poNumber ? "PO " + ccShort(it.poNumber) : it.reqNumber ? "REQ " + ccShort(it.reqNumber) : ""), dot: ccClosed(it) ? "#a0adba" : "#1553d8" });
+  });
+  (VESSELS || []).forEach(c => { const n = String(c.displayName).toLowerCase(), n2 = n.replace(/^m\/?v\s*/, ""), W = ccWhere(c.vesselId), port = W && W.port ? String(W.port).toLowerCase() : "", pre = port.length > 2 ? ccWordRe(port) : null;
+    const hit = ql.includes(n2) || (!long && n.includes(qt)) || (pre && (long ? pre.test(ql) : port.includes(qt) && qt.length >= 3));
+    if(hit) out.push({ key: "v:" + c.vesselId, sc: ql.includes(n2) ? 11 : 7, kind: "Nave", title: c.displayName, sub: W && W.port ? ccTitle(W.port) + (W.eta ? " · ETA " + ccD(W.eta) : "") : "viaggio non impostato", dot: "#0a1b2e" }); });
+  [...sups].forEach(n => { if(nameHit(n)){ const p = getEntityProfile("supplier", n) || {}; out.push({ key: "s:" + n, sc: long ? 7 : 9, kind: "Fornitore", title: n, sub: [p.city, p.country].filter(Boolean).join(", ") || "fornitore", dot: "#5b3fc4" }); } });
+  [...ags].forEach(n => { const p = getEntityProfile("agency", n) || {}, city = String(p.city || "").toLowerCase(), cre = city.length > 2 ? ccWordRe(city) : null; if(nameHit(n) || (cre && (long ? cre.test(ql) : city.includes(qt) && qt.length >= 3))) out.push({ key: "a:" + n, sc: 6, kind: "Agenzia", title: n, sub: [p.city, p.contact].filter(Boolean).join(" · ") || "agenzia", dot: "#0f6b78" }); });
+  out.sort((a, b) => b.sc - a.sc);
+  const top = out.length && out[0].sc >= 20 ? out.filter(x => x.sc >= 8) : out;
+  return { out: top.slice(0, 14), recog: [...recog] };
+}
+// --- scheda ------------------------------------------------------------------------
+function ccJ(s){ return escapeAttr(String(s)).replace(/'/g, "\\'"); }
+function ccRow(k, v, o){ o = o || {}; const has = v != null && String(v).trim() !== "" && v !== "—"; let ci = -1; if(has && !o.nocopy){ ci = window._cc.cp.length; window._cc.cp.push({ t: String(o.cv || v), l: k }); }
+  return '<div style="display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid rgba(10,27,46,.07)">' +
+    '<span style="font-size:12px;color:#44576b">' + escapeHTML(k) + '</span><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:13.5px;' + (o.mono ? "font-family:var(--font-mono);" : "") + (o.b ? "font-weight:600;" : "") + 'color:' + (o.c || (has ? "#0a1b2e" : "#8a99a8")) + ';overflow-wrap:anywhere">' + escapeHTML(has ? v : (o.empty || "—")) + '</span>' + (o.sub ? '<span style="font-size:12px;color:#44576b;overflow-wrap:anywhere">' + escapeHTML(o.sub) + '</span>' : "") + '</span>' +
+    '<span style="display:flex;gap:4px">' + (o.go ? '<button onclick="' + o.go + '" style="font:600 12px var(--font-sans);background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap">' + (o.goL || "Apri") + '</button>' : "") +
+    (ci >= 0 ? '<button onclick="ccCopy(' + ci + ')" style="font:600 12px var(--font-sans);background:#eaf0fd;color:#1553d8;border:0;border-radius:6px;padding:5px 9px;cursor:pointer">Copia</button>' : "") + '</span></div>'; }
+function ccGroup(label, rows){ return '<div style="display:flex;flex-direction:column;padding-top:14px;min-width:0"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b;padding-bottom:6px">' + escapeHTML(label) + '</span>' + rows.join("") + '</div>'; }
+function ccLocalRow(name, p, city){ const t = ccLocal(name, p); return t ? ccRow("Ora locale", t.t + " · " + t.txt + (city ? " · " + city : ""), { nocopy: true, c: t.open ? "#14794e" : "#6a7d90" }) : ccRow("Ora locale", "", { nocopy: true, empty: "fuso non indicato (paese in Rubrica)" }); }
+function ccAgRows(A){ return [ccRow("Agenzia", A.name, { b: true, go: "ccSel('a:" + ccJ(A.name) + "')", goL: "Scheda" }), ccRow("Referente", A.contact), ccRow("Email", A.email, { mono: true }), ccRow("Telefono", A.phone, { mono: true }), ccLocalRow(A.name, A.p, A.p.city)]; }
+function ccEtaEN(vid){ const W = ccWhere(vid), n = ccVName(vid); if(!W || !W.port) return "Vessel " + n + ": next port to be confirmed."; return "Vessel " + n + " ETA " + ccTitle(W.port) + " " + (ccDE(W.eta || W.etb) || "TBC") + (W.etd ? " / ETD " + ccDE(W.etd) : "") + "."; }
+function ccAgEN(A){ return A ? "Agent: " + A.name + (A.contact ? " — " + A.contact : "") + [A.email, A.phone].filter(Boolean).map(x => ", " + x).join("") + "." : ""; }
+const CC_POS_EN = { route: "order to be released once the vessel's next port is confirmed", supplier: "ready at supplier's premises", hub: "at our forwarder's hub", repair: "under repair ashore", transit: "in transit", onboard: "delivered on board", customs: "under customs clearance", agency: "with the port agent for delivery on board", office: "at our office" };
+function ccSupOf(it){ const n = String(it.supplier || "").trim(); return /^[—–-]*$/.test(n) ? "" : n; }
+function ccItemCard(it){
+  const supN = ccSupOf(it), vid = ccVid(it), mp = (() => { try { return mpOf(it) || {}; } catch(e) { return {}; } })(), P = (typeof MP_POS !== "undefined" && MP_POS[mp.pos]) || null;
+  const segs = (() => { try { return getItemShipments(it.id) || []; } catch(e) { return []; } })(), seg = segs.slice().reverse().find(x => x.number) || segs[segs.length - 1] || null;
+  const hub = mp.hub && typeof TML_HUBS !== "undefined" ? (TML_HUBS.find(h => h.id === mp.hub) || {}).name : "";
+  const W = ccWhere(vid), A = ccAgency(vid), S = supN ? ccSup(supN) : null, crit = (() => { try { const c = critInfo(it.id); return !!c; } catch(e) { return false; } })();
+  const rfqs = (it.rfqNumbers || []).map(n => { const d = (typeof rfqDetailOf === "function" ? rfqDetailOf(n, it) : null) || {}; return ccRow("RFQ", n, { mono: true, sub: [d.supplier, d.status].filter(Boolean).join(" · ") }); });
+  const pos = [].concat(it.poNumber ? [it.poNumber] : [], (it.poDetails || []).map(p => p && p.number).filter(n => n && n !== it.poNumber));
+  const dns = [].concat(it.dnNumber ? [it.dnNumber] : [], (it.dnDetails || []).map(p => p && p.number).filter(n => n && n !== it.dnNumber));
+  const status = P ? P.l + (hub ? " · " + hub : "") + (mp.partial ? " · parziale" : "") : (it.poNumber ? "PO emesso" : it.rfqNumbers && it.rfqNumbers.length ? "RFQ inviate" : "Richiesta");
+  const groups = [
+    ccGroup("DOCUMENTI", [ccRow("REQ", it.reqNumber, { mono: true, sub: it.reqStatus || "" })].concat(rfqs, pos.length ? pos.map(n => ccRow("PO", n, { mono: true, sub: [supN, it.poDeliveryDate ? "pronto " + ccD(it.poDeliveryDate) : ""].filter(Boolean).join(" · ") })) : [ccRow("PO", "", { empty: "non ancora emesso" })], dns.map(n => ccRow("DN", n, { mono: true, sub: it.dnStatus || "" })))),
+    ccGroup("DOVE SI TROVA", [ccRow("Stato", status, { nocopy: true, b: true, c: P ? P.c : "#0a1b2e" }), ccRow("AWB", seg && seg.number, { mono: true, sub: seg ? [seg.carrier, seg.route].filter(Boolean).join(" · ") : "" }), ccRow("Arrivo", seg && seg.eta ? ccD(seg.eta) : "", { nocopy: true }), ccRow("Note", mp.note || "", { nocopy: true })]),
+    ccGroup("NAVE E SCALO", [ccRow("Nave", ccVName(vid), { b: true, go: "ccSel('v:" + ccJ(vid) + "')", goL: "Scheda" }), ccRow("Porto", W && W.port ? ccTitle(W.port) : ""), ccRow("ETA", W ? ccD(W.eta || W.etb) : "", { mono: true }), ccRow("ETD", W ? ccD(W.etd) : "", { mono: true })].concat(A ? ccAgRows(A) : [ccRow("Agenzia", "", { nocopy: true, empty: "non indicata nel viaggio" })])),
+    S ? ccGroup("FORNITORE", [ccRow("Fornitore", S.name, { b: true, go: "ccSel('s:" + ccJ(S.name) + "')", goL: "Scheda" }), ccRow("Codice", it.supplierCode || S.p.code, { mono: true }), ccRow("Referente", S.contact), ccRow("Email", S.email, { mono: true }), ccRow("Telefono", S.phone, { mono: true }), ccLocalRow(S.name, S.p, S.p.city)]) : ""
+  ];
+  const ref = it.poNumber ? "PO " + it.poNumber : "REQ " + (it.reqNumber || "") + ((it.rfqNumbers || []).length ? " / RFQ " + it.rfqNumbers.join(", ") : "");
+  const stEN = (CC_POS_EN[mp.pos] || (it.poNumber ? "order placed" : "quotation in progress")) + (seg && seg.number && mp.pos !== "onboard" ? ", AWB " + seg.number + (seg.carrier ? " (" + seg.carrier + ")" : "") + (seg.eta ? ", ETA " + ccDE(seg.eta) : "") : "") + (it.dnNumber ? " — DN " + it.dnNumber : "");
+  const text = "Ref. " + ref + " — " + (it.description || "") + " (" + ccVName(vid) + ").\nStatus: " + stEN + ".\n" + ccEtaEN(vid) + (A ? "\n" + ccAgEN(A) : "");
+  return { kind: "PRATICA", title: it.description || "(senza descrizione)", sub: ccVName(vid) + (supN ? " · " + supN : ""), status, sc: P ? P.c : "#44576b", crit, groups, text, extra: '<button class="btn btn-sm" onclick="openItemDetailPopover(\'' + ccJ(it.id) + '\')">Scheda completa →</button>' };
+}
+function ccVesselCard(vid){
+  const c = (VESSELS || []).find(x => x.vesselId === vid); if(!c) return null;
+  const W = ccWhere(vid), A = ccAgency(vid), t = ccShipTime(vid), okE = e => e && !/example\.com|_{2,}/.test(e) ? e : "";
+  const open = m3Items(vid).filter(it => !ccClosed(it) && (it.poNumber || it.reqNumber)).slice(0, 40);
+  const groups = [
+    ccGroup("POSIZIONE", [ccRow("Dove", W ? (W.port ? ccTitle(W.port) + (W.from ? " (da " + ccTitle(W.from) + ")" : "") : W.manualCity || "") : "", { nocopy: true, b: true }), ccRow("Ora a bordo", t, { nocopy: true, mono: true }), ccRow("Comandante", okE(c.masterEmail), { mono: true }), ccRow("Chief Eng.", okE(c.chiefEngEmail), { mono: true })]),
+    ccGroup("PROSSIMO SCALO", [ccRow("Porto", W && W.port ? ccTitle(W.port) : ""), ccRow("ETA", W ? ccD(W.eta) : "", { mono: true }), ccRow("ETB", W ? ccD(W.etb) : "", { mono: true }), ccRow("ETD", W ? ccD(W.etd) : "", { mono: true })]),
+    A ? ccGroup("AGENZIA", ccAgRows(A)) : "",
+    ccGroup("PRATICHE APERTE · " + open.length, open.length ? open.map(it => ccRow(it.poNumber ? "PO" : "REQ", it.poNumber || it.reqNumber, { mono: true, sub: (it.description || "") + (ccSupOf(it) ? " · " + ccSupOf(it) : ""), go: "ccSel('i:" + ccJ(it.id) + "')" })) : [ccRow("", "", { nocopy: true, empty: "Nessuna pratica aperta" })])
+  ];
+  const text = ccEtaEN(vid) + (A ? "\n" + ccAgEN(A) : "");
+  return { kind: "NAVE", title: c.displayName, sub: W && W.port ? "Prossimo scalo " + ccTitle(W.port) : "Viaggio non impostato", groups, text, extra: '<button class="btn btn-sm" onclick="goVessel(\'' + ccJ(vid) + '\')">Pagina nave →</button>' };
+}
+function ccSupCard(name){
+  const rs = (n, it) => ((typeof rfqDetailOf === "function" ? rfqDetailOf(n, it) : null) || {}).supplier;
+  const S = ccSup(name), its = ccItems().filter(it => it.supplier === name || (it.rfqNumbers || []).some(n => rs(n, it) === name));
+  const open = its.filter(it => !ccClosed(it)).slice(0, 40), city = [S.p.city, S.p.country].filter(Boolean).join(", ");
+  const groups = [ccGroup("CONTATTI", [ccRow("Referente", S.contact), ccRow("Email", S.email, { mono: true }), ccRow("Telefono", S.phone, { mono: true }), ccRow("Codice", S.p.code, { mono: true }), ccRow("Indirizzo", [S.p.address, city].filter(Boolean).join(", ")), ccLocalRow(name, S.p, "")]),
+    ccGroup("PRATICHE APERTE CON LORO · " + open.length, open.length ? open.map(it => { const po = it.supplier === name && it.poNumber; return ccRow(po ? "PO" : "RFQ", po ? it.poNumber : ((it.rfqNumbers || []).find(n => rs(n, it) === name) || it.reqNumber), { mono: true, sub: ccVName(ccVid(it)) + " · " + (it.description || ""), go: "ccSel('i:" + ccJ(it.id) + "')" }); }) : [ccRow("", "", { nocopy: true, empty: "Nessuna pratica aperta" })])];
+  const text = name + (S.contact ? " — " + S.contact : "") + [S.email, S.phone].filter(Boolean).map(x => ", " + x).join("") + (city ? " (" + city + ")" : "") + ".";
+  return { kind: "FORNITORE", title: name, sub: city || "Fornitore", groups, text, extra: typeof window.openSupplierCard === "function" ? '<button class="btn btn-sm" onclick="openSupplierCard(\'' + ccJ(name) + '\')">Scheda in Rubrica →</button>' : "" };
+}
+function ccAgCard(name){
+  const p = getEntityProfile("agency", name) || {}, A = { name, p, email: p.email || "", phone: p.phone || "", contact: p.contact || "" };
+  const ships = (VESSELS || []).filter(c => { const a = ccAgency(c.vesselId); return a && (entityKeyOf("agency", a.name) === name || a.name === name); });
+  const groups = [ccGroup("CONTATTI", ccAgRows(A).slice(1).concat([ccRow("Città", [p.city, p.country].filter(Boolean).join(", "), { nocopy: true })])),
+    ccGroup("NAVI ATTESE", ships.length ? ships.map(c => { const W = ccWhere(c.vesselId); return ccRow(c.displayName, W ? "ETA " + (ccD(W.eta) || "—") + " · ETD " + (ccD(W.etd) || "—") : "", { nocopy: true, go: "ccSel('v:" + ccJ(c.vesselId) + "')" }); }) : [ccRow("", "", { nocopy: true, empty: "Nessuna nave con questa agenzia nel viaggio" })])];
+  return { kind: "AGENZIA", title: name, sub: [p.city, p.country].filter(Boolean).join(", ") || "Agenzia", groups, text: ccAgEN(A).replace(/^Agent: /, "") };
+}
+function ccCard(key){
+  if(!key) return null; const i = key.indexOf(":"), t = key.slice(0, i), id = key.slice(i + 1);
+  try {
+    if(t === "i"){ const it = ccItems().find(x => x.id === id); return it ? ccItemCard(it) : null; }
+    if(t === "v") return ccVesselCard(id);
+    if(t === "s") return ccSupCard(id);
+    if(t === "a") return ccAgCard(id);
+  } catch(e) { console.error("[cerca] scheda", e); return { kind: "ERRORE", title: "Scheda non disponibile", sub: e.message, groups: [], text: "" }; }
+  return null;
+}
+// --- pagina ------------------------------------------------------------------------
+const CC_BOX = "background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:14px;display:flex;flex-direction:column;overflow:hidden";
+function ccLeftHTML(){
+  const C = window._cc, R = ccSearch(C.q); C.res = R.out; const sel = C.sel || (R.out[0] && R.out[0].key) || "";
+  const recog = R.recog.length ? '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="font-size:12.5px;color:#44576b">Riconosciuti:</span>' + R.recog.map(r => '<span style="font:600 12px var(--font-mono);background:#e3f2ea;color:#14794e;border-radius:6px;padding:3px 8px">' + escapeHTML(r) + '</span>').join("") + '</div>' : "";
+  const res = R.out.length ? '<div style="' + CC_BOX + '"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b;padding:11px 14px 7px">TROVATI · ' + R.out.length + '</span>' + R.out.map((r, i) => { const on = r.key === sel;
+      return '<button onclick="ccSelI(' + i + ')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:8px minmax(0,1fr);gap:11px;align-items:center;padding:10px 14px;border-top:1px solid rgba(10,27,46,.07);background:' + (on ? "#f2f6fe" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + '"><span style="width:8px;height:8px;border-radius:50%;background:' + r.dot + '"></span><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(r.title) + '</span><span style="font-size:12px;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(r.kind + " · " + r.sub) + '</span></span></button>'; }).join("") + '</div>'
+    : (C.q.trim().length >= 2 ? '<div style="' + CC_BOX + ';padding:16px;font-size:13.5px;color:#44576b">Niente per «' + escapeHTML(C.q.trim().slice(0, 40)) + '». Prova con il numero del documento o il nome del fornitore.</div>' : "");
+  const fleet = '<div style="' + CC_BOX + '"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b;padding:11px 14px 7px">FLOTTA</span>' + (VESSELS || []).map(c => { const W = ccWhere(c.vesselId), on = sel === "v:" + c.vesselId, t = ccShipTime(c.vesselId);
+      const line = W && W.port ? ccTitle(W.port) + (W.eta ? " · ETA " + ccD(W.eta) : "") + (W.etd ? " · ETD " + ccD(W.etd) : "") : (W && W.manualCity) || "viaggio non impostato";
+      return '<button onclick="ccSel(\'v:' + ccJ(c.vesselId) + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid rgba(10,27,46,.07);background:' + (on ? "#f2f6fe" : "#fff") + '"><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><b style="font-size:13px">' + escapeHTML(c.displayName) + '</b><span style="font-size:12px;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(line) + '</span></span><span style="font:600 12px var(--font-mono);color:#44576b" title="Ora a bordo">' + escapeHTML(t || "") + '</span></button>'; }).join("") + '</div>';
+  return recog + res + fleet;
+}
+function ccRightHTML(){
+  const C = window._cc, sel = C.sel || (C.res[0] && C.res[0].key) || ""; C.cp = []; const D = ccCard(sel);
+  if(!D) return '<div style="background:#fff;border:1px dashed rgba(10,27,46,.25);border-radius:14px;padding:44px 40px;display:flex;flex-direction:column;gap:14px;min-height:460px;justify-content:center"><span style="font-size:22px;font-weight:700;color:#0a1b2e">Stai rispondendo a un\'email?</span><span style="font-size:15px;color:#44576b;line-height:1.55;max-width:560px;text-wrap:pretty">Copia l\'oggetto o il testo da Outlook e incollalo a sinistra. Qui compare la scheda con numeri, posizione della merce, scalo, agenzia e fornitore, tutto copiabile con un clic, più un testo in inglese pronto da incollare nella risposta.</span><span style="font-size:13px;color:#44576b">Oppure clicca una nave della flotta. Scorciatoia: tasto <b>/</b> per tornare alla casella.</span></div>';
+  const ti = C.cp.length; C.cp.push({ t: D.text, l: "Testo per la risposta" });
+  return '<div style="' + CC_BOX + '"><div style="padding:18px 20px;display:flex;flex-direction:column;gap:7px;border-bottom:1px solid rgba(10,27,46,.08)"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#44576b;background:#f1f3f6;border-radius:5px;padding:3px 7px">' + escapeHTML(D.kind) + '</span>' +
+      (D.crit ? '<span style="font-size:11px;font-weight:700;color:#fff;background:#c0261c;border-radius:5px;padding:3px 7px">C CRITICO</span>' : "") + (D.status ? '<span style="font-size:12px;font-weight:600;white-space:nowrap;color:' + D.sc + ';border:1px solid ' + D.sc + ';border-radius:999px;padding:2px 10px">' + escapeHTML(D.status) + '</span>' : "") + '<span style="flex:1"></span>' + (D.extra || "") + '</div>' +
+      '<span style="font-size:22px;font-weight:700;line-height:1.25;color:#0a1b2e">' + escapeHTML(D.title) + '</span><span style="font-size:14px;color:#44576b">' + escapeHTML(D.sub || "") + '</span></div>' +
+      '<div style="padding:4px 20px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 28px">' + D.groups.join("") + '</div></div>' +
+    (D.text ? '<div style="background:#0a1b2e;color:#fff;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:9px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#9fb1c4">TESTO PRONTO PER LA RISPOSTA · EN</span><button onclick="ccCopy(' + ti + ')" style="font:600 13px var(--font-sans);background:#fff;color:#0a1b2e;border:0;border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap">⧉ Copia tutto</button></div><span style="font:400 13px var(--font-mono);white-space:pre-wrap;line-height:1.55">' + escapeHTML(D.text) + '</span></div>' : "");
+}
+function renderCercaPage(){
+  const root = document.getElementById("view-root"); if(!root) return; const C = window._cc;
+  root.innerHTML = '<div style="display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:20px;align-items:start" id="cc-wrap">' +
+    '<div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:12px"><div style="background:#fff;border:1.5px solid #1553d8;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 14px rgba(21,83,216,.10)">' +
+      '<span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#1553d8">INCOLLA QUI · NUMERO, NOME O EMAIL</span>' +
+      '<textarea id="cc-q" rows="4" autocomplete="off" spellcheck="false" data-lpignore="true" placeholder="es. RE: 2026-MLG-HQPO-00188 delivery — oppure tutto il testo dell\'email" style="border:0;outline:0;resize:vertical;font:400 15px/1.45 var(--font-sans);background:transparent;color:#0a1b2e;padding:0;width:100%">' + escapeHTML(C.q) + '</textarea>' +
+      '<div style="display:flex;gap:8px;align-items:center"><span style="font-size:12px;color:#6a7d90">Riconosce 2026-MLG-HQPO-00188, HQPO00188, MLG 00188</span><span style="flex:1"></span><button onclick="ccClear()" style="font:600 12px var(--font-sans);background:none;color:#44576b;border:0;cursor:pointer;padding:4px">✕ Pulisci</button></div></div>' +
+      '<div id="cc-left" style="display:flex;flex-direction:column;gap:14px">' + ccLeftHTML() + '</div></div>' +
+    '<div id="cc-right" style="display:flex;flex-direction:column;gap:14px;min-width:0">' + ccRightHTML() + '</div></div>';
+  const ta = document.getElementById("cc-q");
+  ta.addEventListener("input", () => { C.q = ta.value; C.sel = ""; clearTimeout(window._ccT); window._ccT = setTimeout(ccPaint, 140); });
+  if(!C.q) setTimeout(() => { try { ta.focus({ preventScroll: true }); } catch(e) {} }, 30);
+  if(window.innerWidth < 900){ const w = document.getElementById("cc-wrap"); w.style.gridTemplateColumns = "minmax(0,1fr)"; w.firstChild.style.position = "static"; }
+}
+window.renderCercaPage = renderCercaPage;
+function ccPaint(){ const l = document.getElementById("cc-left"), r = document.getElementById("cc-right"); if(!l || !r) return; l.innerHTML = ccLeftHTML(); r.innerHTML = ccRightHTML(); }
+window.ccSelI = function(i){ const r = window._cc.res[i]; if(r){ window._cc.sel = r.key; ccPaint(); } };
+window.ccSel = function(key){ window._cc.sel = key; ccPaint(); const r = document.getElementById("cc-right"); if(r){ const y = r.getBoundingClientRect().top + window.scrollY - 80; if(window.scrollY > y) window.scrollTo({ top: y, behavior: "smooth" }); } };
+window.ccClear = function(){ window._cc.q = ""; window._cc.sel = ""; const ta = document.getElementById("cc-q"); if(ta){ ta.value = ""; ta.focus(); } ccPaint(); };
+window.ccCopy = function(i){ const x = window._cc.cp[i]; if(!x) return; const done = () => showToast((x.l || "Testo") + " copiato");
+  const fb = () => { const ta = document.createElement("textarea"); ta.value = x.t; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e) {} ta.remove(); done(); };
+  try { navigator.clipboard.writeText(x.t).then(done, fb); } catch(e) { fb(); } };
+document.addEventListener("keydown", e => { if(e.key !== "/" || state.view !== "cerca") return; const a = document.activeElement; if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return; const ta = document.getElementById("cc-q"); if(ta){ e.preventDefault(); ta.focus(); ta.select(); } });
+setTimeout(() => { try { if(!(typeof maIsMobile === "function" && maIsMobile()) && state.view === "overview" && !sessionStorage.getItem("mpd.ccBoot")){ sessionStorage.setItem("mpd.ccBoot", "1"); window.goCerca(); } } catch(e) { console.warn("[cerca] avvio", e); } }, 0);
 
 </script>
 
