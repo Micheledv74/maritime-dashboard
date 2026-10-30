@@ -32398,6 +32398,86 @@ window.rdHowCustom = function(t){ const v = prompt("Giorni dal fornitore al port
   const a = parseFloat(m[1].replace(",", ".")), b = m[2] ? parseFloat(m[2].replace(",", ".")) : a; rdHowSet(t, { m: "custom", tr: [Math.min(a, b), Math.max(a, b)] }); };
 window.rd2Ed = function(id){ window._rd2.ed = window._rd2.ed === id ? "" : id; radarPaint(); };
 
+
+// --- v2.7b OGGI = LA SETTIMANA (prototipo "Oggi v3.dc.html" 1b, scelto dall'utente) · selettore 1/2/3 settimane (mpd.oggiW) ---
+window._og = window._og || { day: 0 };
+function ogW(){ const w = +localStorage.getItem("mpd.oggiW"); return [1, 2, 3].includes(w) ? w : 1; }
+window.ogSetW = function(w){ try { localStorage.setItem("mpd.oggiW", String(w)); } catch(e) {} if(window._og.day >= w * 7) window._og.day = 0; const y = window.scrollY; render(); window.scrollTo(0, y); };
+window.ogPick = function(i){ window._og.day = i; const y = window.scrollY; render(); window.scrollTo(0, y); };
+window.ogScalo = function(id){ window._rd = window._rd || {}; window._rd.sel = id; state.view = "overview"; render(); window.scrollTo(0, 0); };
+window.ogTodo = function(id){ window._td2 = window._td2 || {}; window._td2.sel = id; window._td2.w = "all"; state.view = "todos"; render(); window.scrollTo(0, 0); };
+function ogModel(){
+  const NW = ogW(), ND = NW * 7, now = Date.now(), t0 = new Date(); t0.setHours(0, 0, 0, 0); const T0 = t0.getTime();
+  const idx = off => Math.floor((now + off * 864e5 - T0) / 864e5), hm = off => { const d = new Date(now + off * 864e5); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+  const WDN = ["DOM", "LUN", "MAR", "MER", "GIO", "VEN", "SAB"], WDL = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"];
+  const DD = Array.from({ length: ND }, (_, i) => { const d = new Date(T0 + i * 864e5 + 12 * 36e5); return { wd: WDN[d.getDay()], wl: WDL[d.getDay()], dm: String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0"), mon: d.getDay() === 1, we: d.getDay() === 0 || d.getDay() === 6 }; });
+  let M = null; try { M = rdModel(); } catch(e) { console.warn("[oggi] radar", e); }
+  const calls = M ? (M.allCalls || M.calls || []) : [];
+  const lanes = (VESSELS || []).map(c => ({ vid: c.vesselId, name: c.displayName, seg: [], ev: {} })), lane = v => lanes.find(l => l.vid === v);
+  const det = {}, addD = (i, o) => { if(i < 0 || i >= ND) return; (det[i] = det[i] || []).push(o); }, addL = (l, i, t, s, c) => { if(!l || i < 0 || i >= ND) return; (l.ev[i] = l.ev[i] || []).push({ t, s, c: c || "#0a1b2e" }); };
+  const code = p => String(p || "").replace(/[^A-Za-zÀ-ÿ]/g, "").slice(0, 3).toUpperCase();
+  const lim = [];
+  calls.forEach(c => { if(c.past || c.quiet && !(c.its || []).length) return; const l = lane(c.vid); if(!l || c.eta == null) return;
+    const etb = c.etb != null ? c.etb : c.eta, etd = c.etd != null ? c.etd : etb + 1, a = idx(c.eta), b = idx(etb), d = idx(etd), id = pcJ(c.id);
+    if(b > a) l.seg.push([a, b - 1, "anc"]); l.seg.push([b, Math.max(b, d), "port"]);
+    addL(l, a, c.port + " ETA " + hm(c.eta), code(c.port)); if(etb - c.eta > 0.04) addL(l, b, "ormeggio " + hm(etb), ""); addL(l, d, "parte " + hm(etd), "→");
+    addD(a, { o: c.eta, time: hm(c.eta), kind: etb - c.eta > 0.04 ? "ARRIVO IN RADA" : "ARRIVO", what: c.vname + " a " + c.port, why: etb - c.eta > 0.04 ? "In rada fino al " + rdFDT(etb, now) + ", poi in porto fino al " + rdFDT(etd, now) + "." : "In porto fino al " + rdFDT(etd, now) + ".", btn: "Apri lo scalo", js: "ogScalo('" + id + "')" });
+    addD(d, { o: etd, time: hm(etd), kind: "PARTENZA", what: c.vname + " lascia " + c.port, why: (c.its || []).filter(x => !x.onb && x.k === "late").length ? "Ciò che non è a bordo va spostato a un altro scalo." : "", btn: "Apri lo scalo", js: "ogScalo('" + id + "')" });
+    const its = c.its || []; if(!its.length) return; const cut = its[0].cut != null ? its[0].cut : etd - 1, nL = c.n ? c.n.late : 0, nR = c.n ? c.n.risk : 0, col = nL ? "#c0261c" : nR ? "#a86200" : "#14794e";
+    addL(l, idx(cut), "◆ limite " + c.port, "◆", col); lim.push({ i: idx(cut), c, nL });
+    addD(idx(cut), { o: cut, time: hm(cut), tc: col, kind: "LIMITE DI CONSEGNA", what: c.vname + " a " + c.port, why: (nL ? nL + " PO non arrivano in tempo" + (nR ? ", " + nR + " a rischio" : "") : nR ? nR + " PO a rischio, gli altri in tempo" : "tutti i " + its.length + " PO in tempo") + " · " + its.length + " PO pianificati.", btn: nL ? "Sposta o anticipa" : "Apri lo scalo", pri: !!nL, js: "ogScalo('" + id + "')" });
+  });
+  let C = []; try { C = ct2All(); } catch(e) {}
+  const exp = C.filter(x => x.d < 0);
+  if(exp.length) addD(0, { o: -1, time: "—", tc: "#c0261c", kind: "CERTIFICATI SCADUTI", what: exp.length + (exp.length > 1 ? " certificati scaduti" : " certificato scaduto"), why: exp.slice(0, 3).map(x => x.it.name + " (" + x.vname + ")").join(" · ") + (exp.length > 3 ? " …" : ""), btn: "Certificati", js: "window._ct2&&(window._ct2.u='exp');state.view='certificates';render()" });
+  C.filter(x => x.d >= 0 && x.d < ND).forEach(x => { addL(lane(x.vid), x.d, "▲ " + x.it.name, "▲", "#a86200");
+    addD(x.d, { o: 0.99, time: "—", tc: "#a86200", kind: "CERTIFICATO IN SCADENZA", what: x.it.name + " · " + x.vname, why: (x.resp && CERT_RESP[x.resp] ? "Se ne occupa " + CERT_RESP[x.resp].s + "." : "Nessuno assegnato.") + (x.it.windowFrom ? " Finestra visita dal " + ct2FD(x.it.windowFrom) + "." : ""), btn: "Apri", js: "window._ct2&&(window._ct2.sel='" + pcJ(x.vid + "|" + x.key) + "',window._ct2.u='all');state.view='certificates';render()" }); });
+  const td = { vid: "_todo", name: "Tu · to-do", seg: [], ev: {}, todo: true }, tdN = {};
+  const OV = [], TDD = {};
+  (typeof todosOpen === "function" ? todosOpen() : []).filter(t => t.kind !== "fleet" && t.dueDate).forEach(t => { const due = String(t.dueDate).slice(0, 10), i0 = Math.round((new Date(due + "T12:00:00").getTime() - T0 - 12 * 36e5) / 864e5); if(i0 >= ND) return;
+    if(i0 < 0){ OV.push(due); return; } tdN[i0] = (tdN[i0] || 0) + 1; (TDD[i0] = TDD[i0] || []).push(t); });
+  if(OV.length){ OV.sort(); addD(0, { o: 9, time: "", tc: "#c0261c", kind: "TO-DO SCADUTE", what: OV.length + (OV.length > 1 ? " to-do scadute" : " to-do scaduta"), why: "La più vecchia è del " + mpFD(OV[0]) + ". Non sono scadenze dure: le trovi tutte in To-do.", btn: "Apri in To-do", js: "window._td2&&(window._td2.w='over');goTodos()", todo: 1 }); addL(td, 0, OV.length + " scadute", "!" , "#c0261c"); }
+  Object.keys(TDD).forEach(k => { const i = +k, L = TDD[k].sort((a, b) => (b.priority === "alta") - (a.priority === "alta"));
+    L.slice(0, 5).forEach((t, j) => addD(i, { o: 10 + j / 10, time: "", tc: "#1553d8", kind: "TO-DO", what: shTodoText(t), why: [t.vessel ? (vNameSafe(t.vessel) || t.vessel) : "", t.priority === "alta" ? "priorità ALTA" : ""].filter(Boolean).join(" · "), btn: "Apri", js: "ogTodo('" + pcJ(t.id) + "')", done: "shTodoDone('" + pcJ(t.id) + "')", todo: 1 }));
+    if(L.length > 5) addD(i, { o: 11, time: "", tc: "#1553d8", kind: "TO-DO", what: "altre " + (L.length - 5) + " to-do per questo giorno", why: "", btn: "Apri in To-do", js: "goTodos()", todo: 1 }); });
+  Object.keys(tdN).forEach(i => addL(td, +i, tdN[i] + " to-do", String(tdN[i]), "#1553d8"));
+  lanes.push(td);
+  Object.values(det).forEach(L => L.sort((a, b) => (a.todo ? 1 : 0) - (b.todo ? 1 : 0) || a.o - b.o));
+  return { NW, ND, DD, lanes, det, lim, now };
+}
+function ogHTML(){
+  const G = ogModel(), esc = escapeHTML, S = window._og, day = Math.min(S.day || 0, G.ND - 1), NW = G.NW, DD = G.DD;
+  const byDay = {}; G.lim.forEach(x => { byDay[x.i] = (byDay[x.i] || 0) + 1; });
+  const late = G.lim.filter(x => x.nL).sort((a, b) => a.i - b.i)[0], busy = Object.keys(byDay).filter(i => byDay[i] > 1).map(Number).sort((a, b) => a - b)[0];
+  const dl = i => (i === 0 ? "oggi" : i === 1 ? "domani" : DD[i].wl + " " + DD[i].dm);
+  const title = !G.lim.length ? "Nessun limite di consegna " + (NW === 1 ? "questa settimana" : "nelle prossime " + NW + " settimane") + "."
+    : late ? "Il punto da sistemare: " + late.c.vname + " a " + late.c.port + ", limite " + dl(late.i) + " — " + late.nL + " PO non arrivano in tempo."
+    : G.lim.length + (G.lim.length > 1 ? " limiti di consegna" : " limite di consegna") + " in " + (NW === 1 ? "settimana" : NW + " settimane") + (busy != null ? ". Il punto stretto è " + dl(busy) + ": " + byDay[busy] + " limiti lo stesso giorno." : ", tutti coperti.");
+  let nDn = 0; try { nDn = ifxList().length + ifxVerifyList().length; } catch(e) {}
+  const wsel = '<div style="display:flex;gap:3px;background:#fff;border:1px solid rgba(10,27,46,.12);border-radius:999px;padding:3px">' + [1, 2, 3].map(w => '<button onclick="ogSetW(' + w + ')" style="font:600 13px var(--font-sans);border:0;border-radius:999px;padding:6px 13px;cursor:pointer;white-space:nowrap;background:' + (NW === w ? "#0a1b2e" : "transparent") + ';color:' + (NW === w ? "#fff" : "#0a1b2e") + '">' + (w === 1 ? "1 settimana" : w + " settimane") + '</button>').join("") + '</div>';
+  const head = '<div style="display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end"><div style="display:flex;flex-direction:column;gap:4px;min-width:min(100%,420px);flex:1 1 480px"><span style="font:600 12px var(--font-mono);letter-spacing:.06em;color:#44576b">DA ' + esc(DD[0].wl.toUpperCase() + " " + DD[0].dm) + ' A ' + esc(DD[G.ND - 1].wl.toUpperCase() + " " + DD[G.ND - 1].dm) + '</span><span style="font-size:22px;font-weight:700;line-height:1.3;text-wrap:pretty">' + esc(title) + '</span></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end">' + wsel + '<button class="btn btn-sm btn-primary" onclick="openTodoModal(null)">+ To-do</button>' + (nDn ? '<button class="btn btn-sm" onclick="ifxOpen()">DN da chiudere · ' + nDn + '</button>' : "") + '<label class="btn btn-sm" style="cursor:pointer" title="Lista documenti, RFQ e PO Infoship">⇧ Excel Infoship<input type="file" accept=".xlsx,.xls" multiple style="display:none" onchange="window.importInfoshipRfqExcel(this.files); this.value=\'\';"></label></div></div>';
+  const cols = "130px repeat(" + G.ND + ",minmax(0,1fr))", gap = NW === 1 ? 6 : NW === 2 ? 4 : 3, efs = NW === 1 ? 11.5 : NW === 2 ? 10.5 : 10;
+  const K = { sea: "background:#f5f7f9;border:1px solid transparent", anc: "background:repeating-linear-gradient(135deg,rgba(61,79,102,.16) 0 4px,rgba(61,79,102,.04) 4px 8px);border:1.5px dashed #7d8fa6", port: "background:#e6f4ec;border:1.5px solid #14794e" };
+  const hdr = '<div style="display:grid;grid-template-columns:' + cols + ';gap:' + gap + 'px"><span></span>' + DD.map((x, i) => '<button onclick="ogPick(' + i + ')" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:1px;padding:5px 4px;border-radius:7px;min-width:0;overflow:hidden;background:' + (day === i ? "#0a1b2e" : i === 0 ? "#eef3fd" : "transparent") + ';color:' + (day === i ? "#fff" : x.we ? "#6a7d90" : "#0a1b2e") + ';box-shadow:' + (x.mon && i ? "inset 2px 0 0 #c5ced8" : "none") + '"><span style="font:700 10.5px var(--font-mono)">' + (NW === 3 ? x.wd.slice(0, 2) : x.wd) + '</span><span style="font-size:' + (NW === 1 ? 15 : NW === 2 ? 13 : 12) + 'px;font-weight:700">' + (NW === 3 ? x.dm.slice(0, 2) : x.dm) + '</span></button>').join("") + '</div>';
+  const rows = G.lanes.map(l => '<div style="display:grid;grid-template-columns:' + cols + ';gap:' + gap + 'px;align-items:stretch"><button onclick="' + (l.todo ? "goTodos()" : "goVessel('" + pcJ(l.vid) + "')") + '" style="all:unset;cursor:pointer;font-size:13px;font-weight:700;align-self:center;color:' + (l.todo ? "#1553d8" : "#0a1b2e") + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l.name) + '</button>' +
+    DD.map((x, i) => { const g = l.seg.find(r => i >= r[0] && i <= r[1]), ev = l.ev[i] || [];
+      return '<div onclick="ogPick(' + i + ')" title="' + escapeAttr(x.dm + (ev.length ? " · " + ev.map(e => e.t).join(" · ") : "")) + '" style="cursor:pointer;min-height:50px;min-width:0;overflow:hidden;border-radius:6px;padding:5px;display:flex;flex-direction:column;gap:3px;box-sizing:border-box;' + K[g ? g[2] : "sea"] + ';outline:' + (day === i ? "2px solid #1553d8" : "none") + ';outline-offset:-1px">' +
+        ev.slice(0, 3).map(e => { const t = NW === 3 ? e.s : e.t; return t ? '<span style="font-size:' + efs + 'px;font-weight:600;line-height:1.25;color:' + e.c + ';overflow-wrap:anywhere">' + esc(t) + '</span>' : ""; }).join("") + '</div>'; }).join("") + '</div>').join("");
+  const legend = '<div style="display:flex;gap:6px 16px;flex-wrap:wrap;font-size:11.5px;color:#6a7d90;padding:4px 0 0 136px;white-space:nowrap"><span style="display:flex;gap:6px;align-items:center"><span style="width:20px;height:10px;border:1.5px dashed #7d8fa6;border-radius:3px;background:repeating-linear-gradient(135deg,rgba(61,79,102,.18) 0 4px,rgba(61,79,102,.04) 4px 8px)"></span>in rada</span><span style="display:flex;gap:6px;align-items:center"><span style="width:20px;height:10px;border:1.5px solid #14794e;background:#e6f4ec;border-radius:3px"></span>in porto</span><span><b style="color:#c0261c">◆</b> limite di consegna</span><span><b style="color:#a86200">▲</b> certificato</span>' + (NW === 3 ? '<span>testo intero: passa sopra la casella</span>' : "") + '</div>';
+  const cal = '<div style="' + V26_BOX + ';padding:12px 14px;overflow-x:auto"><div style="display:flex;flex-direction:column;gap:6px;min-width:' + (NW === 1 ? 760 : NW === 2 ? 980 : 1100) + 'px">' + hdr + rows + legend + '</div></div>';
+  const D = G.det[day] || [];
+  const dRows = D.map(r => '<div style="display:grid;grid-template-columns:' + (r.done ? "24px " : "") + '64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid rgba(10,27,46,.06)">' + (r.done ? '<button onclick="' + r.done + '" title="Fatta" style="width:20px;height:20px;border-radius:5px;border:1.5px solid rgba(10,27,46,.35);background:#fff;cursor:pointer;padding:0"></button>' : "") +
+    '<span style="font:700 13.5px/1.3 var(--font-mono);color:' + (r.tc || "#0a1b2e") + ';text-align:right">' + esc(r.time || "") + '</span><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:700 10.5px/1.3 var(--font-mono);letter-spacing:.06em;color:' + (r.kind === "TO-DO SCADUTE" ? "#c0261c" : "#44576b") + ';white-space:nowrap">' + esc(r.kind) + '</span><span style="font-size:14px;font-weight:600;line-height:1.35;overflow-wrap:anywhere">' + esc(r.what) + '</span>' + (r.why ? '<span style="font-size:12.5px;color:#44576b;text-wrap:pretty">' + esc(r.why) + '</span>' : "") + '</div>' +
+    '<button onclick="' + r.js + '" style="font:600 12.5px var(--font-sans);border-radius:8px;padding:7px 11px;cursor:pointer;white-space:nowrap;' + (r.pri ? "background:#0a1b2e;color:#fff;border:1px solid #0a1b2e" : "background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)") + '">' + esc(r.btn) + '</button></div>').join("");
+  const nH = D.filter(r => /^(LIMITE|CERTIFICAT)/.test(r.kind)).length;
+  const detail = '<div style="' + V26_BOX + ';overflow:hidden"><div style="display:flex;gap:10px;align-items:baseline;padding:13px 16px 9px;flex-wrap:wrap"><span style="font-size:16px;font-weight:700">' + esc(day === 0 ? "Oggi, " + DD[0].wl + " " + DD[0].dm : DD[day].wl.charAt(0).toUpperCase() + DD[day].wl.slice(1) + " " + DD[day].dm) + '</span><span style="font-size:13px;color:#44576b">' + (D.length ? (nH ? nH + (nH > 1 ? " scadenze dure" : " scadenza dura") + " · " : "") + D.length + " in tutto, in ordine di ora" : "niente in programma") + '</span></div>' +
+    (dRows || '<div style="padding:12px 16px 16px;border-top:1px solid rgba(10,27,46,.06);font-size:13.5px;color:#14794e;font-weight:600">Giornata libera da scadenze: buon momento per chiudere le DN e sollecitare le RFQ.</div>') + '</div>';
+  return '<div style="display:flex;flex-direction:column;gap:14px;margin:0 0 18px">' + head + cal + detail + '</div>';
+}
+{ const rop0 = renderOggiPage;
+  renderOggiPage = window.renderOggiPage = function(){ const root = document.getElementById("view-root"); if(!root) return; try { root.innerHTML = ogHTML(); } catch(e) { console.error("[oggi settimana]", e); rop0(); } }; }
+
 </script>
 
 </body>
