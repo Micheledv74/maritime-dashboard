@@ -14741,7 +14741,7 @@ function renderVesselDetail() {
     </div>`;
 
   document.getElementById("view-root").innerHTML = `
-    <header class="vessel-detail-banner" data-vid="${cfg.vesselId}">
+    <header class="vessel-detail-banner" data-vid="${cfg.vesselId}" style="${(_vtab === 'procurement' && typeof pcOn === 'function' && pcOn() && (v.items || []).length) ? 'display:none' : ''}">
       <div class="vdb-main">
         <div class="vdb-titlerow"><h1 class="vdb-name">${cfg.displayName}</h1></div>
         <div class="vdb-sub">${cfg.detailedType || cfg.type} · ${cfg.flagEmoji || ""} ${cfg.flag}</div>
@@ -14796,7 +14796,7 @@ function renderVesselDetail() {
         <div class="pipeline-col ${state.pipelineFilter === "DN" ? "active" : ""}" data-stage="DN"><div class="pl-label">DN</div><div class="pl-count">${pipeline.DN.total}</div><div class="pl-sub">${pipeline.DN.sub || "—"}</div></div>
       </div>
 
-      <section>
+      <section style="${(typeof pcOn === 'function' && pcOn() && pvMode() === 'flow') ? 'display:none' : ''}">
         <div class="section-title">
           <h2>Items</h2>
           <span class="section-meta">${(v.items || []).length} totali ${state.pipelineFilter ? "· filtro: " + state.pipelineFilter : ""}</span>
@@ -14863,6 +14863,7 @@ function renderVesselDetail() {
     state.detailTab = t;
     document.querySelectorAll('.vd-subtab').forEach(x=>x.classList.toggle('active', x.dataset.tab===t));
     document.querySelectorAll('.vd-panel').forEach(p=>{ p.style.display = (p.dataset.tab===t) ? '' : 'none'; });
+    { const pc = t === 'procurement' && typeof pcOn === 'function' && pcOn() && !!document.getElementById('pc-wrap'); const b = document.querySelector('.vessel-detail-banner'); if (b) b.style.display = pc ? 'none' : ''; const h = document.getElementById('sh-head'); if (h) h.style.display = pc ? 'none' : ''; }
     window.scrollTo(0,0);
   };
 
@@ -31412,7 +31413,7 @@ function shellAfter0(){
       root.insertBefore(bar, root.firstChild);
       try { const cfg = VESSELS.find(c => c.vesselId === vid), v = (state.data.vessels || []).find(x => x.vesselId === vid);
         if(cfg && typeof mpCardHTML === "function"){ const M = rdModel(), w = document.createElement("div"); w.id = "sh-head"; w.style.cssText = "margin:0 0 16px;max-width:760px";
-          w.innerHTML = mpCardHTML(cfg, v || { items: [] }, M, [], (!v || !(v.items || []).length) ? { manual: true, todo: todosForVessel(vid, false).length } : undefined); bar.after(w); } } catch(e) { console.warn("[guscio] testata nave", e); }
+          w.innerHTML = mpCardHTML(cfg, v || { items: [] }, M, [], (!v || !(v.items || []).length) ? { manual: true, todo: todosForVessel(vid, false).length } : undefined); if(state.detailTab === "procurement" && typeof pcOn === "function" && pcOn() && document.getElementById("pc-wrap")) w.style.display = "none"; bar.after(w); } } catch(e) { console.warn("[guscio] testata nave", e); }
     }
   }
   if((state.view === "budget" || state.view === "performance") && !document.getElementById("sh-num")){
@@ -31854,6 +31855,218 @@ window.rbRender = function(root, kind, names, nSup, nAg){
   const q = document.getElementById("rb-q");
   if(q) q.addEventListener("input", e => { clearTimeout(window._rbQt); const v = e.target.value; window._rbQt = setTimeout(() => { window._rb[kind].q = v; window._rb[kind].sel = ""; renderRubricaPage(); const q2 = document.getElementById("rb-q"); if(q2){ q2.focus(); q2.setSelectionRange(q2.value.length, q2.value.length); } }, 200); });
 };
+
+// ============================================================================
+// v2.5 (30.10.2026) — PROCUREMENT NAVE COMPATTO (prototipo "Procurement Nave.dc.html" 2a, scelto dall'utente)
+// Una testata, una riga di numeri, la barra delle 7 fasi (filtro), UNA lista (righe a 2 linee: numero più avanzato,
+// fornitore, giorni fermo, pronto, scalo, tracking, nota, critico, barra a 4 tacche) e la scheda fissa a destra con il
+// flusso REQ → RFQ → PO → DN. Dati: pvModel (stazioni), isx* (offerte), getItemShipments, mpOf, getEffectiveDelivery.
+// "Cruscotto di prima" = mpd.pcView "old" (torna al pvHTML originale + tabella Items).
+// ============================================================================
+window._pc = window._pc || { st: {}, sel: {}, q: "", fo: {}, pos: false, del: false, closed: false, mail: {} };
+function pcOn(){ try { return pvMode() === "flow" && localStorage.getItem("mpd.pcView") !== "old"; } catch(e) { return true; } }
+window.pcOn = pcOn;
+window.pcSetView = function(v){ try { localStorage.setItem("mpd.pcView", v === "old" ? "old" : "new"); } catch(e) {} render(); };
+const PC_STEP = { req: 0, rfq: 1, ord: 1, prod: 2, rdy: 2, go: 2, dn: 3 };
+const PC_KC = { g: "#1553d8", a: "#d08a00", r: "#c0261c", s: "#aab6c3" };
+const PC_NEXT = { req: "Manda la RFQ ai fornitori.", rfq: "Aspetta le offerte; se tardano, sollecita.", ord: "Confronta le offerte ed emetti il PO in Infoship.", prod: "Il fornitore sta preparando: tieni d'occhio la data di pronto.",
+  rdy: "Pronto dal fornitore: organizza la spedizione verso lo scalo.", go: "In viaggio: segui il tracking fino a bordo.", dn: "A bordo: chiedi alla nave di chiudere la DN in Infoship.", closed: "Consegnato a bordo, DN chiusa." };
+const PC_B = "font:600 12px var(--font-sans);background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:4px 9px;cursor:pointer;white-space:nowrap";
+const PC_CP = "font:600 11.5px var(--font-sans);background:#eaf0fd;color:#1553d8;border:0;border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap";
+const PC_EB = "font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#44576b";
+function pcJ(s){ return escapeAttr(String(s == null ? "" : s)).replace(/'/g, "\\'"); }
+function pcFD(d){ return d ? mpFD(String(d).slice(0, 10)) : ""; }
+function pcShort(s){ return String(s || "").replace(/^(REQ|RFQ|PO|DN)\s+/i, ""); }
+function pcCopyBtn(v, l){ return v ? '<button onclick="event.stopPropagation();ccClip(\'' + pcJ(v) + '\',\'' + pcJ(l || v) + '\')" style="' + PC_CP + '">Copia</button>' : ""; }
+function pcSeg(cur, k, big){ return '<span style="display:' + (big ? "grid;grid-template-columns:repeat(4,minmax(0,1fr))" : "flex") + ';gap:' + (big ? 5 : 3) + 'px">' + [0, 1, 2, 3].map(i => '<span style="display:block;' + (big ? "" : "width:17px;") + 'height:' + (big ? 7 : 6) + 'px;border-radius:4px;background:' + (i < cur ? "#1b7a50" : i === cur ? (PC_KC[k] || "#1553d8") : "#e3e8ed") + '"></span>').join("") + '</span>'; }
+function pcLegI(s){ const st = s.status || "info_received", done = st === "delivered", exc = st === "exception", go = st === "in_transit" || st === "out_for_delivery";
+  return { w: done ? 100 : st === "out_for_delivery" ? 80 : go || exc ? 55 : 15, c: done ? "#1b7a50" : exc ? "#c0261c" : go ? "#1553d8" : "#8a9bb0",
+    lbl: done ? "Arrivata " + (s.route === "supplier-hub" ? "all'hub" : "al porto") : ((SHIP_STATUS[st] || {}).label || st), r: { "supplier-hub": "Forn.→Hub", "hub-port": "Hub→Porto", "supplier-port": "Forn.→Porto" }[s.route] || "Spedizione" }; }
+function pcLegBar(s, wide){ const L = pcLegI(s); return '<span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px"><span>🚚</span><span style="background:#eef1f5;border-radius:4px;padding:1px 6px;font-weight:600;color:#44576b">' + L.r + '</span><span style="display:block;' + (wide ? "flex:1;min-width:80px" : "width:120px") + ';height:6px;border-radius:3px;background:#e3e8ed;overflow:hidden"><span style="display:block;height:100%;width:' + L.w + '%;background:' + L.c + ';border-radius:3px"></span></span><span style="font-weight:700;color:' + L.c + '">' + escapeHTML(L.lbl) + '</span>' + (!wide && s.number ? '<span style="font-family:var(--font-mono);color:#6a7d90">AWB ' + escapeHTML(s.number) + '</span>' : "") + '</span>'; }
+function pcAll(vid){
+  const P = pvModel(vid); if(!P) return null; const L = [];
+  P.S.forEach(s => s.its.forEach(x => L.push(Object.assign({ sid: s.id, cur: PC_STEP[s.id] }, x))));
+  const v = (state.data.vessels || []).find(x => x.vesselId === vid) || { items: [] };
+  const closed = (v.items || []).filter(it => it.dnStatus === "DN Received on Board" && !rdCancelled(it)).sort((a, b) => String(b.dnDeliveryDate || b.dnDate || "").localeCompare(String(a.dnDeliveryDate || a.dnDate || "")))
+    .map(it => ({ it, k: "g", sid: "closed", cur: 4, age: 0, note: "a bordo" + (it.dnDeliveryDate || it.dnDate ? " dal " + pcFD(it.dnDeliveryDate || it.dnDate) : ""), crit: rdCrit(it.id) }));
+  return { P, L, closed };
+}
+function pcFind(A, id){ return A.L.find(x => x.it.id === id) || A.closed.find(x => x.it.id === id) || null; }
+function pcMatch(x, q){ const it = x.it; return [it.description, it.supplier, it.poNumber, it.dnNumber, it.reqNumber, (it.rfqNumbers || []).join(" "), x.note, state.notes[it.id]].join(" ").toLowerCase().includes(q); }
+function pcRowHTML(x, vid, sel){
+  const it = x.it, esc = escapeHTML, id = pcJ(it.id), on = sel === it.id;
+  const num = pvDoc(it), numL = it.dnNumber ? "DN" : it.poNumber ? "PO" : (it.rfqNumbers || []).filter(Boolean).length ? "RFQ" : "REQ";
+  const sup = it.supplier && it.supplier !== "—" ? it.supplier : "", dep = String(it.department || "").replace(/ ?Department$/i, "").toUpperCase();
+  const kc = x.k === "r" ? "#c0261c" : x.k === "a" ? "#a86200" : x.k === "s" ? "#8a99a8" : "#44576b";
+  const rd = it.poNumber && x.cur < 4 ? (itemReadyDate(it) || String(it.poDeliveryDate || "").slice(0, 10)) : "";
+  let dl = null; try { dl = getEffectiveDelivery(it, vid); } catch(e) {}
+  const port = dl && dl.port ? ccTitle(dl.port) + (dl.date ? " " + pcFD(dl.date) : "") : "";
+  const sg = x.cur < 4 ? getItemShipments(it.id).slice().reverse().find(s => s.number) : null, note = state.notes[it.id] || "";
+  return '<div onclick="pcSel(\'' + pcJ(vid) + '\',\'' + id + '\')" style="display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 14px;border-top:1px solid rgba(10,27,46,.06);cursor:pointer;background:' + (on ? "#f0f5ff" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : "transparent") + '">' +
+    '<span style="margin-top:3px;width:15px;height:15px;border-radius:4px;display:grid;place-items:center;font:700 10px var(--font-sans);color:#fff;background:' + (x.crit ? "#c0261c" : "transparent") + '">' + (x.crit ? "C" : "") + '</span>' +
+    '<div style="display:flex;flex-direction:column;gap:4px;min-width:0"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span style="font-size:13.5px;font-weight:600">' + esc(it.description || "—") + '</span>' + (dep ? '<span style="font-size:10.5px;font-weight:600;letter-spacing:.04em;color:#6a7d90">' + esc(dep) + '</span>' : "") + '</div>' +
+      '<div style="display:flex;gap:3px 12px;flex-wrap:wrap;font-size:12.5px;color:#44576b"><span style="color:' + (sup ? "#44576b" : "#8a99a8") + '">' + esc(sup || "fornitore da indicare") + '</span><span style="color:' + kc + ';font-weight:' + (x.k === "r" ? 700 : 500) + '">' + esc(x.note || "") + '</span>' +
+        (rd ? '<span>pronto ' + esc(pcFD(rd)) + '</span>' : "") + (x.cur < 4 ? '<span style="color:' + (port ? "#0a1b2e" : "#8a99a8") + '">⚓ ' + esc(port || "senza scalo") + '</span>' : "") + '</div>' +
+      (sg ? pcLegBar(sg, false) : "") + (note ? '<span style="align-self:flex-start;font-size:12px;background:#fff4d6;color:#7a5200;border-radius:5px;padding:2px 7px">✎ ' + esc(note) + '</span>' : "") + '</div>' +
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' + pcSeg(x.cur, x.k, false) + '<span style="display:flex;gap:6px;align-items:center"><span style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:10px;font-weight:700;color:#6a7d90">' + numL + '</span><span style="font:500 12px var(--font-mono)">' + esc(num) + '</span></span>' + pcCopyBtn(num, numL + " " + String(num).replace(/^\d{4}-/, "")) + '</span></div></div>';
+}
+function pcListHTML(vid, A){
+  const S = window._pc, st = S.st[vid] || "all", q = String(S.q || "").trim().toLowerCase(), sel = S.sel[vid];
+  const head = (l, sub) => '<div style="display:flex;gap:10px;align-items:baseline;padding:12px 14px 6px;background:#f7f9fb;border-top:1px solid rgba(10,27,46,.06)"><span style="' + PC_EB + '">' + escapeHTML(l) + '</span><span style="font-size:12px;color:#6a7d90">' + escapeHTML(sub) + '</span></div>';
+  let out = "", n = 0;
+  if(q){ const L = A.L.concat(A.closed).filter(x => pcMatch(x, q)); n = L.length; out = head("RICERCA SU TUTTA LA NAVE · " + L.length, "anche tra i chiusi") + L.slice(0, 200).map(x => pcRowHTML(x, vid, sel)).join(""); }
+  else { A.P.S.filter(s => st === "all" || s.id === st).forEach(s => { if(!s.its.length) return; n += s.its.length;
+      out += head(s.nm.toUpperCase() + " · " + s.n, s.sub + (s.id === "prod" ? " · tempo giusto fino alla data di pronto" : " · tempo giusto " + s.tgt + " gg") + (s.r ? " · " + s.r + " fermi oltre il doppio" : "")) +
+        s.its.slice(0, 200).map(x => pcRowHTML(Object.assign({ sid: s.id, cur: PC_STEP[s.id] }, x), vid, sel)).join(""); });
+    if(S.closed && (st === "all")) out += head("CHIUSI · " + A.closed.length, "DN ricevuta a bordo, la più recente in cima") + A.closed.slice(0, 150).map(x => pcRowHTML(x, vid, sel)).join(""); }
+  if(!n && !(S.closed && A.closed.length)) out += '<div style="padding:22px 16px;font-size:13.5px;color:#44576b">' + (q ? "Nessun articolo trovato." : "Niente in questa fase.") + '</div>';
+  return out + '<div style="padding:10px 14px;border-top:1px solid rgba(10,27,46,.06);display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:#6a7d90"><button onclick="window._pc.closed=!window._pc.closed;pcPaint(\'' + pcJ(vid) + '\')" style="' + PC_B + '">' + (S.closed ? "Nascondi i chiusi" : "Mostra i chiusi (" + A.closed.length + ")") + '</button><span>Annullati esclusi</span></div>';
+}
+// --- scheda: flusso REQ → RFQ → PO → DN ---------------------------------------------------
+function pcRfqHTML(it, vid){
+  const esc = escapeHTML, rfqs = (it.rfqNumbers || []).filter(Boolean); if(!rfqs.length) return { sum: it.poNumber ? "PO diretto, senza RFQ" : "da mandare", rows: "", n: 0 };
+  const offs = typeof isxOffers === "function" ? isxOffers(it) : [], cheap = offs.length > 1 ? offs[0] : null, wl = offs.filter(o => o.lt != null), fast = offs.length > 1 && wl.length ? wl.slice().sort((a, b) => a.lt - b.lt || a.usd - b.usd)[0] : null;
+  const R = rfqs.map(n => ({ n, vend: rfqVendorOf(n, it), si: idxRfqStatus(n, it), ix: typeof isxRfq === "function" ? isxRfq(n) : null }));
+  const cnt = k => R.filter(r => r.si.k === k).length, nOk = cnt("ok"), nW = cnt("wait") + cnt("unk"), nNo = cnt("no");
+  const SC = { ok: ["#14794e", "#e3f2ea"], no: ["#b3261e", "#fdecea"], off: ["#6a7d90", "#eef1f5"], wait: ["#44576b", "#eef1f5"], unk: ["#6a7d90", "#eef1f5"] };
+  const rows = R.map(r => { const ix = r.ix, isOff = typeof isxIsOffer === "function" && isxIsOffer(ix), lt = ix ? isxLt(ix) : null, sup = r.vend.supplier || "", prof = sup ? (getEntityProfile("supplier", sup) || {}) : {};
+    const lang = sup && state.supplierLanguages ? state.supplierLanguages[sup] : "", mail = r.vend.email || "", g = typeof isxGenuine === "function" ? isxGenuine(r.n) : "", lvl = rfqChaseLevel(r.n), last = rfqChaseLast(r.n);
+    const tags = [cheap && cheap.n === r.n ? ["PIÙ ECONOMICA", "#14794e"] : null, fast && fast.n === r.n ? ["PIÙ RAPIDA", "#1553d8"] : null].filter(Boolean).map(t => '<span style="font-size:10px;font-weight:700;color:' + t[1] + ';border:1px solid ' + t[1] + ';border-radius:4px;padding:1px 5px">' + t[0] + '</span>').join("");
+    const gb = (val, lbl, col) => '<button onclick="event.stopPropagation();isxSetGenuine(\'' + pcJ(r.n) + '\',\'' + val + '\');pcPaint(\'' + pcJ(vid) + '\')" style="font:600 11.5px var(--font-sans);border:1px solid ' + (g === val ? col : "rgba(10,27,46,.18)") + ';background:' + (g === val ? col : "#fff") + ';color:' + (g === val ? "#fff" : "#44576b") + ';border-radius:6px;padding:3px 8px;cursor:pointer">' + lbl + '</button>';
+    const c = SC[r.si.k] || SC.unk;
+    return '<div style="display:flex;flex-direction:column;gap:5px;padding:10px 12px;border-top:1px solid rgba(10,27,46,.07)">' +
+      '<div style="display:flex;gap:8px;align-items:center"><span style="font:500 12px var(--font-mono);color:#44576b">' + esc(String(r.n).replace(/^\d{4}-[A-Z]{2,4}-/, "")) + '</span>' + pcCopyBtn(r.n, "RFQ " + String(r.n).replace(/^\d{4}-/, "")) + '<span style="flex:1"></span><span style="font-size:11.5px;font-weight:700;color:' + c[0] + ';background:' + c[1] + ';border-radius:999px;padding:2px 9px;white-space:nowrap">' + esc(r.si.t) + '</span></div>' +
+      '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span style="font-size:13.5px;font-weight:700;color:' + (sup ? "#0a1b2e" : "#8a99a8") + '">' + esc(sup || "Fornitore da indicare") + '</span>' + (lang ? '<span style="font:600 10.5px var(--font-mono);color:#14794e;border:1px solid #14794e;border-radius:4px;padding:0 4px">' + esc(String(lang).toUpperCase()) + '</span>' : "") + '</div>' +
+      '<div style="display:flex;gap:4px 10px;flex-wrap:wrap;font-size:12px;color:#44576b">' + (mail ? '<button onclick="event.stopPropagation();ccClip(\'' + pcJ(mail) + '\',\'Email\')" title="Copia l\'email" style="all:unset;cursor:pointer;color:#1553d8;overflow-wrap:anywhere">' + esc(mail) + '</button>' : '<span style="color:#8a99a8">email non in rubrica</span>') + [prof.contact, prof.phone].filter(Boolean).map(t => '<span>' + esc(t) + '</span>').join("") +
+        (lvl ? '<span style="color:#a86200">· ' + esc(rfqLadder(lvl).it) + (last && last.ts ? " " + esc(rfqChaseDateFull(last.ts)) : "") + '</span>' : (r.si.k === "wait" || r.si.k === "unk") ? '<span style="color:#6a7d90">· mai sollecitata</span>' : "") + '</div>' +
+      (isOff ? '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font:600 13.5px var(--font-mono)">' + esc(isxMoney(ix.v, ix.cu)) + '</span>' + (ix.cu === "EUR" ? '<span style="font-size:11.5px;color:#6a7d90">≈ $ ' + Math.round(isxUsd(ix)).toLocaleString("it-IT") + '</span>' : "") + '<span style="font-size:12.5px;color:#44576b">LT ' + (lt == null ? "non indicato" : esc(isxLtTxt(lt))) + '</span>' + tags + '<span style="flex:1"></span>' + gb("G", "Originale", "#14794e") + gb("NG", "Non orig.", "#b06a00") + '</div>' : "") + '</div>'; }).join("");
+  const open = R.filter(r => r.si.k === "wait" || r.si.k === "unk"), vName = vNameSafe(vid) || "";
+  const chase = open.length ? '<button onclick="event.stopPropagation();openRfqChasePanel(\'' + encodeURIComponent(JSON.stringify({ rows: open.map(r => ({ n: r.n, description: it.description || "", days: it.rfqDays, rfqDate: typeof rfqIssueDate === "function" ? rfqIssueDate({ rfqDate: it.rfqDate, days: it.rfqDays }) : "", itemId: it.id, reqNumber: it.reqNumber || "" })), description: it.description || "", vesselName: vName, vesselId: vid, days: it.rfqDays })) + '\')" style="' + PC_B + '">Sollecita ' + open.length + ' →</button>' : "";
+  const lp = typeof isxItemLt === "function" ? isxItemLt(it) : null;
+  const note = lp && it.poDate ? "LT " + isxLtTxt(lp.lt) + " dalla " + lp.rfq + " (" + lp.holder + ") → pronto " + formatDate(isxAdd(it.poDate, lp.lt)) + ": è la data che usa il Radar." : (!it.poNumber && offs.length >= 2 && offs[offs.length - 1].usd / offs[0].usd >= 3 ? "Tra la più cara e la più economica c'è un fattore ×" + Math.round(offs[offs.length - 1].usd / offs[0].usd) + ": verifica che quotino la stessa cosa." : "");
+  return { n: R.length, sum: R.length + " RFQ" + (nOk ? " · " + nOk + (nOk > 1 ? " offerte" : " offerta") : "") + (nW ? " · " + nW + " in attesa" : "") + (nNo ? " · " + nNo + " rifiutat" + (nNo > 1 ? "e" : "a") : ""), chase,
+    rows: '<div style="display:flex;flex-direction:column;border:1px solid rgba(10,27,46,.10);border-radius:10px;overflow:hidden">' + rows + '</div>' + (note ? '<span style="font-size:12px;color:#7a5200;background:#fff4d6;border-radius:6px;padding:6px 9px">' + esc(note) + '</span>' : "") };
+}
+function pcStepHTML(color, label, head, body, last){
+  return '<div style="display:flex;flex-direction:column;align-items:center"><span style="width:14px;height:14px;border-radius:50%;background:' + color + ';margin-top:2px;flex-shrink:0"></span>' + (last ? "" : '<span style="flex:1;width:2px;background:#e3e8ed"></span>') + '</div>' +
+    '<div style="padding-bottom:' + (last ? 0 : 14) + 'px;display:flex;flex-direction:column;gap:6px;min-width:0"><div style="display:flex;gap:8px;align-items:center;min-width:0"><span style="font-size:12px;font-weight:700;width:32px;flex-shrink:0">' + label + '</span>' + head + '</div>' + body + '</div>';
+}
+function pcCardHTML(vid, x){
+  if(!x) return '<div style="padding:28px 20px;font-size:14px;color:#44576b;line-height:1.5">Clicca un articolo della lista: qui compare il flusso REQ → RFQ → PO → DN con tutti i numeri da copiare.</div>';
+  const it = x.it, esc = escapeHTML, id = pcJ(it.id), V = pcJ(vid), S = window._pc, fo = S.fo, cur = x.cur, now = Date.now();
+  const stc = i => i < cur ? "#1b7a50" : i === cur ? (PC_KC[x.k] || "#1553d8") : "#c7d0d9";
+  const mp = (() => { try { return mpOf(it, now) || {}; } catch(e) { return {}; } })(), P = MP_POS[mp.pos] || { l: "—", c: "#8a99a8" };
+  const dep = String(it.department || "").replace(/ ?Department$/i, ""), sup = it.supplier && it.supplier !== "—" ? it.supplier : "";
+  const op = (k, def) => fo[k] === undefined ? def : fo[k], tg = (k, def) => 'window._pc.fo[\'' + k + '\']=' + !op(k, def) + ';pcPaint(\'' + V + '\')';
+  const nxt = x.hold ? "Attesa voluta: " + (x.note || "") : (x.sid === "rfq" && (x.k === "r" || x.k === "a") ? "Le offerte tardano: sollecita." : PC_NEXT[x.sid] || "");
+  // REQ
+  const reqB = '<span style="font-size:12px;color:#44576b;padding-left:40px">' + esc([pcShort(it.reqStatus) || (it.reqNumber ? "" : "senza richiesta in Infoship"), it.reqDate ? "del " + pcFD(it.reqDate) : "", dep].filter(Boolean).join(" · ")) + '</span>';
+  const reqH = '<span style="font:500 13px var(--font-mono);flex:1;min-width:0;overflow-wrap:anywhere;color:' + (it.reqNumber ? "#0a1b2e" : "#8a99a8") + '">' + esc(it.reqNumber || "—") + '</span>' + pcCopyBtn(it.reqNumber, "REQ " + String(it.reqNumber || "").replace(/^\d{4}-/, ""));
+  // RFQ
+  const RQ = pcRfqHTML(it, vid), rOpen = op("rfq", cur === 1) && RQ.n > 0;
+  const rfqH = '<button onclick="' + tg("rfq", cur === 1) + '" style="all:unset;cursor:pointer;font-size:13px;flex:1">' + esc(RQ.sum) + '</button>' + (RQ.chase || "") + (RQ.n ? '<button onclick="' + tg("rfq", cur === 1) + '" style="all:unset;cursor:pointer;font-size:12px;color:#6a7d90;white-space:nowrap">' + (rOpen ? "▾" : "▸ apri") + '</button>' : "");
+  // PO
+  const poL = Array.isArray(it.poDetails) && it.poDetails.length > 1 ? it.poDetails : null, ixp = it.poNumber && typeof isxPo === "function" ? isxPo(it.poNumber) : null;
+  const rd = itemReadyDate(it) || String(it.poDeliveryDate || "").slice(0, 10), lt = itemLeadTime(it);
+  const segs = getItemShipments(it.id), pOpen = op("po", cur === 2) && !!it.poNumber, G = typeof shipGroups === "function" ? shipGroups() : {};
+  const poH = '<span style="font:500 13px var(--font-mono);flex:1;min-width:0;overflow-wrap:anywhere;color:' + (it.poNumber ? "#0a1b2e" : "#8a99a8") + '">' + esc(it.poNumber || "non ancora emesso") + '</span>' + pcCopyBtn(it.poNumber, "PO " + String(it.poNumber || "").replace(/^\d{4}-/, "")) + (it.poNumber ? '<button onclick="' + tg("po", cur === 2) + '" style="all:unset;cursor:pointer;font-size:12px;color:#6a7d90;white-space:nowrap">' + (pOpen ? "▾" : "▸ " + (segs.length ? segs.length + " spediz." : "apri")) + '</button>' : "");
+  const poMeta = it.poNumber ? '<span style="font-size:12px;color:#44576b;padding-left:40px">' + esc([pcShort(it.poStatus), sup, it.poDate ? "emesso " + pcFD(it.poDate) : "", ixp && ixp.v ? isxMoney(ixp.v, ixp.cu) : "", rd ? "pronto " + pcFD(rd) + (lt != null ? " (LT " + lt + " gg)" : "") : ""].filter(Boolean).join(" · ")) + '</span>' +
+    (poL ? '<span style="font-size:12px;color:#44576b;padding-left:40px">Altri PO del flusso: ' + poL.filter(p => p.number !== it.poNumber).map(p => '<span style="font-family:var(--font-mono)">' + esc(p.number) + '</span> ' + esc(pcShort(p.status))).join(" · ") + '</span>' : "") : "";
+  const legs = segs.map(s => { const n = s.gid ? Math.max(0, ((G[s.gid] || {}).items || []).length - 1) : 0;
+    return '<div style="display:flex;flex-direction:column;gap:5px;border:1px solid rgba(10,27,46,.10);border-radius:9px;padding:9px 11px">' + pcLegBar(s, true) +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:#44576b">' + (s.number ? '<span style="font-weight:700;color:#6a7d90">AWB</span><span style="font:500 12px var(--font-mono);color:#0a1b2e;background:#f1f3f6;border-radius:4px;padding:1px 6px">' + esc(s.number) + '</span>' + pcCopyBtn(s.number, "AWB " + s.number) + '<a href="' + escapeAttr(ship17TrackURL(s.number)) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-weight:600;text-decoration:none">17TRACK ↗</a>' : '<span>senza numero</span>') +
+        '<span>' + esc([s.carrier, s.pickup ? "partenza " + pcFD(s.pickup) : "", s.eta ? (s.status === "delivered" ? "consegnato " : "arrivo prev. ") + pcFD(s.eta) : ""].filter(Boolean).join(" · ")) + '</span></div>' +
+      (n || s.partial ? '<span style="font-size:11.5px;color:#1553d8">' + (n ? "Spedizione unica con " + n + " altri PO" : "") + (s.partial ? (n ? " · " : "") + "solo una parte del PO" : "") + '</span>' : "") + '</div>'; }).join("");
+  const poBody = poMeta + (pOpen ? '<div style="display:flex;flex-direction:column;gap:8px;padding-left:40px">' + (legs || '<span style="font-size:12.5px;color:#6a7d90">Nessuna spedizione registrata.</span>') +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap"><button onclick="openItemDetailPopover(\'' + id + '\')" style="' + PC_B + '">+ Aggiungi o collega spedizione</button><button onclick="shipHubBoard()" style="' + PC_B + '">⇉ Hub e consolidati</button></div></div>' : "");
+  // DN
+  const dnH = '<span style="font:500 13px var(--font-mono);flex:1;min-width:0;overflow-wrap:anywhere;color:' + (it.dnNumber ? "#0a1b2e" : "#8a99a8") + '">' + esc(it.dnNumber || "da fare") + '</span>' + pcCopyBtn(it.dnNumber, "DN " + String(it.dnNumber || "").replace(/^\d{4}-/, ""));
+  const dnB = '<span style="font-size:12px;color:#44576b;padding-left:40px">' + esc(it.dnNumber ? [pcShort(it.dnStatus), it.dnDeliveryDate ? "consegna " + pcFD(it.dnDeliveryDate) : it.dnDate ? pcFD(it.dnDate) : "", x.sid === "dn" ? "da chiudere in Infoship" : ""].filter(Boolean).join(" · ") : cur >= 2 ? "la crea la nave quando la merce è a bordo" : "") + '</span>' +
+    (x.sid === "dn" ? '<span style="padding-left:40px"><button onclick="ifxOpen()" style="' + PC_B + '">✉ Chiedi alla nave di chiudere</button></span>' : "");
+  // dove · consegna
+  const opts = (it.poNumber ? MP_OPTS_PO : ["route", "office", "repair"]).concat(["auto"]);
+  const posChips = S.pos ? '<div style="display:flex;gap:5px;flex-wrap:wrap">' + opts.map(k => { const on = k === mp.pos && !!mp.manual, c = k === "auto" ? "#8a99a8" : MP_POS[k].c, l = k === "auto" ? "Automatico" : MP_POS[k].l;
+      return '<button onclick="mpSetPos(\'' + id + '\',\'' + k + '\');window._pc.pos=false;pcPaint(\'' + V + '\')" style="font:600 12px var(--font-sans);background:' + (on ? c : "#fff") + ';color:' + (on ? "#fff" : "#0a1b2e") + ';border:1px solid ' + (on ? c : "rgba(10,27,46,.15)") + ';border-radius:999px;padding:5px 10px;cursor:pointer;display:flex;gap:5px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:' + c + '"></span>' + l + '</button>'; }).join("") + '<span style="font-size:11.5px;color:#6a7d90;width:100%">«Automatico» torna a quello che dicono DN e tracking. Hub, date e note: Scheda completa.</span></div>' : "";
+  let dl = null; try { dl = getEffectiveDelivery(it, vid); } catch(e) {}
+  const voy = getVoyage(vid) || {}, plan = getDeliveryPlan(it.id) || {};
+  const legOpt = ["current", "next"].map(w => { const l = voy[w]; if(!l || !l.to) return ""; const on = plan.mode === "voyage" && (plan.voyageLegId ? plan.voyageLegId === l.id : plan.leg === w);
+    return '<button onclick="setDeliveryPlan(\'' + id + '\',{mode:\'voyage\',leg:\'' + w + '\',voyageLegId:' + (l.id ? "'" + pcJ(l.id) + "'" : "undefined") + ',updatedAt:new Date().toISOString()});pcPaint(\'' + V + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:8px;background:' + (on ? "#f0f5ff" : "#fff") + '"><span style="width:12px;height:12px;border-radius:50%;border:2px solid ' + (on ? "#1553d8" : "#b8c3ce") + ';background:' + (on ? "#1553d8" : "#fff") + '"></span><span style="display:flex;flex-direction:column"><span style="font-size:13px;font-weight:600">' + esc(ccTitle(l.to)) + '</span><span style="font-size:11.5px;color:#6a7d90">' + esc((w === "current" ? "viaggio in corso" : "viaggio successivo") + [l.eta ? " · ETA " + pcFD(l.eta) : "", l.etd ? " · ETD " + pcFD(l.etd) : ""].join("")) + '</span></span></button>'; }).join("");
+  const delSum = dl && dl.port ? ccTitle(dl.port) + (dl.date ? " · " + pcFD(dl.date) : "") + (dl.legLabel ? " · " + dl.legLabel : "") : "nessuna consegna pianificata";
+  const delBody = S.del ? '<div style="display:flex;flex-direction:column;gap:4px;padding-bottom:8px">' + (legOpt || '<span style="font-size:12.5px;color:#6a7d90">Nessuno scalo nel Viaggio della nave.</span>') +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px"><button onclick="setDeliveryPlan(\'' + id + '\',null);pcPaint(\'' + V + '\')" style="' + PC_B + '">Nessuna pianificazione</button><button onclick="openItemDetailPopover(\'' + id + '\')" style="' + PC_B + '">Altro porto o data…</button></div>' +
+    '<span style="font-size:12px;color:#44576b;padding-top:4px">' + (lt != null ? "Lead time " + lt + " gg" + (rd ? " → pronto " + pcFD(rd) : "") : "Lead time non indicato") + ' · si cambia nella Scheda completa.</span></div>' : "";
+  const note = state.notes[it.id] || "";
+  const M = window._pc.mail[it.id];
+  return '<div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">' +
+    '<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">' + (x.crit ? '<span style="font-size:11px;font-weight:700;color:#fff;background:#c0261c;border-radius:5px;padding:3px 7px">C CRITICO</span>' : "") +
+      '<span style="font-size:12px;font-weight:700;color:' + P.c + ';border:1px solid ' + P.c + ';border-radius:999px;padding:2px 10px">' + esc(P.l) + '</span><span style="font-size:12px;color:#6a7d90">' + esc(mp.manual ? "segnata da te" + (mp.since ? " il " + pcFD(mp.since) : "") : "dedotta da DN e tracking") + '</span></div>' +
+      '<span style="font-size:19px;font-weight:700;line-height:1.25">' + esc(it.description || "—") + '</span><span style="font-size:13px;color:#44576b">' + esc([vNameSafe(vid), dep, sup].filter(Boolean).join(" · ")) + '</span></div>' +
+    '<div style="display:flex;flex-direction:column;gap:4px">' + pcSeg(cur, x.k, true) + '<span style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px">' + ["REQ", "RFQ", "PO", "DN"].map((l, i) => '<span style="font-size:11px;font-weight:700;color:' + (i <= cur ? "#0a1b2e" : "#8a99a8") + '">' + l + '</span>').join("") + '</span></div>' +
+    '<div style="background:#eef3fd;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px"><span style="' + PC_EB + ';color:#1553d8">PROSSIMO PASSO</span><span style="font-size:13.5px;line-height:1.45;text-wrap:pretty">' + esc(nxt) + '</span>' + (x.note && !x.hold ? '<span style="font-size:12.5px;color:' + (x.k === "r" ? "#c0261c" : x.k === "a" ? "#a86200" : "#44576b") + '">' + esc(x.note) + '</span>' : "") + '</div>' +
+    '<div style="display:flex;flex-direction:column"><span style="' + PC_EB + ';padding-bottom:8px">FLUSSO</span><div style="display:grid;grid-template-columns:20px minmax(0,1fr);gap:0 10px">' +
+      pcStepHTML(stc(0), "REQ", reqH, reqB) + pcStepHTML(stc(1), "RFQ", rfqH, rOpen ? RQ.rows : "") + pcStepHTML(stc(2), "PO", poH, poBody) + pcStepHTML(it.dnNumber ? (x.sid === "dn" ? PC_KC[x.k] : "#1b7a50") : "#c7d0d9", "DN", dnH, dnB, true) + '</div></div>' +
+    '<div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><div style="display:flex;gap:10px;align-items:center"><span style="' + PC_EB + ';width:100px">DOVE SI TROVA</span><span style="display:flex;gap:6px;align-items:center;font-size:13.5px;font-weight:600;flex:1"><span style="width:9px;height:9px;border-radius:50%;background:' + P.c + '"></span>' + esc(P.l) + (mp.partial ? " · parziale" : "") + '</span><button onclick="window._pc.pos=!window._pc.pos;pcPaint(\'' + V + '\')" style="' + PC_B + '">' + (S.pos ? "Chiudi" : "Cambia") + '</button></div>' + posChips + '</div>' +
+    '<div style="display:flex;flex-direction:column;border-top:1px solid rgba(10,27,46,.08)"><button onclick="window._pc.del=!window._pc.del;pcPaint(\'' + V + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 0"><span style="' + PC_EB + '">CONSEGNA</span><span style="font-size:13px">' + esc(delSum) + '</span><span style="font-size:12px;color:#6a7d90">' + (S.del ? "▾" : "▸ cambia") + '</span></button>' + delBody + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + '">NOTA</span><textarea id="pc-note" rows="2" placeholder="Scrivi una nota… compare anche nella riga della lista" onblur="pcNote(\'' + V + '\',\'' + id + '\',this.value)" style="font:400 13.5px var(--font-sans);border:1px solid rgba(10,27,46,.15);border-radius:8px;padding:8px 10px;resize:vertical;outline:0">' + esc(note) + '</textarea></div>' +
+    '<div id="pc-mail" style="display:flex;flex-direction:column;gap:2px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px">' + pcMailHTML(it) + '</div></div>' +
+    '<div style="display:flex;gap:8px;padding:12px 18px;border-top:1px solid rgba(10,27,46,.10);background:#fafbfc;position:sticky;bottom:0;flex-wrap:wrap"><button onclick="pcTodo(\'' + V + '\',\'' + id + '\')" style="' + PC_B + ';font-size:13px;padding:8px 12px">+ To-do</button><button onclick="pcEN(\'' + id + '\')" style="font:600 13px var(--font-sans);background:#0a1b2e;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">⧉ Copia testo EN</button><span style="flex:1"></span><button onclick="openItemDetailPopover(\'' + id + '\')" style="font:600 13px var(--font-sans);background:none;color:#1553d8;border:0;cursor:pointer">Scheda completa →</button></div>';
+}
+// --- posta dell'articolo (stesso webhook di Cerca) ------------------------------------------
+function pcMailTerms(it){ const T = []; [it.poNumber, it.dnNumber, it.reqNumber].concat(it.rfqNumbers || []).filter(Boolean).forEach(n => { const m = String(n).toUpperCase().match(/^(\d{4})-([A-Z]{2,4})-([A-Z]{3,5})-(\d{4,6})$/); if(m){ T.push(m[3] + "-" + m[4]); T.push(m[3] + m[4]); } else T.push(String(n)); }); return [...new Set(T)].slice(0, 8); }
+function pcMailHTML(it){
+  const url = String((state.settings || {}).mailSearchUrl || "").trim(), T = pcMailTerms(it), M = window._pc.mail[it.id], head = '<span style="' + PC_EB + ';padding-bottom:4px">POSTA IN OUTLOOK' + (M && M.st === "ok" ? " · " + M.list.length : "") + '</span>';
+  if(!T.length) return head + '<span style="font-size:12.5px;color:#6a7d90">Nessun numero da cercare.</span>';
+  if(!url) return head + '<span style="font-size:12.5px;color:#6a7d90">Collega Outlook dalla pagina Cerca per vedere qui le email di questa pratica. <button onclick="ccClip(\'' + pcJ(T.join(" OR ")) + '\',\'Ricerca per Outlook\')" style="' + PC_B + '">⧉ Copia ricerca</button></span>';
+  if(!M){ window._pc.mail[it.id] = { st: "load", list: [] }; const tok = String((state.settings || {}).mailSearchToken || "");
+    fetch(url + (url.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(tok) + "&terms=" + encodeURIComponent(JSON.stringify(T)), { cache: "no-store" }).then(r => r.ok ? r.json() : Promise.reject(new Error("risposta " + r.status)))
+      .then(d => { window._pc.mail[it.id] = { st: "ok", list: (d && d.messages) || [] }; }).catch(e => { window._pc.mail[it.id] = { st: "err", err: String(e.message || e), list: [] }; })
+      .then(() => { const el = document.getElementById("pc-mail"); if(el && (window._pc.sel[state.selectedVesselId] === it.id)) el.innerHTML = pcMailHTML(it); });
+    return head + '<span style="font-size:12.5px;color:#6a7d90">Cerco in Outlook…</span>'; }
+  if(M.st === "load") return head + '<span style="font-size:12.5px;color:#6a7d90">Cerco in Outlook…</span>';
+  if(M.st === "err") return head + '<span style="font-size:12.5px;color:#b3261e">Ricerca non riuscita: ' + escapeHTML(M.err) + ' <button onclick="delete window._pc.mail[\'' + pcJ(it.id) + '\'];document.getElementById(\'pc-mail\').innerHTML=pcMailHTML(faFindItem(\'' + pcJ(it.id) + '\'))" style="' + PC_B + '">Riprova</button></span>';
+  if(!M.list.length) return head + '<span style="font-size:12.5px;color:#6a7d90">Nessuna email con questi numeri.</span>';
+  const fd = s => { const d = new Date(s); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); };
+  return head + M.list.slice(0, 6).map(m => '<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 0"><span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:12px;color:#44576b"><span style="font-family:var(--font-mono)">' + escapeHTML(fd(m.at)) + '</span> · <b style="color:' + (m.out ? "#14794e" : "#0a1b2e") + '">' + escapeHTML(m.out ? "↗ inviata" + (m.to ? " a " + m.to : "") : (m.fromName || m.from || "")) + '</b></span><span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(m.subject || "") + '</span></span>' + (m.webLink ? '<a href="' + escapeAttr(m.webLink) + '" target="_blank" rel="noopener" style="' + PC_B + ';text-decoration:none">Apri</a>' : "") + '</div>').join("") + (M.list.length > 6 ? '<span style="font-size:12px;color:#6a7d90">+ altre ' + (M.list.length - 6) + ' in Cerca</span>' : "");
+}
+// --- pagina ---------------------------------------------------------------------------------
+function pcPageHTML(vid){
+  const A = pcAll(vid); if(!A) return ""; const P = A.P, S = window._pc, esc = escapeHTML, V = pcJ(vid), st = S.st[vid] || "all";
+  if(!S.sel[vid] || !pcFind(A, S.sel[vid])){ const b = P.S.find(s => s.id === P.bott) || P.S.find(s => s.n); S.sel[vid] = b && b.its[0] ? b.its[0].it.id : ""; }
+  const W = (() => { try { return mpWhere(vid); } catch(e) { return null; } })(), c = P.call, cfg = VESSELS.find(x => x.vesselId === vid) || {};
+  let lim = ""; if(c){ const cut = c.its && c.its[0] ? c.its[0].cut : c.etd - 1, dd = Math.floor(Math.max(0, cut)), hh = Math.floor((Math.max(0, cut) - dd) * 24); lim = cut < 0 ? "limite di consegna passato" : "limite di consegna fra " + dd + "g " + String(hh).padStart(2, "0") + "h"; }
+  let unN = 0; try { const M = rdModel(), ln = (M.lanes || []).find(l => l.vid === vid); unN = ln && ln.un ? ln.un.length : 0; } catch(e) {}
+  const judged = P.open - P.grey, okPct = judged ? Math.round(P.green / judged * 100) : 100;
+  const head = '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:12px;padding:13px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 20px;align-items:center">' +
+    '<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap"><span style="font-size:19px;font-weight:700">' + esc(cfg.displayName || vid) + '</span><span style="font-size:14.5px">' + (W && W.port ? "Rotta per <b>" + esc(String(W.port).toUpperCase()) + "</b>" + (W.eta ? " · ETA " + esc(ccD(W.eta)) : "") + (W.etd ? " · ETD " + esc(ccD(W.etd)) : "") : '<span style="color:#6a7d90">Viaggio non impostato</span>') + '</span></div>' +
+      '<span style="font-size:13px;color:#44576b">' + (c ? '<b style="color:' + (lim.includes("passato") || (c.its && c.its[0] && c.its[0].cut < 2) ? "#b3261e" : "#0a1b2e") + '">' + esc(lim) + '</b> · ' + (c.its || []).length + ' PO per ' + esc(ccTitle(c.port)) : "nessuno scalo futuro nel radar") + (unN ? ' · <a href="#" onclick="event.preventDefault();state.view=\'overview\';render()">' + unN + ' PO senza scalo</a>' : "") + '</span></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" onclick="state.view=\'overview\';render()">Radar scali →</button>' + (c && !c.past ? '<button class="btn btn-sm" onclick="rdShipPreAlert(\'' + pcJ(c.id) + '\')">✉ Pre-alert alla nave</button>' : "") + '</div></div>';
+  const kpi = '<div style="display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:#44576b;padding:0 4px"><span><b style="color:#0a1b2e">' + P.open + '</b> aperti</span><span><b style="color:' + (okPct >= 75 ? "#14794e" : okPct >= 50 ? "#a86200" : "#b3261e") + '">' + okPct + '%</b> nei tempi</span><span><b style="color:#b3261e">' + P.red + '</b> fermi oltre il doppio</span>' +
+    '<span><b style="color:' + (P.critBad ? "#b3261e" : "#14794e") + '">' + P.critBad + '/' + P.crit + '</b> critici in ritardo</span><span><b style="color:#0a1b2e">' + P.done30 + '</b> a bordo in 30 gg</span>' + (P.grey ? '<span><b style="color:#0a1b2e">' + P.grey + '</b> fermi apposta</span>' : "") + '<span style="flex:1"></span>' +
+    (P.stale ? '<a href="#" onclick="event.preventDefault();ifxOpen()" style="font-weight:600;text-decoration:none">' + P.stale + ' DN vecchie · Chiedi alla nave →</a>' : "") + '<button onclick="pcSetView(\'old\')" style="all:unset;cursor:pointer;color:#6a7d90;font-size:12px;text-decoration:underline">cruscotto di prima</button></div>';
+  const cell = (k, n, l, s, late) => { const on = st === k; return '<button onclick="pcSt(\'' + V + '\',\'' + k + '\')" style="all:unset;cursor:pointer;background:' + (on ? "#fff" : "rgba(255,255,255,.6)") + ';border:1.5px solid ' + (on ? "#1553d8" : "rgba(10,27,46,.10)") + ';border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:2px;min-width:0">' +
+    '<span style="display:flex;gap:6px;align-items:baseline"><span style="font-size:21px;font-weight:700;color:' + (late ? "#b3261e" : n ? "#0a1b2e" : "#8a99a8") + '">' + n + '</span>' + (late ? '<span style="font-size:11.5px;font-weight:700;color:#b3261e">' + late + ' fermi</span>' : "") + '</span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l) + '</span><span style="font-size:11.5px;color:#6a7d90;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(s) + '</span></button>'; };
+  const bar = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px">' + cell("all", P.open, "Tutte le fasi", "aperti", 0) + P.S.map(s => cell(s.id, s.n, s.nm, s.sub, s.r)).join("") + '</div>';
+  const wide = window.innerWidth >= 1100, x = wide ? pcFind(A, S.sel[vid]) : null;
+  return '<div id="pc-wrap" style="display:flex;flex-direction:column;gap:12px;margin:4px 0 18px">' + head + kpi + bar +
+    '<div style="display:grid;grid-template-columns:' + (wide ? "minmax(0,1fr) minmax(400px,540px)" : "minmax(0,1fr)") + ';gap:14px;align-items:start">' +
+      '<div style="background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:12px;overflow:hidden;min-width:0"><div style="display:flex;gap:10px;align-items:center;padding:10px 14px"><input type="search" id="pc-q" autocomplete="off" value="' + escapeAttr(S.q || "") + '" oninput="pcQ(\'' + V + '\',this.value)" placeholder="Trova nell\'elenco: descrizione, fornitore, numero, nota…" style="flex:1;font:400 13.5px var(--font-sans);border:1px solid rgba(10,27,46,.15);border-radius:8px;padding:7px 10px;outline:0">' +
+        '<label class="btn btn-sm" style="cursor:pointer;white-space:nowrap" title="Excel RFQ e PO esportati da Infoship">⇧ Excel Infoship<input type="file" accept=".xlsx,.xls" multiple style="display:none" onchange="window.importInfoshipRfqExcel(this.files); this.value=\'\';"></label></div>' +
+        '<div id="pc-list">' + pcListHTML(vid, A) + '</div></div>' +
+      (wide ? '<div id="pc-card" style="position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:12px;display:flex;flex-direction:column">' + pcCardHTML(vid, x) + '</div>' : "") + '</div></div>';
+}
+const pvHTML0 = pvHTML;
+pvHTML = window.pvHTML = function(vid){
+  if(!pcOn()) return '<div style="display:flex;justify-content:flex-end;margin:0 0 -6px"><button class="btn btn-sm" onclick="pcSetView(\'new\')">Vista nuova →</button></div>' + pvHTML0(vid);
+  try { return pcPageHTML(vid); } catch(e) { console.error("[procurement compatto]", e); return pvHTML0(vid); }
+};
+window.pcPaint = function(vid){ const h = document.getElementById("pv-root"); if(!h) return; const c = document.getElementById("pc-card"), sc = c ? c.scrollTop : 0; h.innerHTML = pvHTML(vid); const c2 = document.getElementById("pc-card"); if(c2) c2.scrollTop = sc; };
+window.pcSel = function(vid, id){ if(window.innerWidth < 1100){ openItemDetailPopover(id); return; } const S = window._pc; if(S.sel[vid] !== id){ S.fo = {}; S.pos = false; S.del = false; } S.sel[vid] = id;
+  const A = pcAll(vid), c = document.getElementById("pc-card"), l = document.getElementById("pc-list"); if(!A || !c || !l) return pcPaint(vid); l.innerHTML = pcListHTML(vid, A); c.innerHTML = pcCardHTML(vid, pcFind(A, id)); c.scrollTop = 0; };
+window.pcSt = function(vid, k){ window._pc.st[vid] = k; window._pc.q = ""; pcPaint(vid); };
+window.pcQ = function(vid, v){ window._pc.q = v; clearTimeout(window._pcT); window._pcT = setTimeout(() => { const A = pcAll(vid), l = document.getElementById("pc-list"); if(A && l) l.innerHTML = pcListHTML(vid, A); }, 160); };
+window.pcNote = function(vid, id, val){ val = String(val || "").trim(); if((state.notes[id] || "") === val) return; if(val) state.notes[id] = val; else delete state.notes[id]; saveNotes(); const A = pcAll(vid), l = document.getElementById("pc-list"); if(A && l) l.innerHTML = pcListHTML(vid, A); showToast("Nota salvata"); };
+window.pcTodo = function(vid, id){ const it = faFindItem(id); if(it) ccNewTodo({ vid, item: it, text: (it.description || "") + (it.poNumber ? " · PO " + String(it.poNumber).replace(/^\d{4}-/, "") : "") }); };
+window.pcEN = function(id){ const it = faFindItem(id); if(!it) return; let t = ""; try { const n0 = window._cc.cp.length; t = ccItemCard(it).text; window._cc.cp.length = n0; } catch(e) { t = "Ref. " + (it.poNumber || it.reqNumber || "") + " — " + (it.description || ""); } ccClip(t, "Testo EN"); };
 
 </script>
 
