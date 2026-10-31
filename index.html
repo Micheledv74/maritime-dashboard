@@ -27244,17 +27244,20 @@ function rdCalc(it, c, now, basis){
   const shipT = ships.filter(s => s.status !== "delivered" && s.eta).length > 0, held = mpX && ["customs", "agency", "hub", "repair"].includes(mpX.pos);
   if(how && (how.m === "direct" || how.ok || how.ab) && (!how.cp || how.cp === c.port) && !shipT && !held){
     const cut = c.etd - 0.25, arr = Math.max(0, c.eta), anch = c.etb - c.eta > 0.04;
-    let lo, hi, ch, conf;
+    let lo, hi, ch, conf, rada = false;
     const d = how.ab ? rdDD(String(how.ab).slice(0,10) + "T10:00:00", now) : null;
     if(d != null){ lo = hi = Math.max(0, d); conf = "ab"; ch = "a bordo il " + rdFD(lo, now) + " (data comunicata)"; }
-    else { const h = Array.isArray(how.h) ? how.h : [24, 48], rs = String(it.poDeliveryDate||"").slice(0,10), r = rdDD(rs, now), r0 = Math.max(0, r == null ? 0 : r);
-      lo = Math.max(r0 + h[0] / 24, arr); hi = Math.max(r0 + h[1] / 24, arr + h[0] / 24); conf = "direct";
-      ch = (r0 > 0.5 ? "pronto " + rdFD(r0, now) + " → " : "") + "consegna diretta a bordo " + h[0] + "–" + h[1] + " h"; }
-    const stay = c.etd - arr, rada = anch && lo < c.etb;
+    // le ore contano dal tuo avviso (adesso); il fornitore consegna all'ormeggio. La data "pronto" di Infoship (PO + LT) qui non vale: solo nota
+    else { const h = Array.isArray(how.h) ? how.h : [24, 48], etb = Math.max(c.etb, arr), onlyRada = anch && c.etb >= cut;
+      const at = onlyRada ? arr : etb; rada = onlyRada;
+      lo = Math.max(h[0] / 24, at); hi = Math.max(h[1] / 24, at + 0.25); conf = "direct";
+      ch = "fornitore diretto a bordo " + h[0] + "–" + h[1] + " h dal tuo avviso" + (onlyRada ? " (nave in rada)" : anch ? " · all'ormeggio " + rdFDT(c.etb, now) : "");
+      const r = rdDD(String(it.poDeliveryDate||"").slice(0,10), now); if(r != null && r > cut) ch += " · Infoship dice pronto " + rdFD(r, now) + ": verifica col fornitore"; }
+    const stay = c.etd - Math.max(c.etb, arr);
     let k = lo > cut ? "late" : hi > cut ? "risk" : "ok", why = "";
-    if(k === "late") why = "riparte prima delle " + (Array.isArray(how.h) ? how.h[0] : 24) + " h: organizza subito";
-    else if(k === "risk") why = "finestra stretta: la nave sta " + rdF1(stay) + " gg";
-    else if(rada){ k = "risk"; why = "nave in rada: serve la barca"; }
+    if(k === "late") why = "non bastano le " + (Array.isArray(how.h) ? how.h[0] : 24) + " h prima della partenza: organizza subito";
+    else if(k === "risk") why = "finestra stretta: la nave resta " + (stay < 1 ? Math.round(stay * 24) + " h" : rdF1(stay) + " gg");
+    else if(rada){ k = "risk"; why = "solo rada: serve la barca"; }
     if(why) ch += " → " + why;
     return { it, c, pr, cut, lo, hi, H2: basis === "media" ? (lo + hi) / 2 : hi, k, segs: [{ k: "d", a: 0, lo, hi }], unknown: false, st: "attesa", conf,
       chain: ch, crit: rdCrit(it.id), margin: k === "late" ? "−" + rdF1(lo - cut) + " gg" : k === "risk" ? why : "+" + rdF1(cut - hi) + " gg", noCust };
