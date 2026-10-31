@@ -10757,6 +10757,7 @@ function renderSwitcher() {
   // v2.3 — CERCA E COPIA: prima pillola, pagina d'apertura
   row.appendChild(makeEl(`<button class="pill ${state.view === "cerca" ? "active" : ""}" data-view="cerca" role="tab"><span>⌕ Cerca</span><span class="pill-key"></span></button>`));
   { const o = document.createElement("option"); o.value = "__cerca"; o.textContent = "⌕ Cerca e copia"; if (state.view === "cerca") o.selected = true; select.appendChild(o); }
+  row.appendChild(makeEl(`<button class="pill ${state.view === "oggi" ? "active" : ""}" data-view="oggi" role="tab"><span>Oggi</span><span class="pill-key"></span></button>`));   // v2.9d — Oggi anche con le pillole di prima
 
   const overviewPill = makeEl(`<button class="pill ${state.view === "overview" ? "active" : ""}" data-view="overview" role="tab">
     <span>Overview</span>
@@ -31658,7 +31659,7 @@ window.ccCopy = function(i){ const x = window._cc.cp[i]; if(!x) return; const do
   const fb = () => { const ta = document.createElement("textarea"); ta.value = x.t; ta.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e) {} ta.remove(); done(); };
   try { navigator.clipboard.writeText(x.t).then(done, fb); } catch(e) { fb(); } };
 document.addEventListener("keydown", e => { if(e.key !== "/" || state.view !== "cerca") return; const a = document.activeElement; if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return; const ta = document.getElementById("cc-q"); if(ta){ e.preventDefault(); ta.focus(); ta.select(); } });
-setTimeout(() => { try { if(!(typeof maIsMobile === "function" && maIsMobile()) && state.view === "overview" && !sessionStorage.getItem("mpd.ccBoot")){ sessionStorage.setItem("mpd.ccBoot", "1"); window.goCerca(); } } catch(e) { console.warn("[cerca] avvio", e); } }, 0);
+setTimeout(() => { try { if(!(typeof maIsMobile === "function" && maIsMobile()) && state.view === "overview" && !sessionStorage.getItem("mpd.ccBoot")){ sessionStorage.setItem("mpd.ccBoot", "1"); state.view = "oggi"; state.selectedVesselId = null; render(); } } catch(e) { console.warn("[oggi] avvio", e); } }, 0);   // v2.9d — si apre su Oggi (scelta utente 31.10)
 
 // ============================================================================
 // v2.4 (30.10.2026) — Cerca: Apri · Copia · + per ogni risultato, posta di Outlook (webhook n8n "Cerca Posta"),
@@ -32520,7 +32521,56 @@ function ogHTML(){
   const nH = D.filter(r => /^(LIMITE|CERTIFICAT)/.test(r.kind)).length;
   const detail = '<div style="' + V26_BOX + ';overflow:hidden"><div style="display:flex;gap:10px;align-items:baseline;padding:13px 16px 9px;flex-wrap:wrap"><span style="font-size:16px;font-weight:700">' + esc(day === 0 ? "Oggi, " + DD[0].wl + " " + DD[0].dm : DD[day].wl.charAt(0).toUpperCase() + DD[day].wl.slice(1) + " " + DD[day].dm) + '</span><span style="font-size:13px;color:#44576b">' + (D.length ? (nH ? nH + (nH > 1 ? " scadenze dure" : " scadenza dura") + " · " : "") + D.length + " in tutto, in ordine di ora" : "niente in programma") + '</span></div>' +
     (dRows || '<div style="padding:12px 16px 16px;border-top:1px solid rgba(10,27,46,.06);font-size:13.5px;color:#14794e;font-weight:600">Giornata libera da scadenze: buon momento per chiudere le DN e sollecitare le RFQ.</div>') + '</div>';
-  return '<div style="display:flex;flex-direction:column;gap:14px;margin:0 0 18px">' + head + cal + detail + '</div>';
+  let more = ""; try { more = og1aHTML(G); } catch(e) { console.error("[oggi 1a]", e); }
+  return '<div style="display:flex;flex-direction:column;gap:14px;margin:0 0 18px">' + head + cal + detail + more + '</div>';
+}
+// v2.9d — sotto il calendario 1b, i blocchi della 1a: flotta di oggi · le date che non aspettano (3 gg) · da ieri sera · to-do di oggi
+window._ogSince = window._ogSince || (function(){ const n = new Date(), y = new Date(n); y.setDate(y.getDate() - (n.getDay() === 1 ? 3 : 1)); y.setHours(18, 0, 0, 0);
+  const lv = parseInt(localStorage.getItem("mpd.lastVisitTs") || "0", 10); return lv > 0 && lv < y.getTime() ? lv : y.getTime(); })();
+function og1aHTML(G){
+  const esc = escapeHTML, now = Date.now(), BOX = V26_BOX, H = (t, s, x) => '<div style="display:flex;gap:10px;align-items:baseline;padding:13px 16px 9px;flex-wrap:wrap"><span style="font-size:16px;font-weight:700">' + t + '</span><span style="font-size:13px;color:#44576b">' + s + '</span>' + (x || "") + '</div>';
+  let M = null; try { M = rdModel(); } catch(e) {}
+  const calls = M ? (M.allCalls || []) : [], ST = { at_sea: "in navigazione", at_anchor: "in rada", in_port: "in porto", berthed: "in porto", at_berth: "in porto", drydock: "in cantiere", yard: "in cantiere" };
+  const ships = (VESSELS || []).map(cfg => { const vid = cfg.vesselId; let W = null; try { W = mpWhere(vid); } catch(e) {}
+    let clk = ""; try { const p = getLastKnownPosition(vid), t = p && p.coords ? shipLocalTimeFromLon(p.coords.lon) : null; if(t) clk = t.text; } catch(e) {}
+    const cs = calls.filter(c => c.vid === vid && !c.past && (c.its || []).length), its = cs.reduce((a, c) => a.concat((c.its || []).filter(x => !x.onb)), []);
+    const nL = cs.reduce((n, c) => n + (c.n ? c.n.late || 0 : 0), 0), nR = cs.reduce((n, c) => n + (c.n ? c.n.risk || 0 : 0), 0);
+    const st = W ? (ST[W.status] || (W.src === "manualpos" ? "posizione a mano" : "")) : "";
+    const today = !W ? "Viaggio non noto" : W.src === "manualpos" ? W.manualCity : W.port ? (W.status === "in_port" || W.status === "berthed" || W.status === "at_berth" ? "A " + W.port + (W.etd ? ", parte " + mpFD(W.etd) : "") : "→ " + W.port + (W.eta ? ", ETA " + mpFD(W.eta) : "") + (W.etd ? " · ETD " + mpFD(W.etd) : "")) : "—";
+    return '<button onclick="goVessel(\'' + pcJ(vid) + '\')" style="all:unset;cursor:pointer;background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:5px;min-width:0;box-shadow:inset 0 3px 0 ' + (nL ? "#c0261c" : nR ? "#a86200" : its.length ? "#14794e" : "#c5ced8") + '">' +
+      '<span style="display:flex;justify-content:space-between;align-items:baseline;gap:2px 6px;flex-wrap:wrap"><span style="font-size:14px;font-weight:700">' + esc(cfg.displayName) + '</span>' + (clk ? '<span style="font:500 11.5px var(--font-mono);color:#44576b;white-space:nowrap">bordo ' + esc(clk) + '</span>' : "") + '</span>' +
+      (st ? '<span style="font-size:12px;font-weight:600;color:#1553d8">' + esc(st) + '</span>' : "") + '<span style="font-size:13px;line-height:1.4;text-wrap:pretty">' + esc(today) + '</span>' +
+      '<span style="font-size:12px;color:' + (nL ? "#c0261c" : "#44576b") + ';border-top:1px solid rgba(10,27,46,.07);padding-top:5px;margin-top:auto">' + (its.length ? its.length + " PO in arrivo" + (nL ? " · " + nL + " non in tempo" : nR ? " · " + nR + " a rischio" : " · tutti in tempo") : "nessun PO pianificato") + '</span></button>'; }).join("");
+  const fleet = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">' + ships + '</div>';
+  const nd = Math.min(3, G.ND), dayL = i => i === 0 ? "OGGI · " + G.DD[0].wd + " " + G.DD[0].dm.slice(0, 2) : i === 1 ? "DOMANI · " + G.DD[1].wd + " " + G.DD[1].dm : G.DD[i].wl.toUpperCase() + " " + G.DD[i].dm;
+  let due = "", nDue = 0;
+  for(let i = 0; i < nd; i++){ const R = (G.det[i] || []).filter(r => !r.todo && /^(LIMITE|CERTIFICAT|PARTENZA)/.test(r.kind)); if(!R.length) continue; nDue += R.length;
+    due += '<div style="display:flex;gap:10px;align-items:baseline;padding:9px 16px 5px;background:#f7f9fb;border-top:1px solid rgba(10,27,46,.06)"><span style="font:700 11px var(--font-mono);letter-spacing:.07em;color:' + (i === 0 ? "#c0261c" : "#0a1b2e") + '">' + esc(dayL(i)) + '</span><span style="font-size:12px;color:#6a7d90">' + R.length + (R.length > 1 ? " cose" : " cosa") + '</span></div>' +
+      R.map(r => { return '<div style="display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 16px;border-top:1px solid rgba(10,27,46,.06)"><span style="font:700 14px var(--font-mono);color:' + (r.tc || "#0a1b2e") + ';text-align:right">' + esc(r.time || "—") + '</span>' +
+        '<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span style="font:700 10.5px var(--font-mono);letter-spacing:.06em;color:#44576b;white-space:nowrap">' + esc(r.kind) + '</span><span style="font-size:14px;font-weight:600">' + esc(r.what) + '</span></div>' + (r.why ? '<span style="font-size:12.5px;color:#44576b;line-height:1.45;text-wrap:pretty">' + esc(r.why) + '</span>' : "") + '</div>' +
+        '<button onclick="' + r.js + '" style="font:600 12.5px var(--font-sans);border-radius:8px;padding:7px 11px;cursor:pointer;white-space:nowrap;' + (r.pri ? "background:#0a1b2e;color:#fff;border:1px solid #0a1b2e" : "background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)") + '">' + esc(r.btn) + '</button></div>'; }).join(""); }
+  const dueBox = '<div style="' + BOX + ';overflow:hidden">' + H("Le date che non aspettano", "prossimi 3 giorni · limiti, partenze, certificati") + (due || '<div style="padding:12px 16px 16px;border-top:1px solid rgba(10,27,46,.06);font-size:13.5px;color:#14794e;font-weight:600">Nei prossimi 3 giorni niente scade da solo.</div>') + '</div>';
+  const since = window._ogSince, sD = new Date(since), sL = (sD.toDateString() === new Date(now - 864e5).toDateString() ? "ieri" : sD.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "2-digit" })) + " " + String(sD.getHours()).padStart(2, "0") + ":" + String(sD.getMinutes()).padStart(2, "0");
+  const N = [], ts = s => { const t = Date.parse(String(s || "").length <= 10 ? s + "T12:00:00" : s); return isNaN(t) ? 0 : t; };
+  (VESSELS || []).forEach(cfg => { let A = []; try { A = getNoonReports(cfg.vesselId) || []; } catch(e) {} const r = A[A.length - 1]; if(!r || ts(r.date) < since - 12 * 36e5) return; let W = null; try { W = mpWhere(cfg.vesselId); } catch(e) {}
+    N.push({ src: "NOON", c: "#1553d8", what: cfg.displayName + ": noon del " + mpFD(r.date), so: W && W.port ? "Diretta a " + W.port + (W.eta ? ", ETA " + mpFD(W.eta) : "") + ". Il radar si è già aggiornato." : "Il radar si è già aggiornato." }); });
+  if(state.whatsNew && window._hdrNews) N.push({ src: "INFOSHIP", c: "#44576b", what: window._hdrNews, so: "Dall'ultimo import dell'Excel." });
+  const tdNew = (typeof todosOpen === "function" ? todosOpen() : []).filter(t => ts(t.createdAt) > since);
+  const tdOut = tdNew.filter(t => t.outlookWebUrl || t.webUrl || t.outlookId);
+  if(tdOut.length) N.push({ src: "OUTLOOK", c: "#44576b", what: tdOut.length + (tdOut.length > 1 ? " email flaggate sono diventate to-do" : " email flaggata è diventata to-do"), so: "Le trovi in To-do, con il testo della mail nella scheda." });
+  const CM = state.certificatesMeta || {}; Object.keys(CM).forEach(v => { const m = CM[v]; if(!m || ts(m.importedAt) < since) return; const cfg = (VESSELS || []).find(c => c.vesselId === v) || {}, d = m.diff || {};
+    N.push({ src: "CERTIFICATI", c: "#a86200", what: "DOC F01 importato: " + (cfg.displayName || v), so: d.ren != null ? d.ren + " rinnovati, " + d.neu + " nuove voci." : "" }); });
+  const newsBox = '<div style="' + BOX + ';overflow:hidden">' + H("Da ieri sera", "dalle " + esc(sL) + " · cosa si è mosso da solo") +
+    (N.length ? N.map(n => '<div style="display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;padding:9px 16px;border-top:1px solid rgba(10,27,46,.06)"><span style="font:700 10.5px var(--font-mono);letter-spacing:.05em;color:' + n.c + ';padding-top:2px">' + n.src + '</span><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13.5px;font-weight:600;text-wrap:pretty">' + esc(n.what) + '</span>' + (n.so ? '<span style="font-size:12.5px;color:#44576b;text-wrap:pretty">' + esc(n.so) + '</span>' : "") + '</div></div>').join("")
+      : '<div style="padding:10px 16px 14px;border-top:1px solid rgba(10,27,46,.06);font-size:13px;color:#6a7d90">Niente di nuovo: nessun noon, import o email trasformata in to-do.</div>') + '</div>';
+  const today = shToday(), TD = (typeof todosOpen === "function" ? todosOpen() : []).filter(t => t.kind !== "fleet" && t.dueDate && String(t.dueDate).slice(0, 10) <= today).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+  const over = TD.filter(t => String(t.dueDate).slice(0, 10) < today).length;
+  const tdBox = '<div style="' + BOX + ';overflow:hidden">' + H("To-do di oggi", TD.length ? TD.length + (over ? " · " + over + " scadute" : "") : "nessuna", '<span style="flex:1"></span><button onclick="goTodos()" style="all:unset;cursor:pointer;font-size:13px;font-weight:600;color:#1553d8">Tutte →</button>') +
+    TD.slice(0, 8).map(t => { const d = String(t.dueDate).slice(0, 10), late = d < today; return '<div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 16px;border-top:1px solid rgba(10,27,46,.06)"><button onclick="shTodoDone(\'' + pcJ(t.id) + '\')" title="Fatta" style="width:20px;height:20px;border-radius:5px;border:1.5px solid rgba(10,27,46,.35);background:#fff;cursor:pointer;padding:0"></button>' +
+      '<button onclick="ogTodo(\'' + pcJ(t.id) + '\')" style="all:unset;cursor:pointer;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(shTodoText(t)) + '</button><span style="font:600 11.5px var(--font-mono);color:' + (late ? "#c0261c" : "#a86200") + ';white-space:nowrap">' + (late ? "scad. " + mpFD(d) : "oggi") + '</span></div>'; }).join("") +
+    (TD.length > 8 ? '<div style="padding:8px 16px 12px;border-top:1px solid rgba(10,27,46,.06);font-size:12.5px;color:#6a7d90">altre ' + (TD.length - 8) + ' in To-do</div>' : "") + '</div>';
+  return '<div style="display:flex;flex-direction:column;gap:14px;padding-top:6px;border-top:1px solid rgba(10,27,46,.10)"><span style="font:700 12px var(--font-mono);letter-spacing:.07em;color:#44576b">LA FLOTTA DI OGGI</span>' + fleet +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px;align-items:start">' + dueBox + '<div style="display:flex;flex-direction:column;gap:14px;min-width:0">' + newsBox + tdBox + '</div></div></div>';
 }
 { const rop0 = renderOggiPage;
   renderOggiPage = window.renderOggiPage = function(){ const root = document.getElementById("view-root"); if(!root) return; try { root.innerHTML = ogHTML(); } catch(e) { console.error("[oggi settimana]", e); rop0(); } }; }
