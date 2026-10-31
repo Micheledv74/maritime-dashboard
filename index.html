@@ -27212,7 +27212,7 @@ function rdF1(x){ return Math.abs(x).toFixed(1).replace(".", ","); }
 // v2.7 — COME ARRIVA LA MERCE, scelto a mano per PO (mpd.rdHow {id:{m,tr,c,updatedAt}}): vince sul trasporto/dogana standard
 const RD_HOW = { courier: { l: "Corriere", c: "corriere", tr: [3, 5] }, direct: { l: "Consegna diretta del fornitore", c: "consegna diretta del fornitore", tr: [0, 1] }, air: { l: "Aereo", c: "aereo", tr: [2, 3] }, road: { l: "Strada", c: "strada", tr: [1, 2] }, sea: { l: "Mare", c: "mare", tr: [7, 14] } };
 function loadRdHow(){ return rdLoadJSON("mpd.rdHow"); }
-function rdHowOf(id){ const x = loadRdHow()[id]; return x && !x.deleted && (x.m || x.c) ? x : null; }
+function rdHowOf(id){ const x = loadRdHow()[id]; return x && !x.deleted && (x.m || x.c || x.ok || x.ab) ? x : null; }
 function rdCalc(it, c, now, basis){
   const pr = rdProfile(c.port);
   const euItem = RD_EU_ORIGIN.test(it.origin||"") || RD_EU_FORM.test(it.supplier||"");
@@ -27238,6 +27238,13 @@ function rdCalc(it, c, now, basis){
     const d = rdDD(ds, now), ifx = it.dnStatus !== "DN Received on Board";
     return { it, c, pr, cut: c.etd - pr.notice / 24, lo: 0, hi: 0, H2: 0, k: "ok", onb: true, ifx, onbD: d, segs: [], unknown: false, st: "onboard",
       chain: "consegnata a bordo" + (d != null ? " il " + rdFD(d, now) : "") + (ifx ? " (segnata da te) → DN ancora aperta in Infoship" : " → DN chiusa in Infoship"), crit: rdCrit(it.id), margin: "a bordo", noCust };
+  }
+  // v2.8c — CONFERMA A MANO (agenzia/fornitore ti ha detto che ci sarà): vince su tutto il calcolo, legata allo scalo
+  if(how && (how.ok || how.ab) && (!how.cp || how.cp === c.port)){
+    const cut = c.etd - pr.notice / 24, d = how.ab ? rdDD(String(how.ab).slice(0,10) + "T06:00:00", now) : null;
+    const v = d != null ? Math.max(0, d) : Math.max(0, cut - 0.5), k = d != null && v > cut ? "late" : "ok";
+    return { it, c, pr, cut, lo: v, hi: v, H2: v, k, segs: [{ k: "d", a: 0, lo: v, hi: v }], unknown: false, st: "attesa", conf: d != null ? "ab" : "ok",
+      chain: (d != null ? "a bordo il " + rdFD(v, now) : "in tempo per " + c.port) + " (confermato da te)", crit: rdCrit(it.id), margin: k === "late" ? "−" + rdF1(v - cut) + " gg" : "confermato", noCust };
   }
   if(mpX && mpX.pos === "customs"){
     st = "dogana"; const b = rdDD(mpX.back, now), el = mpDaysSince(mpX.since) || 0;
@@ -32157,7 +32164,7 @@ function rd2Card(M, c){
     const lo = Math.min(x.lo, sc) / sc * 100, w = Math.max(3, (Math.min(x.hi, sc) - Math.min(x.lo, sc)) / sc * 100), id = pcJ(x.it.id);
     return '<div style="display:flex;flex-direction:column;gap:4px;padding:9px 0;border-top:1px solid rgba(10,27,46,.07)">' +
       '<div style="display:flex;gap:8px;align-items:center">' + rd2Dot(x) + '<button onclick="pcFull(\'' + id + '\')" style="all:unset;cursor:pointer;font-size:13.5px;font-weight:600;flex:1;min-width:0">' + esc(x.it.description || "—") + '</button><span style="font-size:11.5px;font-weight:700;color:' + RD2_C[x.k] + ';white-space:nowrap">' + (x.onb ? "a bordo" : RD2_L[x.k] + (x.margin ? " · " + esc(x.margin) : "")) + '</span></div>' +
-      '<div style="display:flex;gap:4px 10px;flex-wrap:wrap;font-size:12px;color:#44576b;padding-left:19px;align-items:center"><span style="font-family:var(--font-mono);color:#0a1b2e">' + esc(x.it.poNumber || "") + '</span>' + pcCopyBtn(x.it.poNumber, "PO " + String(x.it.poNumber || "").replace(/^\d{4}-/, "")) + '<span>' + esc(x.chain || "") + '</span>' + (x.onb ? "" : '<span style="font-weight:600;color:#0a1b2e">' + (x.unknown ? "arrivo non stimabile" : "a bordo " + rdFD(x.lo, now) + (x.hi - x.lo > 0.3 ? "–" + rdFD(x.hi, now) : "")) + '</span><button onclick="event.stopPropagation();rd2Ed(\'' + id + '\')" style="' + PC_B + (rdHowOf(x.it.id) ? ";border-color:#1553d8;color:#1553d8" : "") + '">' + (window._rd2.ed === x.it.id ? "Chiudi" : rdHowOf(x.it.id) ? "⚙ Tempi tuoi" : "⚙ Tempi") + '</button>') + '</div>' + (window._rd2.ed === x.it.id ? '<div style="margin-left:19px;border:1px solid rgba(10,27,46,.12);border-radius:9px;padding:10px 12px;background:#fafbfc">' + rd2HowBar([x.it.id], c, id) + '</div>' : "") +
+      '<div style="display:flex;gap:4px 10px;flex-wrap:wrap;font-size:12px;color:#44576b;padding-left:19px;align-items:center"><span style="font-family:var(--font-mono);color:#0a1b2e">' + esc(x.it.poNumber || "") + '</span>' + pcCopyBtn(x.it.poNumber, "PO " + String(x.it.poNumber || "").replace(/^\d{4}-/, "")) + '<span>' + esc(x.chain || "") + '</span>' + (x.onb ? "" : '<span style="font-weight:600;color:#0a1b2e">' + (x.unknown ? "arrivo non stimabile" : "a bordo " + rdFD(x.lo, now) + (x.hi - x.lo > 0.3 ? "–" + rdFD(x.hi, now) : "")) + '</span>' + rd2Quick(x, id)) + '</div>' + (window._rd2.ed === x.it.id ? '<div style="margin-left:19px;border:1px solid rgba(10,27,46,.12);border-radius:9px;padding:10px 12px;background:#fafbfc">' + rd2HowBar([x.it.id], c, id) + '</div>' : "") +
       (x.onb ? "" : '<div style="margin-left:19px;position:relative;height:8px;background:#eef1f5;border-radius:4px"><span style="position:absolute;top:0;bottom:0;left:' + lo.toFixed(1) + '%;width:' + w.toFixed(1) + '%;background:' + RD2_C[x.k] + ';border-radius:4px;opacity:.85"></span><span style="position:absolute;top:-3px;bottom:-3px;left:70%;width:2px;background:#0a1b2e"></span></div>') +
       (alt ? '<div style="display:flex;gap:8px;align-items:center;padding-left:19px;font-size:12px;color:#44576b;flex-wrap:wrap"><span>A ' + esc(alt.c.port) + ' (' + rdFD(alt.c.etb, now) + ') arriva con ' + esc(alt.r.margin) + ' di margine</span><button onclick="rdMove(\'' + id + '\',\'' + pcJ(alt.c.id) + '\')" style="' + PC_B + '">Sposta a ' + esc(alt.c.port) + '</button></div>' : "") + '</div>'; }).join("");
   const next = nL ? "Sposta o anticipa i " + nL + " PO che non arrivano in tempo, poi manda il pre-alert alla nave con quelli che ci saranno." : nR ? "Tieni d'occhio i PO a rischio (trasporto, dogana); il resto è coperto." : its.length ? "Tutto coperto: manda il pre-alert alla nave." : "Nessun PO pianificato per questo scalo.";
@@ -32168,7 +32175,7 @@ function rd2Card(M, c){
     '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">' + dt("ETA", rdFD(c.eta, now)) + dt("ETB", rdFD(c.etb, now)) + dt("ETD", rdFD(c.etd, now)) + dt("LIMITE", rdFDT(cut, now), cut < 2) + '</div>' +
     '<div style="background:#eef3fd;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px"><span style="' + PC_EB + ';color:#1553d8">PROSSIMO PASSO</span><span style="font-size:13.5px;line-height:1.45;text-wrap:pretty">' + esc(next) + '</span></div>' +
     (c.etb - c.eta > 0.04 ? '<div style="display:flex;gap:10px;align-items:center;font-size:12.5px;color:#3d4f66"><span style="width:34px;height:12px;flex:none;border:1.5px dashed #7d8fa6;border-radius:4px;background:repeating-linear-gradient(135deg,rgba(61,79,102,.18) 0 4px,rgba(61,79,102,.04) 4px 8px)"></span><span>In rada / attesa ormeggio dal ' + rdFDT(c.eta, now) + ' al ' + rdFDT(c.etb, now) + ' (' + rdF1(c.etb - c.eta) + ' gg)</span></div>' : "") +
-    ((window._rd2.ids = its.filter(x => !x.onb).map(x => x.it.id)).length ? '<div style="display:flex;flex-direction:column;gap:8px;border:1px solid rgba(10,27,46,.12);border-radius:10px;padding:10px 12px"><span style="' + PC_EB + '">COME ARRIVA LA MERCE · VALE PER I ' + window._rd2.ids.length + ' PO DI QUESTO SCALO</span>' + rd2HowBar(window._rd2.ids, c, "CALL") + '</div>' : "") +
+    ((window._rd2.port = c.port, window._rd2.ids = its.filter(x => !x.onb).map(x => x.it.id)).length ? rd2ConfBox(its.filter(x => !x.onb), c) : "") +
     '<div style="display:flex;flex-direction:column"><span style="' + PC_EB + ';padding-bottom:4px">PO PER QUESTO SCALO · ' + its.length + '</span>' + (rows || '<span style="font-size:12.5px;color:#6a7d90;padding:6px 0">Nessuno.</span>') + (its.length ? '<span style="font-size:11.5px;color:#6a7d90;padding-top:6px">Barra = arrivo a bordo stimato (min–max) · tacca = limite di consegna</span>' : "") + '</div>' +
     '<div style="display:flex;flex-direction:column;gap:2px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + ';padding-bottom:4px">AGENZIA</span>' + agR + (t ? '<span style="font-size:12px;color:' + (t.open ? "#14794e" : "#6a7d90") + '">ora locale ' + esc(t.t + " · " + t.txt) + '</span>' : "") + '</div></div>' +
     v26Foot('<button onclick="rdShipPreAlert(\'' + C + '\')" style="font:600 13px var(--font-sans);background:#0a1b2e;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">✉ Pre-alert alla nave' + (sent ? " · inviato " + esc(mpFD(sent)) : "") + '</button><button onclick="ccNewTodo({vid:\'' + pcJ(c.vid) + '\',item:{description:\'Scalo ' + pcJ(c.port) + '\'},text:\'' + pcJ(c.vname + " a " + c.port + ": ") + '\'})" style="' + PC_B + ';font-size:13px;padding:8px 12px">+ To-do</button><span style="flex:1"></span><button onclick="goVessel(\'' + pcJ(c.vid) + '\')" style="font:600 13px var(--font-sans);background:none;color:#1553d8;border:0;cursor:pointer">Viaggio →</button>');
@@ -32397,6 +32404,26 @@ window.rdHowCustom = function(t){ const v = prompt("Giorni dal fornitore al port
   const m = String(v).match(/(\d+(?:[.,]\d+)?)\s*(?:[-–\/a]\s*(\d+(?:[.,]\d+)?))?/); if(!m) return showToast("Scrivi due numeri, es. 0-1");
   const a = parseFloat(m[1].replace(",", ".")), b = m[2] ? parseFloat(m[2].replace(",", ".")) : a; rdHowSet(t, { m: "custom", tr: [Math.min(a, b), Math.max(a, b)] }); };
 window.rd2Ed = function(id){ window._rd2.ed = window._rd2.ed === id ? "" : id; radarPaint(); };
+// v2.8c — conferma semplice: "✓ In tempo" o "a bordo il …" (per PO o per tutto lo scalo); il calcolo dettagliato resta sotto
+window.rdConf = function(t, v){ if(v === "" ) return; const p = v === null ? { ok: false, ab: "" } : v === "ok" ? { ok: true, ab: "", cp: window._rd2.port || "" } : { ok: false, ab: String(v).slice(0,10), cp: window._rd2.port || "" }; rdHowSet(t, p); };
+function rd2Quick(x, id){
+  const lb = 'font:600 11.5px var(--font-sans);border-radius:999px;padding:3px 9px;cursor:pointer;white-space:nowrap;';
+  const gear = '<button title="Calcolo dettagliato (trasporto, dogana)" onclick="event.stopPropagation();rd2Ed(\'' + id + '\')" style="all:unset;cursor:pointer;color:#6a7d90;font-size:13px;padding:0 3px">' + (window._rd2.ed === x.it.id ? "✕" : "⚙") + '</button>';
+  if(x.conf) return '<span style="' + lb + 'cursor:default;background:#e6f4ec;color:#14794e;border:1px solid #14794e">✓ confermato da te</span><button onclick="event.stopPropagation();rdConf(\'' + id + '\',null)" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600">togli</button>';
+  return '<button onclick="event.stopPropagation();rdConf(\'' + id + '\',\'ok\')" style="' + lb + 'background:#fff;color:#14794e;border:1px solid #14794e">✓ In tempo</button>' +
+    '<label onclick="event.stopPropagation()" style="display:inline-flex;gap:4px;align-items:center;' + lb + 'background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)">a bordo il <input type="date" onchange="rdConf(\'' + id + '\',this.value)" style="font:600 11.5px var(--font-mono);border:0;padding:0;background:none;width:112px"></label>' + gear; }
+function rd2ConfBox(xs, c){
+  const n = xs.length, nc = xs.filter(x => x.conf).length, P = escapeHTML(c.port), det = window._rd2.det;
+  const b = 'font:600 12.5px var(--font-sans);border-radius:8px;padding:7px 11px;cursor:pointer;white-space:nowrap;';
+  return '<div style="display:flex;flex-direction:column;gap:8px;border:1px solid rgba(10,27,46,.12);border-radius:10px;padding:10px 12px">' +
+    '<span style="' + PC_EB + '">QUANDO ARRIVA A BORDO · ' + n + ' PO' + (nc ? ' · ' + nc + ' CONFERMATI DA TE' : '') + '</span>' +
+    '<span style="font-size:12.5px;color:#44576b;line-height:1.45;text-wrap:pretty">Il radar stima pronto → trasporto → dogana → preavviso. Se agenzia o fornitore ti hanno confermato la consegna, dillo qui: il PO diventa verde e resta così finché non lo togli o lo sposti a un altro scalo.</span>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+      '<button onclick="event.stopPropagation();rdConf(\'CALL\',\'ok\')" style="' + b + 'background:#14794e;color:#fff;border:1px solid #14794e">✓ Tutti in tempo per ' + P + '</button>' +
+      '<label onclick="event.stopPropagation()" style="display:inline-flex;gap:6px;align-items:center;' + b + 'background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)">Tutti a bordo il <input type="date" onchange="rdConf(\'CALL\',this.value)" style="font:600 12.5px var(--font-mono);border:0;padding:0;background:none;width:118px"></label>' +
+      (nc ? '<button onclick="event.stopPropagation();rdConf(\'CALL\',null)" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600;font-size:12.5px">Togli le conferme</button>' : '') + '</div>' +
+    '<button onclick="event.stopPropagation();window._rd2.det=!window._rd2.det;radarPaint()" style="all:unset;cursor:pointer;color:#44576b;font-size:12px;font-weight:600">' + (det ? '▾' : '▸') + ' Calcolo dettagliato (trasporto, dogana, preavviso del porto)</button>' +
+    (det ? '<div style="border-top:1px solid rgba(10,27,46,.08);padding-top:8px">' + rd2HowBar(xs.map(x => x.it.id), c, "CALL") + '</div>' : '') + '</div>'; }
 
 
 // --- v2.7b OGGI = LA SETTIMANA (prototipo "Oggi v3.dc.html" 1b, scelto dall'utente) · selettore 1/2/3 settimane (mpd.oggiW) ---
