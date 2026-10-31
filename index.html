@@ -31336,8 +31336,8 @@ setTimeout(() => { if(localStorage.getItem("mpd.sbAuth")) sbInit().catch(e => co
 // con i report del mese in cima. Oggi = Da decidere (posta) + Da sollecitare + To-do scadute/oggi + DN da chiudere + import.
 // Fusi orari: striscia "Ora di chi chiami" sotto la barra, su tutte le porte; in Rubrica ogni contatto mostra la sua ora.
 // ============================================================================
-function shellOn(){ return localStorage.getItem("mpd.shell") === "6"; }   // v2.2b — bocciato dall'utente: di default le pillole di prima
-window.shellSet = function(v){ localStorage.setItem("mpd.shell", v === "old" ? "old" : "6"); if(v === "old" && state.view === "oggi") state.view = "overview"; const st = document.getElementById("shell-clocks"); if(st && v === "old") st.remove(); renderSwitcher(); render(); };
+function shellOn(){ return true; }   // v2.9e — un solo guscio (6 porte): "Pillole di prima" tolte su richiesta dell'utente (31.10)
+window.shellSet = function(v){ v = "6"; localStorage.setItem("mpd.shell", "6"); if(v === "old" && state.view === "oggi") state.view = "overview"; const st = document.getElementById("shell-clocks"); if(st && v === "old") st.remove(); renderSwitcher(); render(); };
 function shDoor(){ const v = state.view; return v === "oggi" ? "oggi" : v === "overview" ? "radar" : v === "vessel" ? "navi" : v === "certificates" ? "cert" : v === "rubrica" ? "rub" : (v === "budget" || v === "performance") ? "num" : v === "todos" ? "todo" : ""; }
 function shToday(){ const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function shTodoDue(){ const t = shToday(); return (typeof todosOpen === "function" ? todosOpen() : []).filter(x => x.dueDate && String(x.dueDate).slice(0, 10) <= t).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate))); }
@@ -31472,8 +31472,8 @@ window.shellAfter = function(){ shellAfter0(); if(shellOn() && !(typeof maIsMobi
 (function(){ const host = document.querySelector("#modal-settings .modal-section"); if(!host || document.getElementById("shell-row")) return;
   const s = document.createElement("div"); s.className = "modal-section"; s.id = "shell-row";
   s.innerHTML = '<h3>Navigazione</h3><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px"><span style="flex:1;min-width:200px">Nuova a 6 porte (Oggi · Radar · Navi · Certificati · Rubrica · Numeri) oppure le pillole di prima.</span>' +
-    '<button class="btn btn-sm" onclick="shellSet(\'6\')">6 porte</button><button class="btn btn-sm" onclick="shellSet(\'old\')">Pillole di prima</button></div>';
-  host.parentNode.insertBefore(s, host); })();
+    '</div>';
+  if(false) host.parentNode.insertBefore(s, host); })();
 setTimeout(() => { try { if(shellOn()){ renderSwitcher(); render(); } } catch(e) { console.error("[guscio] avvio", e); } }, 0);
 
 
@@ -32573,7 +32573,7 @@ function og1aHTML(G){
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px;align-items:start">' + dueBox + '<div style="display:flex;flex-direction:column;gap:14px;min-width:0">' + newsBox + tdBox + '</div></div></div>';
 }
 { const rop0 = renderOggiPage;
-  renderOggiPage = window.renderOggiPage = function(){ const root = document.getElementById("view-root"); if(!root) return; try { root.innerHTML = ogHTML(); } catch(e) { console.error("[oggi settimana]", e); rop0(); } }; }
+  renderOggiPage = window.renderOggiPage = function(){ const root = document.getElementById("view-root"); if(!root) return; try { root.innerHTML = ogHTML() + '<div style="font:500 11px var(--font-mono);color:#8a99a8;text-align:right;margin:-8px 0 12px">Oggi v2.9e</div>'; return; } catch(e) { console.error("[oggi v2.9e]", e); root.innerHTML = '<div style="' + V26_BOX + ';padding:18px;font-size:14px"><b>La pagina Oggi non si è caricata.</b> Mandami uno screenshot di questo riquadro.<pre style="white-space:pre-wrap;font-size:11.5px;color:#c0261c;margin-top:8px">' + escapeHTML(String(e && e.stack || e)).slice(0, 900) + '</pre></div>'; return; } if(0) { console.error("[oggi settimana]", e); rop0(); } }; }
 
 
 // ============================================================================
