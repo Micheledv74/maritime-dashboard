@@ -24130,7 +24130,9 @@ function bdModel(vid){
   const hist = reps.filter(r => r.date.slice(0, 4) === rep.date.slice(0, 4)).map(r => ({ d: bdDoy(r.date), t: bdTot(r).tot, x: bdTot(r).X }));
   const sum = (a, k) => a.reduce((s, x) => s + (x[k] || 0), 0), RM = [].concat(...groups.map(g => g.subs));
   const chk = { rmB: B, rmO: sum(RM, "o"), rmD: sum(RM, "dl"), xO: sum(xs, "o"), xD: sum(xs, "dl") };
-  return { vid, rep, reps, DY, DAY, YF, LEFTD, thr, groups, xs, B, SP, XT, tot, proj, method, hist, prev, chk };
+  // v2.9g — "da spendere al giorno" conta i giorni da OGGI (non dalla data del report): lo speso resta quello del report
+  const tdy = new Date().toISOString().slice(0, 10), sameY = tdy.slice(0, 4) === rep.date.slice(0, 4), NOWD = sameY ? Math.max(DAY, bdDoy(tdy)) : DY, LEFTN = Math.max(1, DY - NOWD), AGE = NOWD - DAY;
+  return { vid, rep, reps, DY, DAY, YF, LEFTD, LEFTN, AGE, thr, groups, xs, B, SP, XT, tot, proj, method, hist, prev, chk };
 }
 function bdChart(M, tone){
   const top = Math.max(M.B, M.proj, M.tot) * 1.12, X = d => (d / M.DY * 1000).toFixed(1), Y = v => (1000 - v / top * 1000).toFixed(1);
@@ -24157,7 +24159,7 @@ function bdHTML(){
   const L = bdVessels(); if(!L.length) return '<div class="bd"><p>Nessun report budget. Carica il PDF «Budget vs Cost» di Infoship.</p>' + bdUpBtn() + '</div>';
   let vid = state._budgetVid; if(!L.some(v => v.vesselId === vid)) vid = L[0].vesselId;
   const V = L.find(v => v.vesselId === vid), M = bdModel(vid), RED = "#c0261c", AMB = "#c07800", GRN = "#14794e", GRY = "#6a7d90", esc = escapeHTML;
-  const { B, tot, proj, XT, YF, DAY, LEFTD, thr } = M, pct = tot / B, left = B - tot;
+  const { B, tot, proj, XT, YF, DAY, LEFTN, AGE, thr } = M, LEFTD = LEFTN, pct = tot / B, left = B - tot;
   const tone = pct > 1 ? RED : proj > B * (1 + thr) ? AMB : GRN;
   const head = pct > 1 ? "Budget già superato del " + bdP(pct - 1) + ", con " + LEFTD + " giorni ancora da fare: a questo ritmo chiude a " + bdK(proj) + "."
     : proj > B ? "A questo ritmo chiude al " + bdP(proj / B) + ": per restare dentro devi scendere a " + bdKd(left / LEFTD) + " al giorno."
@@ -24196,11 +24198,11 @@ function bdHTML(){
   return '<div class="bd">' +
     '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="bd-tabs">' + L.map(v => '<button class="' + (v.vesselId === vid ? "on" : "") + '" onclick="bdPick(\'' + v.vesselId + '\')">' + esc(v.displayName) + '</button>').join("") + '</div>' +
       '<span style="font-size:12px;color:#44576b">Solo le tue voci: Repair &amp; Maintenance · Drydock · Extra budget. Equipaggio, cambusa e altri costi esclusi.</span><span style="flex:1"></span>' + bdUpBtn() + '</div>' +
-    '<section class="bd-card"><div><div class="bd-eb">' + esc(V.displayName) + ' · budget ' + (M.rep.year || "") + ' · report del ' + mpFD(M.rep.date) + (M.rep.at === "seed" ? " (caricato da me)" : "") + ' · siamo al ' + bdP(YF) + ' dell\'anno · prossimo report ~' + mpFD(nextR.toISOString().slice(0, 10)) + '</div><div class="bd-h">' + esc(head) + '</div></div>' +
+    '<section class="bd-card"><div><div class="bd-eb">' + esc(V.displayName) + ' · budget ' + (M.rep.year || "") + ' · report del ' + mpFD(M.rep.date) + (M.rep.at === "seed" ? " (caricato da me)" : "") + ' · siamo al ' + bdP(YF) + ' dell\'anno' + (AGE > 0 ? ' · dati di ' + AGE + (AGE > 1 ? ' giorni fa' : ' giorno fa') : '') + ' · prossimo report ~' + mpFD(nextR.toISOString().slice(0, 10)) + '</div><div class="bd-h">' + esc(head) + '</div></div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">' +
         box("Speso", bdP(pct), bdK(tot) + " su " + bdK(B), tone) + box("A fine anno · " + esc(M.method), bdK(proj), (proj >= B ? "+" : "") + bdP(proj / B - 1) + " sul budget", tone) +
         box("Spesa media al giorno · finora", bdKd(dNow), DAY + " giorni dal 1° gennaio · budget al giorno " + bdKd(B / M.DY)) +
-        box("Da spendere al giorno · fino al 31.12", left > 0 ? bdKd(dLeft) : "$ 0", left > 0 ? LEFTD + " giorni · restano " + bdK(left) + (slow ? " · devi rallentare del " + bdP(1 - dLeft / dNow) : "") : "budget finito · sforamento " + bdK(-left) + " già fatto", dc, dbg, dc) +
+        box("Da spendere al giorno · fino al 31.12", left > 0 ? bdKd(dLeft) : "$ 0", left > 0 ? LEFTD + " giorni da oggi · restano " + bdK(left) + (AGE > 7 ? " · speso fermo al " + mpFD(M.rep.date) + ": i PO emessi dopo non sono contati" : "") + (slow ? " · devi rallentare del " + bdP(1 - dLeft / dNow) : "") : "budget finito · sforamento " + bdK(-left) + " già fatto", dc, dbg, dc) +
         (() => { const bd = B / M.DY, oN = (tot - B) / DAY, oE = (tot - B) / M.DY, oP = (proj - B) / M.DY, cN = oN > 0 ? RED : GRN, cE = oE > 0 ? RED : GRN, any = oN > 0 || oE > 0;
           const v = (lab, val, c, sub) => '<div style="min-width:0"><div style="font-size:11px;color:#44576b">' + lab + '</div><div style="font:600 22px var(--font-mono,monospace);color:' + c + '">' + (val > 0 ? "+" + bdKd(val) : "$ 0") + '</div><div style="font-size:11.5px;color:#44576b">' + sub + '</div></div>';
           return '<div style="border:1px solid ' + (any ? RED : "rgba(10,27,46,.12)") + ';background:' + (any ? "#fdeceb" : "#fff") + ';border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px"><div class="bd-eb" style="color:' + (any ? RED : "#6a7d90") + '">Sforamento medio al giorno</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
