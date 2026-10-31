@@ -32637,6 +32637,334 @@ if(typeof renderVesselDetail === "function"){ const rvd0 = renderVesselDetail;
     const r = rvd0.apply(this, arguments); try { npAfter(); } catch(e) { console.error("[panoramica 1a]", e); } return r; }; }
 { const ra0 = window.render; }
 
+// ============================================================================
+// v2.9 (31.10.2026) — CERTIFICATI = ACQUISTI (prototipo "Certificati v3.dc.html": 1a per scalo, 1b calendario, 2a revisione import)
+// Solo ciò che diventa un acquisto (servizi + ricambi), raggruppato in LAVORI (stesso gruppo, scadenze entro 31 gg) posati sullo
+// scalo utile del viaggio (rdModel). Classe/bandiera/assicurazioni = "Da tenere d'occhio". "Elenco completo" = vista v2.6 (ct2HTML).
+// Dati: state.certificates (DB) · certExtras per riga {buy, expiry a mano, history, chg} · certExtras._jobs {jobKey:{st,call,po,sup,note}}.
+// Chiave riga = n° DOC F01 + nome (prima: n° certificato, che cambia al rinnovo → extras orfani). Vecchia chiave letta come riserva.
+// ============================================================================
+const certKeyOld = certKey;
+function ct3N(s){ return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+function ct3Prep(list){ let pn = ""; (list || []).forEach(it => { if(!it) return; const n = String(it.n || "").trim(); if(n) pn = n; else if(it.pn == null) it.pn = pn; }); return list; }
+function ct3PrepAll(){ const C = state.certificates || {}; Object.keys(C).forEach(v => ct3Prep(C[v])); }
+certKey = window.certKey = function(it){ if(!it) return "r:"; const n = String(it.n || "").trim(); if(!n && it.pn == null) ct3PrepAll(); return "r:" + (n || (String(it.pn || "") + "/")) + "|" + ct3N(it.name).slice(0, 24); };
+getCertExtra = window.getCertExtra = function(vid, it){ const a = loadCertExtras()[vid] || {}; const o = a[certKeyOld(it)]; return a[certKey(it)] || (o && !o.movedTo ? o : null) || {}; };
+setCertExtra = window.setCertExtra = function(vid, it, patch){ const all = loadCertExtras(); if(!all[vid]) all[vid] = {}; const k = certKey(it), o = certKeyOld(it), t = new Date().toISOString();
+  const prev = all[vid][k] || (all[vid][o] && !all[vid][o].movedTo ? all[vid][o] : null) || {};
+  all[vid][k] = Object.assign({}, prev, patch, { updatedAt: t }); if(o !== k && all[vid][o] && !all[vid][o].movedTo) all[vid][o] = { movedTo: k, updatedAt: t }; saveCertExtras(all); };
+
+const CT3_G = [
+  ["lrit", "LRIT (test a distanza)", /LRIT/, 1],
+  ["pyro", "Pirotecnici e lancia-sagole", /LINE THROWING|PYROTECH|PARACHUTE|FLARES?\b|SMOKE SIGNAL|MAN OVERBOARD|\bMOB\b|ROCKET/],
+  ["lsa", "Lance, zattere e sganci", /LIFE ?BOAT|RESCUE BOAT|LIFE ?RAFT|DAVIT|RELEASE GEAR|ON[- ]?LOAD|\bHRU\b|HYDROSTATIC RELEASE|FREE[- ]?FALL|LAUNCHING APPL|\bLLA\b/],
+  ["radio", "Radio e navigazione", /EPIRB|\bSART\b|\bA\.?I\.?S\b|SSAS|\bVDR\b|GMDSS|SHORE ?BASED|ECDIS|BNWAS|GYRO|COMPASS|DEVIATION|NAVTEX|INMARSAT|TWO[- ]?WAY|\bVHF\b|EMERGENCY POWER/],
+  ["gas", "Rilevatori gas", /GAS (DETECT|INSTRUM|ANAL)|ANALAIZER|ANALYZER|H2 DETECT/],
+  ["water", "Acqua dolce, acque nere, zavorra", /FRESH ?WATER|\bFW\b|POTABLE|DRINKING|SEWAGE (ANAL|TEST)|BALLAST WATER (TEST|SAMPL|ANAL)|\bVGP\b|\bBWST\b|TANKS? CLEAN|LEGIONEL/],
+  ["med", "Medicinali e sanità", /MEDICAL CHEST|MEDICIN|CASSETTA|FIRST AID|SANITATION|SSCE|PEST CONTROL|FUMIGAT|DERAT/],
+  ["ows", "OWS e 15 ppm", /\bOWS\b|15 ?PPM|SEPARATOR|OIL CONTENT/],
+  ["alc", "Alcol e droga test", /ALCOHOL|ALCOOL|DRUG/],
+  ["chart", "Carte e pubblicazioni", /CHARTS?\b|PUBLICATION|CAIM/],
+  ["fire", "Antincendio e dotazioni", /EXTINGUISH|EXTING|DRY POWDER|DRY POWER|FIRE ?EXT|\bFF[EA]\b|EEBD|BREATHING|\bB\.\s?A\.|\bBA\b|SCBA|AIR QUALITY|AIR BOTTLE|COMPRESSOR|IMMERS|FALL ARREST|\bFPD\b|FIREMAN|CHEMICAL SUIT|FOAM|\bCO2\b|FIXED (SYS|PLANT|FIRE)|WATER MIST|OXYGEN|OXIGEN|RESUSCITAT|LIFE ?JACKET|FIFI|FIRE ?FIGHT|DEEP FRYER|BOTTLES|CYLINDER/],
+  ["lift", "Sollevamento, scale e ormeggio", /CARGO GEAR|CRANE|LIFTING|LOAD TEST|LADDER|EMBARKATION|MOORING|ROPE|WINCH|BRAKE|GRAB|WIRE|TURNBUCKLE|LOADING (COMPUTER|INSTRUMENT|TEST)|(PIPE|LINE|BUNKER).{0,20}PRESSURE TEST|PRESSURE TEST.{0,20}(PIPE|LINE|BUNKER|F\.?O|D\.?O)|BUNKER LINE|PIPE ?LINE|WELDING|AC-?OX/]
+];
+const CT3_R = /BATTER|\bHRU\b|HYDROSTATIC RELEASE|PYROTECH|FLARE|ROCKET|PARACHUTE|SMOKE SIGNAL|LINE THROWING|MAN OVERBOARD|FIRST AID|MEDICINE|RATION|DRINKING WATER|REFILL|SPARE/;
+const CT3_ST = ["Da pianificare", "RFQ inviata", "PO emesso", "Fatto"], CT3_STC = [["#44576b", "#eef1f5"], ["#a86200", "#fdf3e3"], ["#1553d8", "#eef3fd"], ["#14794e", "#e8f5ee"]];
+const CT3_COL = ["#1553d8", "#b5651d", "#14794e", "#7a4bb0", "#0f7b8a", "#b3246b"];
+function ct3VCol(vid){ const i = (VESSELS || []).findIndex(c => c.vesselId === vid); return CT3_COL[(i < 0 ? 0 : i) % CT3_COL.length]; }
+function ct3Class(it, ex){ const b = ex && ex.buy, nm = String(it.name || "").toUpperCase(); if(b === "no") return { g: "watch" };
+  if(b && b !== "auto"){ const p = b.split(":"); if(CT3_G.some(x => x[0] === p[0])) return { g: p[0], k: p[1] || (CT3_R.test(nm) ? "R" : "S") }; }
+  for(const x of CT3_G) if(x[2].test(nm)) return { g: x[0], k: CT3_R.test(nm) ? "R" : "S" };
+  return { g: "watch" }; }
+function ct3Chg(ex){ return ex && ex.chg && ex.chg.at && (Date.now() - new Date(ex.chg.at).getTime()) < 14 * 864e5 ? ex.chg : null; }
+function ct3Store(){ return loadCertExtras()._jobs || {}; }
+function ct3SetJob(k, patch){ const all = loadCertExtras(); all._jobs = all._jobs || {}; all._jobs[k] = Object.assign({}, all._jobs[k], patch, { updatedAt: new Date().toISOString() }); saveCertExtras(all); }
+function ct3Rows(){ ct3PrepAll(); const L = [];
+  (VESSELS || []).forEach(cfg => ((state.certificates && state.certificates[cfg.vesselId]) || []).forEach(raw => { if(!raw || raw._gone) return;
+    const it = applyCertExtra(cfg.vesselId, raw); if(it.isPermanent || !it.expiry) return; const d = daysToExpiry(it.expiry); if(d == null) return;
+    const ex = it._extra || {}, c = ct3Class(it, ex);
+    L.push({ it, raw, vid: cfg.vesselId, vname: cfg.displayName, d, key: certKey(raw), ex, resp: ex.resp || "", g: c.g, k: c.k }); }));
+  return L; }
+function ct3Jobs(R){ const J = [], st = ct3Store(), by = {};
+  R.filter(x => x.g !== "watch" && x.d >= -365).forEach(x => { const k = x.vid + "|" + x.g + ":" + x.k; (by[k] = by[k] || []).push(x); });
+  Object.keys(by).forEach(k => { let cur = null; by[k].sort((a, b) => a.d - b.d).forEach(x => {
+    if(!cur || x.d - cur.rows[0].d > 31){ const p = k.split("|"), q = p[1].split(":"); cur = { vid: p[0], vname: x.vname, g: q[0], k: q[1], key: k + "|" + String(x.it.expiry).slice(0, 7), rows: [] }; J.push(cur); }
+    cur.rows.push(x); }); });
+  J.forEach(j => { j.d = j.rows[0].d; j.due = j.rows[0].it.expiry; j.s = st[j.key] || {}; j.st = j.s.st || 0; j.G = CT3_G.find(x => x[0] === j.g) || ["", "Servizi", null]; j.remote = !!j.G[3]; });
+  return J; }
+function ct3CK(c){ return c ? String(c.port || "").toUpperCase() + "|" + String(c.etaS || c.etbS || "").slice(0, 10) : ""; }
+function ct3Calls(M, vid){ return ((M && M.allCalls) || []).filter(c => c.vid === vid && c.etd >= 0 && !c.quiet).sort((a, b) => a.eta - b.eta); }
+function ct3Place(j, M){ const C = ct3Calls(M, j.vid), o = j.s.call;
+  if(o === "remote") return { remote: true, man: 1 };
+  if(o === "none") return { none: true, man: 1, why: "Hai indicato che lo scalo non è ancora noto" };
+  if(o){ const c = C.find(x => ct3CK(x) === o); if(c) return { c, man: 1, C }; }
+  if(j.remote) return { remote: true };
+  if(!C.length) return { none: true, why: "Nessuno scalo noto nel viaggio" };
+  const before = C.filter(c => c.eta <= j.d), after = C.filter(c => c.eta > j.d);
+  if(!before.length) return { c: C[0], late: true, C };
+  const last = before[before.length - 1];
+  if(!after.length && j.d - last.etd > 60) return { none: true, why: "Scade oltre gli scali noti del viaggio" };
+  return { c: last, C, next: after[0] || null };
+}
+function ct3Calc(J, M){ J.forEach(j => { j.p = ct3Place(j, M); j.lead = j.p.remote ? 14 : j.k === "R" ? 21 : 7; j.book = j.p.c ? (j.p.late ? Math.min(0, j.d) : j.p.c.eta - j.lead) : j.d - j.lead; if(j.d < 0) j.book = Math.max(j.book, 0); }); return J; }
+function ct3Urg(j){ if(j.st >= 2) return { c: "#6a7d90", l: CT3_ST[j.st] }; const n = j.book;
+  return { c: n <= 3 ? "#c0261c" : n <= 10 ? "#a86200" : "#14794e", l: n < -0.5 ? "in ritardo di " + Math.round(-n) + " gg" : n < 1 ? "oggi" : n < 2 ? "domani" : "tra " + Math.round(n) + " gg" }; }
+function ct3Title(j){ return j.G[1] + (j.k === "R" ? " · ricambi" : ""); }
+function ct3Why(j){ const now = Date.now(), p = j.p, c = p.c, fd = o => rdFD(o, now), due = ct2FD(j.due), what = j.k === "R" ? "i ricambi" : "il servizio";
+  if(p.remote) return "Si fa a distanza: non serve uno scalo. Ordinalo almeno 2 settimane prima della scadenza (" + due + ").";
+  if(p.none) return (p.why || "Scalo non noto") + ". Scade il " + due + ": quando il viaggio sarà aggiornato, il lavoro si posa da solo sullo scalo utile (o sceglilo qui sotto).";
+  if(p.late) return (j.d < 0 ? "È già scaduto il " + due : "Scade il " + due) + ", prima del primo scalo noto (" + c.port + ", " + fd(c.eta) + "). Chiedi una proroga a chi se ne occupa o organizza " + what + " in rada.";
+  const stay = c.etd - (c.etb != null ? c.etb : c.eta);
+  return (p.man ? "Scalo scelto da te. " : c.port + " è l'ultimo scalo prima della scadenza del " + due + (p.next ? "; il successivo (" + p.next.port + ", " + fd(p.next.eta) + ") arriva dopo." : "; non ci sono altri scali noti prima della scadenza.")) +
+    " Per " + what + " servono circa " + j.lead + " giorni: prenota entro il " + fd(j.book) + "." + (stay < 1.2 ? " Sosta breve: fissa il tecnico per l'arrivo." : ""); }
+function ct3Last(j){ const L = [], seen = new Set();
+  j.rows.forEach(x => { const h = (x.ex.history || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+    if(h){ const k = "h" + h.date + h.port + h.by; if(!seen.has(k)){ seen.add(k); L.push([certFmtD(h.date, false, true), [h.port, h.by, h.po, h.cost ? (h.cur || "€") + " " + h.cost : ""].filter(Boolean).join(" · ") || "storico"]); } } });
+  j.rows.forEach(x => { if(!x.it.issue) return; const k = "i" + x.it.issue + (x.it.place || ""); if(seen.has(k)) return; seen.add(k); L.push([certFmtD(x.it.issue, false, true), "rilasciato" + (x.it.place ? " a " + x.it.place : "") + " · DOC F01"]); });
+  return L.slice(0, 5); }
+
+window._ct3 = window._ct3 || { k: "", sel: "", view: "" };
+function ct3View(){ return window._ct3.view || (function(){ try { return localStorage.getItem("mpd.ct3View"); } catch(e) { return ""; } })() || "scalo"; }
+window.ct3SetView = function(v){ window._ct3.view = v; try { localStorage.setItem("mpd.ct3View", v); } catch(e) {} render(); window.scrollTo(0, 0); };
+function ct3Keep(f){ const y = window.scrollY; f(); render(); window.scrollTo(0, y); }
+window.ct3Sel = function(k){ ct3Keep(() => { window._ct3.sel = k; }); v26Mob(); };
+window.ct3St = function(k, i){ ct3Keep(() => ct3SetJob(k, { st: i, doneAt: i === 3 ? new Date().toISOString() : "" })); };
+window.ct3SetF = function(k, f, v){ const p = {}; p[f] = String(v || "").trim(); ct3SetJob(k, p); };
+window.ct3Call = function(k, v){ ct3Keep(() => ct3SetJob(k, { call: v })); };
+window.ct3Buy = function(vid, key, v){ const raw = certFindItem(vid, key); if(!raw) return; ct3Keep(() => setCertExtra(vid, raw, { buy: v })); if(typeof showToast === "function") showToast(v === "no" ? "Spostato in «Da tenere d'occhio»" : "Ora è un acquisto"); };
+window.ct3Rfq = function(k){ const j = (window._ct3.J || []).find(x => x.key === k); if(!j) return; const now = Date.now(), c = j.p.c, cfg = (VESSELS || []).find(v => v.vesselId === j.vid) || {};
+  const ship = String(cfg.displayName || j.vname).replace(/^M\/V\s+/i, ""), en = s => certFmtD(s, true, false);
+  const where = j.p.remote ? "" : c ? " at " + c.port + " (ETA " + rdFD(c.eta, now) + ", ETD " + rdFD(c.etd, now) + ")" : "";
+  const sub = "M/V " + ship + " - RFQ " + (j.k === "R" ? "spare parts" : "services") + (c ? " - " + c.port + " ETA " + rdFD(c.eta, now) : "");
+  const body = "Dear Sirs,\n\nplease quote for the following " + (j.k === "R" ? "items, to be delivered on board" : "services, to be carried out on board") + " M/V " + ship + where + ":\n\n" +
+    j.rows.map(x => "- " + (x.it.n ? x.it.n + ". " : "") + x.it.name + " (current expiry " + en(x.it.expiry) + ")").join("\n") +
+    "\n\nPlease advise price, availability and lead time, and the certificates that will be issued.\n\nBest regards\nMichele Del Vecchio\nPurchasing";
+  window.location.href = "mailto:?subject=" + encodeURIComponent(sub) + "&body=" + encodeURIComponent(body);
+  if(j.st < 1) ct3Keep(() => ct3SetJob(k, { st: 1, rfqAt: new Date().toISOString() })); };
+
+function ct3Grp(name, dot, info){ return '<div style="display:flex;gap:10px;align-items:center;padding:12px 14px 8px;background:#f7f9fb;border-top:1px solid rgba(10,27,46,.08)">' + (dot ? '<span style="width:9px;height:9px;border-radius:50%;background:' + dot + ';flex:none"></span>' : "") + '<span style="' + (dot ? "font-size:13px;font-weight:700" : PC_EB) + ';white-space:nowrap">' + escapeHTML(name) + '</span><span style="font-size:12.5px;color:#44576b">' + escapeHTML(info || "") + '</span></div>'; }
+function ct3Row(j, sel){ const esc = escapeHTML, u = ct3Urg(j), on = sel === "j:" + j.key, sc = CT3_STC[j.st], now = Date.now(), ch = j.rows.some(x => ct3Chg(x.ex));
+  const names = j.rows.slice(0, 3).map(x => x.it.name).join(" · ") + (j.rows.length > 3 ? " · +" + (j.rows.length - 3) : "");
+  return '<div onclick="ct3Sel(\'' + pcJ("j:" + j.key) + '\')" style="display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px 10px 30px;border-top:1px solid rgba(10,27,46,.05);cursor:pointer;background:' + (on ? "#f0f5ff" : "#fff") + ';box-shadow:inset 3px 0 0 ' + (on ? "#1553d8" : j.d < 0 ? "#c0261c" : "transparent") + ';opacity:' + (j.st === 3 ? ".6" : "1") + '">' +
+    '<span style="display:flex;flex-direction:column;align-items:flex-end;gap:1px"><span style="font:700 13px var(--font-mono);color:' + u.c + '">' + (j.st >= 2 ? "—" : rdFD(j.book, now)) + '</span><span style="font-size:10.5px;color:#6a7d90;white-space:nowrap">' + (j.st >= 2 ? "" : j.book < -0.5 ? "in ritardo" : "prenota " + esc(u.l)) + '</span></span>' +
+    '<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:13.5px;font-weight:600">' + esc(ct3Title(j)) + (ch ? ' <span title="Cambiato all\'ultimo import DOC F01" style="color:#1553d8">↻</span>' : "") + '</span><span style="font-size:12px;color:#44576b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + j.rows.length + (j.rows.length > 1 ? " voci" : " voce") + ' · scade ' + esc(ct2FD(j.due)) + ' · ' + esc(names) + '</span></div>' +
+    '<span style="display:flex;gap:6px;align-items:center">' + (j.p.late || j.d < 0 ? '<span style="font:700 10.5px var(--font-mono);color:#c0261c">' + (j.d < 0 ? "SCADUTO" : "DOPO LA SCADENZA") + '</span>' : "") + '<span style="font:700 10.5px var(--font-mono);letter-spacing:.04em;color:' + (j.k === "R" ? "#b3246b" : "#0f7b8a") + ';border:1px solid currentColor;border-radius:5px;padding:2px 6px">' + (j.k === "R" ? "RICAMBI" : "SERVIZIO") + '</span><span style="font-size:12px;font-weight:600;color:' + sc[0] + ';background:' + sc[1] + ';border-radius:999px;padding:3px 9px;white-space:nowrap">' + CT3_ST[j.st] + '</span></span></div>'; }
+function ct3WRow(x, sel){ const esc = escapeHTML, on = sel === "w:" + x.vid + "|" + x.key, R = CERT_RESP[x.resp], ch = ct3Chg(x.ex);
+  return '<div onclick="ct3Sel(\'' + pcJ("w:" + x.vid + "|" + x.key) + '\')" style="display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 14px;border-top:1px solid rgba(10,27,46,.05);cursor:pointer;background:' + (on ? "#f0f5ff" : "#fff") + '">' +
+    '<span style="font:600 12.5px var(--font-mono);color:' + (x.d < 0 ? "#c0261c" : x.d <= 30 ? "#a86200" : "#44576b") + ';text-align:right">' + esc(rdFD(x.d, Date.now())) + '</span>' +
+    '<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13px;font-weight:500">' + esc(x.it.name || "—") + (ch ? ' <span style="color:#1553d8">↻</span>' : "") + '</span><span style="font-size:12px;color:#6a7d90">' + (x.d < 0 ? "scaduto da " + Math.round(-x.d) + " gg" : "tra " + Math.round(x.d) + " gg") + '</span></div>' +
+    '<span style="display:flex;gap:7px;align-items:center;font-size:12px;color:#44576b;white-space:nowrap"><span style="width:8px;height:8px;border-radius:50%;background:' + ct3VCol(x.vid) + '"></span>' + esc(x.vname) + ' · <b style="font-weight:600;color:' + (R ? R.c : "#a86200") + '">' + (R ? esc(R.s) : "chi?") + '</b></span></div>'; }
+function ct3GSel(cur, js){ return '<select onchange="' + js + '" style="font:500 12.5px var(--font-sans);border:1px solid rgba(10,27,46,.18);border-radius:7px;padding:5px 8px;max-width:100%">' +
+  '<option value="auto">Gruppo automatico</option>' + CT3_G.map(g => '<option value="' + g[0] + '"' + (cur === g[0] ? " selected" : "") + '>' + escapeHTML(g[1]) + '</option>').join("") + '<option value="no"' + (cur === "watch" ? " selected" : "") + '>Non è un acquisto</option></select>'; }
+function ct3Card(j, M){
+  if(!j) return '<div style="padding:28px 20px;font-size:14px;color:#44576b">Nessun lavoro in questo filtro.</div>';
+  const esc = escapeHTML, now = Date.now(), p = j.p, c = p.c, K = pcJ(j.key), u = ct3Urg(j), V = pcJ(j.vid);
+  const box = (l, v, s, col) => '<div style="border:1px solid rgba(10,27,46,.10);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#6a7d90">' + l + '</span><span style="font:700 14px var(--font-mono);color:' + (col || "#0a1b2e") + ';overflow-wrap:anywhere">' + esc(v) + '</span><span style="font-size:11.5px;color:#44576b">' + esc(s || "") + '</span></div>';
+  const boxes = '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">' + box("SCADE", ct2FD(j.due), j.d < 0 ? "scaduto da " + Math.round(-j.d) + " gg" : "tra " + Math.round(j.d) + " gg", j.d < 0 ? "#c0261c" : "") +
+    box("PRENOTA ENTRO", j.st >= 2 ? "—" : rdFD(j.book, now), j.st >= 2 ? CT3_ST[j.st] : u.l, u.c) + box("SCALO", p.remote ? "a distanza" : c ? c.port : "—", c ? rdFD(c.eta, now) + " – " + rdFD(c.etd, now) : p.remote ? "nessuno scalo" : "viaggio da pianificare", "#1553d8") + '</div>';
+  const flow = '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px">' + CT3_ST.map((t, i) => '<button onclick="ct3St(\'' + K + '\',' + i + ')" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:4px"><span style="height:5px;border-radius:3px;background:' + (i < j.st ? "#9db7ee" : i === j.st ? "#1553d8" : "#e3e8ee") + '"></span><span style="font-size:11.5px;font-weight:' + (i === j.st ? 700 : 500) + ';color:' + (i === j.st ? "#0a1b2e" : "#6a7d90") + '">' + t + '</span></button>').join("") + '</div>';
+  const inp = (f, ph, w) => '<input value="' + escapeAttr(j.s[f] || "") + '" placeholder="' + ph + '" onchange="ct3SetF(\'' + K + '\',\'' + f + '\',this.value)" style="font:500 12.5px ' + (f === "po" ? "var(--font-mono)" : "var(--font-sans)") + ';border:1px solid rgba(10,27,46,.18);border-radius:7px;padding:6px 8px;min-width:0;width:100%">';
+  const fields = '<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px">' + inp("po", "N° PO (Infoship)") + inp("sup", "Ditta / fornitore") + '</div>' + inp("note", "Nota");
+  const items = j.rows.map(x => { const ch = ct3Chg(x.ex), XK = pcJ(x.key);
+    return '<div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 0;border-top:1px solid rgba(10,27,46,.07)"><span style="font:600 12px var(--font-mono);color:#6a7d90">' + esc(x.it.n || x.it.pn || "") + '</span>' +
+      '<div style="display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:13px;font-weight:500">' + esc(x.it.name || "") + (ch ? ' <span title="Cambiato all\'import del ' + escapeAttr(certFmtD(ch.at, false, true)) + (ch.old ? " (prima: " + escapeAttr(certFmtD(ch.old, false, true)) + ")" : "") + '" style="color:#1553d8">↻</span>' : "") + '</span><span style="font-size:11.5px;color:#8a99a8">' + esc([x.it.certNum, x.it._locked && x.it._locked.expiry ? "data a mano" : ""].filter(Boolean).join(" · ")) + '</span></div>' +
+      '<span style="display:flex;gap:6px;align-items:center"><span style="font:600 12px var(--font-mono);color:' + (x.d < 0 ? "#c0261c" : "#0a1b2e") + '">' + esc(certFmtD(x.it.expiry, false, true)) + '</span><button title="Modifica (data, n°, note…)" onclick="openCertEditor(\'' + V + '\',\'' + XK + '\')" style="' + PC_B + ';padding:3px 7px">✎</button><button title="Non è un acquisto" onclick="ct3Buy(\'' + V + '\',\'' + XK + '\',\'no\')" style="' + PC_B + ';padding:3px 7px;color:#6a7d90">✕</button></span></div>'; }).join("");
+  const last = ct3Last(j).map(l => '<div style="display:grid;grid-template-columns:86px minmax(0,1fr);gap:8px;padding:4px 0;font-size:12.5px"><span style="font-family:var(--font-mono)">' + esc(l[0]) + '</span><span style="color:#44576b">' + esc(l[1]) + '</span></div>').join("");
+  const C = ct3Calls(M, j.vid), cur = j.s.call || "";
+  const callSel = '<select onchange="ct3Call(\'' + K + '\',this.value)" style="font:500 12.5px var(--font-sans);border:1px solid rgba(10,27,46,.18);border-radius:7px;padding:5px 8px;max-width:100%"><option value="">Automatico' + (!cur && c ? " (" + esc(c.port) + ")" : "") + '</option>' +
+    C.map(x => '<option value="' + escapeAttr(ct3CK(x)) + '"' + (cur === ct3CK(x) ? " selected" : "") + '>' + esc(x.port + " · " + rdFD(x.eta, now)) + '</option>').join("") + '<option value="remote"' + (cur === "remote" ? " selected" : "") + '>A distanza</option><option value="none"' + (cur === "none" ? " selected" : "") + '>Non ancora noto</option></select>';
+  let ag = ""; if(c && typeof rd2Ag === "function"){ try { const a = rd2Ag(c); if(a) ag = '<div style="display:flex;flex-direction:column;gap:2px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + ';padding-bottom:3px">AGENZIA A ' + esc(String(c.port).toUpperCase()) + '</span><span style="font-size:13px;font-weight:600">' + esc(a.name) + '</span>' + (a.email ? '<span style="font:500 12px var(--font-mono);color:#1553d8">' + esc(a.email) + '</span>' + pcCopyBtn(a.email, "Email agenzia") : "") + (a.phone ? '<span style="font:500 12px var(--font-mono)">' + esc(a.phone) + '</span>' + pcCopyBtn(a.phone, "Telefono agenzia") : "") + '</div>'; } catch(e) {} }
+  const mains = ["✉ Prepara RFQ", "✉ Riscrivi RFQ", "✉ RFQ", "✉ RFQ"];
+  return '<div style="padding:16px 18px;display:flex;flex-direction:column;gap:13px">' +
+    '<div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:700"><span style="width:8px;height:8px;border-radius:50%;background:' + ct3VCol(j.vid) + '"></span>' + esc(j.vname) + '</span><span style="font:700 10.5px var(--font-mono);color:' + (j.k === "R" ? "#b3246b" : "#0f7b8a") + ';border:1px solid currentColor;border-radius:5px;padding:2px 6px">' + (j.k === "R" ? "RICAMBI" : "SERVIZIO") + '</span></div>' +
+    '<span style="font-size:19px;font-weight:700;line-height:1.25">' + esc(ct3Title(j)) + '</span><span style="font-size:13px;color:#44576b">' + j.rows.length + (j.rows.length > 1 ? " voci del DOC F01 con scadenze vicine: un solo lavoro" : " voce del DOC F01") + '</span></div>' +
+    boxes + '<div style="background:#eef3fd;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px"><span style="' + PC_EB + ';color:#1553d8">PERCHÉ QUI</span><span style="font-size:13px;line-height:1.45;text-wrap:pretty">' + esc(ct3Why(j)) + '</span></div>' +
+    flow + fields +
+    '<div style="display:flex;flex-direction:column"><span style="' + PC_EB + ';padding-bottom:4px">VOCI · ' + j.rows.length + '</span>' + items + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + '">SCALO</span>' + callSel + '</div>' +
+    (last ? '<div style="display:flex;flex-direction:column;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + ';padding-bottom:4px">L\'ULTIMA VOLTA</span>' + last + '</div>' : "") + ag + '</div>' +
+    v26Foot('<button onclick="ct3Rfq(\'' + K + '\')" style="font:600 13px var(--font-sans);background:#0a1b2e;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">' + mains[j.st] + '</button><button onclick="ccNewTodo({vid:\'' + V + '\',text:\'' + pcJ(ct3Title(j) + " — " + j.vname + (c ? " a " + c.port : "") + " (scade " + ct2FD(j.due) + ")") + '\'})" style="' + PC_B + ';font-size:13px;padding:8px 12px">+ To-do</button>');
+}
+function ct3WCard(x){ if(!x) return ct2Card(null); const g = x.g;
+  return ct2Card(x) + '<div style="padding:0 18px 16px;display:flex;flex-direction:column;gap:6px"><span style="' + PC_EB + '">È UN ACQUISTO?</span>' + ct3GSel(g, "ct3Buy('" + pcJ(x.vid) + "','" + pcJ(x.key) + "',this.value)") + '<span style="font-size:12px;color:#6a7d90">Scegli il gruppo: la voce entra nei lavori e si posa sullo scalo utile.</span></div>'; }
+function ct3Tabs(){ const v = ct3View(), b = (k, l) => '<button onclick="ct3SetView(\'' + k + '\')" style="font:600 13px var(--font-sans);white-space:nowrap;border:0;border-radius:7px;padding:7px 12px;cursor:pointer;background:' + (v === k ? "#0a1b2e" : "transparent") + ';color:' + (v === k ? "#fff" : "#0a1b2e") + '">' + l + '</button>';
+  return '<div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(10,27,46,.12);border-radius:9px;padding:3px">' + b("scalo", "Per scalo") + b("cal", "Calendario") + b("elenco", "Elenco completo") + '</div>'; }
+function ct3LastImp(){ const M = state.certificatesMeta || {}; let best = null;
+  Object.keys(M).forEach(v => { const m = M[v]; if(m && m.prev && m.importedAt && (!best || m.importedAt > best.m.importedAt)) best = { v, m }; });
+  if(!best || Date.now() - new Date(best.m.importedAt).getTime() > 14 * 864e5) return "";
+  const cfg = (VESSELS || []).find(c => c.vesselId === best.v) || {}, d = best.m.diff || {};
+  return '<span style="font-size:12.5px;color:#44576b">↻ Ultimo import: <b>' + escapeHTML(cfg.displayName || best.v) + '</b> ' + escapeHTML(certFmtD(best.m.importedAt, false, true)) + (d.ren != null ? " · " + d.ren + " rinnovati, " + d.neu + " nuove" : "") + ' · <button onclick="ct3Undo(\'' + pcJ(best.v) + '\')" style="all:unset;cursor:pointer;color:#1553d8;text-decoration:underline">annulla l\'import</button></span>'; }
+function ct3Filters(J){ const S = window._ct3, sv = (window._ct2 = window._ct2 || {}).v || "";
+  const kp = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="' + PC_EB + ';padding-right:4px">COSA</span>' + v26Pill(!S.k, "window._ct3.k='';render()", "Servizi + ricambi") + v26Pill(S.k === "S", "window._ct3.k='S';render()", "Solo servizi") + v26Pill(S.k === "R", "window._ct3.k='R';render()", "Solo ricambi") + '</div>';
+  const vp = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="' + PC_EB + ';padding-right:4px">NAVE</span>' + v26Pill(!sv, "window._ct2.v='';render()", "Tutte") + (VESSELS || []).map(c => v26Pill(sv === c.vesselId, "window._ct2.v='" + pcJ(c.vesselId) + "';render()", c.displayName, J.filter(j => j.vid === c.vesselId && j.st < 3 && j.d <= 240).length || "")).join("") + '</div>';
+  return '<div style="display:flex;gap:10px 22px;flex-wrap:wrap;align-items:center">' + kp + vp + '</div>'; }
+function ct3CalHTML(J, M, sel){ const now = Date.now(), SPAN = 183, esc = escapeHTML, px = d => Math.max(0, Math.min(100, d / SPAN * 100));
+  const t = new Date(); let months = ""; for(let i = 0; i < 7; i++){ const m = new Date(t.getFullYear(), t.getMonth() + i, 1), off = (m - now) / 864e5; if(off < 0 || off > SPAN) continue;
+    months += '<span style="position:absolute;left:' + px(off).toFixed(2) + '%;top:0;font:600 10.5px var(--font-mono);color:#6a7d90;padding-left:4px;border-left:1px solid rgba(10,27,46,.15);height:16px;white-space:nowrap">' + m.toLocaleDateString("it-IT", { month: "short" }) + (m.getMonth() === 0 ? " " + String(m.getFullYear()).slice(2) : "") + '</span>'; }
+  const sv = (window._ct2 || {}).v || "";
+  const lanes = (VESSELS || []).filter(c => !sv || c.vesselId === sv).map(cfg => { const vid = cfg.vesselId;
+    const calls = ct3Calls(M, vid).filter(c => c.eta < SPAN).map(c => '<div title="' + escapeAttr(c.port) + '" style="position:absolute;left:' + px(c.eta).toFixed(2) + '%;width:' + Math.max(1.2, px(c.etd) - px(c.eta)).toFixed(2) + '%;top:4px;height:18px;background:#dbe6fb;border-radius:4px;overflow:visible"><span style="font:600 10.5px var(--font-sans);color:#1553d8;white-space:nowrap;padding-left:4px;line-height:18px">' + esc(c.port) + '</span></div>').join("");
+    const ends = []; const chips = J.filter(j => j.vid === vid && j.d >= 0 && j.d <= SPAN + 30).sort((a, b) => a.book - b.book).map(j => {
+      const x0 = Math.min(px(Math.max(0, j.book)), 76); let r = ends.findIndex(e => e < x0); if(r < 0){ r = ends.length; ends.push(0); } ends[r] = x0 + 25;
+      const y = 30 + r * 44, xd = px(j.d), u = ct3Urg(j), on = sel === "j:" + j.key, K = pcJ("j:" + j.key);
+      return '<span style="position:absolute;left:' + x0.toFixed(2) + '%;width:' + Math.max(0, xd - x0).toFixed(2) + '%;top:' + (y + 15) + 'px;border-top:1.5px dashed ' + u.c + ';opacity:.55"></span><span style="position:absolute;left:' + xd.toFixed(2) + '%;top:' + (y + 11) + 'px;width:8px;height:8px;border-radius:2px;background:' + u.c + ';transform:translateX(-4px)"></span>' +
+        '<button onclick="ct3Sel(\'' + K + '\')" style="all:unset;cursor:pointer;position:absolute;left:' + x0.toFixed(2) + '%;top:' + y + 'px;max-width:24%;background:#fff;border:1.5px solid ' + (on ? "#1553d8" : "rgba(10,27,46,.16)") + ';box-shadow:' + (on ? "0 0 0 3px rgba(21,83,216,.18)" : "0 1px 2px rgba(10,27,46,.08)") + ';border-radius:7px;padding:4px 8px;display:flex;flex-direction:column;gap:1px;opacity:' + (j.st === 3 ? ".55" : "1") + '"><span style="font-size:11.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(ct3Title(j)) + '</span><span style="font:500 10.5px var(--font-mono);color:' + u.c + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (j.st >= 2 ? CT3_ST[j.st] : "prenota " + rdFD(j.book, now) + " · scade " + rdFD(j.d, now)) + '</span></button>'; }).join("");
+    const n = J.filter(j => j.vid === vid && j.d >= 0 && j.d <= SPAN + 30).length, nx = J.filter(j => j.vid === vid && j.d < 0 && j.st < 3).length;
+    return '<div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;border-top:1px solid rgba(10,27,46,.07);padding-top:6px"><span style="display:flex;flex-direction:column;gap:2px;padding-top:4px"><span style="display:flex;gap:7px;align-items:center;font-size:13px;font-weight:700"><span style="width:8px;height:8px;border-radius:50%;background:' + ct3VCol(vid) + ';flex:none"></span>' + esc(cfg.displayName) + '</span><span style="font-size:11.5px;color:#6a7d90">' + (n ? n + (n > 1 ? " lavori" : " lavoro") : "nessun lavoro") + '</span>' + (nx ? '<span style="font-size:11.5px;font-weight:600;color:#c0261c">+ ' + nx + (nx > 1 ? " scaduti" : " scaduto") + '</span>' : "") + '</span>' +
+      '<div style="position:relative;height:' + (ends.length ? ends.length * 44 + 34 : 30) + 'px;background:#f7f9fb;border-radius:6px"><span style="position:absolute;left:0;top:0;bottom:0;width:2px;background:#c0261c"></span>' + calls + chips + '</div></div>'; }).join("");
+  return '<div style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:620px"><div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px"><span style="font-size:11px;color:#6a7d90">oggi ▸</span><div style="position:relative;height:16px">' + months + '</div></div>' + lanes +
+    '<span style="font-size:12px;color:#6a7d90;padding-top:6px">Riquadro = lavoro, sulla data entro cui prenotarlo · blu = nave in porto · quadratino = scadenza.</span></div>'; }
+function ct3HTML(){
+  const S = window._ct3, esc = escapeHTML, now = Date.now(), view = ct3View(); let M = null; try { M = rdModel(); } catch(e) { console.warn("[cert v2.9] radar", e); }
+  const R = ct3Rows(), J0 = ct3Calc(ct3Jobs(R), M); S.J = J0;
+  const sv = (window._ct2 = window._ct2 || {}).v || "";
+  const J = J0.filter(j => (!S.k || S.k === j.k) && (!sv || j.vid === sv) && j.d <= 240);
+  const W = R.filter(x => x.g === "watch" && (!sv || x.vid === sv) && x.d <= 120).sort((a, b) => a.d - b.d);
+  const open = J.filter(j => j.st < 2), soon = open.filter(j => j.book <= 10).sort((a, b) => a.book - b.book), exp = open.filter(j => j.d < 0);
+  if(!J.some(j => "j:" + j.key === S.sel) && !W.some(x => "w:" + x.vid + "|" + x.key === S.sel)){ const f = soon[0] || open.slice().sort((a, b) => a.book - b.book)[0] || J[0]; S.sel = f ? "j:" + f.key : W[0] ? "w:" + W[0].vid + "|" + W[0].key : ""; }
+  const f = soon[0];
+  const head = v26Head(soon.length ? soon.length + (soon.length > 1 ? " lavori da prenotare" : " lavoro da prenotare") + " nei prossimi 10 giorni" + (exp.length ? " · " + exp.length + " già scadut" + (exp.length > 1 ? "i" : "o") : "") : open.length ? "Nessun lavoro da prenotare nei prossimi 10 giorni" : "Nessun servizio o ricambio da comprare nei prossimi 8 mesi",
+    (f ? "Il primo: <b>" + esc(ct3Title(f)) + "</b> · " + esc(f.vname) + (f.p.c ? ", " + esc(f.p.c.port) : f.p.remote ? ", a distanza" : "") + ", prenota " + esc(ct3Urg(f).l) + ". " : R.length ? "" : "Importa l'Excel DOC F01 di ogni nave. ") + ct3LastImp(),
+    '<button class="btn btn-sm" onclick="openCertImport(\'' + pcJ(sv) + '\')">⇧ Importa DOC F01</button><button class="btn btn-sm" onclick="openCertReport()">⬇ Report</button>');
+  const bar = '<div style="display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center">' + ct3Tabs() + ct3Filters(J0.filter(j => !S.k || S.k === j.k)) + '</div>';
+  let left = "";
+  if(view === "cal") left = '<div style="overflow-x:auto">' + ct3CalHTML(J, M, S.sel) + '</div>';
+  else {
+    (VESSELS || []).forEach(cfg => { const vid = cfg.vesselId, js = J.filter(j => j.vid === vid && !j.p.none); if(!js.length) return;
+      left += ct3Grp(cfg.displayName, ct3VCol(vid), js.length + (js.length > 1 ? " lavori" : " lavoro") + " sugli scali noti");
+      const slots = []; js.forEach(j => { const k = j.p.remote ? "remote" : ct3CK(j.p.c); let s = slots.find(x => x.k === k); if(!s){ s = { k, c: j.p.c, remote: j.p.remote, js: [] }; slots.push(s); } s.js.push(j); });
+      slots.sort((a, b) => (a.remote ? 1e9 : a.c.eta) - (b.remote ? 1e9 : b.c.eta)).forEach(s => {
+        let hint = ""; if(s.c){ const st = s.c.etd - (s.c.etb != null ? s.c.etb : s.c.eta); hint = "sosta " + (st < 1 ? "meno di 1 g" : Math.round(st) + " gg"); try { const a = typeof rd2Ag === "function" ? rd2Ag(s.c) : null; if(a) hint += " · agenzia " + a.name; } catch(e) {} }
+        left += '<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;padding:9px 14px 4px 30px;border-top:1px solid rgba(10,27,46,.05)"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#1553d8">' + (s.remote ? "A DISTANZA" : "⚓ " + esc(String(s.c.port).toUpperCase())) + '</span>' + (s.c ? '<span style="font:500 12px var(--font-mono);color:#44576b">' + rdFD(s.c.eta, now) + ' – ' + rdFD(s.c.etd, now) + '</span>' : "") + '<span style="font-size:12px;color:#6a7d90">' + esc(hint) + '</span></div>';
+        s.js.sort((a, b) => (a.st === 3) - (b.st === 3) || a.book - b.book).forEach(j => { left += ct3Row(j, S.sel); }); }); });
+    const tag = j => ct3Row(j, S.sel).replace('<span style="display:flex;gap:6px;align-items:center">', '<span style="display:flex;gap:6px;align-items:center"><span style="display:flex;gap:6px;align-items:center;font-size:12px;color:#44576b;white-space:nowrap"><span style="width:8px;height:8px;border-radius:50%;background:' + ct3VCol(j.vid) + '"></span>' + esc(j.vname) + '</span>');
+    const expN = J.filter(j => j.p.none && j.d < 0).sort((a, b) => a.d - b.d), later = J.filter(j => j.p.none && j.d >= 0).sort((a, b) => a.d - b.d);
+    if(expN.length){ left = ct3Grp("SCADUTI · VIAGGIO NON NOTO", "", expN.length + (expN.length > 1 ? " lavori" : " lavoro") + ": da fare al primo scalo utile") + expN.map(tag).join("") + left; }
+    if(later.length){ left += ct3Grp("PIÙ AVANTI · OLTRE GLI SCALI NOTI", "", later.length + (later.length > 1 ? " lavori" : " lavoro") + " entro 8 mesi");
+      later.forEach(j => { left += tag(j); }); }
+    if(!J.length) left += '<div style="padding:22px 16px;font-size:13.5px;color:#44576b">' + (R.length ? "Nessun servizio o ricambio in scadenza nei prossimi 8 mesi con questi filtri." : "Nessun certificato nel DB: importa l'Excel DOC F01 di ogni nave.") + '</div>';
+  }
+  left += ct3Grp("DA TENERE D'OCCHIO · NON SONO ACQUISTI", "", "classe, bandiera, assicurazioni a 120 gg · " + W.length);
+  left += W.length ? W.slice(0, 60).map(x => ct3WRow(x, S.sel)).join("") : '<div style="padding:10px 14px 16px;font-size:13px;color:#6a7d90">Nessuna scadenza nei prossimi 120 giorni.</div>';
+  let card; if(String(S.sel).startsWith("w:")){ const k = S.sel.slice(2); card = ct3WCard(W.find(x => x.vid + "|" + x.key === k)); } else card = ct3Card(J.find(j => "j:" + j.key === S.sel), M);
+  return '<div style="display:flex;flex-direction:column;gap:12px;margin:0 0 18px">' + head + bar + v26Cols(left, card) + '</div>';
+}
+function ct3Page(){ if(ct3View() === "elenco") return '<div style="display:flex;justify-content:flex-start;margin:0 0 10px">' + ct3Tabs() + '</div>' + ct2HTML(); return ct3HTML(); }
+if(typeof renderCertificatesView === "function"){ const rcv3 = renderCertificatesView;
+  renderCertificatesView = window.renderCertificatesView = function(){ if(!v26On("cert")) return rcv3(); try { return ct3Page(); } catch(e) { console.error("[certificati v2.9]", e); return rcv3(); } }; }
+
+// --- 2a REVISIONE DELL'IMPORT DOC F01 ----------------------------------------------------------
+function ct3GuessV(name){ const s = String(name || "").toUpperCase(), AB = { MDT: "TOSCANA", MLG: "LIGURIA", PEP: "PEPPINO", ATLAS: "NORRBOTTEN", NOR: "NORRBOTTEN" }; let s2 = s;
+  Object.keys(AB).forEach(k => { if(new RegExp("\\b" + k + "\\b").test(s)) s2 += " " + AB[k] + " ATLAS"; });
+  const c = (VESSELS || []).find(c => { const w = String(c.displayName || "").toUpperCase().replace(/^(M\/V|MV|MED)\s+/, "").split(/\s+/)[0]; return w && w.length > 2 && s2.includes(w); }); return c ? c.vesselId : ""; }
+function ct3Diff(vid, items){ const old = ct3Prep(((state.certificates || {})[vid]) || []).slice(), oK = {}, byN = {}, used = new Set();
+  old.forEach(o => { oK[certKey(o)] = o; const n = String(o.n || "").trim(); if(n) (byN[n] = byN[n] || []).push(o); });
+  const D = { ask: [], ren: [], neu: [], gone: [], visit: [], stale: [], same: 0 }; let id = 0;
+  items.forEach(nw => { let o = oK[certKey(nw)]; if(o && used.has(o)) o = null;
+    if(!o){ const n = String(nw.n || "").trim(); if(n && byN[n] && byN[n].length === 1 && !used.has(byN[n][0])) o = byN[n][0]; }
+    if(!o){ if(nw.expiry) D.neu.push({ nw, id: "n" + id++ }); else D.same++; return; }
+    used.add(o); const ex = getCertExtra(vid, o), man = ex.expiry || "", oe = o.expiry || "", ne = nw.expiry || "";
+    const r = { nw, o, ex, man, oe, ne, id: "r" + id++, watch: ct3Class(nw, ex).g === "watch", child: !String(nw.n || "").trim() };
+    if(man && man !== ne && (!ne || man > ne)){ r.t = "man"; D.ask.push(r); return; }
+    if(ne === oe){ if(ne && daysToExpiry(ne) < 0 && !r.watch) D.stale.push(r); else D.same++; return; }
+    if(!ne){ r.t = "nodate"; D.ask.push(r); return; }
+    if(oe && ne < oe && !r.watch && !(nw.issue && nw.issue > (o.issue || ""))){ r.t = "early"; D.ask.push(r); return; }
+    (r.child && r.watch ? D.visit : D.ren).push(r); });
+  old.forEach(o => { if(!used.has(o) && !o._gone && (o.expiry || o.issue)) D.gone.push({ o, id: "g" + id++ }); });
+  return D; }
+window.openCertImport = function(vesselId){
+  const input = document.createElement("input"); input.type = "file"; input.accept = ".xls,.xlsx"; input.style.display = "none"; document.body.appendChild(input);
+  input.addEventListener("change", async e => { const file = e.target.files[0]; input.remove(); if(!file) return;
+    try { if(typeof showToast === "function") showToast("Lettura «" + file.name + "»…");
+      const items = await parseCertificateExcel(file); if(!items.length){ showToast("Nessuna voce valida trovata nel file"); return; }
+      const lastDate = items._lastDate || "", skipped = items._skipped || 0; ct3Prep(items);
+      const vid = vesselId && (VESSELS || []).some(c => c.vesselId === vesselId) ? vesselId : ct3GuessV(file.name);
+      window._ct3imp = { file: file.name, items, lastDate, skipped, vid, ch: {} }; ct3ImpPaint();
+    } catch(err) { console.error("[Cert] errore parsing:", err); showToast("Errore: " + err.message); } });
+  input.click(); };
+window.ct3ImpV = function(v){ const I = window._ct3imp; if(!I) return; I.vid = v; I.ch = {}; ct3ImpPaint(); };
+window.ct3ImpC = function(id, v){ const I = window._ct3imp; if(!I) return; I.ch[id] = v; const el = document.querySelector("#ct3-imp .ct3-sc"), y = el ? el.scrollTop : 0; ct3ImpPaint(); const e2 = document.querySelector("#ct3-imp .ct3-sc"); if(e2) e2.scrollTop = y; };
+window.ct3ImpClose = function(){ window._ct3imp = null; const m = document.getElementById("ct3-imp"); if(m) m.remove(); };
+function ct3ImpPaint(){
+  const I = window._ct3imp; if(!I) return; const esc = escapeHTML, fd = s => s ? certFmtD(s, false, true) : "—";
+  let m = document.getElementById("ct3-imp"); if(!m){ m = document.createElement("div"); m.id = "ct3-imp"; m.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(10,27,46,.45);display:flex;align-items:center;justify-content:center;padding:18px"; document.body.appendChild(m); }
+  const D = I.vid ? (I.D = ct3Diff(I.vid, I.items)) : null; const cfg = (VESSELS || []).find(c => c.vesselId === I.vid) || {}, pm = (state.certificatesMeta || {})[I.vid] || {};
+  const vSel = '<select onchange="ct3ImpV(this.value)" style="font:600 13px var(--font-sans);border:1px solid rgba(10,27,46,.2);border-radius:7px;padding:6px 8px"><option value="">Quale nave?</option>' + (VESSELS || []).map(c => '<option value="' + escapeAttr(c.vesselId) + '"' + (c.vesselId === I.vid ? " selected" : "") + '>' + esc(c.displayName) + '</option>').join("") + '</select>';
+  const btn = (id, v, l, def) => { const on = (I.ch[id] || def) === v; return '<button onclick="ct3ImpC(\'' + id + '\',\'' + v + '\')" style="font:600 11.5px var(--font-sans);border-radius:6px;padding:4px 8px;cursor:pointer;white-space:nowrap;border:1px solid ' + (on ? "#0a1b2e" : "rgba(10,27,46,.18)") + ';background:' + (on ? "#0a1b2e" : "#fff") + ';color:' + (on ? "#fff" : "#0a1b2e") + '">' + l + '</button>'; };
+  const gl = x => { const c = ct3Class(x, {}); return c.g === "watch" ? "" : (CT3_G.find(g => g[0] === c.g) || [])[1] || ""; };
+  const row = (n, name, eff, old, nw, opts, warn) => '<div style="display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 14px;border-top:1px solid rgba(10,27,46,.05);background:' + (warn ? "#fffaf0" : "#fff") + '"><span style="font:600 12px var(--font-mono);color:#6a7d90">' + esc(n || "") + '</span><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:13.5px;font-weight:600">' + esc(name || "") + '</span><span style="font-size:12px;color:#44576b;text-wrap:pretty">' + esc(eff) + '</span></div>' +
+    '<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end"><span style="display:flex;gap:7px;font:600 12.5px var(--font-mono);white-space:nowrap"><span style="color:#8a99a8;' + (old && nw ? "text-decoration:line-through" : "") + '">' + esc(old || "") + '</span>' + (old && nw ? '<span style="color:#8a99a8">→</span>' : "") + '<span style="color:#14794e">' + esc(nw || "") + '</span></span>' + (opts ? '<div style="display:flex;gap:4px">' + opts + '</div>' : "") + '</div></div>';
+  const sec = (t, c, note, body) => body ? '<div style="display:flex;gap:10px;align-items:baseline;padding:12px 14px 6px;background:#f7f9fb;border-top:1px solid rgba(10,27,46,.08)"><span style="font-size:10.5px;font-weight:700;letter-spacing:.07em;white-space:nowrap;color:' + c + '">' + t + '</span><span style="font-size:12px;color:#6a7d90">' + note + '</span></div>' + body : "";
+  let body = "", fx = "", pend = 0;
+  if(!D) body = '<div style="padding:24px 16px;font-size:14px">Non riconosco la nave dal nome del file: sceglila in alto.</div>';
+  else {
+    const askB = D.ask.map(r => { const ch = I.ch[r.id]; if(!ch) pend++;
+      if(r.t === "man") return row(r.nw.n || r.nw.pn, r.nw.name, "Avevi messo a mano " + fd(r.man) + ". Il file dice " + (r.ne ? fd(r.ne) : "nessuna data") + ".", fd(r.man) + " (tua)", fd(r.ne), btn(r.id, "mine", "Tieni la mia", "mine") + btn(r.id, "file", "Prendi il file"), !ch);
+      if(r.t === "early") return row(r.nw.n || r.nw.pn, r.nw.name, "La nuova scadenza è PRIMA della vecchia: possibile errore di battitura nel file.", fd(r.oe), fd(r.ne), btn(r.id, "old", "Tieni " + fd(r.oe), "old") + btn(r.id, "file", "È giusto"), !ch);
+      return row(r.nw.n || r.nw.pn, r.nw.name, "Nel file la scadenza è vuota.", fd(r.oe), "—", btn(r.id, "old", "Tieni " + fd(r.oe), "old") + btn(r.id, "file", "Togli la data"), !ch); }).join("");
+    const goneB = D.gone.map(r => { const ch = I.ch[r.id]; if(!ch) pend++; return row(r.o.n || r.o.pn, r.o.name, "Nel file nuovo non c'è più. Se non scegli, resta nell'elenco segnata come «tolta».", fd(r.o.expiry), "", btn(r.id, "del", "Toglila") + btn(r.id, "keep", "Tienila"), !ch); }).join("");
+    const Jold = (() => { try { return ct3Jobs(ct3Rows()); } catch(e) { return []; } })(), closed = new Set();
+    const renB = D.ren.map(r => { const j = Jold.find(x => x.vid === I.vid && x.rows.some(y => y.raw === r.o)); if(j) closed.add(ct3Title(j));
+      return row(r.nw.n || r.nw.pn, r.nw.name, r.watch ? "Non è un acquisto: aggiorna «Da tenere d'occhio»." : (j ? "Chiude il lavoro «" + ct3Title(j) + "»" + (j.s.po ? " · PO " + j.s.po : "") : "Rinnovato") + (r.nw.issue ? " · rilasciato il " + fd(r.nw.issue) + (r.nw.place ? " a " + r.nw.place : "") : "") + " → storico «l'ultima volta».", fd(r.oe), fd(r.ne)); }).join("");
+    const neuB = D.neu.map(r => { const g = gl(r.nw); return row(r.nw.n || r.nw.pn, r.nw.name, g ? "Diventa un acquisto: «" + g + "»." : "Non è un acquisto.", "", fd(r.nw.expiry)); }).join("");
+    const stB = D.stale.map(r => row(r.nw.n || r.nw.pn, r.nw.name, "Scaduta e uguale a prima: riga non aggiornata, o servizio non fatto. Resta un lavoro scaduto.", "", fd(r.ne))).join("");
+    body = sec("DA DECIDERE · " + (D.ask.length + D.gone.length), "#a86200", "il file non concorda con te o con il file di prima", askB + goneB) +
+      sec("RINNOVATI · " + D.ren.length, "#14794e", "chiudono i lavori e scrivono «l'ultima volta»", renB) + sec("NUOVE VOCI · " + D.neu.length, "#1553d8", "righe che prima non c'erano", neuB) +
+      sec("DA VERIFICARE · " + D.stale.length, "#c0261c", "acquisti scaduti e non aggiornati nel file", stB) +
+      (D.visit.length ? '<div style="padding:10px 14px;background:#f7f9fb;border-top:1px solid rgba(10,27,46,.08);font-size:12px;color:#6a7d90"><b style="letter-spacing:.07em;font-size:10.5px">SOLO DATE DI VISITA · ' + D.visit.length + '</b> · annuali/intermedie di classe e bandiera: nessun acquisto</div>' : "") +
+      (body ? "" : "") + (!(D.ask.length + D.gone.length + D.ren.length + D.neu.length + D.stale.length) ? '<div style="padding:24px 16px;font-size:14px;color:#44576b">Nessuna differenza rispetto ai dati attuali (' + D.same + ' righe invariate).</div>' : "");
+    const it = (n, c, t, d) => '<div style="display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid rgba(10,27,46,.07)"><span style="font:700 15px var(--font-mono);color:' + c + ';text-align:right">' + n + '</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:600">' + t + '</span><span style="font-size:12px;color:#44576b;text-wrap:pretty">' + esc(d) + '</span></div></div>';
+    const nNeuBuy = D.neu.filter(r => gl(r.nw)).length;
+    fx = it(closed.size, "#14794e", "Lavori chiusi", closed.size ? [...closed].join(" · ") + ": diventano «Fatto», il prossimo si crea con la nuova scadenza." : "Nessuno.") +
+      it(nNeuBuy, "#b3246b", "Nuovi acquisti", nNeuBuy ? "Voci nuove che entrano nei lavori e si posano sullo scalo utile." : "Nessuno.") +
+      it(D.ren.filter(r => r.watch).length + D.visit.length + D.neu.length - nNeuBuy, "#6a7d90", "Solo informazione", "Classe, bandiera, assicurazioni: aggiornano «Da tenere d'occhio».") +
+      it(D.same, "#6a7d90", "Invariate", "Nessun cambiamento.");
+  }
+  const head = I.vid ? esc(cfg.displayName || I.vid) + " · DOC F01 «" + esc(I.file) + "»" + (pm.fileName ? " al posto di «" + esc(pm.fileName) + "»" : "") : "DOC F01 «" + esc(I.file) + "»";
+  const age = I.lastDate ? Math.round((Date.now() - new Date(I.lastDate + "T12:00:00")) / 864e5) : null;
+  const sub = I.items.length + " righe lette" + (I.skipped ? ", " + I.skipped + " righe di modello vuote saltate" : "") + (age != null && age > 60 ? " · ⚠ data più recente nel file " + fd(I.lastDate) + ": sembra vecchio" : "") + ". Niente è ancora scritto nel DB.";
+  m.innerHTML = '<div style="background:#eef1f4;border-radius:14px;width:min(1180px,100%);height:min(880px,100%);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(10,27,46,.35)">' +
+    '<div style="padding:14px 18px;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:17px;font-weight:700">' + head + '</span><span style="font-size:13px;color:#44576b">' + esc(sub) + '</span></div><div style="display:flex;gap:8px;align-items:center">' + vSel + '<button onclick="ct3ImpClose()" style="' + PC_B + ';font-size:13px;padding:7px 11px">✕</button></div></div>' +
+    '<div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) ' + (window.innerWidth >= 900 ? "340px" : "0") + ';gap:12px;padding:12px">' +
+    '<div class="ct3-sc" style="' + V26_BOX + ';overflow:auto">' + body + '</div>' +
+    '<div style="' + V26_BOX + ';overflow:auto;padding:14px 16px;display:' + (window.innerWidth >= 900 ? "flex" : "none") + ';flex-direction:column;gap:10px"><span style="' + PC_EB + '">EFFETTO SULLA PAGINA CERTIFICATI</span>' + fx +
+    '<div style="background:#eef3fd;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.45;text-wrap:pretty"><b style="color:#1553d8">Le tue modifiche a mano</b><br>Scalo, ditta, PO, gruppo, responsabile e note non sono nel DOC F01: l\'import non li tocca. Una data corretta da te resta tua finché il file non porta un rinnovo più recente.</div></div></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 18px;background:#fff;border-top:1px solid rgba(10,27,46,.10)"><span style="font-size:12.5px;color:#6a7d90;flex:1;min-width:200px">' + (pend ? pend + " scelte in sospeso: tengono il valore di prima." : D ? "Le righe cambiate resteranno segnate ↻ per 14 giorni. La versione precedente resta nel DB (annulla l'import)." : "") + '</span>' +
+    '<button onclick="ct3ImpClose()" style="' + PC_B + ';font-size:13px;padding:8px 12px">Annulla</button><button ' + (D ? 'onclick="ct3ImpApply()"' : "disabled") + ' style="font:600 13px var(--font-sans);background:' + (D ? "#0a1b2e" : "#8a99a8") + ';color:#fff;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;white-space:nowrap">Importa nel DB</button></div></div>';
+}
+window.ct3ImpApply = function(){
+  const I = window._ct3imp; if(!I || !I.vid || !I.D) return; const vid = I.vid, D = I.D, t = new Date().toISOString(), today = t.slice(0, 10);
+  const store = ct3Store(), Jold = (() => { try { return ct3Jobs(ct3Rows()); } catch(e) { return []; } })();
+  const jobOf = o => Jold.find(j => j.vid === vid && j.rows.some(x => x.raw === o));
+  const all = [].concat(D.ask, D.ren, D.visit, D.stale);
+  all.forEach(r => { if(certKey(r.o) !== certKey(r.nw)){ const ex = getCertExtra(vid, r.o); if(Object.keys(ex).length) setCertExtra(vid, r.nw, Object.assign({}, ex)); } });
+  D.ask.forEach(r => { const c = I.ch[r.id];
+    if(r.t === "man"){ if(c === "file") setCertExtra(vid, r.nw, { expiry: "", chg: { at: t, k: "ask", old: r.man } }); }
+    else if(c === "file") setCertExtra(vid, r.nw, { chg: { at: t, k: "ask", old: r.oe } }); else r.nw.expiry = r.oe; });
+  const done = {};
+  D.ren.concat(D.visit).forEach(r => { const j = jobOf(r.o), js = j ? (store[j.key] || {}) : {}, patch = { chg: { at: t, k: "ren", old: r.oe } };
+    if(!r.child){ const h = (r.ex.history || []).slice(); h.push({ date: r.nw.issue || today, port: r.nw.place || "", by: js.sup || "", po: js.po || "", note: "rinnovo da DOC F01" }); patch.history = h; }
+    if(r.man && r.man <= r.ne) patch.expiry = "";
+    setCertExtra(vid, r.nw, patch);
+    if(j && !done[j.key] && (js.st || 0) < 3){ done[j.key] = 1; ct3SetJob(j.key, { st: 3, doneAt: t, auto: t, prevSt: js.st || 0 }); } });
+  D.neu.forEach(r => setCertExtra(vid, r.nw, { chg: { at: t, k: "new" } }));
+  const out = I.items.slice();
+  D.gone.forEach(r => { const c = I.ch[r.id]; if(c === "del") return; const o = Object.assign({}, r.o); if(c === "keep") delete o._gone; else o._gone = today; out.push(o); });
+  state.certificates = state.certificates || {}; state.certificatesMeta = state.certificatesMeta || {};
+  const pm = Object.assign({}, state.certificatesMeta[vid] || {}); delete pm.prev;
+  const prevItems = state.certificates[vid] || [];
+  state.certificates[vid] = out;
+  state.certificatesMeta[vid] = { fileName: I.file, importedAt: t, count: out.length, skipped: I.skipped, lastDate: I.lastDate, diff: { ask: D.ask.length, ren: D.ren.length, neu: D.neu.length, gone: D.gone.length, visit: D.visit.length }, prev: { items: prevItems, meta: pm, at: t } };
+  saveCertificates(); ct3ImpClose();
+  const cfg = (VESSELS || []).find(c => c.vesselId === vid) || {};
+  if(typeof showToast === "function") showToast("✓ " + (cfg.displayName || vid) + ": " + D.ren.length + " rinnovati, " + D.neu.length + " nuove, " + Object.keys(done).length + " lavori chiusi");
+  render(); };
+window.ct3Undo = function(vid){ const m = (state.certificatesMeta || {})[vid]; if(!m || !m.prev) return;
+  if(!confirm("Rimettere i certificati di prima dell'import del " + certFmtD(m.importedAt, false, true) + "?")) return;
+  const st = ct3Store(); Object.keys(st).forEach(k => { if(st[k] && st[k].auto && st[k].auto === m.importedAt) ct3SetJob(k, { st: st[k].prevSt || 0, doneAt: "", auto: "" }); });
+  state.certificates[vid] = m.prev.items || []; state.certificatesMeta[vid] = m.prev.meta || {}; saveCertificates(); render();
+  if(typeof showToast === "function") showToast("Import annullato"); };
+
 </script>
 
 </body>
