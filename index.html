@@ -32472,7 +32472,7 @@ function ogModel(){
     addD(a, { o: c.eta, time: hm(c.eta), kind: etb - c.eta > 0.04 ? "ARRIVO IN RADA" : "ARRIVO", what: c.vname + " a " + c.port, why: etb - c.eta > 0.04 ? "In rada fino al " + rdFDT(etb, now) + ", poi in porto fino al " + rdFDT(etd, now) + "." : "In porto fino al " + rdFDT(etd, now) + ".", btn: "Apri lo scalo", js: "ogScalo('" + id + "')" });
     addD(d, { o: etd, time: hm(etd), kind: "PARTENZA", what: c.vname + " lascia " + c.port, why: (c.its || []).filter(x => !x.onb && x.k === "late").length ? "Ciò che non è a bordo va spostato a un altro scalo." : "", btn: "Apri lo scalo", js: "ogScalo('" + id + "')" });
     const its = c.its || []; if(!its.length) return; const cut = its[0].cut != null ? its[0].cut : etd - 1, nL = c.n ? c.n.late : 0, nR = c.n ? c.n.risk : 0, col = nL ? "#c0261c" : nR ? "#a86200" : "#14794e";
-    addL(l, idx(cut), "◆ limite " + c.port, "◆", col); lim.push({ i: idx(cut), c, nL });
+    addL(l, idx(cut), "◆ limite " + c.port, "◆", col); if(idx(cut) >= 0 && idx(cut) < ND) lim.push({ i: idx(cut), c, nL });
     addD(idx(cut), { o: cut, time: hm(cut), tc: col, kind: "LIMITE DI CONSEGNA", what: c.vname + " a " + c.port, why: (nL ? nL + " PO non arrivano in tempo" + (nR ? ", " + nR + " a rischio" : "") : nR ? nR + " PO a rischio, gli altri in tempo" : "tutti i " + its.length + " PO in tempo") + " · " + its.length + " PO pianificati.", btn: nL ? "Sposta o anticipa" : "Apri lo scalo", pri: !!nL, js: "ogScalo('" + id + "')" });
   });
   let C = []; try { C = ct2All(); } catch(e) {}
@@ -32497,7 +32497,7 @@ function ogHTML(){
   const G = ogModel(), esc = escapeHTML, S = window._og, day = Math.min(S.day || 0, G.ND - 1), NW = G.NW, DD = G.DD;
   const byDay = {}; G.lim.forEach(x => { byDay[x.i] = (byDay[x.i] || 0) + 1; });
   const late = G.lim.filter(x => x.nL).sort((a, b) => a.i - b.i)[0], busy = Object.keys(byDay).filter(i => byDay[i] > 1).map(Number).sort((a, b) => a - b)[0];
-  const dl = i => (i === 0 ? "oggi" : i === 1 ? "domani" : DD[i].wl + " " + DD[i].dm);
+  const dl = i => (i === 0 ? "oggi" : i === 1 ? "domani" : DD[i] ? DD[i].wl + " " + DD[i].dm : "");
   const title = !G.lim.length ? "Nessun limite di consegna " + (NW === 1 ? "questa settimana" : "nelle prossime " + NW + " settimane") + "."
     : late ? "Il punto da sistemare: " + late.c.vname + " a " + late.c.port + ", limite " + dl(late.i) + " — " + late.nL + " PO non arrivano in tempo."
     : G.lim.length + (G.lim.length > 1 ? " limiti di consegna" : " limite di consegna") + " in " + (NW === 1 ? "settimana" : NW + " settimane") + (busy != null ? ". Il punto stretto è " + dl(busy) + ": " + byDay[busy] + " limiti lo stesso giorno." : ", tutti coperti.");
