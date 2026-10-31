@@ -32758,6 +32758,7 @@ function ct3GSel(cur, js){ return '<select onchange="' + js + '" style="font:500
   '<option value="auto">Gruppo automatico</option>' + CT3_G.map(g => '<option value="' + g[0] + '"' + (cur === g[0] ? " selected" : "") + '>' + escapeHTML(g[1]) + '</option>').join("") + '<option value="no"' + (cur === "watch" ? " selected" : "") + '>Non è un acquisto</option></select>'; }
 function ct3Card(j, M){
   if(!j) return '<div style="padding:28px 20px;font-size:14px;color:#44576b">Nessun lavoro in questo filtro.</div>';
+  const _rule = ct3RuleHTML(j);
   const esc = escapeHTML, now = Date.now(), p = j.p, c = p.c, K = pcJ(j.key), u = ct3Urg(j), V = pcJ(j.vid);
   const box = (l, v, s, col) => '<div style="border:1px solid rgba(10,27,46,.10);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;color:#6a7d90">' + l + '</span><span style="font:700 14px var(--font-mono);color:' + (col || "#0a1b2e") + ';overflow-wrap:anywhere">' + esc(v) + '</span><span style="font-size:11.5px;color:#44576b">' + esc(s || "") + '</span></div>';
   const boxes = '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">' + box("SCADE", ct2FD(j.due), j.d < 0 ? "scaduto da " + Math.round(-j.d) + " gg" : "tra " + Math.round(j.d) + " gg", j.d < 0 ? "#c0261c" : "") +
@@ -32779,14 +32780,64 @@ function ct3Card(j, M){
     '<div style="display:flex;flex-direction:column;gap:5px"><div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:700"><span style="width:8px;height:8px;border-radius:50%;background:' + ct3VCol(j.vid) + '"></span>' + esc(j.vname) + '</span><span style="font:700 10.5px var(--font-mono);color:' + (j.k === "R" ? "#b3246b" : "#0f7b8a") + ';border:1px solid currentColor;border-radius:5px;padding:2px 6px">' + (j.k === "R" ? "RICAMBI" : "SERVIZIO") + '</span></div>' +
     '<span style="font-size:19px;font-weight:700;line-height:1.25">' + esc(ct3Title(j)) + '</span><span style="font-size:13px;color:#44576b">' + j.rows.length + (j.rows.length > 1 ? " voci del DOC F01 con scadenze vicine: un solo lavoro" : " voce del DOC F01") + '</span></div>' +
     boxes + '<div style="background:#eef3fd;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px"><span style="' + PC_EB + ';color:#1553d8">PERCHÉ QUI</span><span style="font-size:13px;line-height:1.45;text-wrap:pretty">' + esc(ct3Why(j)) + '</span></div>' +
-    flow + fields +
+    flow + fields + _rule +
     '<div style="display:flex;flex-direction:column"><span style="' + PC_EB + ';padding-bottom:4px">VOCI · ' + j.rows.length + '</span>' + items + '</div>' +
     '<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + '">SCALO</span>' + callSel + '</div>' +
     (last ? '<div style="display:flex;flex-direction:column;border-top:1px solid rgba(10,27,46,.08);padding-top:11px"><span style="' + PC_EB + ';padding-bottom:4px">L\'ULTIMA VOLTA</span>' + last + '</div>' : "") + ag + '</div>' +
     v26Foot('<button onclick="ct3Rfq(\'' + K + '\')" style="font:600 13px var(--font-sans);background:#0a1b2e;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">' + mains[j.st] + '</button><button onclick="ccNewTodo({vid:\'' + V + '\',text:\'' + pcJ(ct3Title(j) + " — " + j.vname + (c ? " a " + c.port : "") + " (scade " + ct2FD(j.due) + ")") + '\'})" style="' + PC_B + ';font-size:13px;padding:8px 12px">+ To-do</button>');
 }
-function ct3WCard(x){ if(!x) return ct2Card(null); const g = x.g;
-  return ct2Card(x) + '<div style="padding:0 18px 16px;display:flex;flex-direction:column;gap:6px"><span style="' + PC_EB + '">È UN ACQUISTO?</span>' + ct3GSel(g, "ct3Buy('" + pcJ(x.vid) + "','" + pcJ(x.key) + "',this.value)") + '<span style="font-size:12px;color:#6a7d90">Scegli il gruppo: la voce entra nei lavori e si posa sullo scalo utile.</span></div>'; }
+function ct3WCard(x){ if(!x) return ct2Card(null); const g = x.g, nm = String(x.it.name || "").toUpperCase();
+  const hssc = /CLASS|LOAD LINE|SAFETY (EQUIPMENT|CONSTRUCTION|RADIO)|IOPP|IAPP|ISPP|SEWAGE POLL|BALLAST|ANTI-?FOUL|IAFS|GARBAGE|DANGEROUS|IMSBC|SOLID CARGO|ENERGY EFF|IEEC|SURVEY/.test(nm), aud = /SAFETY MANAGEMENT|\bSMC\b|ISSC|ISSP|SECURITY|MLC|MARITIME LAB|\bDOC\b|DOCUMENT OF COMPLIANCE \(DOC\)/.test(nm), ins = /INSURANCE|P ?& ?I|ENTRY|CLC|WRECK|BUNKER|COFR/.test(nm);
+  const r = hssc ? ["Visite annuali e intermedie: finestra da 3 mesi prima a 3 mesi dopo l'anniversario (sistema armonizzato HSSC). Il rinnovo si può fare nei 3 mesi prima della scadenza senza perdere giorni. Proroga oltre la scadenza: solo dalla bandiera, al massimo 3 mesi per finire il viaggio.", "SOLAS I/14 · HSSC"]
+    : aud ? ["Verifica intermedia tra il 2° e il 3° anniversario. Nessuna tolleranza automatica oltre la scadenza: senza audit il certificato decade.", "ISM / ISPS / MLC"]
+    : ins ? ["Nessuna tolleranza: le coperture P&I / CLC / Wreck si rinnovano a data fissa con il Club (di solito 20.02). Senza certificato valido la nave può essere fermata.", "Club P&I · bandiera"] : null;
+  const rule = r ? '<div style="margin:0 18px 12px;background:#f5f7f9;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px"><span style="' + PC_EB + '">REGOLA E TOLLERANZA</span><span style="font-size:12.5px;line-height:1.45;text-wrap:pretty">' + escapeHTML(r[0]) + '</span><span style="font:500 11px var(--font-mono);color:#6a7d90">' + escapeHTML(r[1]) + '</span></div>' : "";
+  return ct2Card(x) + rule + '<div style="padding:0 18px 16px;display:flex;flex-direction:column;gap:6px"><span style="' + PC_EB + '">È UN ACQUISTO?</span>' + ct3GSel(g, "ct3Buy('" + pcJ(x.vid) + "','" + pcJ(x.key) + "',this.value)") + '<span style="font-size:12px;color:#6a7d90">Scegli il gruppo: la voce entra nei lavori e si posa sullo scalo utile.</span></div>'; }
+// v2.9c — REGOLA E TOLLERANZA per gruppo e bandiera (ricerca 31.10.2026; fonti: SOLAS, circolari IMO, Marine Notice Liberia, Technical Notice Malta)
+function ct3Flag(vid){ const c = (VESSELS || []).find(v => v.vesselId === vid) || {}; return String(c.flag || ""); }
+function ct3Rule(j){ const F = ct3Flag(j.vid), nm = j.rows.map(x => String(x.it.name || "").toUpperCase()).join(" | "), L = [];
+  const add = (t, src, tol) => L.push({ t, src, tol: tol || "" });
+  if(j.g === "lsa"){
+    if(/LIFE ?RAFT|\bHRU\b|HYDROSTATIC|LIFE ?JACKET/.test(nm)){
+      add("Zattere, giubbotti autogonfiabili e sganci idrostatici: revisione a intervalli non superiori a 12 mesi. La bandiera può prorogare fino a 17 mesi (+5) solo su richiesta, se non c'è una stazione approvata in tempo.", "SOLAS III/20.8", "+5 mesi solo con permesso della bandiera");
+      if(/Liberia/i.test(F)) add("Liberia: per le navi da carico la revisione annuale delle zattere può essere fatta da 3 mesi prima a 3 mesi dopo la scadenza (allineata alla visita annuale).", "Liberia Marine Notice SAF-001", "± 3 mesi (Liberia)");
+      if(/Malta/i.test(F)) add("Malta: revisione solo presso stazioni approvate dal fabbricante per quel modello. Accetta l'intervallo esteso a 30 mesi per zattere con certificato MED e omologazione secondo MSC.1/Circ.1328.", "TM Technical Notice SLS.23 · SLS.37 Rev.1");
+    }
+    if(/LIFE ?BOAT|RESCUE|DAVIT|RELEASE GEAR|ON[- ]?LOAD|FREE[- ]?FALL|LAUNCH|\bLLA\b/.test(nm)){
+      add("Lance, rescue boat, gru e ganci: esame annuale e prova di funzionamento da personale certificato del fabbricante o di un fornitore autorizzato; ogni 5 anni esame completo con prova di sovraccarico. Di prassi si fa nella finestra della visita annuale Safety Equipment.", "SOLAS III/20.11 · MSC.402(96)", "finestra SE ± 3 mesi (di prassi)");
+      if(/Malta/i.test(F)) add("Malta richiama gli stessi requisiti: rapporti e checklist firmati dal personale certificato del fornitore autorizzato.", "TM Technical Notice SLS.2 Rev.2");
+    }
+  } else if(j.g === "radio"){
+    if(/EPIRB/.test(nm)) add("EPIRB: test annuale entro i 3 mesi prima della scadenza, oppure da 3 mesi prima a 3 mesi dopo l'anniversario del Cargo Ship Safety Radio Certificate. Manutenzione a terra (SBM) ogni 5 anni al massimo.", "SOLAS IV/15.9 · MSC.1/Circ.1040", "± 3 mesi sull'anniversario del Safety Radio");
+    if(/\bVDR\b|\bA\.?I\.?S\b/.test(nm)) add("VDR e AIS: test annuale, nella stessa finestra della visita annuale del Safety Equipment (3 mesi prima / 3 mesi dopo l'anniversario).", "SOLAS V/18.8-9 · MSC.1/Circ.1576", "± 3 mesi sull'anniversario del Safety Equipment");
+    if(/\bSART\b|BATTER/.test(nm)) add("Batterie di SART, EPIRB, VHF portatili: la data di scadenza è stampata sul pezzo. Nessuna tolleranza: vanno sostituite prima.", "SOLAS IV · fabbricante", "nessuna");
+    if(!L.length) add("Apparati radio e navigazione: verifica annuale nella visita del Safety Radio / Safety Equipment (± 3 mesi sull'anniversario). Fuori dalla visita, vale la data del rapporto del tecnico.", "SOLAS IV · V · HSSC", "± 3 mesi se fatto nella visita");
+  } else if(j.g === "fire"){
+    add("Antincendio (estintori, autorespiratori, EEBD, CO2, schiuma): le ispezioni annuali si fanno da 3 mesi prima a 3 mesi dopo l'anniversario del Safety Equipment. La finestra NON vale per le prove di terzi pluriennali (es. bombole CO2, prove idrauliche).", "SOLAS II-2/14 · MSC.1/Circ.1432", "± 3 mesi sull'anniversario del SE");
+    if(/Liberia/i.test(F)) add("Liberia: prova idraulica degli estintori portatili ogni 10 anni; l'esame annuale può farlo l'equipaggio se addestrato e se la classe lo accetta.", "Liberia Marine Notice FIR-001");
+  } else if(j.g === "pyro"){
+    add("Razzi, fuochi a mano, fumogeni, lancia-sagole: la scadenza è stampata sul pezzo. Nessuna tolleranza: scaduti = carenza PSC. Ordinali in tempo, i pirotecnici viaggiano come merce pericolosa (tempi più lunghi).", "SOLAS III · LSA Code", "nessuna");
+  } else if(j.g === "med"){
+    add("Cassetta medicinali: ispezione almeno ogni 12 mesi; contenuto fissato dalla bandiera. Nessuna tolleranza.", "MLC 2006, Standard A4.1", "nessuna");
+    if(/SANITATION|SSCE/.test(nm)) add("Certificato di esenzione sanitaria (SSCEC): valido 6 mesi, prorogabile di 1 mese se l'ispezione non si può fare in porto.", "IHR 2005, art. 39", "+1 mese");
+  } else if(j.g === "lrit"){
+    add("LRIT: il rapporto di conformità si rifà al cambio di bandiera, di apparato o di provider (ASP). La scadenza annuale è richiesta da alcune bandiere: verifica con il provider.", "SOLAS V/19-1", "dipende dalla bandiera");
+  } else if(j.g === "gas" || j.g === "alc"){
+    add("Strumenti di misura (rilevatori gas, alcol test): vale la data di taratura del certificato del fornitore. Nessuna tolleranza della normativa IMO.", "SOLAS XI-1/7 · fabbricante", "nessuna");
+  } else if(j.g === "water"){
+    add("Analisi acqua / acque nere / zavorra: vale la data del rapporto di laboratorio; la frequenza la fissano il manuale della nave, la bandiera o il porto (es. VGP negli USA). Nessuna tolleranza automatica.", "MLC A3.2 · MARPOL IV · BWM", "nessuna");
+  } else if(j.g === "lift"){
+    add("Mezzi di sollevamento e prove di carico: esame annuale e prova ogni 5 anni; scadenza = data del certificato del registro gru. Nessuna tolleranza IMO.", "ILO C152 · classe", "nessuna");
+  } else {
+    add("Vale la scadenza del certificato del fornitore. Nessuna tolleranza automatica.", "—", "nessuna");
+  }
+  if(/Portog/i.test(F)) add("Bandiera Portogallo (registro MAR, Madeira): non ho trovato regole proprie; si applicano SOLAS e circolari IMO. Verifica con RINA per le proroghe.", "—");
+  if(/Italia/i.test(F)) add("Bandiera italiana: per le navi minori le scadenze sono quelle delle Annotazioni di sicurezza (Capitaneria). Verifica con il RINA.", "—");
+  return L; }
+function ct3RuleHTML(j){ const L = ct3Rule(j); if(!L.length) return ""; const esc = escapeHTML, F = ct3Flag(j.vid), tol = (L.slice().reverse().find(x => x.tol && /Liberia|Malta/.test(x.tol)) || L.find(x => x.tol) || {}).tol || "";
+  return '<div style="background:#f5f7f9;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span style="' + PC_EB + '">REGOLA E TOLLERANZA</span>' + (F ? '<span style="font-size:11.5px;color:#6a7d90">bandiera ' + esc(F) + '</span>' : "") + (tol ? '<span style="font:700 11px var(--font-mono);flex-basis:100%;color:' + (/nessuna/.test(tol) ? "#c0261c" : "#14794e") + ';margin-left:auto">' + esc(tol) + '</span>' : "") + '</div>' +
+    L.map(x => '<div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:12.5px;line-height:1.45;text-wrap:pretty">' + esc(x.t) + '</span><span style="font:500 11px var(--font-mono);color:#6a7d90">' + esc(x.src) + '</span></div>').join("") +
+    '<span style="font-size:11.5px;color:#6a7d90">La dashboard usa sempre la scadenza vera: la tolleranza è un margine, non una data da pianificare.</span></div>'; }
 function ct3Tabs(){ const v = ct3View(), b = (k, l) => '<button onclick="ct3SetView(\'' + k + '\')" style="font:600 13px var(--font-sans);white-space:nowrap;border:0;border-radius:7px;padding:7px 12px;cursor:pointer;background:' + (v === k ? "#0a1b2e" : "transparent") + ';color:' + (v === k ? "#fff" : "#0a1b2e") + '">' + l + '</button>';
   return '<div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(10,27,46,.12);border-radius:9px;padding:3px">' + b("scalo", "Per scalo") + b("cal", "Calendario") + b("elenco", "Elenco completo") + '</div>'; }
 function ct3LastImp(){ const M = state.certificatesMeta || {}; let best = null;
