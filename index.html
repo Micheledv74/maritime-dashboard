@@ -9959,6 +9959,8 @@ function readCache() {
   } catch { return null; }
 }
 function writeCache(payload) {
+  // v2.9j — sul telefono la cache dei dati (grande) riempiva la memoria e bloccava il login al database
+  if (typeof maIsMobile === "function" && maIsMobile()) { try { localStorage.removeItem(LS_KEYS.cache); } catch {} return; }
   try { localStorage.setItem(LS_KEYS.cache, JSON.stringify(payload)); } catch {}
 }
 
@@ -31089,10 +31091,28 @@ function dbLoadLib(){
   return window._dbLib || (window._dbLib = new Promise((ok, ko) => { const s = document.createElement("script");
     s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"; s.onload = ok; s.onerror = () => { window._dbLib = null; ko(new Error("libreria Supabase non caricata (rete?)")); }; document.head.appendChild(s); }));
 }
+// v2.9j — iPhone: memoria del browser piena (≈5 MB) → "The quota has been exceeded" e la sessione non si salva.
+// Prima di arrendersi butta le cache che si riscaricano da sole, poi riprova; ultima riserva sessionStorage.
+function lsFreeCaches(){
+  const keep = /^mpd\.(sbAuth|sbHashes|sbState|settings)/, junk = /cache|Cache|snapshot|Snapshot|History$|history$|backup|Backup|lastPayload|mbody|morningBrief/;
+  let freed = 0; Object.keys(localStorage).forEach(k => { if(!keep.test(k) && junk.test(k)){ freed += (localStorage.getItem(k) || "").length; localStorage.removeItem(k); } });
+  return freed;
+}
+function lsSet(k, v){
+  try { localStorage.setItem(k, v); return true; } catch(e) {}
+  lsFreeCaches(); try { localStorage.setItem(k, v); return true; } catch(e) {}
+  return false;
+}
+const lsSafeStore = {
+  getItem: k => localStorage.getItem(k) || sessionStorage.getItem(k),
+  setItem: (k, v) => { if(lsSet(k, v)) { try { sessionStorage.removeItem(k); } catch(e) {} return; } try { sessionStorage.setItem(k, v); console.warn("[db] memoria piena: sessione solo per questa scheda"); } catch(e) {} },
+  removeItem: k => { localStorage.removeItem(k); try { sessionStorage.removeItem(k); } catch(e) {} }
+};
+window.lsFreeCaches = lsFreeCaches;
 async function dbClient(){
   if(window._db.client) return window._db.client;
   await dbLoadLib();
-  const c = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "mpd.sbAuth" } });
+  const c = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "mpd.sbAuth", storage: lsSafeStore } });
   window._db.client = c;
   const { data } = await c.auth.getSession(); window._db.user = data && data.session ? data.session.user : null;
   c.auth.onAuthStateChange((ev, s) => { window._db.user = s ? s.user : null; dbRenderRow(); if(ev === "SIGNED_IN"){ dbSubscribe(); if(typeof sbInit === "function") setTimeout(() => sbInit(), 300); } });
@@ -31338,7 +31358,7 @@ function sbStatusHTML(){
     (on ? '<button class="btn btn-sm" onclick="sbNow()">↻ Sincronizza ora</button>' : '') + '<button class="btn btn-sm" onclick="sbToggle()">' + (on ? "Spegni" : "Accendi") + '</button></div>';
 }
 function sbPaintStatus(){ const el = document.getElementById("sb-st"); if(el) el.outerHTML = sbStatusHTML(); }
-setTimeout(() => { if(localStorage.getItem("mpd.sbAuth")) sbInit().catch(e => console.warn("[sb] avvio", e)); }, 3500);
+setTimeout(() => { if(localStorage.getItem("mpd.sbAuth") || sessionStorage.getItem("mpd.sbAuth")) sbInit().catch(e => console.warn("[sb] avvio", e)); }, 3500);
 
 
 // ============================================================================
@@ -33146,13 +33166,13 @@ async function mailCfgPut(){
   if(!error) localStorage.setItem("mpd.mailCfgAt", now); else console.warn("[posta cfg]", error);
 }
 (function(){ const f0 = window.ccMailConnect; if(typeof f0 === "function") window.ccMailConnect = function(){ const r = f0.apply(this, arguments); mailCfgPut(); return r; }; })();
-setTimeout(() => { if(localStorage.getItem("mpd.sbAuth")) mailCfgSync(); }, 6000);
+setTimeout(() => { if(localStorage.getItem("mpd.sbAuth") || sessionStorage.getItem("mpd.sbAuth")) mailCfgSync(); }, 6000);
 
 // --- TELEFONO: avviso se non è collegato al database (senza, i dati manuali non si allineano) -------
 function mDbBanner(){
   if(!sbEnabled()) return '';
   const S = window._sb || {};
-  if(localStorage.getItem("mpd.sbAuth") && window._db && window._db.user !== null){
+  if((localStorage.getItem("mpd.sbAuth") || sessionStorage.getItem("mpd.sbAuth")) && window._db && window._db.user !== null){
     if(S.err) return '<div style="margin:0 0 10px;padding:12px 14px;border-radius:12px;background:#fdecea;color:#8a1c14;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:180px">Sincronizzazione non riuscita: ' + escapeHTML(S.err) + '</span><button onclick="sbNow()" style="min-height:44px;padding:0 16px;border-radius:10px;border:0;background:#8a1c14;color:#fff;font-weight:700;font-size:14px">Riprova</button></div>';
     return '';
   }
@@ -33167,10 +33187,12 @@ function mDbBanner(){
 window.mDbLogin = async function(){
   const em = (document.getElementById("m-db-email") || {}).value || "", pw = (document.getElementById("m-db-pass") || {}).value || "";
   if(!em || !pw){ showToast("Inserisci email e password"); return; }
+  try { lsFreeCaches(); } catch(e) {}
   try { const c = await dbClient(); const { error } = await c.auth.signInWithPassword({ email: em.trim(), password: pw }); if(error) throw error;
     showToast("Collegato: sincronizzo…"); try { dbReloadProc(true); } catch(e) {} setTimeout(() => { mailCfgSync(); renderMobileApp(); }, 2500);
-  } catch(e) { showToast("Accesso non riuscito: " + (e.message || e)); }
+  } catch(e) { showToast(/quota/i.test(String(e && e.message || e)) ? "Memoria del browser piena: " + mLsTop() + " — dimmelo e la liberiamo" : "Accesso non riuscito: " + (e.message || e)); }
 };
+function mLsTop(){ return Object.keys(localStorage).map(k => [k, (localStorage.getItem(k) || "").length]).sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => x[0].replace(/^mpd\./, "") + " " + Math.round(x[1] / 1024) + " KB").join(", "); }
 (function(){
   const r0 = renderMobileApp;
   renderMobileApp = function(){ r0.apply(this, arguments);
