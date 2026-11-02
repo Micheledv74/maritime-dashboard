@@ -33414,6 +33414,57 @@ ccLeftHTML = (function(f0){ return function(){ const h = f0.apply(this, argument
 window.tmPaste = function(){ const go = t => { const C = window._cc, ta = document.getElementById("cc-q"); C.q = String(t || ""); C.sel = ""; if(ta) ta.value = C.q; renderMobileApp(); };
   try { navigator.clipboard.readText().then(go, () => showToast("Tieni premuto nella casella e scegli Incolla")); } catch(e) { showToast("Tieni premuto nella casella e scegli Incolla"); } };
 
+
+// ===== v3.1 (02.11) — CERTIFICATI "LO ORGANIZZO IO" · AGENDA (Outlook + personale) IN OGGI =========================
+// Certificati: oltre a CHI fa il lavoro (resp, es. una ditta), il flag certExtras.mine = "lo organizzo io". Filtro "★ Tocca a me".
+window._ct3 = window._ct3 || {}; window._ct2 = window._ct2 || {};
+function ctOnCert(){ return state.view === "certificates"; }
+window.ctMineSet = function(k, on){ const L = (window._ctMineK || {})[k] || []; let n = 0;
+  L.forEach(p => { const raw = certFindItem(p[0], p[1]); if(raw){ setCertExtra(p[0], raw, { mine: !!on }); n++; } });
+  const y = window.scrollY; render(); window.scrollTo(0, y); showToast(on ? "★ Segnato: lo organizzi tu" + (n > 1 ? " (" + n + " voci)" : "") : "Tolto da «Tocca a me»"); };
+function ctMineBtn(k, list, on){ (window._ctMineK = window._ctMineK || {})[k] = list;
+  return '<button onclick="ctMineSet(\'' + pcJ(k) + '\',' + (on ? 0 : 1) + ')" title="La ditta fa il lavoro, ma tocca a te organizzarlo (RFQ, scalo, agenzia, accessi)" style="font:600 13px var(--font-sans);border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;align-self:flex-start;' +
+    (on ? "background:#0a1b2e;color:#fff;border:1px solid #0a1b2e" : "background:#fff;color:#0a1b2e;border:1px dashed rgba(10,27,46,.35)") + '">' + (on ? "★ Lo organizzo io" : "☆ Lo organizzo io?") + '</button>'; }
+ct3Rows = (function(f0){ return function(){ const R = f0.apply(this, arguments); return ctOnCert() && window._ct3.me ? R.filter(x => x.ex && x.ex.mine) : R; }; })(ct3Rows);
+ct3Jobs = (function(f0){ return function(){ const J = f0.apply(this, arguments); J.forEach(j => { j.mine = j.rows.some(x => x.ex && x.ex.mine); }); return J; }; })(ct3Jobs);
+ct2All = (function(f0){ return function(){ const A = f0.apply(this, arguments); return ctOnCert() && window._ct2.me ? A.filter(x => x.ex && x.ex.mine) : A; }; })(ct2All);
+function ctMineN(){ const sv = window._ct2.v || ""; let n = 0;
+  (VESSELS || []).forEach(c => { if(sv && c.vesselId !== sv) return; ((state.certificates || {})[c.vesselId] || []).forEach(it => { if(!it.isPermanent && it.expiry && (getCertExtra(c.vesselId, it) || {}).mine) n++; }); }); return n; }
+function ctMinePill(w){ const S = window["_" + w], n = ctMineN(); return v26Pill(!!S.me, "window._" + w + ".me=" + (S.me ? "false" : "true") + ";render()", "★ Tocca a me", n || "", "#0a1b2e"); }
+ct3Filters = (function(f0){ return function(){ const h = f0.apply(this, arguments), i = h.lastIndexOf("</div>"); return h.slice(0, i) + '<div style="display:flex;gap:6px;align-items:center"><span style="' + PC_EB + ';padding-right:4px">CHI ORGANIZZA</span>' + ctMinePill("ct3") + '</div>' + h.slice(i); }; })(ct3Filters);
+ct3Row = (function(f0){ return function(j){ const h = f0.apply(this, arguments); return j && j.mine ? h.replace('<span style="display:flex;gap:6px;align-items:center">', '<span style="display:flex;gap:6px;align-items:center"><span title="Lo organizzi tu" style="font:700 11px var(--font-sans);color:#fff;background:#0a1b2e;border-radius:999px;padding:2px 8px;white-space:nowrap">★ io</span>') : h; }; })(ct3Row);
+ct3Card = (function(f0){ return function(j){ const h = f0.apply(this, arguments); if(!j) return h;
+  const mark = '<div style="background:#eef3fd;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px">';
+  const b = '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' + ctMineBtn("j:" + j.key, j.rows.map(x => [x.vid, x.key]), j.mine) + '<span style="font-size:12px;color:#6a7d90">' + (j.mine ? "Compare in «★ Tocca a me»" + (j.s.sup ? " · il lavoro lo fa " + escapeHTML(j.s.sup) : "") : "la ditta fa il lavoro, tu coordini") + '</span></div>';
+  const i = h.indexOf(mark); return i < 0 ? h : h.slice(0, i) + b + h.slice(i); }; })(ct3Card);
+ct2Card = (function(f0){ return function(x){ const h = f0.apply(this, arguments); if(!x) return h; const on = !!(x.ex && x.ex.mine);
+  return h.replace('CHI SE NE OCCUPA</span>', 'CHI SE NE OCCUPA</span>' + ctMineBtn("c:" + x.vid + "|" + x.key, [[x.vid, x.key]], on)); }; })(ct2Card);
+ct2HTML = (function(f0){ return function(){ const h = f0.apply(this, arguments); return h.replace('>CHI</span>', '>CHI</span>' + ctMinePill("ct2") + '<span style="width:1px;height:20px;background:rgba(10,27,46,.15);margin:0 4px"></span>'); }; })(ct2HTML);
+
+// --- Agenda in Oggi: i 2 workflow n8n (calendario Outlook + personale Apple) erano letti ma non mostrati (li usava la heatmap, tolta il 29.10).
+// Corsia "Tu · agenda" nel calendario + righe nel dettaglio del giorno. mpd.ogAgenda all | work | off.
+function ogAg(){ const v = localStorage.getItem("mpd.ogAgenda"); return v === "work" || v === "off" ? v : "all"; }
+window.ogSetAg = function(v){ try { localStorage.setItem("mpd.ogAgenda", v); } catch(e) {} const y = window.scrollY; render(); window.scrollTo(0, y); };
+function ogAgEvents(){ const L = [], add = (src, arr) => (Array.isArray(arr) ? arr : []).forEach(e => { const s = String(e.start || e.date || ""); if(!s) return; const allDay = s.length <= 10 || !!e.isAllDay || !!e.allDay;
+    const d = allDay ? new Date(s.slice(0, 10) + "T00:00:00") : new Date(s); if(isNaN(d)) return; L.push({ src, d, allDay, title: String(e.title || e.subject || (src === "p" ? "Impegno" : "Appuntamento")), loc: String(e.location || ""), link: e.webLink || e.url || "" }); });
+  if(state.outlookCalendar) add("o", state.outlookCalendar.events); if(state.personalCalendar && ogAg() === "all") add("p", state.personalCalendar.events); return L; }
+ogModel = (function(f0){ return function(){ const G = f0.apply(this, arguments); if(ogAg() === "off") return G;
+  try { const t0 = new Date(); t0.setHours(0, 0, 0, 0); const T0 = t0.getTime(), now = G.now, ag = { vid: "_agenda", name: "Tu · agenda", seg: [], ev: {}, agenda: true }; let any = false;
+    ogAgEvents().forEach(e => { const i = Math.floor((e.d.getTime() - T0) / 864e5); if(i < 0 || i >= G.ND) return; any = true;
+      const hm = e.allDay ? "" : String(e.d.getHours()).padStart(2, "0") + ":" + String(e.d.getMinutes()).padStart(2, "0"), P = e.src === "p";
+      (ag.ev[i] = ag.ev[i] || []).push({ t: (hm ? hm + " " : "") + e.title, s: hm || "•", c: P ? "#6a7d90" : "#5b3fc4" });
+      (G.det[i] = G.det[i] || []).push({ o: e.allDay ? (T0 + i * 864e5 - now) / 864e5 : (e.d.getTime() - now) / 864e5, time: hm || "giorno", tc: P ? "#6a7d90" : "#5b3fc4", kind: P ? "PERSONALE" : "OUTLOOK", what: e.title, why: e.loc,
+        btn: P ? "+ To-do" : "Apri", js: P ? "ccNewTodo({text:'" + pcJ(e.title) + "'})" : "window.open('" + pcJ(e.link || "https://outlook.office.com/calendar/view/day") + "','_blank')" }); });
+    if(any){ const k = G.lanes.findIndex(l => l.vid === "_todo"); G.lanes.splice(k < 0 ? G.lanes.length : k, 0, ag);
+      Object.values(G.det).forEach(L => L.sort((a, b) => (a.todo ? 1 : 0) - (b.todo ? 1 : 0) || a.o - b.o)); }
+  } catch(e) { console.warn("[oggi agenda]", e); }
+  return G; }; })(ogModel);
+ogHTML = (function(f0){ return function(){ const h = f0.apply(this, arguments), v = ogAg(), none = !state.outlookCalendar && !state.personalCalendar;
+  const sel = '<select onchange="ogSetAg(this.value)" title="' + (none ? "I workflow n8n del calendario non hanno ancora mandato dati" : "Appuntamenti dai calendari Outlook e personale (workflow n8n)") + '" style="font:600 13px var(--font-sans);border:1px solid rgba(10,27,46,.18);border-radius:999px;padding:6px 10px;background:#fff;color:' + (none ? "#8a99a8" : "#0a1b2e") + ';cursor:pointer">' +
+    [["all", "Agenda: lavoro + personale"], ["work", "Agenda: solo Outlook"], ["off", "Agenda nascosta"]].map(o => '<option value="' + o[0] + '"' + (v === o[0] ? " selected" : "") + '>' + o[1] + (none && o[0] !== "off" ? " (nessun dato)" : "") + '</option>').join("") + '</select>';
+  return h.replace('<button class="btn btn-sm btn-primary" onclick="openTodoModal(null)">', sel + '<button class="btn btn-sm btn-primary" onclick="openTodoModal(null)">')
+    .replace(/<button onclick="goVessel\('_agenda'\)"[^>]*>Tu · agenda<\/button>/, '<span style="font-size:13px;font-weight:700;align-self:center;color:#5b3fc4;white-space:nowrap">Tu · agenda</span>'); }; })(ogHTML);
+
 </script>
 
 </body>
