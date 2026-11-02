@@ -8846,21 +8846,18 @@ body:not(.skin-glass) .g4-rail { display: none !important; }
 <!-- Bottom tab bar (solo mobile) — navigazione principale pollice-friendly -->
 <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Navigazione principale">
   <!-- v1.05 — mobile v6: quattro porte fisse -->
-  <button class="mtab" data-mtab="flotta" aria-label="Flotta" style="position:relative">
-    <svg class="icon"><use href="#i-ship"/></svg>
-    <span class="mtab-l">Flotta</span>
-  </button>
-  <button class="mtab" data-mtab="todo" aria-label="To-do" style="position:relative">
-    <svg class="icon"><use href="#i-checksquare"/></svg>
-    <span class="mtab-l">To-do</span>
-  </button>
-  <button class="mtab" data-mtab="rubrica" aria-label="Rubrica" style="position:relative">
-    <svg class="icon"><use href="#i-phone"/></svg>
-    <span class="mtab-l">Rubrica</span>
+  <!-- v3.0 — telefono minimo: Scali 96 h · Cerca · To-do -->
+  <button class="mtab" data-mtab="flotta" aria-label="Scali" style="position:relative">
+    <svg class="icon"><use href="#i-anchor"/></svg>
+    <span class="mtab-l">Scali</span>
   </button>
   <button class="mtab" data-mtab="cerca" aria-label="Cerca" style="position:relative">
     <svg class="icon"><use href="#i-search"/></svg>
     <span class="mtab-l">Cerca</span>
+  </button>
+  <button class="mtab" data-mtab="todo" aria-label="To-do" style="position:relative">
+    <svg class="icon"><use href="#i-checksquare"/></svg>
+    <span class="mtab-l">To-do</span>
   </button>
 </nav>
 
@@ -33201,6 +33198,221 @@ function mLsTop(){ return Object.keys(localStorage).map(k => [k, (localStorage.g
     } catch(e) { console.warn("[m-db]", e); } };
   window.renderMobileApp = renderMobileApp;
 })();
+
+// ===== v3.0 (02.11) — TELEFONO MINIMO (prototipo "Telefono Minimo vs Bot" 1a + D) ======================
+// 3 schede: Scali 96 h · Cerca (che capisce un messaggio incollato) · To-do. Scheda PO: Stato · Data · Nota in cima.
+// "Versione PC" = la dashboard intera, larga 1280 e da ingrandire (sessionStorage mpd.pcOnPhone).
+(function(){ try { const s = document.createElement("style");
+  s.textContent = "@media (max-width:768px){#skin-toggle-btn,.header-clock,#hdr-visit,.brand-sub{display:none!important}html,body{overflow-x:hidden}.app-header .sync-info{min-width:0;flex-shrink:1;overflow:hidden}.app-header .header-inner{max-width:100vw;box-sizing:border-box}}";
+  document.head.appendChild(s); } catch(e) {} })();
+const TM_H = 4;   // finestra Scali: 96 ore
+function tmpcOn(){ try { return sessionStorage.getItem("mpd.pcOnPhone") === "1"; } catch(e) { return false; } }
+(function(){ if(tmpcOn()){ const m = document.querySelector('meta[name="viewport"]'); if(m) m.setAttribute("content", "width=1280"); } })();
+window.tmpcGo = function(on){ try { sessionStorage.setItem("mpd.pcOnPhone", on ? "1" : "0"); } catch(e) {} location.reload(); };
+document.addEventListener("DOMContentLoaded", () => { if(!tmpcOn()) return; const b = document.createElement("button"); b.textContent = "‹ Versione telefono"; b.onclick = () => tmpcGo(false);
+  b.style.cssText = "position:fixed;left:16px;bottom:16px;z-index:9998;font:700 28px system-ui,sans-serif;padding:18px 28px;border-radius:999px;border:0;background:#0a1b2e;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.25)"; document.body.appendChild(b); });
+
+function tmE(s){ return escapeAttr(String(s == null ? "" : s)).replace(/'/g, "\\'"); }
+function tmHrs(d){ const h = Math.max(0, Math.round(d * 24)); return h < 1 ? "meno di 1 h" : h + " h"; }
+function tmCalls(){ let M = null; try { M = rdModel(); } catch(e) { return []; } return (M.allCalls || []).filter(c => c.etd >= 0 && c.eta < TM_H && !c.quiet).sort((a, b) => a.eta - b.eta); }
+function tmMiss(c){ const now = Date.now(); return (c.its || []).filter(x => { const p = (() => { try { return mpOf(x.it, now); } catch(e) { return null; } })(); return !(p && p.pos === "onboard"); }); }
+function tmCallCard(c){
+  const esc = escapeHTML, miss = tmMiss(c), late = miss.filter(x => x.k === "late").length, risk = miss.filter(x => x.k === "risk").length, now = Date.now();
+  const lt = typeof m7Local === "function" ? m7Local(c.vid) : null, A = typeof rd2Ag === "function" ? rd2Ag(c) : null;
+  const bd = late ? "#e8b4ae" : risk ? "#f0d29a" : "rgba(10,27,46,.08)";
+  const when = c.eta > 0 ? "arriva " + esc(ccD(c.etaS || c.etbS)) + " · <b>tra " + tmHrs(c.eta) + "</b>" : "in porto · parte " + esc(c.etdS ? ccD(c.etdS) : "—") + (c.etdS ? " · tra " + tmHrs(c.etd) : "");
+  const cut = c.its && c.its[0] ? c.its[0].cut : null;
+  const rows = miss.slice(0, 6).map(x => { const it = x.it, p = (() => { try { return mpOf(it, now) || {}; } catch(e) { return {}; } })(), P = MP_POS[p.pos] || { l: "" };
+    return '<button onclick="tmOpenPo(\'' + tmE(c.vid) + '\',\'' + tmE(it.id) + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;min-height:48px;padding:4px 0;border-top:1px solid rgba(10,27,46,.07)">' +
+      '<span style="width:10px;height:10px;border-radius:' + (x.crit ? "2px" : "50%") + ';background:' + (RD2_C[x.k] || "#8a99a8") + '"></span>' +
+      '<span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(String(it.poNumber || "").replace(/^\d{4}-[A-Z]+-[A-Z]+-/, "") + " " + (it.description || "")) + '</span>' +
+      '<span style="font-size:12.5px;color:#5b6b7c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc([it.supplier, P.l].filter(Boolean).join(" · ")) + '</span></span><span style="color:#b8c3ce;font-size:20px">›</span></button>'; }).join("");
+  const sum = miss.length ? '<span style="font-size:14.5px;font-weight:700;color:' + (late ? "#a3221a" : risk ? "#8a5a00" : "#14794e") + '">' + (late ? late + " PO non arriv" + (late > 1 ? "ano" : "a") + " in tempo" : risk ? risk + " PO a rischio" : miss.length + " PO in arrivo, in tempo") + (miss.length > (late || risk) && (late || risk) ? " · " + miss.length + " da consegnare" : "") + '</span>'
+    : '<span style="font-size:14.5px;font-weight:600;color:#14794e">' + (c.its && c.its.length ? "Tutto a bordo ✓" : "Niente da consegnare in questo scalo") + '</span>';
+  const btn = (h, l, dark) => '<a href="' + h + '" style="flex:1;min-height:48px;border-radius:12px;background:' + (dark ? "#0a1b2e" : "#eef1f5") + ';color:' + (dark ? "#fff" : "#0a1b2e") + ';font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;text-decoration:none">' + l + '</a>';
+  const acts = [A && A.phone ? btn("tel:" + String(A.phone).replace(/[^\d+]/g, ""), "☎ Agenzia", true) : "", miss.length ? btn("javascript:rdShipPreAlert('" + tmE(c.id) + "')", "✉ Pre-alert", !(A && A.phone)) : ""].filter(Boolean).join("");
+  return '<div style="background:#fff;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border:1.5px solid ' + bd + '">' +
+    '<button onclick="maOpenVessel(\'' + tmE(c.vid) + '\')" style="all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="display:flex;gap:8px;align-items:center;font-weight:700;font-size:16px"><span style="width:10px;height:10px;border-radius:5px;background:' + m6VCol(c.vid) + '"></span>' + esc(String(c.vname || "").replace(/^M\/V\s*/i, "")) + '</span>' +
+      (lt ? '<span style="font:600 13px var(--font-mono);color:#5b6b7c">a bordo ' + esc(lt.text) + '</span>' : "") + '</button>' +
+    '<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:21px;font-weight:700;letter-spacing:-.01em">' + esc(ccTitle(c.port)) + '</span><span style="font-size:14px;color:#33475c">' + when + '</span>' +
+      (cut != null && miss.length ? '<span style="font-size:13px;color:#5b6b7c">limite di consegna ' + esc(typeof rdFDT === "function" ? rdFDT(cut, now) : rdFD(cut, now)) + '</span>' : "") + '</div>' +
+    sum + (rows ? '<div style="display:flex;flex-direction:column">' + rows + (miss.length > 6 ? '<button onclick="maOpenVessel(\'' + tmE(c.vid) + '\')" style="all:unset;cursor:pointer;min-height:44px;display:flex;align-items:center;color:#1553d8;font-weight:600;font-size:14px;border-top:1px solid rgba(10,27,46,.07)">Altri ' + (miss.length - 6) + ' ›</button>' : "") + '</div>' : "") +
+    (A ? '<span style="font-size:13px;color:#5b6b7c">' + esc(A.name) + (A.contact ? " · " + esc(A.contact) : "") + '</span>' : "") +
+    (acts ? '<div style="display:flex;gap:8px">' + acts + '</div>' : "") + '</div>';
+}
+function tmScaliHTML(){
+  const esc = escapeHTML, C = tmCalls(), inC = new Set(C.map(c => c.vid)), d = new Date();
+  const later = (VESSELS || []).filter(v => !inC.has(v.vesselId)).map(v => { const W = (() => { try { return ccWhere(v.vesselId); } catch(e) { return null; } })();
+    return '<button onclick="maOpenVessel(\'' + tmE(v.vesselId) + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;min-height:52px;padding:4px 16px;border-top:1px solid rgba(10,27,46,.07)"><span style="width:10px;height:10px;border-radius:5px;background:' + m6VCol(v.vesselId) + '"></span>' +
+      '<span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:15px;font-weight:700">' + esc(String(v.displayName).replace(/^M\/V\s*/i, "")) + '</span><span style="font-size:13px;color:#5b6b7c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(W && W.port ? ccTitle(W.port) + (W.eta ? " · ETA " + ccD(W.eta) : "") + (W.etd ? " · ETD " + ccD(W.etd) : "") : "viaggio non impostato") + '</span></span><span style="color:#b8c3ce;font-size:20px">›</span></button>'; }).join("");
+  return '<div class="m6" style="gap:12px">' + (typeof mDbBanner === "function" ? mDbBanner() : "") +
+    '<div style="display:flex;flex-direction:column;gap:2px;padding:2px 2px 0"><span style="font:600 12px var(--font-mono);letter-spacing:.06em;color:#5b6b7c">' + esc(d.toLocaleDateString("it-IT", { weekday: "short", day: "2-digit", month: "short" }).toUpperCase() + " · " + d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })) + '</span><span style="font-size:30px;font-weight:800;letter-spacing:-.02em">Scali 96 h</span></div>' +
+    (C.length ? C.map(tmCallCard).join("") : '<div style="background:#fff;border-radius:18px;padding:18px 16px;font-size:15px;color:#5b6b7c">Nessuno scalo nelle prossime 96 ore.</div>') +
+    (later ? '<div style="background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden"><span style="font:600 11.5px var(--font-mono);letter-spacing:.07em;color:#5b6b7c;padding:12px 16px 6px">PIÙ AVANTI</span>' + later + '</div>' : "") +
+    '<button onclick="tmpcGo(true)" style="all:unset;cursor:pointer;align-self:center;min-height:44px;padding:0 16px;color:#1553d8;font-weight:600;font-size:15px">Versione PC ›</button>' +
+    '<button onclick="ccNewTodo({})" aria-label="Nuova to-do" style="position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom,0px));width:60px;height:60px;border-radius:30px;border:0;background:#1553d8;color:#fff;font-size:32px;line-height:1;box-shadow:0 6px 18px rgba(21,83,216,.35);z-index:60">+</button></div>';
+}
+(function(){
+  const r0 = renderMobileApp;
+  renderMobileApp = function(){
+    if(maIsMobile() && state.data && !mstate.pcItem && !mstate.m6ct && !mstate.vessel && ["flotta", "home", "navi", "rubrica"].includes(mstate.screen)){
+      const app = document.getElementById("mobile-app"); if(!app) return;
+      try { app.classList.add("m6-on"); app.innerHTML = tmScaliHTML(); m6Badge(); document.body.classList.remove("pc-m-open"); return; } catch(e) { console.error("[scali 96 h]", e); }
+    }
+    return r0.apply(this, arguments);
+  };
+  window.renderMobileApp = renderMobileApp;
+})();
+
+// --- scheda PO: Stato · Data · Nota in cima ------------------------------------------------------
+window.tmOpenPo = function(vid, id, from){ mstate.pcItem = { vid, id, y: window.scrollY, from: from || mstate.screen || "flotta" }; mstate.vessel = vid; renderMobileApp(); updateMobileTabBar(); try { window.scrollTo(0, 0); } catch(e) {} };
+{ const b0 = window.pcBack; window.pcBack = function(){ const pi = mstate.pcItem || {}; if(pi.from){ const y = pi.y || 0; mstate.pcItem = null; mstate.vessel = null; mstate.screen = pi.from; renderMobileApp(); updateMobileTabBar(); setTimeout(() => window.scrollTo(0, y), 0); return; } return b0.apply(this, arguments); }; }
+function tmPort(it, vid){ try { const d = getEffectiveDelivery(it, vid); return d && d.port ? d.port : ""; } catch(e) { return ""; } }
+function tmActBar(vid, id){
+  const it = faFindItem(id); if(!it) return "";
+  const mp = (() => { try { return mpOf(it) || {}; } catch(e) { return {}; } })(), P = MP_POS[mp.pos] || { l: "—" }, how = typeof rdHowOf === "function" ? rdHowOf(id) : null;
+  const sh = getItemShipments(id), last = sh[sh.length - 1], note = (state.notes || {})[id] || "";
+  const dt = how && how.ab ? "a bordo " + mpFD(how.ab) : last && last.eta ? "arriva " + mpFD(last.eta) : "a bordo il…";
+  const b = (k, lab, val, dark) => '<button onclick="tmSheet(\'' + k + '\',\'' + tmE(id) + '\')" style="all:unset;cursor:pointer;min-height:76px;border-radius:14px;background:' + (dark ? "#0a1b2e" : "#fff") + ';color:' + (dark ? "#fff" : "#0a1b2e") + ';border:1px solid ' + (dark ? "#0a1b2e" : "rgba(10,27,46,.14)") + ';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0 6px;text-align:center;box-sizing:border-box;min-width:0">' +
+    '<span style="font-size:11.5px;font-weight:700;letter-spacing:.05em;opacity:' + (dark ? ".75" : "1") + ';color:' + (dark ? "#fff" : "#5b6b7c") + '">' + lab + '</span><span style="font-size:14px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap">' + escapeHTML(val) + '</span></button>';
+  return '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:6px 14px 10px">' + b("stato", "STATO", P.l, true) + b("data", "DATA", dt) + b("nota", "NOTA", note ? note.slice(0, 24) : "+ scrivi") + '</div>';
+}
+{ const f0 = window.pcMobileCard; window.pcMobileCard = function(){ const h = f0.apply(this, arguments); if(!h) return h; const pi = mstate.pcItem || {};
+    let out = h.replace('<div id="pc-m">', tmActBar(pi.vid, pi.id) + '<div id="pc-m">');
+    if(pi.from) out = out.replace(/(<button class="m6-back" onclick="pcBack\(\)">)‹ [^<]*/, "$1‹ " + (pi.from === "cerca" ? "Cerca" : "Scali"));
+    return out; }; }
+
+const TM_CAR = ["DHL Express", "FedEx", "UPS", "TNT", "Altro"];
+function tmIso(n){ const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+window.tmSheet = function(kind, id, pre){ const it = faFindItem(id); if(!it) return; const mp = (() => { try { return mpOf(it) || {}; } catch(e) { return {}; } })(), how = typeof rdHowOf === "function" ? rdHowOf(id) : null;
+  window._tms = Object.assign({ kind, id, pos: mp.manual ? mp.pos : (mp.pos || ""), car: "DHL Express", awb: "", eta: "", ab: (how && how.ab) || "", note: (state.notes || {})[id] || "" }, pre || {}); tmSheetPaint(); };
+window.tmSheetClose = function(){ window._tms = null; tmSheetPaint(); };
+window.tmSV = function(k, v, repaint){ if(!window._tms) return; window._tms[k] = v; if(repaint) tmSheetPaint(); };
+function tmSheetPaint(){
+  let el = document.getElementById("tm-sheet"); const S = window._tms;
+  if(!S){ if(el) el.remove(); document.body.style.overflow = ""; return; }
+  if(!el){ el = document.createElement("div"); el.id = "tm-sheet"; document.body.appendChild(el); }
+  document.body.style.overflow = "hidden";
+  const it = faFindItem(S.id) || {}, esc = escapeHTML;
+  const chip = (on, l, js) => '<button onclick="' + js + '" style="min-height:46px;padding:0 14px;border-radius:12px;border:1.5px solid ' + (on ? "#0a1b2e" : "rgba(10,27,46,.16)") + ';background:' + (on ? "#0a1b2e" : "#fff") + ';color:' + (on ? "#fff" : "#0a1b2e") + ';font:700 15px var(--font-sans);cursor:pointer">' + esc(l) + '</button>';
+  const lab = t => '<span style="font-size:12.5px;font-weight:700;letter-spacing:.05em;color:#5b6b7c;padding-top:4px">' + t + '</span>';
+  const inp = 'style="min-height:50px;border-radius:12px;border:1px solid rgba(10,27,46,.22);padding:0 14px;font:500 17px var(--font-sans);width:100%;box-sizing:border-box;background:#fff;color:#0a1b2e"';
+  const dateRow = (k, v) => '<div style="display:flex;gap:6px;flex-wrap:wrap">' + chip(v === tmIso(0), "oggi", "tmSV('" + k + "','" + tmIso(0) + "',1)") + chip(v === tmIso(1), "domani", "tmSV('" + k + "','" + tmIso(1) + "',1)") + chip(v === tmIso(2), "+2 gg", "tmSV('" + k + "','" + tmIso(2) + "',1)") + chip(v === tmIso(3), "+3 gg", "tmSV('" + k + "','" + tmIso(3) + "',1)") + '</div><input type="date" value="' + escapeAttr(v || "") + '" onchange="tmSV(\'' + k + '\',this.value,1)" ' + inp + '>';
+  let title = "", body = "";
+  if(S.kind === "stato"){
+    title = "Dove si trova adesso?";
+    const opts = (it.poNumber ? MP_OPTS_PO : ["route", "office", "repair"]).concat(["auto"]);
+    body = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' + opts.map(k => { const on = S.pos === k || (k === "auto" && !S.pos), c = k === "auto" ? "#8a99a8" : MP_POS[k].c;
+      return '<button onclick="tmSV(\'pos\',\'' + k + '\',1)" style="min-height:54px;border-radius:12px;border:1.5px solid ' + (on ? c : "rgba(10,27,46,.16)") + ';background:' + (on ? c : "#fff") + ';color:' + (on ? "#fff" : "#0a1b2e") + ';font:700 15px var(--font-sans);display:flex;gap:8px;align-items:center;justify-content:center;padding:0 8px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:' + (on ? "#fff" : c) + '"></span>' + esc(k === "auto" ? "Automatico" : MP_POS[k].l) + '</button>'; }).join("") + '</div>';
+    if(S.pos === "transit") body += lab("CORRIERE") + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + TM_CAR.map(c => chip(S.car === c, c.replace(" Express", ""), "tmSV('car','" + c + "',1)")).join("") + '</div>' +
+      lab("AWB / TRACKING") + '<input value="' + escapeAttr(S.awb) + '" oninput="tmSV(\'awb\',this.value)" autocomplete="off" autocapitalize="characters" placeholder="es. 4821776530" ' + inp + '>' + lab("ARRIVA AL PORTO") + dateRow("eta", S.eta);
+    if(S.pos === "auto" || !S.pos) body += '<span style="font-size:13.5px;color:#5b6b7c">Torna a quello che dicono DN e tracking.</span>';
+  } else if(S.kind === "data"){
+    title = "Quando arriva a bordo?";
+    body = dateRow("ab", S.ab) + '<span style="font-size:13.5px;color:#5b6b7c;text-wrap:pretty">La data vince sul calcolo del Radar per lo scalo ' + esc(ccTitle(tmPort(it, mstate.pcItem ? mstate.pcItem.vid : mpVidOf(S.id))) || "pianificato") + '.</span>' +
+      (S.ab ? '<button onclick="tmSV(\'ab\',\'\',1)" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600;font-size:15px;min-height:40px">Togli la data (torna alla stima)</button>' : "");
+  } else {
+    title = "Nota";
+    body = '<textarea oninput="tmSV(\'note\',this.value)" rows="4" placeholder="es. parte con il corriere di venerdì insieme al 114" style="border-radius:12px;border:1px solid rgba(10,27,46,.22);padding:12px 14px;font:400 17px/1.4 var(--font-sans);width:100%;box-sizing:border-box;resize:vertical">' + esc(S.note) + '</textarea><span style="font-size:13.5px;color:#5b6b7c">Compare anche nella riga della lista, sul PC.</span>';
+  }
+  el.innerHTML = '<div onclick="tmSheetClose()" style="position:fixed;inset:0;background:rgba(10,27,46,.38);z-index:9990"></div>' +
+    '<div style="position:fixed;left:0;right:0;bottom:0;z-index:9991;background:#fff;border-radius:22px 22px 0 0;padding:10px 16px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:88vh;overflow:auto;box-sizing:border-box">' +
+    '<div style="width:40px;height:5px;border-radius:3px;background:#d0d6dd;align-self:center"></div>' +
+    '<div style="display:flex;flex-direction:column;gap:2px"><span style="font:600 13px var(--font-mono);color:#5b6b7c">' + esc(it.poNumber || it.reqNumber || "") + '</span><span style="font-size:19px;font-weight:800">' + title + '</span></div>' + body +
+    '<div style="display:flex;gap:8px;padding-top:4px"><button onclick="tmSheetClose()" style="flex:1;min-height:52px;border-radius:14px;border:0;background:#eef1f5;color:#0a1b2e;font:700 16px var(--font-sans)">Annulla</button><button onclick="tmSheetSave()" style="flex:2;min-height:52px;border-radius:14px;border:0;background:#1553d8;color:#fff;font:800 16px var(--font-sans)">Salva</button></div></div>';
+}
+function tmAddShip(id, car, awb, eta){
+  awb = String(awb || "").trim(); if(!awb) return;
+  const ex = shipFindByNumber(awb, id); if(ex){ shipLink(id, ex.itemId, ex.seg.id, false); return; }
+  const segs = getItemShipments(id).filter(s => !s.gid); if(segs.some(s => shipNorm(s.number) === shipNorm(awb))) return;
+  segs.push({ id: genShipId(), partial: false, route: "supplier-port", carrier: car || "DHL Express", hub: "", number: awb, status: "pending", pickup: mpToday(), eta: eta || "", events: [], updatedAt: new Date().toISOString() });
+  setItemShipments(id, segs); try { window.shipRefresh(id); } catch(e) {}
+}
+function tmSetAb(id, ab){ const it = faFindItem(id); if(!it) return; const cp = tmPort(it, mpVidOf(id)); try { window._rd2 = window._rd2 || {}; rdHowSet(id, ab ? { ok: false, ab, cp } : { ab: "", ok: false }); } catch(e) { console.warn("[m3 data]", e); } }
+window.tmSheetSave = function(){ const S = window._tms; if(!S) return; const id = S.id, it = faFindItem(id);
+  try {
+    if(S.kind === "stato"){ window.mpSetPos(id, S.pos && S.pos !== "auto" ? S.pos : "auto"); if(S.pos === "transit") tmAddShip(id, S.car, S.awb, S.eta); }
+    else if(S.kind === "data") tmSetAb(id, S.ab);
+    else { const vid = (mstate.pcItem && mstate.pcItem.vid) || mpVidOf(id), v = String(S.note || "").trim(); if(v) state.notes[id] = v; else delete state.notes[id]; saveNotes(); }
+  } catch(e) { console.error("[m3 salva]", e); showToast("Non salvato: " + (e.message || e)); return; }
+  window._tms = null; tmSheetPaint(); showToast("Salvato" + (it && it.poNumber ? " · " + String(it.poNumber).replace(/^\d{4}-/, "") : "")); try { renderMobileApp(); } catch(e) {} };
+
+// --- CERCA CHE CAPISCE: testo incollato → proposta di modifica da confermare ------------------------
+const TM_MON = { jan: 1, gen: 1, feb: 2, mar: 3, apr: 4, may: 5, mag: 5, jun: 6, giu: 6, jul: 7, lug: 7, aug: 8, ago: 8, sep: 9, set: 9, oct: 10, ott: 10, nov: 11, dec: 12, dic: 12 };
+function tmMkDate(d, m, y){ d = +d; m = +m; if(!(d >= 1 && d <= 31 && m >= 1 && m <= 12)) return ""; const now = new Date(); let Y = y ? (+y < 100 ? 2000 + +y : +y) : now.getFullYear();
+  let dt = new Date(Date.UTC(Y, m - 1, d)); if(!y && dt.getTime() < now.getTime() - 60 * 864e5) dt = new Date(Date.UTC(Y + 1, m - 1, d)); return dt.toISOString().slice(0, 10); }
+function tmFindDate(t){
+  const seg = (t.match(/\b(?:eta|arriv\w*|deliver\w*|expected|on|by|il|entro|consegna\w*)\b[^.\n]{0,40}/gi) || []).concat([t]);
+  for(const s of seg){
+    let m = s.match(/\b(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?\b/); if(m){ const r = tmMkDate(m[1], m[2], m[3]); if(r) return r; }
+    m = s.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|gen|mag|giu|lug|ago|set|ott|dic)\w*\.?(?:\s+(\d{4}))?/i); if(m){ const r = tmMkDate(m[1], TM_MON[m[2].toLowerCase()], m[3]); if(r) return r; }
+    m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b/i); if(m){ const r = tmMkDate(m[2], TM_MON[m[1].toLowerCase()]); if(r) return r; }
+    if(/\btomorrow|domani\b/i.test(s)) return tmIso(1);
+  }
+  return "";
+}
+function tmParse(q){
+  const t = String(q || ""), tl = t.toLowerCase(); if(t.trim().length < 20) return null;
+  const pos = /\b(delivered on ?board|received on ?board|landed on ?board|consegnat\w* a bordo|arrivat\w* a bordo|now on ?board)\b/.test(tl) ? "onboard"
+    : /\b(shipped|dispatched|despatched|picked up|collected|in transit|sent (?:out|via|by|with)|forwarded|on the way|spedit\w*|partit\w*|ritirat\w*|in viaggio)\b/.test(tl) ? "transit"
+    : /\b(customs|clearance|dogan\w*|sdoganament\w*)\b/.test(tl) ? "customs"
+    : /\b(ready for (?:collection|pick ?up|dispatch|shipment|delivery)|(?:is|are|goods|material|items) ready|pront\w* (?:per|al ritiro|presso))\b/.test(tl) ? "supplier" : "";
+  if(!pos) return null;
+  const cm = t.match(/\b(DHL|Fed ?Ex|UPS|TNT|Aramex|Schenker|Kuehne|DSV|GLS|BRT|SDA)\b/i);
+  const car = cm ? (/dhl/i.test(cm[1]) ? "DHL Express" : /fed/i.test(cm[1]) ? "FedEx" : cm[1].toUpperCase()) : "";
+  const am = t.match(/\b(?:awb|hawb|mawb|tracking|waybill|track(?:ing)?\s*(?:no|n°|number|#))\b[\s:#.\-n°o]*([0-9][0-9 \-]{7,18}[0-9])/i) || t.match(/\b(1Z[0-9A-Z]{16})\b/) || t.match(/\b(\d{10,12})\b/);
+  const awb = am ? am[1].replace(/[\s\-]/g, "") : "", eta = pos === "transit" ? tmFindDate(t) : "";
+  // pratiche: numeri interi riconosciuti dalla ricerca + numeri corti dopo "PO"
+  const items = ccItems().filter(it => !ccClosed(it) && it.poNumber), found = new Map();
+  let R = null; try { R = ccSearch(t); } catch(e) {}
+  (R && R.out || []).forEach(r => { if(r.kind === "Pratica" && r.sc >= 20){ const it = ccKeyItem(r.key.slice(2)); if(it && it.poNumber && !ccClosed(it)) found.set(it.id, it); } });
+  const shorts = new Set(); (t.match(/\b(?:p\.?o\.?s?|orders?|ordini|ordine|hqpo|shpo)\b[\s#:.n°o]*\d{2,5}(?:\s*(?:,|&|\/|and|e|\+)\s*\d{2,5})*/gi) || []).forEach(s => (s.match(/\d{2,5}/g) || []).forEach(n => shorts.add(n.padStart(5, "0"))));
+  if(shorts.size){ const vHit = (VESSELS || []).filter(v => { const n = String(v.displayName).toLowerCase().replace(/^m\/?v\s*/, ""); const W = (() => { try { return ccWhere(v.vesselId); } catch(e) { return null; } })(); return tl.includes(n) || (W && W.port && String(W.port).length > 3 && tl.includes(String(W.port).toLowerCase())); }).map(v => v.vesselId);
+    shorts.forEach(n => { let c = items.filter(it => String(it.poNumber).endsWith("-" + n)); if(c.length > 1 && vHit.length){ const c2 = c.filter(it => vHit.includes(ccVid(it))); if(c2.length) c = c2; } c.forEach(it => found.set(it.id, it)); }); }
+  if(!found.size) return null;
+  return { pos, car, awb, eta, items: [...found.values()].slice(0, 8) };
+}
+window._tmp = window._tmp || { key: "", P: null, off: {}, undo: null, done: "" };
+function tmPropHTML(q){
+  const M = window._tmp; if(M.key !== q){ M.key = q; M.off = {}; M.done = ""; M.P = (() => { try { return tmParse(q); } catch(e) { console.warn("[capisce]", e); return null; } })(); }
+  const P = M.P; if(!P) return "";
+  const esc = escapeHTML, mob = ccMob(), now = Date.now(), multiV = new Set(P.items.map(ccVid)).size > 1;
+  const rows = P.items.map(it => { const on = !M.off[it.id], cur = (() => { try { return MP_POS[(mpOf(it, now) || {}).pos] || { l: "—" }; } catch(e) { return { l: "—" }; } })();
+    const det = [MP_POS[P.pos].l, P.pos === "transit" && (P.car || P.awb) ? [P.car, P.awb].filter(Boolean).join(" ") : "", P.eta ? "arriva " + mpFD(P.eta) : ""].filter(Boolean).join(" · ");
+    return '<button onclick="tmPTog(\'' + tmE(it.id) + '\')" style="all:unset;cursor:pointer;display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start;padding:8px 0;border-top:1px solid rgba(10,27,46,.07);opacity:' + (on ? 1 : .45) + '">' +
+      '<span style="width:24px;height:24px;border-radius:7px;border:2px solid ' + (on ? "#1553d8" : "#b8c3ce") + ';background:' + (on ? "#1553d8" : "#fff") + ';color:#fff;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center">' + (on ? "✓" : "") + '</span>' +
+      '<span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font:600 13px var(--font-mono);overflow-wrap:anywhere">' + esc(String(it.poNumber).replace(/^\d{4}-/, "")) + (multiV ? " · " + esc(ccVName(ccVid(it))) : "") + '</span><span style="font-size:13px;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(it.description || "") + '</span>' +
+      '<span style="font-size:14px">' + esc(cur.l) + ' → <b>' + esc(det) + '</b></span></span></button>'; }).join("");
+  const n = P.items.filter(it => !M.off[it.id]).length, b = mob ? "min-height:50px;font-size:15px" : "min-height:36px;font-size:13px";
+  const foot = M.done ? '<div style="display:flex;gap:8px;align-items:center;background:#e6f4ec;border-radius:12px;padding:10px 12px"><span style="flex:1;color:#14794e;font-weight:700;font-size:14px">✓ Salvato · ' + esc(M.done) + '</span><button onclick="tmPUndo()" style="min-height:40px;padding:0 12px;border-radius:10px;border:0;background:#fff;color:#44576b;font:700 14px var(--font-sans);cursor:pointer">↩ Annulla</button></div>'
+    : '<div style="display:flex;gap:8px"><button onclick="tmPApply()" ' + (n ? "" : "disabled ") + 'style="flex:1.3;' + b + ';border-radius:12px;border:0;background:' + (n ? "#1553d8" : "#b8c3ce") + ';color:#fff;font-weight:800;font-family:var(--font-sans);cursor:pointer">✓ Conferma' + (n > 1 ? " (" + n + ")" : "") + '</button><button onclick="tmPFix()" style="flex:1;' + b + ';border-radius:12px;border:0;background:#eef1f5;color:#0a1b2e;font-weight:700;font-family:var(--font-sans);cursor:pointer">✎ Correggi</button></div>';
+  return '<div style="background:#fff;border:1.5px solid #1553d8;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">' +
+    '<span style="font-weight:800;font-size:16px">Ho capito così: ' + P.items.length + ' modific' + (P.items.length > 1 ? "he" : "a") + '</span>' + (multiV ? '<span style="font-size:13px;color:#8a5a00">Lo stesso numero c\'è su più navi: togli la spunta a quelle sbagliate.</span>' : "") +
+    '<div style="display:flex;flex-direction:column">' + rows + '</div>' +
+    (P.pos === "transit" && !P.awb ? '<span style="font-size:13px;color:#5b6b7c">Nessun AWB nel testo: con ✎ Correggi puoi aggiungerlo.</span>' : "") + foot + '</div>';
+}
+window.tmPTog = function(id){ const M = window._tmp; M.off[id] = !M.off[id]; ccPaint(); };
+window.tmPApply = function(){ const M = window._tmp, P = M.P; if(!P) return; const sel = P.items.filter(it => !M.off[it.id]); if(!sel.length) return;
+  const mat = loadMatPos(), sh = loadShipments();
+  M.undo = sel.map(it => ({ id: it.id, mat: mat[it.id] ? JSON.parse(JSON.stringify(mat[it.id])) : null, ship: Array.isArray(sh[it.id]) ? JSON.parse(JSON.stringify(sh[it.id])) : null }));
+  try { sel.forEach(it => { window.mpSetPos(it.id, P.pos); if(P.pos === "transit" && P.awb) tmAddShip(it.id, P.car || "DHL Express", P.awb, P.eta); }); }
+  catch(e) { console.error("[capisce]", e); showToast("Non salvato: " + (e.message || e)); return; }
+  M.done = sel.length + " PO " + MP_POS[P.pos].s; ccPaint(); showToast("Salvato: " + M.done); };
+window.tmPUndo = function(){ const M = window._tmp; if(!M.undo) return; const mat = loadMatPos(), at = new Date().toISOString();
+  M.undo.forEach(u => { mat[u.id] = Object.assign({}, u.mat || { pos: "" }, { updatedAt: at }); try { setItemShipments(u.id, u.ship || []); } catch(e) {} });
+  rdSaveJSON("mpd.matPos", mat); M.undo = null; M.done = ""; ccPaint(); showToast("Annullato"); try { render(); } catch(e) {} };
+window.tmPFix = function(){ const M = window._tmp, P = M.P; if(!P) return; const it = P.items.find(x => !M.off[x.id]) || P.items[0]; if(!it) return;
+  if(ccMob()){ tmOpenPo(ccVid(it), it.id, "cerca"); setTimeout(() => tmSheet("stato", it.id, { pos: P.pos, car: P.car || "DHL Express", awb: P.awb, eta: P.eta }), 60); }
+  else if(typeof window.openItemDetailPopover === "function") window.openItemDetailPopover(it.id); };
+ccLeftHTML = (function(f0){ return function(){ const h = f0.apply(this, arguments); let p = ""; try { p = tmPropHTML(window._cc.q || ""); } catch(e) { console.warn("[capisce]", e); } return p + h; }; })(ccLeftHTML);
+
+// Cerca al telefono: Incolla + Versione PC
+{ const f0 = window.ccMobileHTML; window.ccMobileHTML = function(){ let h = f0.apply(this, arguments);
+    h = h.replace('placeholder="es. HQPO00188, MED LIGURIA, Wärtsilä"', 'placeholder="Numero, nave, fornitore… o incolla il messaggio del fornitore"');
+    h = h.replace('</textarea>', '</textarea><div style="display:flex;gap:8px"><button onclick="tmPaste()" style="min-height:44px;padding:0 16px;border-radius:10px;border:0;background:#eaf0fd;color:#1553d8;font:700 15px var(--font-sans);cursor:pointer">📋 Incolla</button></div>');
+    const i = h.lastIndexOf("</div>"); return h.slice(0, i) + '<button onclick="tmpcGo(true)" style="all:unset;cursor:pointer;align-self:center;min-height:44px;padding:0 16px;color:#1553d8;font-weight:600;font-size:15px">Versione PC ›</button>' + h.slice(i); }; }
+window.tmPaste = function(){ const go = t => { const C = window._cc, ta = document.getElementById("cc-q"); C.q = String(t || ""); C.sel = ""; if(ta) ta.value = C.q; renderMobileApp(); };
+  try { navigator.clipboard.readText().then(go, () => showToast("Tieni premuto nella casella e scegli Incolla")); } catch(e) { showToast("Tieni premuto nella casella e scegli Incolla"); } };
 
 </script>
 
