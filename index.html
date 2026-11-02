@@ -10692,6 +10692,7 @@ function render() {
   else if (state.view === "budget") renderBudgetPage();
   else if (state.view === "debug") renderDebug();
   else if (state.view === "todos") renderTodosPage();
+  else if (state.view === "avvisi") { if (typeof renderAvvisiPage === "function") renderAvvisiPage(); }
   else if (state.view === "cerca") { if (typeof renderCercaPage === "function") renderCercaPage(); else { state.view = "overview"; renderOverview(); } }
   else if (state.view === "oggi") { if (typeof renderOggiPage === "function") renderOggiPage(); else { state.view = "overview"; renderOverview(); } }
   if (typeof window.shellAfter === "function") { try { window.shellAfter(); } catch (e) { console.error("[guscio]", e); } }
@@ -24198,7 +24199,7 @@ function bdHTML(){
   return '<div class="bd">' +
     '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="bd-tabs">' + L.map(v => '<button class="' + (v.vesselId === vid ? "on" : "") + '" onclick="bdPick(\'' + v.vesselId + '\')">' + esc(v.displayName) + '</button>').join("") + '</div>' +
       '<span style="font-size:12px;color:#44576b">Solo le tue voci: Repair &amp; Maintenance · Drydock · Extra budget. Equipaggio, cambusa e altri costi esclusi.</span><span style="flex:1"></span>' + bdUpBtn() + '</div>' +
-    '<div style="font:500 11px var(--font-mono);color:#8a99a8;text-align:right;margin:-10px 0 -6px">Dashboard v2.9g</div><section class="bd-card"><div><div class="bd-eb">' + esc(V.displayName) + ' · budget ' + (M.rep.year || "") + ' · report del ' + mpFD(M.rep.date) + (M.rep.at === "seed" ? " (caricato da me)" : "") + ' · siamo al ' + bdP(YF) + ' dell\'anno' + (AGE > 0 ? ' · dati di ' + AGE + (AGE > 1 ? ' giorni fa' : ' giorno fa') : '') + ' · prossimo report ~' + mpFD(nextR.toISOString().slice(0, 10)) + '</div><div class="bd-h">' + esc(head) + '</div></div>' +
+    '<div style="font:500 11px var(--font-mono);color:#8a99a8;text-align:right;margin:-10px 0 -6px">Dashboard v2.9h</div><section class="bd-card"><div><div class="bd-eb">' + esc(V.displayName) + ' · budget ' + (M.rep.year || "") + ' · report del ' + mpFD(M.rep.date) + (M.rep.at === "seed" ? " (caricato da me)" : "") + ' · siamo al ' + bdP(YF) + ' dell\'anno' + (AGE > 0 ? ' · dati di ' + AGE + (AGE > 1 ? ' giorni fa' : ' giorno fa') : '') + ' · prossimo report ~' + mpFD(nextR.toISOString().slice(0, 10)) + '</div><div class="bd-h">' + esc(head) + '</div></div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">' +
         box("Speso", bdP(pct), bdK(tot) + " su " + bdK(B), tone) + box("A fine anno · " + esc(M.method), bdK(proj), (proj >= B ? "+" : "") + bdP(proj / B - 1) + " sul budget", tone) +
         box("Spesa media al giorno · finora", bdKd(dNow), DAY + " giorni dal 1° gennaio · budget al giorno " + bdKd(B / M.DY)) +
@@ -26596,6 +26597,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (pill.dataset.view === "budget") window.goBudget();
     else if (pill.dataset.view === "cerca") window.goCerca();
     else if (pill.dataset.view === "navi") goVessel(window._shLastVid || state.selectedVesselId || ((VESSELS || [])[0] || {}).vesselId);
+    else if (pill.dataset.view === "avvisi") window.goAvvisi();
     else if (pill.dataset.view === "oggi") { state.view = "oggi"; state.selectedVesselId = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
     else if (pill.dataset.vid) goVessel(pill.dataset.vid);
   });
@@ -26604,6 +26606,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (v === "__cerca") window.goCerca();
     else if (v === "__overview" || v === "") goOverview();
     else if (v === "__todos") goTodos();
+    else if (v === "__avvisi") window.goAvvisi();
     else if (v === "__email") goEmail();
     else if (v === "__certificates") window.goCertificates();
     else if (v === "__performance") goPerformance();
@@ -29078,7 +29081,10 @@ window.remSendFromTodo = function(todoId){
 window.remDone = function(tid, vid){ remMark(tid, vid, { sentAt: new Date().toISOString(), manual: true }); remPaint(); };
 window.remSkip = function(tid, vid){ remMark(tid, vid, { skipped: true }); remPaint(); };
 window.remUndo = function(tid, vid){ remMark(tid, vid, null); remPaint(); };
-window.remOpen = function(){ window._rem = { edit: null }; remEnsureTodos(); remPaint(); };
+window.remOpen = function(){ window._rem = { edit: null }; remEnsureTodos(); if(!(typeof maIsMobile === "function" && maIsMobile())){ state.view = "avvisi"; state.selectedVesselId = null; render(); window.scrollTo(0, 0); return; } remPaint(); };
+window.goAvvisi = function(){ window.remOpen(); };
+function renderAvvisiPage(){ window._rem = window._rem || { edit: null }; try { remPaint(); } catch(e) { console.error("[avvisi]", e); const r = document.getElementById("view-root"); if(r) r.innerHTML = '<div style="padding:18px">Errore nella pagina Avvisi: ' + escapeHTML(String(e)) + '</div>'; } }
+window.renderAvvisiPage = renderAvvisiPage;
 window.remClose = function(){ window._rem = null; const h = document.getElementById("rem-host"); if(h) h.innerHTML = ""; try { render(); } catch(e) { try { renderMobileApp(); } catch(_) {} } };
 function remFreqText(t){
   if(t.freq === "weekly") return "ogni settimana, il " + REM_WD[+t.weekday || 0];
@@ -29088,7 +29094,8 @@ function remFreqText(t){
   return "ogni mese, " + d;
 }
 function remPaint(){
-  let host = document.getElementById("rem-host"); if(!host){ host = document.createElement("div"); host.id = "rem-host"; document.body.appendChild(host); }
+  const PAGE = state.view === "avvisi" && !(typeof maIsMobile === "function" && maIsMobile());   // v2.9h — sezione dedicata "Avvisi"
+  let host = PAGE ? document.getElementById("view-root") : document.getElementById("rem-host"); if(!host){ host = document.createElement("div"); host.id = "rem-host"; document.body.appendChild(host); }
   if(!window._rem) return;
   const o = remLoad(), esc = escapeHTML, ea = s => String(s == null ? "" : s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   const card = "border:1px solid rgba(10,27,46,.10);border-radius:14px;overflow:hidden;background:#fff;";
@@ -29128,12 +29135,13 @@ function remPaint(){
       '<button style="' + btn + '" onclick="remEdit(\'' + ea(t.id) + '\')">✎ Modifica</button></div></div>' +
       (rows || '<div style="padding:12px 14px;border-top:1px solid rgba(10,27,46,.08);font-size:12.5px;color:#6a7d90;">' + (c ? "Nessuna nave selezionata." : "Primo invio il " + mpFD((remCycle(t, new Date(Date.now() + 400 * 86400000)) || {}).due || "") + ".") + '</div>') + '</div>';
   };
-  host.innerHTML = '<div style="position:fixed;inset:0;z-index:10050;background:#eef2f6;overflow:auto;font-family:var(--font-sans);">' +
-    '<div style="position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);"><div style="max-width:1000px;margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
-    '<button onclick="remClose()" style="' + btn + 'min-height:44px;">← Torna</button>' +
-    '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">AVVISI PERIODICI · EMAIL PRECOMPILATE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">Avvisi e promemoria</div></div>' +
+  const nAll = remDueCount();
+  host.innerHTML = '<div style="' + (PAGE ? "margin:0 0 18px;font-family:var(--font-sans);" : "position:fixed;inset:0;z-index:10050;background:#eef2f6;overflow:auto;font-family:var(--font-sans);") + '">' +
+    '<div style="' + (PAGE ? "background:#fff;border:1px solid rgba(10,27,46,.10);border-radius:14px;" : "position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid rgba(10,27,46,.10);") + '"><div style="max-width:' + (PAGE ? "none" : "1000px") + ';margin:0 auto;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
+    (PAGE ? "" : '<button onclick="remClose()" style="' + btn + 'min-height:44px;">← Torna</button>') +
+    '<div style="flex:1;min-width:200px;"><div style="font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#6a7d90;">AVVISI PERIODICI · EMAIL PRECOMPILATE</div><div style="font-size:20px;font-weight:800;color:#0a1b2e;">Avvisi e promemoria' + (nAll ? ' <span style="font-size:13px;font-weight:700;color:#c0261c;">· ' + nAll + ' da inviare</span>' : ' <span style="font-size:13px;font-weight:700;color:#14794e;">· tutto inviato per questo ciclo</span>') + '</div></div>' +
     '<button style="' + pri + 'min-height:44px;" onclick="remEdit(\'\')">+ Nuovo avviso</button></div></div>' +
-    '<div style="max-width:1000px;margin:0 auto;padding:18px 20px 40px;display:flex;flex-direction:column;gap:14px;">' +
+    '<div style="max-width:' + (PAGE ? "1100px" : "1000px") + ';margin:0 auto;padding:' + (PAGE ? "14px 0 0" : "18px 20px 40px") + ';display:flex;flex-direction:column;gap:14px;">' +
     '<div style="font-size:13px;color:#44576b;line-height:1.5;text-wrap:pretty;">Ogni avviso prepara un\'email per nave a ogni scadenza. «✉ Invia» apre la bozza già compilata e lo segna come inviato. Se l\'avviso crea la to-do, ne trovi una per nave tra le to-do: chiuderla vale come «già inviato», inviare l\'email la chiude. Gli avvisi «Ufficio» (es. Report IHM) creano una sola to-do per te, senza nave.</div>' +
     (window._rem.edit != null ? remEditorHTML(o, window._rem.edit) : "") +
     (tpls.length ? tpls.map(tplCard).join("") : '<div style="' + card + 'padding:18px;font-size:13.5px;color:#44576b;">Nessun avviso. Creane uno con «+ Nuovo avviso».</div>') +
@@ -31340,7 +31348,7 @@ setTimeout(() => { if(localStorage.getItem("mpd.sbAuth")) sbInit().catch(e => co
 // ============================================================================
 function shellOn(){ return true; }   // v2.9e — un solo guscio (6 porte): "Pillole di prima" tolte su richiesta dell'utente (31.10)
 window.shellSet = function(v){ v = "6"; localStorage.setItem("mpd.shell", "6"); if(v === "old" && state.view === "oggi") state.view = "overview"; const st = document.getElementById("shell-clocks"); if(st && v === "old") st.remove(); renderSwitcher(); render(); };
-function shDoor(){ const v = state.view; return v === "oggi" ? "oggi" : v === "overview" ? "radar" : v === "vessel" ? "navi" : v === "certificates" ? "cert" : v === "rubrica" ? "rub" : (v === "budget" || v === "performance") ? "num" : v === "todos" ? "todo" : ""; }
+function shDoor(){ const v = state.view; return v === "oggi" ? "oggi" : v === "overview" ? "radar" : v === "vessel" ? "navi" : v === "certificates" ? "cert" : v === "rubrica" ? "rub" : (v === "budget" || v === "performance") ? "num" : v === "todos" ? "todo" : v === "avvisi" ? "avv" : ""; }
 function shToday(){ const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function shTodoDue(){ const t = shToday(); return (typeof todosOpen === "function" ? todosOpen() : []).filter(x => x.dueDate && String(x.dueDate).slice(0, 10) <= t).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate))); }
 function renderSwitcher6(){
@@ -31350,12 +31358,12 @@ function renderSwitcher6(){
   let dec = 0; try { const b = mbData(); if(b && b.version === 2) dec = mbModel(b).D.filter(d => !d.done).length; } catch(e) {}
   const cg = (typeof getCertStatsGlobal === "function" ? getCertStatsGlobal() : {}) || {};
   const vid = state.selectedVesselId || window._shLastVid || ((VESSELS || [])[0] || {}).vesselId || "";
-  const D = [["todo", "To-do", 'data-view="todos"', shTodoDue().length], ["oggi", "Oggi", 'data-view="oggi"', dec], ["radar", "Radar", 'data-view="overview"', late], ["navi", "Navi", 'data-view="navi"', 0],
+  const D = [["todo", "To-do", 'data-view="todos"', shTodoDue().length], ["avv", "Avvisi", 'data-view="avvisi"', (typeof remDueCount === "function" ? remDueCount() : 0)], ["oggi", "Oggi", 'data-view="oggi"', dec], ["radar", "Radar", 'data-view="overview"', late], ["navi", "Navi", 'data-view="navi"', 0],
     ["cert", "Certificati", 'data-view="certificates"', (cg.expired || 0) + (cg.urgent || 0)], ["rub", "Rubrica", 'data-view="rubrica"', 0], ["num", "Numeri", 'data-view="budget"', 0]];
   const cur = shDoor();
   D.forEach(([k, l, attr, n]) => {
     row.appendChild(makeEl('<button class="pill' + (cur === k ? " active" : "") + '" ' + attr + ' role="tab"><span>' + l + '</span><span class="pill-key">' + (n || "") + '</span></button>'));
-    if(select){ const o = document.createElement("option"); o.value = k === "navi" ? vid : k === "radar" ? "__overview" : k === "num" ? "__budget" : k === "cert" ? "__certificates" : k === "rub" ? "__rubrica" : k === "todo" ? "__todos" : "__oggi"; o.textContent = l + (n ? " (" + n + ")" : ""); if(cur === k) o.selected = true; select.appendChild(o); }
+    if(select){ const o = document.createElement("option"); o.value = k === "navi" ? vid : k === "radar" ? "__overview" : k === "num" ? "__budget" : k === "cert" ? "__certificates" : k === "rub" ? "__rubrica" : k === "todo" ? "__todos" : k === "avv" ? "__avvisi" : "__oggi"; o.textContent = l + (n ? " (" + n + ")" : ""); if(cur === k) o.selected = true; select.appendChild(o); }
   });
 }
 window.renderSwitcher6 = renderSwitcher6;
@@ -32567,7 +32575,7 @@ function og1aHTML(G){
       : '<div style="padding:10px 16px 14px;border-top:1px solid rgba(10,27,46,.06);font-size:13px;color:#6a7d90">Niente di nuovo: nessun noon, import o email trasformata in to-do.</div>') + '</div>';
   const today = shToday(), TD = (typeof todosOpen === "function" ? todosOpen() : []).filter(t => t.kind !== "fleet" && t.dueDate && String(t.dueDate).slice(0, 10) <= today).sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
   const over = TD.filter(t => String(t.dueDate).slice(0, 10) < today).length;
-  const tdBox = '<div style="' + BOX + ';overflow:hidden">' + H("To-do di oggi", TD.length ? TD.length + (over ? " · " + over + " scadute" : "") : "nessuna", '<span style="flex:1"></span><button onclick="goTodos()" style="all:unset;cursor:pointer;font-size:13px;font-weight:600;color:#1553d8">Tutte →</button>') +
+  const tdBox = '<div style="' + BOX + ';overflow:hidden">' + H("To-do di oggi", TD.length ? TD.length + (over ? " · " + over + " scadute" : "") : "nessuna", '<span style="flex:1"></span>' + ((typeof remDueCount === "function" && remDueCount()) ? '<button onclick="goAvvisi()" style="all:unset;cursor:pointer;font-size:13px;font-weight:600;color:#c0261c">✉ ' + remDueCount() + ' avvisi da inviare</button>' : "") + '<button onclick="goTodos()" style="all:unset;cursor:pointer;font-size:13px;font-weight:600;color:#1553d8">Tutte →</button>') +
     TD.slice(0, 8).map(t => { const d = String(t.dueDate).slice(0, 10), late = d < today; return '<div style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 16px;border-top:1px solid rgba(10,27,46,.06)"><button onclick="shTodoDone(\'' + pcJ(t.id) + '\')" title="Fatta" style="width:20px;height:20px;border-radius:5px;border:1.5px solid rgba(10,27,46,.35);background:#fff;cursor:pointer;padding:0"></button>' +
       '<button onclick="ogTodo(\'' + pcJ(t.id) + '\')" style="all:unset;cursor:pointer;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">' + esc(shTodoText(t)) + '</button><span style="font:600 11.5px var(--font-mono);color:' + (late ? "#c0261c" : "#a86200") + ';white-space:nowrap">' + (late ? "scad. " + mpFD(d) : "oggi") + '</span></div>'; }).join("") +
     (TD.length > 8 ? '<div style="padding:8px 16px 12px;border-top:1px solid rgba(10,27,46,.06);font-size:12.5px;color:#6a7d90">altre ' + (TD.length - 8) + ' in To-do</div>' : "") + '</div>';
@@ -32575,7 +32583,7 @@ function og1aHTML(G){
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px;align-items:start">' + dueBox + '<div style="display:flex;flex-direction:column;gap:14px;min-width:0">' + newsBox + tdBox + '</div></div></div>';
 }
 { const rop0 = renderOggiPage;
-  renderOggiPage = window.renderOggiPage = function(){ const root = document.getElementById("view-root"); if(!root) return; try { root.innerHTML = ogHTML() + '<div style="font:500 11px var(--font-mono);color:#8a99a8;text-align:right;margin:-8px 0 12px">Dashboard v2.9g</div>'; return; } catch(e) { console.error("[oggi v2.9e]", e); root.innerHTML = '<div style="' + V26_BOX + ';padding:18px;font-size:14px"><b>La pagina Oggi non si è caricata.</b> Mandami uno screenshot di questo riquadro.<pre style="white-space:pre-wrap;font-size:11.5px;color:#c0261c;margin-top:8px">' + escapeHTML(String(e && e.stack || e)).slice(0, 900) + '</pre></div>'; return; } if(0) { console.error("[oggi settimana]", e); rop0(); } }; }
+  renderOggiPage = window.renderOggiPage = function(){ const root = document.getElementById("view-root"); if(!root) return; try { root.innerHTML = ogHTML() + '<div style="font:500 11px var(--font-mono);color:#8a99a8;text-align:right;margin:-8px 0 12px">Dashboard v2.9h</div>'; return; } catch(e) { console.error("[oggi v2.9e]", e); root.innerHTML = '<div style="' + V26_BOX + ';padding:18px;font-size:14px"><b>La pagina Oggi non si è caricata.</b> Mandami uno screenshot di questo riquadro.<pre style="white-space:pre-wrap;font-size:11.5px;color:#c0261c;margin-top:8px">' + escapeHTML(String(e && e.stack || e)).slice(0, 900) + '</pre></div>'; return; } if(0) { console.error("[oggi settimana]", e); rop0(); } }; }
 
 
 // ============================================================================
