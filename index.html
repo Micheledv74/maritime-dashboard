@@ -33465,6 +33465,127 @@ ogHTML = (function(f0){ return function(){ const h = f0.apply(this, arguments), 
   return h.replace('<button class="btn btn-sm btn-primary" onclick="openTodoModal(null)">', sel + '<button class="btn btn-sm btn-primary" onclick="openTodoModal(null)">')
     .replace(/<button onclick="goVessel\('_agenda'\)"[^>]*>Tu · agenda<\/button>/, '<span style="font-size:13px;font-weight:700;align-self:center;color:#5b3fc4;white-space:nowrap">Tu · agenda</span>'); }; })(ogHTML);
 
+// === v3.2 — POSTA CON AI (traduci · bozza EN) · COPIA IN NOTION dal database · indirizzi condivisi (records coll "cfg") ===
+async function cfgShare(id, fields, put){
+  if(!(await dbReady())) return; const c = window._db.client, s = state.settings = state.settings || {}, lk = "mpd.cfgAt." + id;
+  try {
+    if(put){ const val = {}, now = new Date().toISOString(); fields.forEach(f => val[f] = s[f] || "");
+      const { error } = await c.rpc("put_records", { items: [{ coll: "cfg", id, data: val, deleted: false, updated_at: now, device: (typeof ghDeviceId === "function" ? ghDeviceId() : "web") }] });
+      if(!error) localStorage.setItem(lk, now); return; }
+    const { data } = await c.from("records").select("data,updated_at").eq("coll", "cfg").eq("id", id).maybeSingle();
+    const R = data && data.data, mine = localStorage.getItem(lk) || "", f0 = fields[0];
+    if(R && R[f0] && (!s[f0] || (data.updated_at > mine && R[f0] !== s[f0]))){ fields.forEach(f => s[f] = R[f] || ""); saveSettings(); localStorage.setItem(lk, data.updated_at); }
+    else if(s[f0] && (!R || fields.some(f => (R[f] || "") !== (s[f] || "")))) await cfgShare(id, fields, true);
+  } catch(e) { console.warn("[cfg " + id + "]", e); }
+}
+const CFG_AI = ["aiWebhookUrl", "aiWebhookToken"], CFG_NT = ["notionTrackerUrl", "notionTrackerToken"];
+setTimeout(() => { if(localStorage.getItem("mpd.sbAuth") || sessionStorage.getItem("mpd.sbAuth")){ cfgShare("ai", CFG_AI); cfgShare("notionTracker", CFG_NT); } }, 7000);
+
+// --- AI sulle email lette in Cerca / To-do ---
+window._mai = window._mai || {}; window._maiIds = window._maiIds || {};
+function maiId(k){ const M = window._maiIds; if(!M[k]) M[k] = "m" + (Object.keys(M).length + 1); return M[k]; }
+function maiOn(){ return !!((window.claude && typeof window.claude.complete === "function") || String((state.settings || {}).aiWebhookUrl || "").trim()); }
+function maiCtx(m){ try { const r = mbFindItem({ subject: m.subject, text: String(m.full || m.body || "").slice(0, 4000) }), it = r && (r.it || r); if(!it || !it.id) return "";
+    const vid = vesselIdOfItem(it.id), vn = (typeof vNameSafe === "function" && vNameSafe(vid)) || vid || "";
+    return "Context from our system (use only if relevant): vessel " + vn + ", item \"" + (it.description || "") + "\"" + (it.poNumber ? ", our PO " + it.poNumber + " (" + (it.poStatus || "") + ")" : it.reqNumber ? ", our REQ " + it.reqNumber : "") +
+      (it.supplier && it.supplier !== "—" ? ", supplier " + it.supplier : "") + ". " + (vid && typeof ccEtaEN === "function" ? ccEtaEN(vid) : "") + "\n";
+  } catch(e) { return ""; } }
+window.maiHint = function(k, v){ (window._mai[k] = window._mai[k] || {}).hint = v; };
+window.maiEdit = function(k, v){ const A = window._mai[k]; if(A && A.dr) A.dr.txt = v; };
+window.maiClose = function(k, w){ const A = window._mai[k]; if(A) delete A[w]; mbodyPaint(k); };
+window.maiCopy = function(k, w){ const A = window._mai[k], t = A && A[w] && A[w].txt; if(!t) return;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => showToast(w === "dr" ? "Bozza copiata: incollala nella risposta in Outlook" : "Traduzione copiata"), () => showToast("Copia non riuscita")); };
+window.maiRun = async function(k, w){
+  const x = window._mbody[k]; if(!x || x.st !== "ok") return; const m = x.m, A = window._mai[k] = window._mai[k] || {};
+  if(!maiOn()){ A[w] = { st: "err", txt: "AI non collegata: Impostazioni › Database centrale › AI per la posta (workflow n8n «AI Assistant»)." }; mbodyPaint(k); return; }
+  const text = String(m.full || m.body || m.preview || "").slice(0, 6000), hint = String(A.hint || "").trim();
+  const p = w === "tr"
+    ? "Translate the following email into Italian. Keep names, part numbers, quantities, prices, dates and document references (PO/REQ/RFQ/AWB) exactly as written. Output only the translation, no comments, no markdown.\n\nSubject: " + (m.subject || "") + "\n\n" + text
+    : "You are Michele Del Vecchio, purchasing manager of a ship management company (vessels MED LIGURIA, MED TOSCANA, M/V PEPPINO, NORRBOTTEN, VEGA UNO). Write the reply in English to the email below. " +
+      "Professional, short, direct and friendly, as between people who work together. Never invent prices, dates, quantities, ports or commitments: where something is missing write [to confirm]. No markdown.\n" +
+      (hint ? "What I want to say (may be in Italian — this is the core of the reply): " + hint + "\n" : "Answer what the email asks; if a decision is needed from me, leave it as [to confirm].\n") + maiCtx(m) +
+      "Output only the email body, starting with the greeting (Dear + first name if known) and ending with:\nBest regards,\nMichele Del Vecchio\nPurchasing Dept.\n\nFrom: " + (m.fromName || m.from || "") + "\nSubject: " + (m.subject || "") + "\n\n" + text;
+  A[w] = { st: "load" }; mbodyPaint(k);
+  try { const t = await aiComplete(p); A[w] = { st: "ok", txt: String(t || "").trim() }; }
+  catch(e) { A[w] = { st: "err", txt: "AI non disponibile: " + (e.message || e) }; }
+  mbodyPaint(k); };
+function maiHTML(k){ const A = window._mai[k] || {}, esc = escapeHTML, kj = pcJ(k), x = window._mbody[k], m = (x && x.m) || {}, id = maiId(k);
+  const B = 'all:unset;cursor:pointer;border:1px solid rgba(91,63,196,.35);color:#5b3fc4;background:#fff;border-radius:999px;padding:6px 12px;font:600 12.5px var(--font-sans);min-height:20px';
+  const blk = (w, t) => { const r = A[w]; if(!r) return "";
+    if(r.st === "load") return '<div style="font-size:12.5px;color:#5b3fc4">' + (w === "tr" ? "Traduco…" : "Scrivo la bozza…") + '</div>';
+    if(r.st === "err") return '<div style="font-size:12.5px;color:#b3261e">' + esc(r.txt) + '</div>';
+    return '<div style="display:flex;flex-direction:column;gap:8px;border:1px solid rgba(91,63,196,.25);background:#f7f5ff;border-radius:8px;padding:10px 12px">' +
+      '<div style="display:flex;gap:8px;align-items:center"><span style="flex:1;font-size:11px;font-weight:800;letter-spacing:.06em;color:#5b3fc4">' + t + '</span><button onclick="maiClose(\'' + kj + '\',\'' + w + '\')" title="Chiudi" style="all:unset;cursor:pointer;color:#6a7d90;font-size:14px;padding:2px 6px">✕</button></div>' +
+      (w === "dr" ? '<textarea id="mai-d-' + id + '" oninput="maiEdit(\'' + kj + '\',this.value)" rows="9" style="width:100%;box-sizing:border-box;font:400 13.5px/1.55 var(--font-sans);color:#0a1b2e;border:1px solid rgba(10,27,46,.15);border-radius:6px;padding:8px 10px;resize:vertical">' + esc(r.txt) + '</textarea>'
+        : '<div style="font:400 13.5px/1.55 var(--font-sans);color:#0a1b2e;white-space:pre-wrap;overflow-wrap:anywhere">' + esc(r.txt) + '</div>') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="maiCopy(\'' + kj + '\',\'' + w + '\')" style="' + B + '">Copia</button><button onclick="maiRun(\'' + kj + '\',\'' + w + '\')" style="' + B + '">Rifai</button>' +
+      (w === "dr" && m.webLink ? '<button onclick="maiCopy(\'' + kj + '\',\'dr\');window.open(\'' + pcJ(m.webLink) + '\',\'_blank\')" style="' + B + '">Copia e apri in Outlook</button>' : "") + '</div></div>'; };
+  return '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button onclick="maiRun(\'' + kj + '\',\'tr\')" style="' + B + '">Traduci in italiano</button>' +
+    '<input value="' + escapeAttr(A.hint || "") + '" oninput="maiHint(\'' + kj + '\',this.value)" onkeydown="if(event.key===\'Enter\')maiRun(\'' + kj + '\',\'dr\')" placeholder="Cosa vuoi rispondere? (facoltativo, anche in italiano)" style="flex:1 1 220px;min-width:0;font:400 13px var(--font-sans);border:1px solid rgba(10,27,46,.18);border-radius:999px;padding:7px 12px">' +
+    '<button onclick="maiRun(\'' + kj + '\',\'dr\')" style="' + B + ';background:#5b3fc4;color:#fff;border-color:#5b3fc4">Bozza di risposta EN</button></div>' +
+    blk("tr", "TRADUZIONE") + blk("dr", "BOZZA DI RISPOSTA · modificabile") + '</div>'; }
+mbodyHTML = (function(f0){ return function(k){ const h = f0.apply(this, arguments), x = window._mbody[k]; if(!x || x.st !== "ok") return h;
+  try { return h + maiHTML(k); } catch(e) { console.warn("[mai]", e); return h; } }; })(mbodyHTML);
+
+// --- COPIA IN NOTION: le pratiche costruite dal database vanno a Notion (webhook n8n «Dashboard → Notion Tracker») ---
+window._nt = window._nt || { busy: false, last: localStorage.getItem("mpd.ntLast") || "" };
+function ntCfg(){ const s = state.settings || {}; return { url: String(s.notionTrackerUrl || "").trim(), tok: String(s.notionTrackerToken || "") }; }
+function ntAuto(){ const v = localStorage.getItem("mpd.ntAuto"); return v === null ? !matchMedia("(max-width: 900px)").matches : v === "1"; }
+function ntHash(o){ const s = JSON.stringify(o); let h = 5381; for(let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); }
+function ntRow(it, v){ const pd = it.poDetails || [], rd = it.rfqDetails || [], j = a => a.filter(Boolean).join(", ");
+  return { trackerId: it.id, vessel: v.vesselName || v.vesselId, department: it.department || "", description: it.description || "",
+    supplier: it.supplier === "—" ? "" : (it.supplier || ""), supplierCode: (pd.find(p => p.code) || rd.find(r => r.code) || {}).code || "",
+    reqNumber: it.reqNumber || "", reqStatus: it.reqStatus || "", reqDate: it.reqDate || "",
+    rfqNumbers: j(it.rfqNumbers || []), rfqStatus: it.rfqStatus || "", rfqStatusSummary: j(it.rfqStatusSummary || []),
+    rfqDate: rd.map(r => r.date).filter(Boolean).sort()[0] || "", rfqIssued: it.rfqIssued || 0, rfqClosed: it.rfqClosed || 0,
+    rfqDetails: rd.map(r => [r.number, r.supplier, r.status, r.date, r.total != null ? r.total + " " + (r.currency || "") : ""].filter(Boolean).join(" · ")).join("\n"),
+    poNumber: pd.length > 1 ? j(pd.map(p => p.number)) : (it.poNumber || ""), poStatus: it.poStatus || "", poDate: it.poDate || "",
+    poDeliveryDate: it._poDelivInfoship || it.poDeliveryDate || "",
+    dnNumber: it.dnNumber || "", dnStatus: it.dnStatus || "", dnDate: it.dnDate || "", dnDeliveryDate: it.dnDeliveryDate || "", dnInfoshipId: it.dnInfoshipId || "" }; }
+window.ntPush = async function(all){
+  const C = ntCfg(), N = window._nt; if(N.busy) return;
+  if(!C.url){ if(all !== undefined) showToast("Prima incolla l'indirizzo del webhook «Dashboard → Notion Tracker»"); return; }
+  if(typeof dbSource === "function" && dbSource() !== "db"){ if(all !== undefined) showToast("Le pratiche non vengono dal database: attiva «Pratiche dal database»"); return; }
+  const H = JSON.parse(localStorage.getItem("mpd.ntHash") || "{}"), rows = [];
+  ((state.data && state.data.vessels) || []).forEach(v => (v.items || []).forEach(it => { if(it._manual || !it._db || !it.id) return;
+    const r = ntRow(it, v), h = ntHash(r); if(all === true || H[r.trackerId] !== h) rows.push({ r, h }); }));
+  const hm = () => new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+  if(!rows.length){ N.last = "✓ " + hm() + " · Notion già allineato"; ntPaint(); if(all !== undefined) showToast("Notion è già allineato"); return; }
+  N.busy = true; ntPaint(); let sent = 0;
+  try {
+    for(let i = 0; i < rows.length; i += 150){ const part = rows.slice(i, i + 150);
+      const res = await fetch(C.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: C.tok, at: new Date().toISOString(), items: part.map(x => x.r) }) });
+      if(!res.ok) throw new Error("HTTP " + res.status); part.forEach(x => H[x.r.trackerId] = x.h); sent += part.length; localStorage.setItem("mpd.ntHash", JSON.stringify(H)); }
+    N.last = "✓ " + hm() + " · " + sent + " pratiche inviate a Notion (n8n le scrive in qualche minuto)";
+  } catch(e) { N.last = "✕ " + hm() + " · invio non riuscito: " + (e.message || e) + (sent ? " (" + sent + " già inviate)" : ""); }
+  localStorage.setItem("mpd.ntLast", N.last); N.busy = false; ntPaint(); if(all !== undefined) showToast(N.last.slice(2)); };
+(function(){ const f0 = window.dbReloadProc; if(typeof f0 !== "function" || f0._nt) return;
+  const w = async function(){ const r = await f0.apply(this, arguments); if(ntAuto() && ntCfg().url){ clearTimeout(window._ntT); window._ntT = setTimeout(() => window.ntPush(), 15000); } return r; };
+  w._nt = true; window.dbReloadProc = w; })();
+setTimeout(() => { if(ntAuto() && ntCfg().url) window.ntPush(); }, 90000);
+window.ntSave = function(){ const s = state.settings = state.settings || {}, g = id => ((document.getElementById(id) || {}).value || "").trim();
+  s.notionTrackerUrl = g("nt-u"); s.notionTrackerToken = g("nt-t"); saveSettings(); cfgShare("notionTracker", CFG_NT, true); showToast("Copia in Notion: salvato su tutti i dispositivi"); ntPaint(); };
+window.aiSave = function(){ const s = state.settings = state.settings || {}, g = id => ((document.getElementById(id) || {}).value || "").trim();
+  s.aiWebhookUrl = g("ai-u"); s.aiWebhookToken = g("ai-t"); saveSettings(); cfgShare("ai", CFG_AI, true); showToast("AI per la posta: salvato su tutti i dispositivi"); ntPaint(); };
+window.ntSetAuto = function(on){ localStorage.setItem("mpd.ntAuto", on ? "1" : "0"); ntPaint(); };
+function ntRowHTML(){ const s = state.settings || {}, esc = escapeAttr, N = window._nt, C = ntCfg();
+  const inp = (id, v, ph) => '<input id="' + id + '" value="' + esc(v || "") + '" placeholder="' + ph + '" style="flex:1 1 220px;min-width:0;font:400 13px var(--font-sans);border:1px solid rgba(10,27,46,.18);border-radius:6px;padding:7px 9px">';
+  const h = t => '<div style="margin-top:14px;font-size:12px;font-weight:800;letter-spacing:.05em;color:#44576b">' + t + '</div>';
+  return h("AI PER LA POSTA · traduci e bozza di risposta EN") +
+    '<div style="font-size:12.5px;color:#6a7d90;margin:4px 0 6px">Workflow n8n «AI Assistant (Webhook)»: indirizzo di produzione …/webhook/ai-complete e lo stesso token scritto nel nodo «Valida + prepara». ' + (maiOn() ? '<b style="color:#14794e">Collegata</b>' : '<b style="color:#b3261e">Non collegata</b>') + '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' + inp("ai-u", s.aiWebhookUrl, "https://…/webhook/ai-complete") + inp("ai-t", s.aiWebhookToken, "token") + '<button class="btn btn-sm btn-primary" onclick="aiSave()">Salva</button></div>' +
+    h("COPIA IN NOTION · Supply Chain Tracker") +
+    '<div style="font-size:12.5px;color:#6a7d90;margin:4px 0 6px">Il database è la fonte; Notion riceve una copia delle pratiche (workflow n8n «Dashboard → Notion Tracker»). Partono solo le pratiche cambiate.</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">' + inp("nt-u", s.notionTrackerUrl, "https://…/webhook/notion-tracker") + inp("nt-t", s.notionTrackerToken, "token") + '<button class="btn btn-sm btn-primary" onclick="ntSave()">Salva</button></div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><label style="display:flex;gap:6px;align-items:center;font-size:13px;flex:1 1 260px"><input type="checkbox"' + (ntAuto() ? " checked" : "") + ' onchange="ntSetAuto(this.checked)">Da questo dispositivo aggiorna Notion da solo dopo ogni import</label>' +
+    '<button class="btn btn-sm"' + (C.url && !N.busy ? "" : " disabled") + ' onclick="ntPush(false)">Invia le modifiche</button><button class="btn btn-sm"' + (C.url && !N.busy ? "" : " disabled") + ' onclick="if(confirm(\'Rimandare a Notion TUTTE le pratiche? Ci vuole qualche minuto.\'))ntPush(true)">Invia tutto</button></div>' +
+    '<div style="font-size:12.5px;margin-top:6px;color:' + (/^✕/.test(N.last) ? "#b3261e" : "#44576b") + '">' + escapeHTML(N.busy ? "… invio in corso" : (N.last || "Nessun invio ancora")) + '</div>'; }
+function ntPaint(){ const el = document.getElementById("nt-row"); if(el) el.innerHTML = ntRowHTML(); }
+dbRenderRow = (function(f0){ return function(){ const r = f0.apply(this, arguments), el = document.getElementById("db-row");
+  if(el && !document.getElementById("nt-row")){ const d = document.createElement("div"); d.id = "nt-row"; el.appendChild(d); } ntPaint(); return r; }; })(dbRenderRow);
+try { dbRenderRow(); } catch(e) {}
+
 </script>
 
 </body>
