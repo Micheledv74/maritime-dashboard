@@ -13952,7 +13952,7 @@ async function aiComplete(prompt){
   if (!url) throw new Error("AI non configurata per il sito pubblicato — imposta il proxy in Impostazioni → AI Email Assistant.");
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },  // v3.2: niente preflight CORS
     body: JSON.stringify({ prompt, token: (state.settings && state.settings.aiWebhookToken) || "" })
   });
   if (!res.ok) throw new Error("Proxy AI: errore HTTP " + res.status);
@@ -33555,7 +33555,7 @@ window.ntPush = async function(all){
   N.busy = true; ntPaint(); let sent = 0;
   try {
     for(let i = 0; i < rows.length; i += 150){ const part = rows.slice(i, i + 150);
-      const res = await fetch(C.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: C.tok, at: new Date().toISOString(), items: part.map(x => x.r) }) });
+      const res = await fetch(C.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify({ token: C.tok, at: new Date().toISOString(), items: part.map(x => x.r) }) });
       if(!res.ok) throw new Error("HTTP " + res.status); part.forEach(x => H[x.r.trackerId] = x.h); sent += part.length; localStorage.setItem("mpd.ntHash", JSON.stringify(H)); }
     N.last = "✓ " + hm() + " · " + sent + " pratiche inviate a Notion (n8n le scrive in qualche minuto)";
   } catch(e) { N.last = "✕ " + hm() + " · invio non riuscito: " + (e.message || e) + (sent ? " (" + sent + " già inviate)" : ""); }
