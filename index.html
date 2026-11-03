@@ -19663,6 +19663,7 @@ window.rdShipPreAlert = function(cid){
   const cfg = (VESSELS || []).find(v => v.vesselId === c.vid) || {}, nm = String(cfg.displayName || c.vid).replace(/^M\/[VB]\s*/i, "").trim();
   const fd = s => { if(!s) return ""; const d = String(s).slice(0, 10).split("-"); return d.length === 3 ? d[2] + "." + d[1] + "." + d[0] : String(s); };
   const where = it => { const p = (typeof mpOf === "function" ? mpOf(it, now) : null) || {};
+    const hw = typeof rdHowOf === "function" ? rdHowOf(it.id) : null; if(hw && hw.ab && hw.by && hw.by.w) return "delivery on board confirmed by " + (hw.by.n || (window.RD_BY_EN || {})[hw.by.w] || "supplier") + " for " + fd(hw.ab);
     if(p.pos === "hub") return "at forwarder warehouse" + (p.hub ? " (" + (((typeof TML_HUBS !== "undefined" ? TML_HUBS : []).find(h => h.id === p.hub) || {}).name || p.hub) + ")" : "");
     if(p.pos === "customs") return "under customs clearance";
     if(p.pos === "agency") return "with the agents, for delivery on board";
@@ -27252,7 +27253,8 @@ function rdCalc(it, c, now, basis){
     const cut = c.etd - 0.25, arr = Math.max(0, c.eta), anch = c.etb - c.eta > 0.04;
     let lo, hi, ch, conf, rada = false;
     const d = how.ab ? rdDD(String(how.ab).slice(0,10) + "T10:00:00", now) : null;
-    if(d != null){ lo = hi = Math.max(0, d); conf = "ab"; ch = "a bordo il " + rdFD(lo, now) + " (data comunicata)"; }
+    const by = how.by && how.by.w && d != null ? how.by : null, byL = by ? (by.n || (window.RD_BY || {})[by.w] || "") : "";
+    if(d != null){ lo = hi = Math.max(0, d); conf = by ? "cf" : "ab"; ch = "a bordo il " + rdFD(lo, now) + (by ? " · consegna confermata da " + byL + (by.at ? " il " + String(by.at).slice(8, 10) + "." + String(by.at).slice(5, 7) : "") : " (data comunicata)"); }
     // le ore contano dal tuo avviso (adesso); il fornitore consegna all'ormeggio. La data "pronto" di Infoship (PO + LT) qui non vale: solo nota
     else { const h = Array.isArray(how.h) ? how.h : [24, 48], etb = Math.max(c.etb, arr), onlyRada = anch && c.etb >= cut;
       const at = onlyRada ? arr : etb; rada = onlyRada;
@@ -27264,8 +27266,11 @@ function rdCalc(it, c, now, basis){
     if(k === "late") why = "non bastano le " + (Array.isArray(how.h) ? how.h[0] : 24) + " h prima della partenza: organizza subito";
     else if(k === "risk") why = "finestra stretta: la nave resta " + (stay < 1 ? Math.round(stay * 24) + " h" : rdF1(stay) + " gg");
     else if(rada){ k = "risk"; why = "solo rada: serve la barca"; }
+    // v3.4 — dopo la data detta (12 h di tolleranza) la conferma non vale più da sola: chiede "è a bordo?"
+    const ask = d != null && d < -0.5;
+    if(ask){ k = "risk"; why = (by ? "confermata per il " : "data comunicata: ") + rdFD(d, now) + " — è a bordo?"; }
     if(why) ch += " → " + why;
-    return { it, c, pr, cut, lo, hi, H2: basis === "media" ? (lo + hi) / 2 : hi, k, segs: [{ k: "d", a: 0, lo, hi }], unknown: false, st: "attesa", conf,
+    return { it, c, pr, cut, lo, hi, H2: basis === "media" ? (lo + hi) / 2 : hi, k, segs: [{ k: "d", a: 0, lo, hi }], unknown: false, st: "attesa", conf, by, byL, ask,
       chain: ch, crit: rdCrit(it.id), margin: k === "late" ? "−" + rdF1(lo - cut) + " gg" : k === "risk" ? why : "+" + rdF1(cut - hi) + " gg", noCust };
   }
   if(mpX && mpX.pos === "customs"){
@@ -32452,13 +32457,18 @@ window.rd2Ed = function(id){ window._rd2.ed = window._rd2.ed === id ? "" : id; r
 // v2.8c — conferma semplice: "✓ In tempo" o "a bordo il …" (per PO o per tutto lo scalo); il calcolo dettagliato resta sotto
 window.rdConf = function(t, v){ if(v === "") return; const cp = window._rd2.port || "";
   if(v === "hrs"){ const s = prompt("Il fornitore consegna a bordo in quante ore? (es. 24-48 oppure 12-24)", "24-48"); if(s === null) return; const m = String(s).match(/(\d+)\s*(?:[-–\/a]\s*(\d+))?/); if(!m) return showToast("Scrivi le ore, es. 24-48"); const a = +m[1], b = m[2] ? +m[2] : a; v = [Math.min(a, b), Math.max(a, b)]; }
-  const p = v === null ? { m: "", c: "", ok: false, ab: "", h: null } : Array.isArray(v) ? { m: "direct", c: "none", ok: false, ab: "", h: v, cp } : v === "direct" ? { m: "direct", c: "none", ok: false, ab: "", h: [24, 48], cp } : { ok: false, ab: String(v).slice(0,10), cp };
+  const p = v === null ? { m: "", c: "", ok: false, ab: "", h: null, by: null } : Array.isArray(v) ? { m: "direct", c: "none", ok: false, ab: "", h: v, cp, by: null } : v === "direct" ? { m: "direct", c: "none", ok: false, ab: "", h: [24, 48], cp, by: null } : { ok: false, ab: String(v).slice(0,10), cp };
   rdHowSet(t, p); };
 function rd2Quick(x, id){
   const lb = 'font:600 11.5px var(--font-sans);border-radius:999px;padding:3px 9px;cursor:pointer;white-space:nowrap;';
   const gear = '<button title="Calcolo dettagliato (trasporto, dogana)" onclick="event.stopPropagation();rd2Ed(\'' + id + '\')" style="all:unset;cursor:pointer;color:#6a7d90;font-size:13px;padding:0 3px">' + (window._rd2.ed === x.it.id ? "✕" : "⚙") + '</button>';
+  if(x.ask) return '<span style="' + lb + 'cursor:default;background:#fdf3e2;color:#8a5600;border:1px solid #c07800">' + (x.by ? "confermata da " + escapeHTML(x.byL) : "data comunicata") + ' · è a bordo?</span>' +
+    '<button onclick="event.stopPropagation();rdCfDone(\'' + id + '\',1)" style="' + lb + 'background:#14794e;color:#fff;border:1px solid #14794e">✓ Sì, a bordo</button>' +
+    '<button onclick="event.stopPropagation();rdCfDone(\'' + id + '\',0)" style="' + lb + 'background:#fff;color:#c0261c;border:1px solid #c0261c">No</button>';
+  if(x.conf === "cf") return '<span title="' + escapeAttr((x.by && x.by.note) || "") + '" style="' + lb + 'cursor:default;background:#e6f4ec;color:#14794e;border:1px solid #14794e">✓ confermata da ' + escapeHTML(x.byL) + '</span><button onclick="event.stopPropagation();rdCfOpen(\'' + id + '\')" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600">modifica</button><button onclick="event.stopPropagation();rdConf(\'' + id + '\',null)" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600">togli</button>';
   if(x.conf) return '<span style="' + lb + 'cursor:default;background:#eef3fd;color:#1553d8;border:1px solid #1553d8">' + (x.conf === "ab" ? "data comunicata" : "diretta a bordo") + '</span><button onclick="event.stopPropagation();rdConf(\'' + id + '\',null)" style="all:unset;cursor:pointer;color:#1553d8;font-weight:600">togli</button>';
-  return '<button onclick="event.stopPropagation();rdConf(\'' + id + '\',\'direct\')" style="' + lb + 'background:#fff;color:#1553d8;border:1px solid #1553d8">Diretta a bordo 24–48 h</button>' +
+  return '<button onclick="event.stopPropagation();rdCfOpen(\'' + id + '\')" style="' + lb + 'background:#fff;color:#14794e;border:1px solid #14794e">✓ Consegna confermata…</button>' +
+    '<button onclick="event.stopPropagation();rdConf(\'' + id + '\',\'direct\')" style="' + lb + 'background:#fff;color:#1553d8;border:1px solid #1553d8">Diretta a bordo 24–48 h</button>' +
     '<label onclick="event.stopPropagation()" style="display:inline-flex;gap:4px;align-items:center;' + lb + 'background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)">a bordo il <input type="date" onchange="rdConf(\'' + id + '\',this.value)" style="font:600 11.5px var(--font-mono);border:0;padding:0;background:none;width:112px"></label>' + gear; }
 function rd2ConfBox(xs, c){
   const n = xs.length, nc = xs.filter(x => x.conf).length, P = escapeHTML(c.port), det = window._rd2.det;
@@ -32467,6 +32477,7 @@ function rd2ConfBox(xs, c){
     '<span style="' + PC_EB + '">COME ARRIVA A BORDO · ' + n + ' PO' + (nc ? ' · ' + nc + ' IMPOSTATI DA TE' : '') + '</span>' +
     '<span style="font-size:12.5px;color:#44576b;line-height:1.45;text-wrap:pretty">Se il fornitore consegna direttamente a bordo, il radar confronta le sue ore con quanto la nave resta in porto. Diventa arancione se il tempo è stretto o la nave è in rada, rosso se riparte prima.</span>' +
     '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+      '<button onclick="event.stopPropagation();rdCfOpen(\'CALL\')" style="' + b + 'background:#14794e;color:#fff;border:1px solid #14794e">✓ Tutti: consegna confermata…</button>' +
       '<button onclick="event.stopPropagation();rdConf(\'CALL\',\'direct\')" style="' + b + 'background:#1553d8;color:#fff;border:1px solid #1553d8">Tutti: fornitore diretto a bordo 24–48 h</button>' +
       '<button onclick="event.stopPropagation();rdConf(\'CALL\',\'hrs\')" style="' + b + 'background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)">Altre ore…</button>' +
       '<label onclick="event.stopPropagation()" style="display:inline-flex;gap:6px;align-items:center;' + b + 'background:#fff;color:#0a1b2e;border:1px solid rgba(10,27,46,.18)">Tutti a bordo il <input type="date" onchange="rdConf(\'CALL\',this.value)" style="font:600 12.5px var(--font-mono);border:0;padding:0;background:none;width:118px"></label>' +
@@ -33641,6 +33652,56 @@ setTimeout(shipQuotaPaint, 1500);
 document.addEventListener("click", e => { if(e.target && e.target.closest && e.target.closest('[onclick*="openSettings"],[data-open-settings],#btn-settings')) setTimeout(shipQuotaPaint, 300); }, true);
 setTimeout(() => cfgShare("ship", ["shipWebhookUrl", "shipWebhookToken"]), 8000);
 document.addEventListener("change", e => { if(e.target && /^shipWebhook/.test(e.target.dataset && e.target.dataset.setting || "")) setTimeout(() => { cfgShare("ship", ["shipWebhookUrl", "shipWebhookToken"], true); shipQuotaPaint(); }, 400); }, true);
+
+// === v3.4 — CONSEGNA CONFERMATA (fornitore / hub TML / agenzia) — rdHow.by {w,n,at,note} + ab = data a bordo, legata allo scalo (cp) ===
+// Radar: verde "confermata da X"; dal giorno dopo la data → arancione "è a bordo?" (✓ Sì = a bordo · No = torna alla stima). Pre-alert: "delivery confirmed by X".
+var RD_BY = { supplier: "fornitore", hub: "hub TML", agency: "agenzia" }, RD_BY_EN = { supplier: "supplier", hub: "forwarder", agency: "agents" };
+function rdCfCall(ids, cp){ try { const M = rdModel(); return (M.allCalls || []).find(c => c.port === cp && (c.its || []).some(x => ids.includes(x.it.id))) || null; } catch(e) { return null; } }
+function rdCfGuess(w, ids, cp){ try {
+  if(w === "supplier"){ const s = [...new Set(ids.map(id => (faFindItem(id) || {}).supplier).filter(x => x && x !== "—"))]; return s.length === 1 ? s[0] : ""; }
+  if(w === "agency"){ const c = rdCfCall(ids, cp), a = c && rd2Ag(c); return (a && a.name) || (rdProfile(cp) || {}).agent || ""; }
+  if(w === "hub"){ const h = (mpManual(ids[0]) || {}).hub; return h ? (((typeof TML_HUBS !== "undefined" ? TML_HUBS : []).find(x => x.id === h) || {}).name || "") : ""; }
+} catch(e) {} return ""; }
+window.rdCfOpen = function(t){ const R = window._rd2 || {}, ids = t === "CALL" ? (R.ids || []) : [t]; if(!ids.length) return; const cp = R.port || "", h0 = (typeof rdHowOf === "function" && rdHowOf(ids[0])) || {}, b0 = h0.by || {};
+  window._rdcf = { t, ids, cp, w: b0.w || "supplier", n: b0.n || "", ab: h0.ab || "", note: b0.note || "", nTouched: !!b0.n }; if(!window._rdcf.n) window._rdcf.n = rdCfGuess(window._rdcf.w, ids, cp); rdCfPaint(); };
+window.rdCfSet = function(k, v){ const S = window._rdcf; if(!S) return; S[k] = v; if(k === "n") S.nTouched = true; if(k === "w" && !S.nTouched) S.n = rdCfGuess(v, S.ids, S.cp); if(k === "w") rdCfPaint(); };
+window.rdCfClose = function(){ window._rdcf = null; const el = document.getElementById("rd-cf"); if(el) el.remove(); };
+window.rdCfSave = function(){ const S = window._rdcf; if(!S) return; if(!S.ab) return showToast("Scrivi la data in cui sarà a bordo");
+  window._rd2 = window._rd2 || {}; const keep = { ids: window._rd2.ids, port: window._rd2.port }; window._rd2.ids = S.ids; window._rd2.port = S.cp;
+  rdHowSet(S.t === "CALL" ? "CALL" : S.ids[0], { m: "", c: "", ok: false, h: null, ab: S.ab, cp: S.cp, by: { w: S.w, n: String(S.n || "").trim(), at: new Date().toISOString(), note: String(S.note || "").trim() } });
+  Object.assign(window._rd2, keep); rdCfClose(); showToast("Consegna confermata" + (S.ids.length > 1 ? " per " + S.ids.length + " PO" : "") + " · il giorno dopo il Radar ti chiede se è a bordo"); };
+window.rdCfDone = function(id, yes){ if(yes){ window.mpSetPos(id, "onboard"); try { radarPaint(); } catch(e) {} return; }
+  rdHowSet(id, { ab: "", by: null }); showToast("Torna alla stima: sollecita chi l'aveva confermata"); };
+function rdCfPaint(){ const S = window._rdcf; let el = document.getElementById("rd-cf"); if(!S){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement("div"); el.id = "rd-cf"; document.body.appendChild(el); }
+  const esc = escapeAttr, its = S.ids.map(id => faFindItem(id)).filter(Boolean), mob = matchMedia("(max-width: 700px)").matches;
+  const chip = (k, l) => '<button onclick="rdCfSet(\'w\',\'' + k + '\')" style="min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid ' + (S.w === k ? "#14794e" : "rgba(10,27,46,.18)") + ';background:' + (S.w === k ? "#14794e" : "#fff") + ';color:' + (S.w === k ? "#fff" : "#0a1b2e") + ';font:700 13.5px var(--font-sans);cursor:pointer">' + l + '</button>';
+  const lab = t => '<span style="font-size:11.5px;font-weight:800;letter-spacing:.06em;color:#5b6b7c">' + t + '</span>';
+  const inp = 'style="min-height:42px;border-radius:8px;border:1px solid rgba(10,27,46,.2);padding:0 12px;font:500 15px var(--font-sans);width:100%;box-sizing:border-box;color:#0a1b2e;background:#fff"';
+  const d = n => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+  el.innerHTML = '<div onclick="if(event.target===this)rdCfClose()" style="position:fixed;inset:0;z-index:10000;background:rgba(10,27,46,.45);display:flex;align-items:' + (mob ? "flex-end" : "center") + ';justify-content:center;padding:' + (mob ? "0" : "16px") + '">' +
+    '<div style="background:#fff;border-radius:' + (mob ? "18px 18px 0 0" : "14px") + ';width:100%;max-width:480px;max-height:90vh;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:10px;color:#0a1b2e;box-sizing:border-box">' +
+    '<div style="display:flex;gap:10px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><b style="font-size:17px">Consegna a bordo confermata</b><span style="font-size:12.5px;color:#5b6b7c">' + escapeHTML((S.cp ? ccTitle(S.cp) + " · " : "") + (its.length === 1 ? "PO " + (its[0].poNumber || "—") + " · " + (its[0].description || "") : its.length + " PO dello scalo")) + '</span></div><button onclick="rdCfClose()" style="all:unset;cursor:pointer;font-size:18px;color:#6a7d90;padding:2px 6px">✕</button></div>' +
+    lab("CHI L'HA CONFERMATA") + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + chip("supplier", "Fornitore") + chip("hub", "Hub TML") + chip("agency", "Agenzia") + '</div>' +
+    '<input value="' + esc(S.n) + '" oninput="rdCfSet(\'n\',this.value)" placeholder="Nome (facoltativo)" ' + inp + '>' +
+    lab("A BORDO IL") + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + [[0, "oggi"], [1, "domani"], [2, "+2 gg"], [3, "+3 gg"]].map(a => '<button onclick="rdCfSet(\'ab\',\'' + d(a[0]) + '\');rdCfPaint()" style="min-height:36px;padding:0 12px;border-radius:8px;border:1px solid ' + (S.ab === d(a[0]) ? "#0a1b2e" : "rgba(10,27,46,.18)") + ';background:' + (S.ab === d(a[0]) ? "#0a1b2e" : "#fff") + ';color:' + (S.ab === d(a[0]) ? "#fff" : "#0a1b2e") + ';font:600 13px var(--font-sans);cursor:pointer">' + a[1] + '</button>').join("") + '</div>' +
+    '<input type="date" value="' + esc(S.ab) + '" onchange="rdCfSet(\'ab\',this.value)" ' + inp + '>' +
+    lab("NOTA") + '<input value="' + esc(S.note) + '" oninput="rdCfSet(\'note\',this.value)" placeholder="es. email di Marco 03.11, consegna con la barca" ' + inp + '>' +
+    '<span style="font-size:12.5px;color:#44576b;line-height:1.45;text-wrap:pretty">Il Radar lo segna verde e non lo sollecita più; il Pre-alert alla nave scrive “delivery confirmed by …”. Il giorno dopo la data ti chiede se è a bordo.</span>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px"><button class="btn btn-sm" onclick="rdCfClose()">Annulla</button><button class="btn btn-sm btn-primary" onclick="rdCfSave()" style="background:#14794e;border-color:#14794e">Salva</button></div></div></div>'; }
+// telefono: foglio DATA con "chi l'ha confermata"
+{ const s0 = window.tmSheet; window.tmSheet = function(kind, id, pre){ s0.apply(this, arguments); const S = window._tms; if(!S || kind !== "data") return; const h = (typeof rdHowOf === "function" && rdHowOf(id)) || {};
+    if(!("byW" in (pre || {}))){ S.byW = (h.by && h.by.w) || ""; S.byN = (h.by && h.by.n) || ""; } tmSheetPaint(); }; }
+{ const p0 = tmSheetPaint; tmSheetPaint = function(){ p0.apply(this, arguments); const S = window._tms, el = document.getElementById("tm-sheet"); if(!S || !el || S.kind !== "data") return;
+    const di = el.querySelector('input[type="date"]'); if(!di || el.querySelector("#tm-by")) return;
+    const c = (k, l) => '<button onclick="tmSV(\'byW\',\'' + k + '\',1)" style="min-height:46px;padding:0 14px;border-radius:12px;border:1.5px solid ' + (S.byW === k ? "#14794e" : "rgba(10,27,46,.16)") + ';background:' + (S.byW === k ? "#14794e" : "#fff") + ';color:' + (S.byW === k ? "#fff" : "#0a1b2e") + ';font:700 15px var(--font-sans);cursor:pointer">' + l + '</button>';
+    const box = document.createElement("div"); box.id = "tm-by"; box.style.cssText = "display:flex;flex-direction:column;gap:8px";
+    box.innerHTML = '<span style="font-size:12.5px;font-weight:700;letter-spacing:.05em;color:#5b6b7c;padding-top:4px">CONFERMATA DA</span><div style="display:flex;gap:6px;flex-wrap:wrap">' + c("", "Nessuno") + c("supplier", "Fornitore") + c("hub", "Hub TML") + c("agency", "Agenzia") + '</div>' +
+      (S.byW ? '<input value="' + escapeAttr(S.byN || "") + '" oninput="tmSV(\'byN\',this.value)" placeholder="Nome (facoltativo)" style="min-height:50px;border-radius:12px;border:1px solid rgba(10,27,46,.22);padding:0 14px;font:500 17px var(--font-sans);width:100%;box-sizing:border-box;background:#fff;color:#0a1b2e">' : "");
+    di.insertAdjacentElement("afterend", box); }; }
+{ const v0 = window.tmSheetSave; window.tmSheetSave = function(){ const S = window._tms ? Object.assign({}, window._tms) : null; const r = v0.apply(this, arguments);
+    if(S && S.kind === "data"){ try { if(S.ab && S.byW) rdHowSet(S.id, { by: { w: S.byW, n: String(S.byN || "").trim(), at: new Date().toISOString(), note: "" } }); else rdHowSet(S.id, { by: null }); } catch(e) { console.warn("[conferma]", e); } }
+    return r; }; }
 
 </script>
 
