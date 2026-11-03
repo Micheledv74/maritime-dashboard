@@ -20076,7 +20076,7 @@ function shipmentSection(it, vessel){
         <button title="${seg.gid?"Togli questo PO dalla spedizione":"Rimuovi"}" onclick="window.shipRemove('${escapeAttr(it.id)}','${escapeAttr(seg.id)}')" style="margin-left:auto;background:none;border:none;color:#c2c9d2;font-size:15px;cursor:pointer;line-height:1;">✕</button>
       </div>
       ${grpHTML}
-      ${shipIsAWB(seg) && (seg.status==="pending" || !events.length) ? `<div style="font-size:11px;color:#8a6d1a;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:8px;padding:7px 9px;margin-top:8px;line-height:1.4;">✈ Corriere aereo (AWB): il tracking automatico via API richiede il canale <b>Air Cargo</b> di 17TRACK. Aggiornalo qui sotto in 2 click: apri su 17TRACK, premi <b>COPIA DETTAGLI</b> e incolla.</div>` : ""}
+      ${shipIsAWB(seg) && (seg.status==="pending" || !events.length) ? `<div style="font-size:11px;color:#8a6d1a;background:#fdf6e3;border:1px solid #f0e2b8;border-radius:8px;padding:7px 9px;margin-top:8px;line-height:1.4;">✈ AWB aereo: il tracking automatico usa i crediti <b>AirWayBill</b> di 17TRACK (separati dai pacchi).${seg.apiErr ? " 17TRACK risponde: <i>" + escapeHTML(seg.apiErr) + "</i>." : ""} Se non arriva nulla, riserva in 2 click: apri su 17TRACK, premi <b>COPIA DETTAGLI</b> e incolla qui sotto.</div>` : (seg.apiErr ? `<div style="font-size:11px;color:#b3261e;margin-top:8px;line-height:1.4;">17TRACK: ${escapeHTML(seg.apiErr)} — controlla numero e corriere, o incolla i dati qui sotto.</div>` : "")}
       <details style="margin-top:8px;">
         <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#0e54c1;list-style:none;">📋 Incolla dati da 17TRACK${seg.source==="17track-manual"?" — aggiorna":""}</summary>
         <textarea id="ship-paste-${escapeAttr(seg.id)}" placeholder="Incolla qui il testo del pulsante «COPIA DETTAGLI» di 17TRACK (aereo o corriere)…" style="width:100%;box-sizing:border-box;height:74px;border:1px solid #dfe2e7;border-radius:9px;padding:8px 10px;font-size:11.5px;font-family:var(--font-mono);margin-top:7px;resize:vertical;"></textarea>
@@ -33585,6 +33585,62 @@ function ntPaint(){ const el = document.getElementById("nt-row"); if(el) el.inne
 dbRenderRow = (function(f0){ return function(){ const r = f0.apply(this, arguments), el = document.getElementById("db-row");
   if(el && !document.getElementById("nt-row")){ const d = document.createElement("div"); d.id = "nt-row"; el.appendChild(d); } ntPaint(); return r; }; })(dbRenderRow);
 try { dbRenderRow(); } catch(e) {}
+
+// === v3.3 — TRACKING 17TRACK AUTOMATICO (workflow «Shipment Tracking Sync v2») · il manuale «Incolla da 17TRACK» resta di riserva ===
+// Tutte le spedizioni aperte (non consegnate, con numero) di tutte le pratiche, a pacchi di 40, dal PC ogni 6 h + all'apertura.
+// Interrogare un numero già registrato NON consuma crediti; i crediti rimasti (mpd.shipQuota) si vedono in Impostazioni › Tracking.
+function shipCfg(){ const s = state.settings || {}; return { url: String(s.shipWebhookUrl || "").trim(), tok: String(s.shipWebhookToken || "").trim() }; }
+async function shipCall(list, mode){ const C = shipCfg(); if(!C.url) throw new Error("Tracking non configurato — Impostazioni → Tracking spedizioni");
+  const res = await fetch(C.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify({ token: C.tok, mode: mode || "", shipments: list }) });
+  if(!res.ok) throw new Error("HTTP " + res.status + (res.status === 500 ? " (token o chiave 17TRACK nel nodo «Valida + prepara»?)" : ""));
+  const d = await res.json().catch(() => ({})); if(d && d.quota) localStorage.setItem("mpd.shipQuota", JSON.stringify(d.quota)); return d || {}; }
+function shipApplyResults(d){ const R = {}; ((d && d.results) || []).forEach(r => { if(r && r.id) R[r.id] = r; }); const E = {}; ((d && d.errors) || []).forEach(e => { if(e && e.id) E[e.id] = e; });
+  const all = loadShipments(); let n = 0;
+  Object.keys(all).forEach(iid => { if(iid === "__groups" || !Array.isArray(all[iid])) return; let ch = false;
+    const cur = getItemShipments(iid).map(s => { const r = R[s.id], e = E[s.id]; if(!r && !e) return s; ch = true; n++;
+      if(!r) return { ...s, apiErr: (e.code ? e.code + " " : "") + e.message, updatedAt: new Date().toISOString() };
+      const ev = Array.isArray(r.events) && r.events.length ? r.events : s.events;
+      const keepManual = s.source === "17track-manual" && (!r.events || !r.events.length);   // dati incollati a mano: non li cancello con una risposta vuota
+      return keepManual ? { ...s, apiErr: "", apiAt: new Date().toISOString() } : { ...s, status: r.status || s.status, eta: r.eta || s.eta, events: ev, tips: r.tips || "", apiErr: "", source: "17track-api", apiAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; });
+    if(ch) setItemShipments(iid, cur); });
+  return n; }
+window.shipRefresh = async function(itemId){
+  const active = getItemShipments(itemId).filter(s => s.number && s.status !== "delivered");
+  if(!active.length){ showToast("Nessuna spedizione da aggiornare"); return; }
+  showToast("Aggiorno il tracking…");
+  try { const d = await shipCall(active.map(s => ({ id: s.id, number: s.number, carrier: s.carrier }))); shipApplyResults(d);
+    const err = (d.errors || []).length; try { window.openItemDetailPopover(itemId); } catch(e) {}
+    showToast(err ? "17TRACK non trova " + err + " numero/i: controlla corriere e numero, o usa «Incolla dati da 17TRACK»" : "Tracking aggiornato"); }
+  catch(e) { showToast("Errore tracking: " + (e.message || e) + " · puoi sempre usare «Incolla dati da 17TRACK»"); }
+};
+window.shipAutoAll = async function(manual){
+  if(!shipCfg().url || window._shipAuto) return; const all = loadShipments(), seen = {}, list = [];
+  Object.keys(all).forEach(iid => { if(iid === "__groups") return; getItemShipments(iid).forEach(s => { const k = shipNorm(s.number);
+    if(!k || s.status === "delivered" || seen[k]) return; if(s.hub && !s.number) return; seen[k] = 1; list.push({ id: s.id, number: s.number, carrier: s.carrier }); }); });
+  window._shipAuto = true; let n = 0, err = "";
+  try { if(!list.length) await shipCall([], "quota");
+    for(let i = 0; i < list.length; i += 40){ const d = await shipCall(list.slice(i, i + 40)); n += shipApplyResults(d); } localStorage.setItem("mpd.shipAutoAt", String(Date.now())); }
+  catch(e) { err = String(e.message || e); }
+  window._shipAuto = false; localStorage.setItem("mpd.shipAutoLast", (err ? "✕ " : "✓ ") + new Date().toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + (err ? " · " + err : " · " + list.length + " spedizioni controllate"));
+  shipQuotaPaint(); if(n){ try { mpRefresh(); } catch(e) {} try { if(window.innerWidth <= 768) renderMobileApp(); else render(); } catch(e) {} }
+  if(manual) showToast(err ? "Tracking: " + err : "Tracking: " + list.length + " spedizioni controllate");
+};
+function shipAutoDue(){ const t = +localStorage.getItem("mpd.shipAutoAt") || 0; return Date.now() - t > 6 * 3600e3; }
+setTimeout(() => { if(!matchMedia("(max-width: 900px)").matches && shipAutoDue()) window.shipAutoAll(); }, 45000);
+setInterval(() => { if(document.visibilityState === "visible" && !matchMedia("(max-width: 900px)").matches && shipAutoDue()) window.shipAutoAll(); }, 15 * 60e3);
+function shipQuotaHTML(){ let q = null; try { q = JSON.parse(localStorage.getItem("mpd.shipQuota") || "null"); } catch(e) {}
+  const last = localStorage.getItem("mpd.shipAutoLast") || "", low = q && q.remain != null && q.remain < 30;
+  return '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;padding:10px 12px;border:1px solid rgba(10,27,46,.12);border-radius:8px;background:' + (low ? "#fff5e6" : "#f7f9fb") + '">' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="flex:1;font-size:13px;color:#0a1b2e">' + (q ? "17TRACK · " + q.remain + " crediti rimasti su " + q.total + (low ? " — pochi, valuta l'acquisto o la riserva manuale" : "") : "17TRACK · crediti non ancora letti") + '</b>' +
+    '<button class="btn btn-sm" onclick="shipAutoAll(true)">Aggiorna tutte ora</button></div>' +
+    '<div style="font-size:12px;color:#44576b">Aggiornamento automatico dal PC ogni 6 ore (solo le spedizioni non consegnate). Interrogare di nuovo un numero non costa crediti: costa solo il primo inserimento.' + (q && q.at ? " Crediti letti il " + new Date(q.at).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + "." : "") + '</div>' +
+    (last ? '<div style="font-size:12px;color:' + (/^✕/.test(last) ? "#b3261e" : "#44576b") + '">Ultimo giro: ' + escapeHTML(last.slice(2)) + '</div>' : "") + '</div>'; }
+function shipQuotaPaint(){ const inp = document.querySelector('[data-setting="shipWebhookToken"]'); if(!inp) return; const sec = inp.closest(".modal-section") || inp.parentNode.parentNode;
+  let el = document.getElementById("ship-quota"); if(!el){ el = document.createElement("div"); el.id = "ship-quota"; sec.appendChild(el); } el.innerHTML = shipQuotaHTML(); }
+setTimeout(shipQuotaPaint, 1500);
+document.addEventListener("click", e => { if(e.target && e.target.closest && e.target.closest('[onclick*="openSettings"],[data-open-settings],#btn-settings')) setTimeout(shipQuotaPaint, 300); }, true);
+setTimeout(() => cfgShare("ship", ["shipWebhookUrl", "shipWebhookToken"]), 8000);
+document.addEventListener("change", e => { if(e.target && /^shipWebhook/.test(e.target.dataset && e.target.dataset.setting || "")) setTimeout(() => { cfgShare("ship", ["shipWebhookUrl", "shipWebhookToken"], true); shipQuotaPaint(); }, 400); }, true);
 
 </script>
 
