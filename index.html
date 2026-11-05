@@ -33146,6 +33146,102 @@ setTimeout(fxAutoRefresh, 4000);
 setInterval(fxAutoRefresh, 6 * 36e5);
 window.fxUseInDash = function(r, quiet){ try { localStorage.setItem("mpd.isxFx", String(Math.round(r * 10000) / 10000)); } catch(e) {} if(!quiet) showToast("Cambio della dashboard: 1 € = " + r.toFixed(4) + " $"); try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c) paintFx(c); } catch(e) {} };
 
+// ===== v3.0b (05.11) — FESTIVITÀ AL PORTO: avviso se arrivo/sosta dello scalo cade in un giorno festivo del paese (Nager.Date) =====
+const PH_PORT_CC = {
+  "mombasa":"KE","tanga":"TZ","dar es salaam":"TZ","zanzibar":"TZ","tema":"GH","takoradi":"GH","lome":"TG","cotonou":"BJ","lagos":"NG","apapa":"NG","onne":"NG","abidjan":"CI","san pedro":"CI","dakar":"SN","conakry":"GN","douala":"CM","pointe noire":"CG","luanda":"AO","walvis bay":"NA",
+  "durban":"ZA","richards bay":"ZA","cape town":"ZA","port elizabeth":"ZA","gqeberha":"ZA","saldanha":"ZA","maputo":"MZ","beira":"MZ","nacala":"MZ","port louis":"MU","toamasina":"MG","djibouti":"DJ","berbera":"SO",
+  "port sudan":"SD","jeddah":"SA","dammam":"SA","aqaba":"JO","suez":"EG","port said":"EG","alexandria":"EG","damietta":"EG","tripoli":"LY","tunis":"TN","rades":"TN","sfax":"TN","algiers":"DZ","alger":"DZ","casablanca":"MA","tanger med":"MA","tangier":"MA",
+  "singapore":"SG","port klang":"MY","penang":"MY","colombo":"LK","hambantota":"LK","chittagong":"BD","chattogram":"BD","mongla":"BD","mumbai":"IN","kandla":"IN","mundra":"IN","chennai":"IN","visakhapatnam":"IN","paradip":"IN","karachi":"PK","port qasim":"PK",
+  "jebel ali":"AE","dubai":"AE","fujairah":"AE","khor fakkan":"AE","abu dhabi":"AE","khalifa":"AE","sohar":"OM","salalah":"OM","muscat":"OM","bandar abbas":"IR","umm qasr":"IQ","doha":"QA","hamad":"QA","bahrain":"BH","kuwait":"KW",
+  "genova":"IT","genoa":"IT","la spezia":"IT","spezia":"IT","livorno":"IT","napoli":"IT","naples":"IT","salerno":"IT","gioia tauro":"IT","augusta":"IT","venezia":"IT","trieste":"IT","ravenna":"IT","civitavecchia":"IT","cagliari":"IT","palermo":"IT","catania":"IT","taranto":"IT","ancona":"IT","bari":"IT","brindisi":"IT","savona":"IT","porto marghera":"IT","monfalcone":"IT","chioggia":"IT","marina di carrara":"IT","piombino":"IT","procida":"IT","pozzuoli":"IT",
+  "malta":"MT","valletta":"MT","marsaxlokk":"MT","piraeus":"GR","thessaloniki":"GR","algeciras":"ES","valencia":"ES","barcelona":"ES","tarragona":"ES","cartagena":"ES","huelva":"ES","bilbao":"ES","las palmas":"ES","tenerife":"ES","gibraltar":"GI","lisbon":"PT","lisboa":"PT","sines":"PT","setubal":"PT",
+  "marseille":"FR","fos":"FR","le havre":"FR","dunkirk":"FR","dunkerque":"FR","rotterdam":"NL","amsterdam":"NL","ijmuiden":"NL","antwerp":"BE","antwerpen":"BE","ghent":"BE","gent":"BE","hamburg":"DE","bremerhaven":"DE","bremen":"DE","lulea":"SE","oxelosund":"SE","gothenburg":"SE","goteborg":"SE","gdansk":"PL","gdynia":"PL","szczecin":"PL","klaipeda":"LT","riga":"LV","tallinn":"EE","helsinki":"FI","kotka":"FI","narvik":"NO","istanbul":"TR","izmir":"TR","mersin":"TR","iskenderun":"TR","constanta":"RO","koper":"SI","rijeka":"HR","bar":"ME","durres":"AL",
+  "houston":"US","new orleans":"US","baltimore":"US","santos":"BR","paranagua":"BR","rio grande":"BR","rio de janeiro":"BR","itaqui":"BR","tubarao":"BR","vitoria":"BR","buenos aires":"AR","san lorenzo":"AR","rosario":"AR","montevideo":"UY",
+  "shanghai":"CN","qingdao":"CN","tianjin":"CN","dalian":"CN","ningbo":"CN","busan":"KR","yokohama":"JP","kaohsiung":"TW","ho chi minh":"VN","haiphong":"VN","jakarta":"ID","surabaya":"ID","manila":"PH","bangkok":"TH","laem chabang":"TH","port hedland":"AU","newcastle":"AU","dampier":"AU"
+};
+window._phPorts = null;
+fetch("data-ports.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(d => { const o = {}; if(d && d.ports) for(const k in d.ports){ const p = d.ports[k]; if(p && p.name) String(p.name).split("/").forEach(n => { o[phNorm(n)] = p.country || k.slice(0, 2); }); } window._phPorts = o; }).catch(() => {});
+function phNorm(s){ return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
+// paese dal testo del porto: "Chittagong (BD)" / "Durban, ZA" / UN/LOCODE "BDCGP" / nome noto
+function phCountry(port){
+  const raw = String(port || "").trim(); if(!raw) return "";
+  let m = raw.match(/(?:\(\s*([A-Za-z]{2})\s*\)|[,\u2013-]\s*([A-Za-z]{2}))\s*$/); if(m) return (m[1] || m[2]).toUpperCase();
+  if(/^[A-Z]{2}[A-Z0-9]{3}$/.test(raw)) return raw.slice(0, 2);
+  const n = phNorm(raw), maps = [window._phPorts || {}, PH_PORT_CC];
+  for(const map of maps){ if(map[n]) return map[n]; }
+  for(const map of maps){ let best = "", cc = ""; for(const k in map){ if(k.length > best.length && (" " + n + " ").includes(" " + k + " ")){ best = k; cc = map[k]; } } if(cc) return cc; }
+  return "";
+}
+function phCache(){ try { const c = JSON.parse(localStorage.getItem("mpd.holidays") || "{}"); return c && typeof c === "object" ? c : {}; } catch(e) { return {}; } }
+window._phPending = window._phPending || {};
+// festività di un paese/anno dalla cache (30 gg); se mancano le chiede e ridisegna quando arrivano
+function phGet(cc, y){
+  const key = cc + "-" + y, c = phCache()[key];
+  if(c && Date.now() - new Date(c.at).getTime() < 30 * 864e5) return c;
+  if(!window._phPending[key]){
+    window._phPending[key] = 1;
+    fetch("https://date.nager.at/api/v3/PublicHolidays/" + y + "/" + cc)
+      .then(r => r.status === 200 ? r.json() : (r.status === 204 || r.status === 404 ? [] : Promise.reject()))
+      .then(list => {
+        const val = Array.isArray(list) && list.length ? { at: new Date().toISOString(), list: list.filter(h => h.global !== false || !h.counties).map(h => ({ d: h.date, n: h.name, ln: h.localName })) } : { at: new Date().toISOString(), na: true };
+        const all = phCache(); all[key] = val; try { localStorage.setItem("mpd.holidays", JSON.stringify(all)); } catch(e) {}
+        if(state && state.view === "vessel" && typeof render === "function") render();
+      }).catch(() => {}).finally(() => { delete window._phPending[key]; });
+  }
+  return c || null;
+}
+function phDay(iso){ const [y, m, d] = iso.split("-"); return d + "." + m; }
+function phAdd(iso, n){ const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+// controlla uno scalo: da 3 gg prima dell'arrivo alla partenza (o arrivo + 4 gg se manca l'ETD)
+function phLeg(L){
+  const ok = x => /^\d{4}-\d{2}-\d{2}$/.test(x || ""), a = L.a;
+  if(!L.port || !ok(a)) return null;
+  const cc = phCountry(L.port); if(!cc) return Object.assign({}, L, { cc: "", hits: [], unknown: true });
+  const from = phAdd(a, -3), to = ok(L.e) && L.e >= a ? L.e : phAdd(a, 4);
+  const years = [...new Set([from.slice(0, 4), to.slice(0, 4)])], hits = []; let na = false, loading = false;
+  years.forEach(y => { const c = phGet(cc, y); if(!c) loading = true; else if(c.na) na = true; else c.list.forEach(h => { if(h.d >= from && h.d <= to) hits.push(Object.assign({}, h)); }); });
+  hits.sort((x, y) => x.d.localeCompare(y.d));
+  hits.forEach(h => { h.rel = h.d < a ? "prima dell'arrivo" : h.d === a ? "il giorno dell'arrivo" : (L.b && h.d === L.b && L.b !== a) ? "il giorno dell'ormeggio" : "durante la sosta"; });
+  return Object.assign({}, L, { cc, hits, na, loading });
+}
+// scali da controllare: i prossimi del Radar (entro 60 gg); se il Radar non ne ha, il voyage scritto a mano
+function phCalls(vid){
+  const now = Date.now(), iso = off => { const d = new Date(now + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  let out = [];
+  try { const M = rdModel(), lane = (M && M.lanes || []).find(l => l.vid === vid);
+    if(lane) out = (lane.calls || []).filter(c => !c.past && c.eta != null && c.eta <= 60 && (c.etd == null || c.etd >= -1)).sort((x, y) => x.eta - y.eta).slice(0, 3)
+      .map(c => ({ port: typeof ccTitle === "function" ? ccTitle(c.port) : c.port, a: iso(c.eta), b: c.etb != null ? iso(c.etb) : "", e: c.etd != null ? iso(c.etd) : "", nPO: (c.its || []).filter(x => !x.onb).length })); } catch(e) {}
+  if(!out.length){ try { const v = getVoyage(vid) || {}, d = x => String(x || "").slice(0, 10), n = w => { try { return itemsForLeg(vid, w).length; } catch(e) { return 0; } };
+    [["current", v.current], ["next", v.next]].forEach(([w, l]) => { if(l && l.to) out.push({ port: l.to, a: d(l.eta || l.etb), b: d(l.etb), e: d(l.etd), nPO: n(w) }); }); } catch(e) {} }
+  return out;
+}
+function phStripHTML(vid){
+  const legs = phCalls(vid).map(phLeg).filter(Boolean);
+  if(!legs.length) return "";
+  const rows = legs.map(L => {
+    const where = '<b style="color:#0a1b2e">' + escapeHTML(L.port) + '</b>' + (L.cc ? ' <span style="color:#6a7d90">(' + L.cc + ')</span>' : '') + ' <span style="color:#6a7d90">· arrivo ' + phDay(L.a) + (L.nPO ? ' · ' + L.nPO + ' PO in consegna' : '') + '</span>';
+    if(L.unknown) return '<div style="color:#6a7d90">' + where + ' — paese non riconosciuto: scrivi il porto come «Nome (XX)» con la sigla del paese, es. «Chittagong (BD)».</div>';
+    if(L.loading && !L.hits.length) return '<div style="color:#6a7d90">' + where + ' — controllo le festività…</div>';
+    if(L.na && !L.hits.length) return '<div style="color:#6a7d90">' + where + ' — festività di questo paese non disponibili: chiedi all\'agenzia.</div>';
+    if(!L.hits.length) return '<div>' + where + ' — <span style="color:#14794e;font-weight:600">nessuna festività nazionale</span> fra 3 giorni prima dell\'arrivo e la partenza.</div>';
+    return '<div>' + where + '<div style="display:flex;flex-direction:column;gap:2px;margin-top:3px">' +
+      L.hits.map(h => '<span><span style="font:700 12px var(--font-mono, monospace);color:#a85a00">' + phDay(h.d) + '</span> ' + escapeHTML(h.ln && h.ln !== h.n ? h.n + " · " + h.ln : h.n) + ' <span style="color:#a85a00">— ' + h.rel + '</span></span>').join("") +
+      '</div><div style="color:#44576b;margin-top:3px">Agenzia, dogana e fornitori del posto potrebbero essere chiusi: anticipa consegne e pre-alert.</div></div>';
+  });
+  const warn = legs.some(L => L.hits.length);
+  return '<section class="panel-card" style="padding:11px 16px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.45;border-radius:14px;' + (warn ? 'background:#fff8ec;border:1px solid #f0d3a2' : 'background:#fff;border:1px solid rgba(10,27,46,.10)') + '">' +
+    '<div style="font:700 11px var(--font-mono, monospace);letter-spacing:.07em;color:' + (warn ? '#a85a00' : '#44576b') + '">FESTIVITÀ AL PORTO</div>' + rows.join("") + '</section>';
+}
+// desktop: Panoramica 1a (sotto la rotta) · mobile/vecchia scheda: sotto il voyage
+(function(){
+  const safe = vid => { try { return phStripHTML(vid); } catch(e) { console.warn("[festività]", e); return ""; } };
+  if(typeof npHTML === "function"){ const np0 = npHTML;
+    npHTML = function(vid){ const h = np0.apply(this, arguments), s = safe(vid), k = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))';
+      const i = h.indexOf(k); return !s ? h : i > 0 ? h.slice(0, i) + s + h.slice(i) : h.replace(/<\/div>$/, s + '</div>'); }; }
+  if(typeof renderVoyageWidget === "function"){ const rv0 = renderVoyageWidget;
+    renderVoyageWidget = function(vid){ return rv0.apply(this, arguments) + safe(vid); }; }
+})();
+
 // --- AGGIORNAMENTO AUTOMATICO (feed n8n: to-do Outlook, noon, posta, Infoship) ---------------------
 window._ar = window._ar || { last: Date.now(), every: 5 * 60000 };
 (function(){
