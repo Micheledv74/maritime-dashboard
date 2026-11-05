@@ -33302,33 +33302,79 @@ function wxAt(pk, k, t){ if(!pk || !pk.v[k]) return null; const i = Math.round((
 function wxBft(kn){ const L = [1, 3, 6, 10, 16, 21, 27, 33, 40, 47, 55, 63]; let b = 0; while(b < L.length && kn >= L[b]) b++; return b; }
 function wxDir(d){ return d == null ? "" : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(((d % 360) + 360) % 360 / 45) % 8]; }
 function wxSky(c){ return c == null ? "" : c >= 95 ? "temporale" : c >= 80 ? "rovesci" : c >= 61 ? "pioggia" : c >= 51 ? "pioviggine" : c >= 45 ? "nebbia" : c >= 3 ? "nuvoloso" : c >= 1 ? "poco nuvoloso" : "sereno"; }
+// --- v3.0d: icone e scheda meteo più leggibile -------------------------------------------------------
+function wxIcon(code, sz){
+  sz = sz || 30; const st = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  const cloud = '<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11.5 3.3 3.3 0 0 0 7 18z"/>';
+  const sun = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>';
+  let b, c;
+  if(code == null){ b = cloud; c = "#8a99a8"; }
+  else if(code >= 95){ b = '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 8.5 3.3 3.3 0 0 0 7 15z"/><path d="M12.5 15.5l-2 3.5h3l-2 3.5"/>'; c = "#6b3fa0"; }
+  else if(code >= 61){ b = '<path d="M7 14h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.3 3.3 0 0 0 7 14z"/><path d="M8.5 17l-1 2.5M12.5 17l-1 2.5M16.5 17l-1 2.5"/>'; c = "#1553d8"; }
+  else if(code >= 51){ b = '<path d="M7 14h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.3 3.3 0 0 0 7 14z"/><path d="M9 18v.5M13 18v.5M17 18v.5"/>'; c = "#3f7fd6"; }
+  else if(code >= 45){ b = '<path d="M4 9h16M3 13h18M5 17h14"/>'; c = "#7a8896"; }
+  else if(code >= 3){ b = cloud; c = "#5d6f82"; }
+  else if(code >= 1){ b = '<g transform="translate(-3 -3) scale(.75)">' + sun + '</g><path d="M9 19h8a3.5 3.5 0 0 0 .4-6.97A5 5 0 0 0 8.2 13 2.8 2.8 0 0 0 9 19z" fill="#fff"/>'; c = "#c98a00"; }
+  else { b = sun; c = "#d99a00"; }
+  return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 24 24" ' + st + ' style="color:' + c + ';flex:none" aria-hidden="true">' + b + '</svg>';
+}
+// freccia: dove va il vento (dalla direzione di provenienza + 180°)
+function wxArrow(dir, col){ return dir == null ? "" : '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex:none;transform:rotate(' + Math.round(dir + 180) + 'deg)"><circle cx="12" cy="12" r="11" fill="' + col + '" opacity=".12"/><path d="M12 4.5v13M7.5 13l4.5 5 4.5-5" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+function wxWave(col){ return '<svg width="18" height="12" viewBox="0 0 24 14" aria-hidden="true" style="flex:none"><path d="M1 9c2.5-4 5-4 7.5 0s5 4 7.5 0 5-4 7 0" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linecap="round"/></svg>'; }
+const WX_BFT = ["calma", "bava di vento", "brezza leggera", "brezza tesa", "vento moderato", "vento teso", "vento fresco", "vento forte", "burrasca", "burrasca forte", "tempesta", "tempesta violenta", "uragano"];
+const WX_SEA = h => h == null ? "" : h < 0.5 ? "mare calmo" : h < 1.25 ? "mare poco mosso" : h < 2.5 ? "mare mosso" : h < 4 ? "mare molto mosso" : h < 6 ? "mare agitato" : "mare grosso";
 function wxStripHTML(vid){
   const pts = wxPoints(vid); if(!pts.length) return "";
-  const D = wxGet(vid, pts), now = Date.now(); let j = 0, worst = 0;
-  const when = t => { const d = new Date(t); return t - now < 36e5 ? "adesso" : String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + " " + String(d.getHours()).padStart(2, "0") + ":00"; };
+  const D = wxGet(vid, pts), now = Date.now(); let j = 0;
+  const hhmm = t => String(new Date(t).getHours()).padStart(2, "0") + ":00", dd = t => { const d = new Date(t); return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0"); };
+  const lvlOf = (bf, hs) => (bf != null && bf >= 8) || (hs != null && hs >= 4) ? 2 : (bf != null && bf >= 6) || (hs != null && hs >= 2.5) ? 1 : 0;
+  const C = [{ fg: "#14794e", bg: "#e7f4ec", bar: "#2f9e6b" }, { fg: "#a85a00", bg: "#fdf1de", bar: "#e09a2b" }, { fg: "#b3261e", bg: "#fbe6e4", bar: "#d0453b" }];
   const cells = pts.map(p => {
-    if(!p.ll) return { p, txt: "posizione del porto non trovata", lvl: 0 };
-    const r = D && D.pts[j++]; if(!r) return { p, txt: D ? "previsione non disponibile" : "carico…", lvl: 0 };
+    if(!p.ll) return { p, txt: "porto non trovato sulla mappa" };
+    const r = D && D.pts[j++]; if(!r) return { p, txt: D ? "previsione non disponibile" : "carico la previsione…" };
     const ws = wxAt(r.w, "wind_speed_10m", p.t), wd = wxAt(r.w, "wind_direction_10m", p.t), wg = wxAt(r.w, "wind_gusts_10m", p.t), wc = wxAt(r.w, "weather_code", p.t);
     const hs = wxAt(r.s, "wave_height", p.t), sw = wxAt(r.s, "swell_wave_height", p.t);
-    if(ws == null && hs == null) return { p, txt: "oltre l'orizzonte della previsione", lvl: 0 };
-    const bf = ws != null ? wxBft(ws) : null, lvl = (bf != null && bf >= 8) || (hs != null && hs >= 4) ? 2 : (bf != null && bf >= 6) || (hs != null && hs >= 2.5) ? 1 : 0; worst = Math.max(worst, lvl);
-    return { p, lvl, ws, wd, wg, wc, hs, sw, bf };
+    if(ws == null && hs == null) return { p, txt: "oltre l'orizzonte della previsione" };
+    const bf = ws != null ? wxBft(ws) : null, o = { p, ws, wd, wg, wc, hs, sw, bf, lvl: lvlOf(bf, hs) };
+    if(p.k === "port"){ let mh = null, mw = null, mt = null; for(let i = 0; i <= 24; i += 1){ const t = p.t + i * 36e5, a = wxAt(r.s, "wave_height", t), b = wxAt(r.w, "wind_speed_10m", t); if(a != null && (mh == null || a > mh)) mh = a; if(b != null && (mw == null || b > mw)){ mw = b; mt = t; } } o.pk = { hs: mh, bf: mw != null ? wxBft(mw) : null, t: mt }; o.lvl = Math.max(o.lvl, lvlOf(o.pk.bf, o.pk.hs)); }
+    return o;
   });
-  const col = l => l === 2 ? "#b3261e" : l === 1 ? "#a85a00" : "#14794e";
-  const card = c => {
-    const p = c.p, head = '<span style="font:700 10.5px var(--font-mono, monospace);letter-spacing:.06em;color:#6a7d90">' + escapeHTML(p.lab.toUpperCase()) + '</span><span style="font:600 11.5px var(--font-mono, monospace);color:#44576b">' + when(p.t) + (p.k === "route" ? " · " + Math.abs(p.ll.lat).toFixed(1) + (p.ll.lat >= 0 ? "N " : "S ") + Math.abs(p.ll.lon).toFixed(1) + (p.ll.lon >= 0 ? "E" : "W") : "") + (p.approx ? " · pos. stimata" : "") + '</span>';
-    if(c.txt) return '<div style="background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:3px">' + head + '<span style="font-size:12.5px;color:#6a7d90">' + c.txt + '</span></div>';
-    return '<div style="background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:3px">' + head +
-      '<span style="font:600 16px var(--font-mono, monospace);color:' + col(c.lvl) + '">' + (c.hs != null ? npF(c.hs, 1) + " m" : "— m") + ' · ' + (c.bf != null ? "F" + c.bf : "F—") + '</span>' +
-      '<span style="font-size:12px;color:#44576b">' + [c.ws != null ? "vento " + wxDir(c.wd) + " " + Math.round(c.ws) + " kn" + (c.wg != null && c.wg - c.ws >= 8 ? ", raffiche " + Math.round(c.wg) : "") : "", c.sw != null && c.sw >= 0.5 ? "lungo " + npF(c.sw, 1) + " m" : "", c.hs == null && p.k === "port" ? "onda non disponibile sotto costa" : "", wxSky(c.wc)].filter(Boolean).join(" · ") + '</span></div>';
+  const ok = cells.filter(c => !c.txt), worst = ok.reduce((m, c) => Math.max(m, c.lvl), 0);
+  // la frase: com'è adesso, dove e quando è il peggio, com'è all'arrivo
+  let head = "In attesa della previsione", sub = "";
+  if(ok.length){
+    const maxH = ok.reduce((m, c) => c.hs != null && (m == null || c.hs > m.hs) ? c : m, null), maxB = ok.reduce((m, c) => c.bf != null && (m == null || c.bf > m.bf) ? c : m, null);
+    const first = ok[0], last = ok[ok.length - 1], port = last.p.k === "port" ? last : null;
+    const where = c => c.p.k === "now" ? "adesso" : c.p.k === "port" ? "all'arrivo (" + dd(c.p.t) + ")" : "il " + dd(c.p.t);
+    if(worst === 0) head = "Navigazione tranquilla" + (port ? " fino a " + escapeHTML(port.p.lab.replace(/^Arrivo a /, "")) : "");
+    else if(first.lvl < worst) head = "Peggiora " + (port ? "verso " + escapeHTML(port.p.lab.replace(/^Arrivo a /, "")) : "nei prossimi giorni");
+    else if(port && port.lvl < first.lvl) head = "Mare duro adesso, migliora verso l'arrivo";
+    else head = worst === 2 ? "Mare grosso lungo tutto il tratto" : "Mare mosso lungo il tratto";
+    const bits = [];
+    if(maxH && maxH.hs != null) bits.push("onda fino a " + npF(maxH.hs, 1) + " m " + where(maxH));
+    if(maxB && maxB.bf != null) bits.push("vento fino a forza " + maxB.bf + " (" + WX_BFT[maxB.bf] + ") " + where(maxB));
+    if(port && port.pk && (port.pk.bf > (port.bf || 0) || (port.pk.hs || 0) > (port.hs || 0) + 0.3)) bits.push("in porto nelle 24 h dopo l'arrivo picco F" + port.pk.bf + (port.pk.hs != null ? ", " + npF(port.pk.hs, 1) + " m" : "") + " alle " + hhmm(port.pk.t));
+    sub = bits.join(" · ") + (worst === 2 ? ". Possibile ritardo o attesa in rada: avvisa agenzia e fornitori." : worst === 1 ? ". Tienilo d'occhio per l'ETA." : ".");
+  }
+  const tone = C[worst];
+  const col = c => {
+    const p = c.p, k = C[c.lvl || 0], top = '<div style="display:flex;flex-direction:column;gap:1px;min-height:34px"><span style="font:700 10px var(--font-mono, monospace);letter-spacing:.07em;color:#44576b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(p.k === "now" ? "ORA" : p.k === "port" ? p.lab.replace(/^Arrivo a /, "").toUpperCase() : "+" + Math.round((p.t - now) / 864e5) + " GIORN" + (Math.round((p.t - now) / 864e5) > 1 ? "I" : "O")) + '</span><span style="font:500 11px var(--font-mono, monospace);color:#6a7d90">' + (p.k === "now" ? "posizione noon" + (p.approx ? " (stimata)" : "") : dd(p.t) + " " + hhmm(p.t) + (p.k === "port" ? " · ETA" : "")) + '</span></div>';
+    if(c.txt) return '<div style="background:#fff;padding:12px 14px;display:flex;flex-direction:column;gap:10px">' + top + '<span style="font-size:12.5px;color:#6a7d90">' + c.txt + '</span></div>';
+    const fill = c.hs != null ? Math.max(6, Math.min(100, c.hs / 6 * 100)) : 0;
+    return '<div style="background:#fff;padding:12px 14px;display:flex;flex-direction:column;gap:9px;position:relative">' + top +
+      '<div style="display:flex;align-items:center;gap:10px">' + wxIcon(c.wc, 32) + '<span style="font-size:12px;color:#44576b;line-height:1.25">' + wxSky(c.wc) + '</span></div>' +
+      '<div style="display:flex;align-items:flex-end;gap:10px"><div style="width:10px;height:54px;border-radius:5px;background:#eef1f4;position:relative;overflow:hidden;flex:none" title="altezza onda su scala 0–6 m"><span style="position:absolute;left:0;right:0;bottom:0;height:' + fill.toFixed(0) + '%;background:' + k.bar + ';border-radius:5px"></span><span style="position:absolute;left:0;right:0;bottom:41.6%;height:1px;background:rgba(10,27,46,.25)"></span><span style="position:absolute;left:0;right:0;bottom:66.6%;height:1px;background:rgba(10,27,46,.25)"></span></div>' +
+        '<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="display:flex;align-items:center;gap:5px">' + wxWave(k.bar) + '<span style="font:700 22px/1 var(--font-mono, monospace);color:' + k.fg + '">' + (c.hs != null ? npF(c.hs, 1) : "—") + '</span><span style="font-size:12px;color:#44576b">m</span></span><span style="font-size:11.5px;color:#44576b;line-height:1.35;white-space:nowrap">' + (c.hs != null ? WX_SEA(c.hs) : p.k === "port" ? "onda n.d. sotto costa" : "onda n.d.") + (c.sw != null && c.sw >= 0.5 ? '<br><span style="color:#6a7d90">onda lunga ' + npF(c.sw, 1) + ' m</span>' : "") + '</span></div></div>' +
+      '<div style="display:flex;align-items:center;gap:8px">' + wxArrow(c.wd, k.fg) + '<span style="font:700 12.5px var(--font-mono, monospace);padding:3px 7px;border-radius:6px;background:' + k.bg + ';color:' + k.fg + '">F' + (c.bf != null ? c.bf : "—") + '</span><span style="font-size:12px;color:#33475c;line-height:1.3">' + (c.ws != null ? wxDir(c.wd) + " " + Math.round(c.ws) + " kn" : "") + (c.wg != null && c.ws != null && c.wg - c.ws >= 8 ? '<br><span style="color:#6a7d90">raffiche ' + Math.round(c.wg) + '</span>' : "") + '</span></div>' +
+      (c.pk ? '<div style="font-size:11.5px;color:#44576b;border-top:1px dashed rgba(10,27,46,.15);padding-top:7px">24 h in porto: max <b style="color:' + C[lvlOf(c.pk.bf, c.pk.hs)].fg + '">F' + (c.pk.bf != null ? c.pk.bf : "—") + (c.pk.hs != null ? " · " + npF(c.pk.hs, 1) + " m" : "") + '</b></div>' : "") + '</div>';
   };
-  const msg = worst === 2 ? "Mare grosso o burrasca in vista: possibile ritardo o sosta in rada, avvisa agenzia e fornitori." : worst === 1 ? "Mare mosso o vento forte in un tratto: tienilo d'occhio per l'ETA." : "";
-  return '<section class="panel-card" style="padding:0;overflow:hidden;border-radius:14px;background:#fff;border:1px solid ' + (worst === 2 ? "#e9b4ae" : worst === 1 ? "#f0d3a2" : "rgba(10,27,46,.10)") + '">' +
-    '<div style="padding:11px 16px 8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><span style="font:700 11px var(--font-mono, monospace);letter-spacing:.07em;color:' + (worst ? col(worst) : "#44576b") + '">METEO · NAVE, ROTTA E PORTO</span><span style="font-size:12px;color:#6a7d90">onda significativa · forza del vento (Beaufort)' + (D ? " · agg. " + new Date(D.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "") + '</span></div>' +
-    (msg ? '<div style="padding:0 16px 8px;font-size:13px;font-weight:600;color:' + col(worst) + '">' + msg + '</div>' : "") +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:1px;background:rgba(10,27,46,.07);border-top:1px solid rgba(10,27,46,.07)">' + cells.map(card).join("") + '</div>' +
-    '<div style="padding:7px 16px;font-size:11.5px;color:#6a7d90;border-top:1px solid rgba(10,27,46,.07)">Previsioni Open-Meteo (gratuite per uso non commerciale). I punti in rotta sono stimati in linea retta fra nave e porto: la rotta vera può essere diversa.</div></section>';
+  return '<section class="panel-card" style="padding:0;overflow:hidden;border-radius:14px;background:#fff;border:1px solid rgba(10,27,46,.10)">' +
+    '<div style="background:#0a1b2e;color:#fff;padding:14px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">' +
+      '<span style="width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:' + tone.bar + ';flex:none">' + (ok.length ? wxIcon(ok.reduce((m, c) => (c.wc || 0) > (m || 0) ? c.wc : m, 0), 26).replace(/color:[^;"]+/, "color:#fff") : wxIcon(null, 26).replace(/color:[^;"]+/, "color:#fff")) + '</span>' +
+      '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:240px"><span style="font:700 10.5px var(--font-mono, monospace);letter-spacing:.08em;color:#9fb1c4">METEO IN NAVIGAZIONE' + (D ? " · AGG. " + new Date(D.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "") + '</span><span style="font-size:19px;font-weight:700;line-height:1.25">' + head + '</span>' + (sub ? '<span style="font-size:13px;color:#cfd9e4;line-height:1.45;text-wrap:pretty">' + sub + '</span>' : "") + '</div>' +
+      '<span style="font:700 11.5px var(--font-mono, monospace);padding:5px 10px;border-radius:999px;background:' + tone.bg + ';color:' + tone.fg + ';white-space:nowrap">' + ["NAVIGABILE", "ATTENZIONE", "MARE DURO"][worst] + '</span></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:1px;background:rgba(10,27,46,.08)">' + cells.map(col).join("") + '</div>' +
+    '<div style="padding:7px 18px;font-size:11px;color:#6a7d90;border-top:1px solid rgba(10,27,46,.08);display:flex;gap:14px;flex-wrap:wrap"><span>Barra = onda su scala 0–6 m (tacche a 2,5 e 4 m) · freccia = dove soffia il vento · F = forza Beaufort</span><span style="flex:1"></span><span>Open-Meteo, uso non commerciale · punti in rotta stimati in linea retta</span></div></section>';
 }
 (function(){
   const safe = vid => { try { return wxStripHTML(vid); } catch(e) { console.warn("[meteo]", e); return ""; } };
