@@ -33160,7 +33160,7 @@ const PH_PORT_CC = {
   "shanghai":"CN","qingdao":"CN","tianjin":"CN","dalian":"CN","ningbo":"CN","busan":"KR","yokohama":"JP","kaohsiung":"TW","ho chi minh":"VN","haiphong":"VN","jakarta":"ID","surabaya":"ID","manila":"PH","bangkok":"TH","laem chabang":"TH","port hedland":"AU","newcastle":"AU","dampier":"AU"
 };
 window._phPorts = null;
-fetch("data-ports.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(d => { const o = {}; if(d && d.ports) for(const k in d.ports){ const p = d.ports[k]; if(p && p.name) String(p.name).split("/").forEach(n => { o[phNorm(n)] = p.country || k.slice(0, 2); }); } window._phPorts = o; }).catch(() => {});
+fetch("data-ports.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(d => { const o = {}; if(d && d.ports) for(const k in d.ports){ const p = d.ports[k]; if(p && p.name) String(p.name).split("/").forEach(n => { o[phNorm(n)] = p.country || k.slice(0, 2); }); } window._phPorts = o; const ll = {}; if(d && d.ports) for(const k in d.ports){ const p = d.ports[k]; if(p && p.name && p.lat != null) String(p.name).split("/").forEach(n => { ll[phNorm(n)] = { lat: p.lat, lon: p.lng }; }); } window._wxPortLL = ll; }).catch(() => {});
 function phNorm(s){ return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
 // paese dal testo del porto: "Chittagong (BD)" / "Durban, ZA" / UN/LOCODE "BDCGP" / nome noto
 function phCountry(port){
@@ -33235,6 +33235,103 @@ function phStripHTML(vid){
 // desktop: Panoramica 1a (sotto la rotta) · mobile/vecchia scheda: sotto il voyage
 (function(){
   const safe = vid => { try { return phStripHTML(vid); } catch(e) { console.warn("[festività]", e); return ""; } };
+  if(typeof npHTML === "function"){ const np0 = npHTML;
+    npHTML = function(vid){ const h = np0.apply(this, arguments), s = safe(vid), k = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))';
+      const i = h.indexOf(k); return !s ? h : i > 0 ? h.slice(0, i) + s + h.slice(i) : h.replace(/<\/div>$/, s + '</div>'); }; }
+  if(typeof renderVoyageWidget === "function"){ const rv0 = renderVoyageWidget;
+    renderVoyageWidget = function(vid){ return rv0.apply(this, arguments) + safe(vid); }; }
+})();
+
+// ===== v3.0c (05.11) — METEO: posizione della nave, lungo la rotta e al porto d'arrivo (Open-Meteo, mare + vento) =====
+function wxPortLL(name){
+  const n = phNorm(name); if(!n) return null;
+  try { for(const p of MP_PORTS){ const k = phNorm(p[0]); if(n === k || (" " + n + " ").includes(" " + k + " ")) return { lat: p[1], lon: p[2] }; } } catch(e) {}
+  const L = window._wxPortLL || {}; if(L[n]) return L[n]; for(const k in L){ if((" " + n + " ").includes(" " + k + " ")) return L[k]; }
+  try { const g = geoLookupSync(name); if(g) return { lat: g.lat, lon: g.lon }; } catch(e) {}
+  return null;
+}
+// punto intermedio sull'arco di cerchio massimo (f = 0..1)
+function wxMid(a, b, f){
+  const r = x => x * Math.PI / 180, dg = x => x * 180 / Math.PI;
+  const p1 = r(a.lat), l1 = r(a.lon), p2 = r(b.lat), l2 = r(b.lon);
+  const d = 2 * Math.asin(Math.sqrt(Math.sin((p2 - p1) / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin((l2 - l1) / 2) ** 2));
+  if(d < 1e-6) return { lat: a.lat, lon: a.lon };
+  const A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+  const x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2), y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2), z = A * Math.sin(p1) + B * Math.sin(p2);
+  return { lat: dg(Math.atan2(z, Math.sqrt(x * x + y * y))), lon: dg(Math.atan2(y, x)) };
+}
+// i punti da guardare: ora · lungo la rotta (1 al giorno, max 4) · porto all'arrivo
+function wxPoints(vid){
+  const now = Date.now(), pts = [];
+  let pos = null, nt = ""; try { pos = getLastKnownPosition(vid); } catch(e) {} try { const n = getNoonMerged(vid); nt = n ? String(n.type || "") : ""; } catch(e) {}
+  let port = "", eta = null;
+  try { const M = rdModel(), lane = (M && M.lanes || []).find(l => l.vid === vid), c = lane && (lane.calls || []).filter(c => !c.past && c.eta != null && c.eta > -0.5).sort((x, y) => x.eta - y.eta)[0];
+    if(c){ port = typeof ccTitle === "function" ? ccTitle(c.port) : c.port; eta = now + Math.max(0, c.eta) * 864e5; } } catch(e) {}
+  if(!port){ try { const W = mpWhere(vid); if(W && W.port){ port = typeof ccTitle === "function" ? ccTitle(W.port) : W.port; const t = W.eta ? Date.parse(String(W.eta).length <= 10 ? W.eta + "T12:00:00" : W.eta) : NaN; eta = isNaN(t) ? null : t; } } catch(e) {} }
+  const here = pos && pos.coords && pos.coords.lat != null ? { lat: +pos.coords.lat, lon: +pos.coords.lon } : null, dest = port ? wxPortLL(port) : null;
+  if(here) pts.push({ k: "now", lab: nt === "port" ? "In porto ora" : nt === "anchor" ? "In rada ora" : "Posizione attuale", t: now, ll: here, approx: !!(pos && pos.approx) });
+  if(here && dest && eta && eta > now + 864e5 && nt !== "port" && mpNm(here.lat, here.lon, dest.lat, dest.lon) > 150){
+    const days = Math.min(4, Math.floor((eta - now) / 864e5 - 0.25));
+    for(let i = 1; i <= days; i++){ const t = now + i * 864e5, f = (t - now) / (eta - now); pts.push({ k: "route", lab: "In rotta · +" + i + " g", t, ll: wxMid(here, dest, f) }); }
+  }
+  if(port && dest && eta) pts.push({ k: "port", lab: "Arrivo a " + port, t: Math.max(eta, now), ll: dest });
+  else if(port && !dest) pts.push({ k: "port", lab: "Arrivo a " + port, t: eta || now, ll: null });
+  return pts.filter(p => !p.ll || p.t - now <= 15.5 * 864e5).map(p => p.ll ? Object.assign(p, { ll: { lat: Math.round(p.ll.lat * 100) / 100, lon: Math.round(p.ll.lon * 100) / 100 } }) : p);
+}
+window._wxPending = window._wxPending || {};
+function wxCache(){ try { const c = JSON.parse(localStorage.getItem("mpd.wx") || "{}"); return c && typeof c === "object" ? c : {}; } catch(e) { return {}; } }
+// previsioni orarie (vento dal modello meteo, onde dal modello marino) per una lista di punti; cache 3 ore
+function wxGet(vid, pts){
+  const P = pts.filter(p => p.ll), key = vid + "|" + P.map(p => p.ll.lat + "," + p.ll.lon).join(";");
+  const c = wxCache()[vid];
+  if(c && c.key === key && Date.now() - c.at < 3 * 36e5) return c;
+  if(!P.length || window._wxPending[key]) return c && c.key === key ? c : null;
+  window._wxPending[key] = 1;
+  const la = P.map(p => p.ll.lat).join(","), lo = P.map(p => p.ll.lon).join(","), arr = d => Array.isArray(d) ? d : [d];
+  const W = fetch("https://api.open-meteo.com/v1/forecast?latitude=" + la + "&longitude=" + lo + "&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&wind_speed_unit=kn&timezone=GMT&forecast_days=16").then(r => r.ok ? r.json() : Promise.reject()).then(arr);
+  const S = fetch("https://marine-api.open-meteo.com/v1/marine?latitude=" + la + "&longitude=" + lo + "&hourly=wave_height,wave_direction,swell_wave_height&timezone=GMT&forecast_days=8").then(r => r.ok ? r.json() : null).then(d => d ? arr(d) : null).catch(() => null);
+  Promise.all([W, S]).then(([w, s]) => {
+    const pack = (d, f) => d && d.hourly ? { t0: Date.parse(d.hourly.time[0] + ":00Z"), v: f.reduce((o, k) => (o[k] = d.hourly[k], o), {}) } : null;
+    const val = { key, at: Date.now(), pts: P.map((p, i) => ({ w: pack(w[i], ["wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "weather_code"]), s: s ? pack(s[i], ["wave_height", "wave_direction", "swell_wave_height"]) : null })) };
+    const all = wxCache(); all[vid] = val; try { localStorage.setItem("mpd.wx", JSON.stringify(all)); } catch(e) {}
+    if(state && state.view === "vessel" && typeof render === "function") render();
+  }).catch(() => {}).finally(() => { delete window._wxPending[key]; });
+  return c && c.key === key ? c : null;
+}
+function wxAt(pk, k, t){ if(!pk || !pk.v[k]) return null; const i = Math.round((t - pk.t0) / 36e5); const x = pk.v[k][i]; return x == null ? null : x; }
+function wxBft(kn){ const L = [1, 3, 6, 10, 16, 21, 27, 33, 40, 47, 55, 63]; let b = 0; while(b < L.length && kn >= L[b]) b++; return b; }
+function wxDir(d){ return d == null ? "" : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(((d % 360) + 360) % 360 / 45) % 8]; }
+function wxSky(c){ return c == null ? "" : c >= 95 ? "temporale" : c >= 80 ? "rovesci" : c >= 61 ? "pioggia" : c >= 51 ? "pioviggine" : c >= 45 ? "nebbia" : c >= 3 ? "nuvoloso" : c >= 1 ? "poco nuvoloso" : "sereno"; }
+function wxStripHTML(vid){
+  const pts = wxPoints(vid); if(!pts.length) return "";
+  const D = wxGet(vid, pts), now = Date.now(); let j = 0, worst = 0;
+  const when = t => { const d = new Date(t); return t - now < 36e5 ? "adesso" : String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + " " + String(d.getHours()).padStart(2, "0") + ":00"; };
+  const cells = pts.map(p => {
+    if(!p.ll) return { p, txt: "posizione del porto non trovata", lvl: 0 };
+    const r = D && D.pts[j++]; if(!r) return { p, txt: D ? "previsione non disponibile" : "carico…", lvl: 0 };
+    const ws = wxAt(r.w, "wind_speed_10m", p.t), wd = wxAt(r.w, "wind_direction_10m", p.t), wg = wxAt(r.w, "wind_gusts_10m", p.t), wc = wxAt(r.w, "weather_code", p.t);
+    const hs = wxAt(r.s, "wave_height", p.t), sw = wxAt(r.s, "swell_wave_height", p.t);
+    if(ws == null && hs == null) return { p, txt: "oltre l'orizzonte della previsione", lvl: 0 };
+    const bf = ws != null ? wxBft(ws) : null, lvl = (bf != null && bf >= 8) || (hs != null && hs >= 4) ? 2 : (bf != null && bf >= 6) || (hs != null && hs >= 2.5) ? 1 : 0; worst = Math.max(worst, lvl);
+    return { p, lvl, ws, wd, wg, wc, hs, sw, bf };
+  });
+  const col = l => l === 2 ? "#b3261e" : l === 1 ? "#a85a00" : "#14794e";
+  const card = c => {
+    const p = c.p, head = '<span style="font:700 10.5px var(--font-mono, monospace);letter-spacing:.06em;color:#6a7d90">' + escapeHTML(p.lab.toUpperCase()) + '</span><span style="font:600 11.5px var(--font-mono, monospace);color:#44576b">' + when(p.t) + (p.k === "route" ? " · " + Math.abs(p.ll.lat).toFixed(1) + (p.ll.lat >= 0 ? "N " : "S ") + Math.abs(p.ll.lon).toFixed(1) + (p.ll.lon >= 0 ? "E" : "W") : "") + (p.approx ? " · pos. stimata" : "") + '</span>';
+    if(c.txt) return '<div style="background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:3px">' + head + '<span style="font-size:12.5px;color:#6a7d90">' + c.txt + '</span></div>';
+    return '<div style="background:#fff;padding:10px 14px;display:flex;flex-direction:column;gap:3px">' + head +
+      '<span style="font:600 16px var(--font-mono, monospace);color:' + col(c.lvl) + '">' + (c.hs != null ? npF(c.hs, 1) + " m" : "— m") + ' · ' + (c.bf != null ? "F" + c.bf : "F—") + '</span>' +
+      '<span style="font-size:12px;color:#44576b">' + [c.ws != null ? "vento " + wxDir(c.wd) + " " + Math.round(c.ws) + " kn" + (c.wg != null && c.wg - c.ws >= 8 ? ", raffiche " + Math.round(c.wg) : "") : "", c.sw != null && c.sw >= 0.5 ? "lungo " + npF(c.sw, 1) + " m" : "", c.hs == null && p.k === "port" ? "onda non disponibile sotto costa" : "", wxSky(c.wc)].filter(Boolean).join(" · ") + '</span></div>';
+  };
+  const msg = worst === 2 ? "Mare grosso o burrasca in vista: possibile ritardo o sosta in rada, avvisa agenzia e fornitori." : worst === 1 ? "Mare mosso o vento forte in un tratto: tienilo d'occhio per l'ETA." : "";
+  return '<section class="panel-card" style="padding:0;overflow:hidden;border-radius:14px;background:#fff;border:1px solid ' + (worst === 2 ? "#e9b4ae" : worst === 1 ? "#f0d3a2" : "rgba(10,27,46,.10)") + '">' +
+    '<div style="padding:11px 16px 8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap"><span style="font:700 11px var(--font-mono, monospace);letter-spacing:.07em;color:' + (worst ? col(worst) : "#44576b") + '">METEO · NAVE, ROTTA E PORTO</span><span style="font-size:12px;color:#6a7d90">onda significativa · forza del vento (Beaufort)' + (D ? " · agg. " + new Date(D.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "") + '</span></div>' +
+    (msg ? '<div style="padding:0 16px 8px;font-size:13px;font-weight:600;color:' + col(worst) + '">' + msg + '</div>' : "") +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:1px;background:rgba(10,27,46,.07);border-top:1px solid rgba(10,27,46,.07)">' + cells.map(card).join("") + '</div>' +
+    '<div style="padding:7px 16px;font-size:11.5px;color:#6a7d90;border-top:1px solid rgba(10,27,46,.07)">Previsioni Open-Meteo (gratuite per uso non commerciale). I punti in rotta sono stimati in linea retta fra nave e porto: la rotta vera può essere diversa.</div></section>';
+}
+(function(){
+  const safe = vid => { try { return wxStripHTML(vid); } catch(e) { console.warn("[meteo]", e); return ""; } };
   if(typeof npHTML === "function"){ const np0 = npHTML;
     npHTML = function(vid){ const h = np0.apply(this, arguments), s = safe(vid), k = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))';
       const i = h.indexOf(k); return !s ? h : i > 0 ? h.slice(0, i) + s + h.slice(i) : h.replace(/<\/div>$/, s + '</div>'); }; }
