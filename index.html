@@ -13110,7 +13110,7 @@ function paintFx(p) {
     <span class="fx-inv">1 € = ${inv.toFixed(4)} $</span>
     <svg class="fx-spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="fx-delta ${dir}">${arrow} ${Math.abs(pctDelta).toFixed(2)}%<span class="fx-delta-lbl"> 30gg</span></span>
-    <span class="fx-src" title="${escapeHTML(p.src || "BCE")}${when ? " · letto il "+when : ""}">${/BCE/.test(p.src || "BCE") ? "BCE" : "altra fonte"}</span>
+    <span class="fx-src" title="${escapeHTML(p.src || "BCE")}${when ? " · letto il "+when : ""}">${/^BCE/.test(p.src || "BCE") ? "BCE" : "altra fonte"}</span>
   `;
   if (typeof fxSourceBoxHTML === "function") { const s = document.createElement("div"); s.id = "fx-srcbox"; s.style.cssText = "flex-basis:100%;width:100%"; s.innerHTML = fxSourceBoxHTML(p); bar.appendChild(s); }
 }
@@ -17654,7 +17654,9 @@ window.isxSetGenuine = function(n, g, itemId){
 function isxDD(a, b){ return Math.round((new Date(String(a).slice(0,10) + "T00:00:00Z") - new Date(String(b).slice(0,10) + "T00:00:00Z")) / 864e5); }
 function isxAdd(s, n){ return new Date(new Date(String(s).slice(0,10) + "T00:00:00Z").getTime() + n * 864e5).toISOString().slice(0,10); }
 function isxLt(r){ return (r && r.d && r.dl && r.ql && r.dl !== r.ql) ? isxDD(r.dl, r.d) : null; }
-function isxFx(){ const n = parseFloat(localStorage.getItem("mpd.isxFx")); return n > 0 ? n : 1.16; }
+// v3.0a (05.11) — conversioni €→$ con il cambio BCE letto in automatico (mpd.fxCache, max 10 gg); se manca, l'ultimo salvato a mano, poi 1,16
+function isxFxAuto(){ try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c && c.rate > 0 && /^BCE/.test(c.src || "BCE") && Date.now() - new Date(c.at).getTime() < 10 * 864e5) return Math.round(10000 / c.rate) / 10000; } catch(e) {} return 0; }
+function isxFx(){ const a = isxFxAuto(); if(a > 0) return a; const n = parseFloat(localStorage.getItem("mpd.isxFx")); return n > 0 ? n : 1.16; }
 function isxUsd(r){ return r ? (r.cu === "EUR" ? r.v * isxFx() : r.v) : 0; }
 function isxLtTxt(n){ return n == null ? "—" : (n >= 14 && n % 7 === 0 ? (n / 7) + " sett." : n + " gg"); }
 function isxMoney(v, cu){ v = Number(v) || 0; return (cu === "EUR" ? "€ " : "$ ") + v.toLocaleString("it-IT", { maximumFractionDigits: v < 100 ? 2 : 0 }); }
@@ -33112,7 +33114,7 @@ function fxInfoship(){ try { return JSON.parse(localStorage.getItem("mpd.fxInfos
 function fxSourceBoxHTML(p){
   const bar = document.getElementById("fx-bar"); if(bar){ bar.style.flexWrap = "wrap"; bar.style.height = "auto"; bar.style.paddingBottom = "12px"; const w = document.getElementById("fx-widget"); if(w){ w.style.overflow = "visible"; w.style.height = "auto"; } }
   const inv = p.rate ? 1 / p.rate : 0, eur = inv.toFixed(4).replace(".", ","), usd = (p.rate || 0).toFixed(4).replace(".", ",");
-  const bce = /BCE/.test(p.src || "BCE"), I = fxInfoship(), age = I ? Math.floor((Date.now() - new Date(I.at).getTime()) / 864e5) : null;
+  const bce = /^BCE/.test(p.src || "BCE"), I = fxInfoship(), age = I ? Math.floor((Date.now() - new Date(I.at).getTime()) / 864e5) : null;
   const dash = isxFx(), b = 'style="white-space:nowrap;flex:none;font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid rgba(10,27,46,.18);background:#fff;cursor:pointer;font-weight:600;color:#0a1b2e"';
   return '<div style="margin-top:10px;padding:10px 0 4px;border-top:1px solid rgba(10,27,46,.1);display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#33475c">' +
     '<div style="text-wrap:pretty"><b style="color:#0a1b2e">Fonte:</b> ' + (bce ? 'tasso di riferimento <b>BCE</b> (Banca Centrale Europea, pubblicato nei giorni lavorativi verso le 16:00 CET)' : '<b style="color:#b06a00">' + escapeHTML(p.src || "") + '</b> — la BCE non rispondeva') +
@@ -33122,10 +33124,26 @@ function fxSourceBoxHTML(p){
       '<button ' + b + ' onclick="ccClip(\'' + usd + '\',\'1 USD = ' + usd + ' EUR\')" title="Copia">1 USD = ' + usd + ' EUR</button>' +
       '<button ' + b + ' onclick="fxMarkInfoship(' + inv + ')">✓ Aggiornato in Infoship</button>' +
       '<span style="color:' + (age == null || age >= 7 ? "#b06a00" : "#14794e") + '">' + (I ? 'ultimo: 1 EUR = ' + Number(I.r).toFixed(4).replace(".", ",") + ' USD il ' + fxIsDay(I.at) + ' (' + (age === 0 ? "oggi" : age + " gg fa") + ')' : 'non ancora segnato') + '</span></div>' +
-    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Le conversioni €→$ della dashboard (offerte, budget) usano <b>' + dash.toFixed(4).replace(".", ",") + '</b>.</span>' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Le conversioni €→$ della dashboard (offerte, budget) usano <b>' + dash.toFixed(4).replace(".", ",") + '</b>' + (isxFxAuto() > 0 ? ' · cambio BCE, si aggiorna da solo' : ' · salvato a mano (cambio BCE non disponibile)') + '.</span>' +
       (Math.abs(dash - inv) >= 0.0005 ? '<button ' + b + ' onclick="fxUseInDash(' + inv + ')">Usa ' + eur + '</button>' : '') + '</div></div>';
 }
 window.fxMarkInfoship = function(r){ try { localStorage.setItem("mpd.fxInfoship", JSON.stringify({ r, at: new Date().toISOString() })); } catch(e) {} fxUseInDash(r, true); showToast("Segnato: cambio Infoship aggiornato"); };
+// v3.0a (05.11) — il cambio BCE si legge all'avvio e ogni 6 ore, anche senza aprire Numeri (stessa cache del widget)
+function fxAutoRefresh(){
+  try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c && c.at && /^BCE/.test(c.src || "") && Date.now() - new Date(c.at).getTime() < 6 * 36e5) return; } catch(e) {}
+  const iso = d => d.toISOString().slice(0, 10), end = new Date(), start = new Date(); start.setDate(start.getDate() - 32);
+  fetch("https://api.frankfurter.dev/v1/" + iso(start) + ".." + iso(end) + "?base=USD&symbols=EUR")
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+      const days = Object.keys(d.rates || {}).sort(), s = days.map(k => d.rates[k].EUR).filter(v => v != null);
+      if(!s.length) return;
+      const p = { rate: s[s.length - 1], series: s, at: new Date().toISOString(), day: days[days.length - 1], src: "BCE · frankfurter.dev" };
+      try { localStorage.setItem("mpd.fxCache", JSON.stringify(p)); } catch(e) {}
+      if(document.getElementById("fx-bar") && typeof paintFx === "function") paintFx(p);
+    }).catch(() => {});
+}
+setTimeout(fxAutoRefresh, 4000);
+setInterval(fxAutoRefresh, 6 * 36e5);
 window.fxUseInDash = function(r, quiet){ try { localStorage.setItem("mpd.isxFx", String(Math.round(r * 10000) / 10000)); } catch(e) {} if(!quiet) showToast("Cambio della dashboard: 1 € = " + r.toFixed(4) + " $"); try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c) paintFx(c); } catch(e) {} };
 
 // --- AGGIORNAMENTO AUTOMATICO (feed n8n: to-do Outlook, noon, posta, Infoship) ---------------------
