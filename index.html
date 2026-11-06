@@ -13110,7 +13110,7 @@ function paintFx(p) {
     <span class="fx-inv">1 € = ${inv.toFixed(4)} $</span>
     <svg class="fx-spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="fx-delta ${dir}">${arrow} ${Math.abs(pctDelta).toFixed(2)}%<span class="fx-delta-lbl"> 30gg</span></span>
-    <span class="fx-src" title="${escapeHTML(p.src || "BCE")}${when ? " · letto il "+when : ""}">${/BCE/.test(p.src || "BCE") ? "BCE" : "altra fonte"}</span>
+    <span class="fx-src" title="${escapeHTML(p.src || "BCE")}${when ? " · letto il "+when : ""}">${/^BCE/.test(p.src || "BCE") ? "BCE" : "altra fonte"}</span>
   `;
   if (typeof fxSourceBoxHTML === "function") { const s = document.createElement("div"); s.id = "fx-srcbox"; s.style.cssText = "flex-basis:100%;width:100%"; s.innerHTML = fxSourceBoxHTML(p); bar.appendChild(s); }
 }
@@ -17685,7 +17685,9 @@ window.isxSetGenuine = function(n, g, itemId){
 function isxDD(a, b){ return Math.round((new Date(String(a).slice(0,10) + "T00:00:00Z") - new Date(String(b).slice(0,10) + "T00:00:00Z")) / 864e5); }
 function isxAdd(s, n){ return new Date(new Date(String(s).slice(0,10) + "T00:00:00Z").getTime() + n * 864e5).toISOString().slice(0,10); }
 function isxLt(r){ return (r && r.d && r.dl && r.ql && r.dl !== r.ql) ? isxDD(r.dl, r.d) : null; }
-function isxFx(){ const n = parseFloat(localStorage.getItem("mpd.isxFx")); return n > 0 ? n : 1.16; }
+// v3.0a (05.11) — conversioni €→$ con il cambio BCE letto in automatico (mpd.fxCache, max 10 gg); se manca, l'ultimo salvato a mano, poi 1,16
+function isxFxAuto(){ try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c && c.rate > 0 && /^BCE/.test(c.src || "BCE") && Date.now() - new Date(c.at).getTime() < 10 * 864e5) return Math.round(10000 / c.rate) / 10000; } catch(e) {} return 0; }
+function isxFx(){ const a = isxFxAuto(); if(a > 0) return a; const n = parseFloat(localStorage.getItem("mpd.isxFx")); return n > 0 ? n : 1.16; }
 function isxUsd(r){ return r ? (r.cu === "EUR" ? r.v * isxFx() : r.v) : 0; }
 function isxLtTxt(n){ return n == null ? "—" : (n >= 14 && n % 7 === 0 ? (n / 7) + " sett." : n + " gg"); }
 function isxMoney(v, cu){ v = Number(v) || 0; return (cu === "EUR" ? "€ " : "$ ") + v.toLocaleString("it-IT", { maximumFractionDigits: v < 100 ? 2 : 0 }); }
@@ -33143,7 +33145,7 @@ function fxInfoship(){ try { return JSON.parse(localStorage.getItem("mpd.fxInfos
 function fxSourceBoxHTML(p){
   const bar = document.getElementById("fx-bar"); if(bar){ bar.style.flexWrap = "wrap"; bar.style.height = "auto"; bar.style.paddingBottom = "12px"; const w = document.getElementById("fx-widget"); if(w){ w.style.overflow = "visible"; w.style.height = "auto"; } }
   const inv = p.rate ? 1 / p.rate : 0, eur = inv.toFixed(4).replace(".", ","), usd = (p.rate || 0).toFixed(4).replace(".", ",");
-  const bce = /BCE/.test(p.src || "BCE"), I = fxInfoship(), age = I ? Math.floor((Date.now() - new Date(I.at).getTime()) / 864e5) : null;
+  const bce = /^BCE/.test(p.src || "BCE"), I = fxInfoship(), age = I ? Math.floor((Date.now() - new Date(I.at).getTime()) / 864e5) : null;
   const dash = isxFx(), b = 'style="white-space:nowrap;flex:none;font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid rgba(10,27,46,.18);background:#fff;cursor:pointer;font-weight:600;color:#0a1b2e"';
   return '<div style="margin-top:10px;padding:10px 0 4px;border-top:1px solid rgba(10,27,46,.1);display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#33475c">' +
     '<div style="text-wrap:pretty"><b style="color:#0a1b2e">Fonte:</b> ' + (bce ? 'tasso di riferimento <b>BCE</b> (Banca Centrale Europea, pubblicato nei giorni lavorativi verso le 16:00 CET)' : '<b style="color:#b06a00">' + escapeHTML(p.src || "") + '</b> — la BCE non rispondeva') +
@@ -33153,11 +33155,327 @@ function fxSourceBoxHTML(p){
       '<button ' + b + ' onclick="ccClip(\'' + usd + '\',\'1 USD = ' + usd + ' EUR\')" title="Copia">1 USD = ' + usd + ' EUR</button>' +
       '<button ' + b + ' onclick="fxMarkInfoship(' + inv + ')">✓ Aggiornato in Infoship</button>' +
       '<span style="color:' + (age == null || age >= 7 ? "#b06a00" : "#14794e") + '">' + (I ? 'ultimo: 1 EUR = ' + Number(I.r).toFixed(4).replace(".", ",") + ' USD il ' + fxIsDay(I.at) + ' (' + (age === 0 ? "oggi" : age + " gg fa") + ')' : 'non ancora segnato') + '</span></div>' +
-    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Le conversioni €→$ della dashboard (offerte, budget) usano <b>' + dash.toFixed(4).replace(".", ",") + '</b>.</span>' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Le conversioni €→$ della dashboard (offerte, budget) usano <b>' + dash.toFixed(4).replace(".", ",") + '</b>' + (isxFxAuto() > 0 ? ' · cambio BCE, si aggiorna da solo' : ' · salvato a mano (cambio BCE non disponibile)') + '.</span>' +
       (Math.abs(dash - inv) >= 0.0005 ? '<button ' + b + ' onclick="fxUseInDash(' + inv + ')">Usa ' + eur + '</button>' : '') + '</div></div>';
 }
 window.fxMarkInfoship = function(r){ try { localStorage.setItem("mpd.fxInfoship", JSON.stringify({ r, at: new Date().toISOString() })); } catch(e) {} fxUseInDash(r, true); showToast("Segnato: cambio Infoship aggiornato"); };
+// v3.0a (05.11) — il cambio BCE si legge all'avvio e ogni 6 ore, anche senza aprire Numeri (stessa cache del widget)
+function fxAutoRefresh(){
+  try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c && c.at && /^BCE/.test(c.src || "") && Date.now() - new Date(c.at).getTime() < 6 * 36e5) return; } catch(e) {}
+  const iso = d => d.toISOString().slice(0, 10), end = new Date(), start = new Date(); start.setDate(start.getDate() - 32);
+  fetch("https://api.frankfurter.dev/v1/" + iso(start) + ".." + iso(end) + "?base=USD&symbols=EUR")
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+      const days = Object.keys(d.rates || {}).sort(), s = days.map(k => d.rates[k].EUR).filter(v => v != null);
+      if(!s.length) return;
+      const p = { rate: s[s.length - 1], series: s, at: new Date().toISOString(), day: days[days.length - 1], src: "BCE · frankfurter.dev" };
+      try { localStorage.setItem("mpd.fxCache", JSON.stringify(p)); } catch(e) {}
+      if(document.getElementById("fx-bar") && typeof paintFx === "function") paintFx(p);
+    }).catch(() => {});
+}
+setTimeout(fxAutoRefresh, 4000);
+setInterval(fxAutoRefresh, 6 * 36e5);
 window.fxUseInDash = function(r, quiet){ try { localStorage.setItem("mpd.isxFx", String(Math.round(r * 10000) / 10000)); } catch(e) {} if(!quiet) showToast("Cambio della dashboard: 1 € = " + r.toFixed(4) + " $"); try { const c = JSON.parse(localStorage.getItem("mpd.fxCache") || "null"); if(c) paintFx(c); } catch(e) {} };
+
+// ===== v3.0b (05.11) — FESTIVITÀ AL PORTO: avviso se arrivo/sosta dello scalo cade in un giorno festivo del paese (Nager.Date) =====
+const PH_PORT_CC = {
+  "mombasa":"KE","tanga":"TZ","dar es salaam":"TZ","zanzibar":"TZ","tema":"GH","takoradi":"GH","lome":"TG","cotonou":"BJ","lagos":"NG","apapa":"NG","onne":"NG","abidjan":"CI","san pedro":"CI","dakar":"SN","conakry":"GN","douala":"CM","pointe noire":"CG","luanda":"AO","walvis bay":"NA",
+  "durban":"ZA","richards bay":"ZA","cape town":"ZA","port elizabeth":"ZA","gqeberha":"ZA","saldanha":"ZA","maputo":"MZ","beira":"MZ","nacala":"MZ","port louis":"MU","toamasina":"MG","djibouti":"DJ","berbera":"SO",
+  "port sudan":"SD","jeddah":"SA","dammam":"SA","aqaba":"JO","suez":"EG","port said":"EG","alexandria":"EG","damietta":"EG","tripoli":"LY","tunis":"TN","rades":"TN","sfax":"TN","algiers":"DZ","alger":"DZ","casablanca":"MA","tanger med":"MA","tangier":"MA",
+  "singapore":"SG","port klang":"MY","penang":"MY","colombo":"LK","hambantota":"LK","chittagong":"BD","chattogram":"BD","mongla":"BD","mumbai":"IN","kandla":"IN","mundra":"IN","chennai":"IN","visakhapatnam":"IN","paradip":"IN","karachi":"PK","port qasim":"PK",
+  "jebel ali":"AE","dubai":"AE","fujairah":"AE","khor fakkan":"AE","abu dhabi":"AE","khalifa":"AE","sohar":"OM","salalah":"OM","muscat":"OM","bandar abbas":"IR","umm qasr":"IQ","doha":"QA","hamad":"QA","bahrain":"BH","kuwait":"KW",
+  "genova":"IT","genoa":"IT","la spezia":"IT","spezia":"IT","livorno":"IT","napoli":"IT","naples":"IT","salerno":"IT","gioia tauro":"IT","augusta":"IT","venezia":"IT","trieste":"IT","ravenna":"IT","civitavecchia":"IT","cagliari":"IT","palermo":"IT","catania":"IT","taranto":"IT","ancona":"IT","bari":"IT","brindisi":"IT","savona":"IT","porto marghera":"IT","monfalcone":"IT","chioggia":"IT","marina di carrara":"IT","piombino":"IT","procida":"IT","pozzuoli":"IT",
+  "malta":"MT","valletta":"MT","marsaxlokk":"MT","piraeus":"GR","thessaloniki":"GR","algeciras":"ES","valencia":"ES","barcelona":"ES","tarragona":"ES","cartagena":"ES","huelva":"ES","bilbao":"ES","las palmas":"ES","tenerife":"ES","gibraltar":"GI","lisbon":"PT","lisboa":"PT","sines":"PT","setubal":"PT",
+  "marseille":"FR","fos":"FR","le havre":"FR","dunkirk":"FR","dunkerque":"FR","rotterdam":"NL","amsterdam":"NL","ijmuiden":"NL","antwerp":"BE","antwerpen":"BE","ghent":"BE","gent":"BE","hamburg":"DE","bremerhaven":"DE","bremen":"DE","lulea":"SE","oxelosund":"SE","gothenburg":"SE","goteborg":"SE","gdansk":"PL","gdynia":"PL","szczecin":"PL","klaipeda":"LT","riga":"LV","tallinn":"EE","helsinki":"FI","kotka":"FI","narvik":"NO","istanbul":"TR","izmir":"TR","mersin":"TR","iskenderun":"TR","constanta":"RO","koper":"SI","rijeka":"HR","bar":"ME","durres":"AL",
+  "houston":"US","new orleans":"US","baltimore":"US","santos":"BR","paranagua":"BR","rio grande":"BR","rio de janeiro":"BR","itaqui":"BR","tubarao":"BR","vitoria":"BR","buenos aires":"AR","san lorenzo":"AR","rosario":"AR","montevideo":"UY",
+  "shanghai":"CN","qingdao":"CN","tianjin":"CN","dalian":"CN","ningbo":"CN","busan":"KR","yokohama":"JP","kaohsiung":"TW","ho chi minh":"VN","haiphong":"VN","jakarta":"ID","surabaya":"ID","manila":"PH","bangkok":"TH","laem chabang":"TH","port hedland":"AU","newcastle":"AU","dampier":"AU"
+};
+window._phPorts = null;
+fetch("data-ports.json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).then(d => { const o = {}; if(d && d.ports) for(const k in d.ports){ const p = d.ports[k]; if(p && p.name) String(p.name).split("/").forEach(n => { o[phNorm(n)] = p.country || k.slice(0, 2); }); } window._phPorts = o; const ll = {}; if(d && d.ports) for(const k in d.ports){ const p = d.ports[k]; if(p && p.name && p.lat != null) String(p.name).split("/").forEach(n => { ll[phNorm(n)] = { lat: p.lat, lon: p.lng }; }); } window._wxPortLL = ll; }).catch(() => {});
+function phNorm(s){ return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
+// paese dal testo del porto: "Chittagong (BD)" / "Durban, ZA" / UN/LOCODE "BDCGP" / nome noto
+const WX_PORTS_X = {
+  "porto trombetas":[-1.47,-56.38,"BR"],"trombetas":[-1.47,-56.38,"BR"],"sao luis":[-2.57,-44.37,"BR"],"itaqui":[-2.57,-44.36,"BR"],"ponta da madeira":[-2.56,-44.38,"BR"],"vila do conde":[-1.54,-48.75,"BR"],"barcarena":[-1.53,-48.74,"BR"],"belem":[-1.45,-48.50,"BR"],"santarem":[-2.42,-54.71,"BR"],"juruti":[-2.15,-56.09,"BR"],"munguba":[-0.95,-52.40,"BR"],"santana":[-0.06,-51.17,"BR"],"macapa":[0.03,-51.05,"BR"],"manaus":[-3.14,-60.02,"BR"],"itacoatiara":[-3.14,-58.44,"BR"],"pecem":[-3.54,-38.81,"BR"],"fortaleza":[-3.71,-38.48,"BR"],"mucuripe":[-3.71,-38.48,"BR"],"suape":[-8.39,-34.96,"BR"],"recife":[-8.05,-34.87,"BR"],"salvador":[-12.96,-38.51,"BR"],"aratu":[-12.79,-38.50,"BR"],"tubarao":[-20.29,-40.24,"BR"],"praia mole":[-20.29,-40.24,"BR"],"vitoria":[-20.32,-40.33,"BR"],"itaguai":[-22.93,-43.83,"BR"],"sepetiba":[-22.93,-43.83,"BR"],"rio de janeiro":[-22.89,-43.18,"BR"],"santos":[-23.96,-46.30,"BR"],"paranagua":[-25.50,-48.51,"BR"],"sao francisco do sul":[-26.24,-48.64,"BR"],"imbituba":[-28.23,-48.65,"BR"],"rio grande":[-32.05,-52.08,"BR"],"fazendinha":[-0.05,-51.12,"BR"],
+  "port louis":[-20.16,57.50,"MU"],"lobito":[-12.34,13.55,"AO"],"luanda":[-8.79,13.23,"AO"],"walvis bay":[-22.95,14.50,"NA"],"richards bay":[-28.80,32.08,"ZA"],"saldanha":[-33.03,17.93,"ZA"],"cape town":[-33.91,18.43,"ZA"],"nacala":[-14.54,40.67,"MZ"],"toamasina":[-18.15,49.42,"MG"],"conakry":[9.51,-13.71,"GN"],"kamsar":[10.65,-14.61,"GN"],"san pedro":[4.74,-6.61,"CI"],"douala":[4.05,9.69,"CM"],"pointe noire":[-4.78,11.83,"CG"],"onne":[4.71,7.15,"NG"],"chattogram":[22.30,91.80,"BD"],"mongla":[22.47,89.60,"BD"],"hambantota":[6.12,81.11,"LK"],"kandla":[23.01,70.22,"IN"],"paradip":[20.26,86.67,"IN"],"visakhapatnam":[17.69,83.29,"IN"],"port qasim":[24.77,67.35,"PK"],"khor fakkan":[25.35,56.36,"AE"],"dammam":[26.50,50.20,"SA"],"umm qasr":[30.03,47.95,"IQ"],"bandar abbas":[27.14,56.21,"IR"],"port hedland":[-20.31,118.58,"AU"],"newcastle":[-32.92,151.78,"AU"],"dampier":[-20.66,116.71,"AU"],"laem chabang":[13.08,100.88,"TH"],"haiphong":[20.86,106.68,"VN"],"san lorenzo":[-32.75,-60.73,"AR"],"rosario":[-32.95,-60.64,"AR"],"montevideo":[-34.90,-56.21,"UY"],"buenos aires":[-34.58,-58.37,"AR"],"narvik":[68.43,17.42,"NO"],"lulea":[65.58,22.15,"SE"],"oxelosund":[58.66,17.12,"SE"]
+};
+for(const k in WX_PORTS_X){ if(!PH_PORT_CC[k]) PH_PORT_CC[k] = WX_PORTS_X[k][2]; }
+function phCountry(port){
+  const raw = String(port || "").trim(); if(!raw) return "";
+  let m = raw.match(/(?:\(\s*([A-Za-z]{2})\s*\)|[,\u2013-]\s*([A-Za-z]{2}))\s*$/); if(m) return (m[1] || m[2]).toUpperCase();
+  if(/^[A-Z]{2}[A-Z0-9]{3}$/.test(raw)) return raw.slice(0, 2);
+  const n = phNorm(raw), maps = [window._phPorts || {}, PH_PORT_CC];
+  for(const map of maps){ if(map[n]) return map[n]; }
+  for(const map of maps){ let best = "", cc = ""; for(const k in map){ if(k.length > best.length && (" " + n + " ").includes(" " + k + " ")){ best = k; cc = map[k]; } } if(cc) return cc; }
+  return "";
+}
+function phCache(){ try { const c = JSON.parse(localStorage.getItem("mpd.holidays") || "{}"); return c && typeof c === "object" ? c : {}; } catch(e) { return {}; } }
+window._phPending = window._phPending || {};
+// festività di un paese/anno dalla cache (30 gg); se mancano le chiede e ridisegna quando arrivano
+function phGet(cc, y){
+  const key = cc + "-" + y, c = phCache()[key];
+  if(c && Date.now() - new Date(c.at).getTime() < 30 * 864e5) return c;
+  if(!window._phPending[key]){
+    window._phPending[key] = 1;
+    fetch("https://date.nager.at/api/v3/PublicHolidays/" + y + "/" + cc)
+      .then(r => r.status === 200 ? r.json() : (r.status === 204 || r.status === 404 ? [] : Promise.reject()))
+      .then(list => {
+        const val = Array.isArray(list) && list.length ? { at: new Date().toISOString(), list: list.filter(h => h.global !== false || !h.counties).map(h => ({ d: h.date, n: h.name, ln: h.localName })) } : { at: new Date().toISOString(), na: true };
+        const all = phCache(); all[key] = val; try { localStorage.setItem("mpd.holidays", JSON.stringify(all)); } catch(e) {}
+        if(state && state.view === "vessel" && typeof render === "function") render();
+      }).catch(() => {}).finally(() => { delete window._phPending[key]; });
+  }
+  return c || null;
+}
+function phDay(iso){ const [y, m, d] = iso.split("-"); return d + "." + m; }
+function phAdd(iso, n){ const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+// controlla uno scalo: da 3 gg prima dell'arrivo alla partenza (o arrivo + 4 gg se manca l'ETD)
+function phLeg(L){
+  const ok = x => /^\d{4}-\d{2}-\d{2}$/.test(x || ""), a = L.a;
+  if(!L.port || !ok(a)) return null;
+  const cc = phCountry(L.port); if(!cc) return Object.assign({}, L, { cc: "", hits: [], unknown: true });
+  const from = phAdd(a, -3), to = ok(L.e) && L.e >= a ? L.e : phAdd(a, 4);
+  const years = [...new Set([from.slice(0, 4), to.slice(0, 4)])], hits = []; let na = false, loading = false;
+  years.forEach(y => { const c = phGet(cc, y); if(!c) loading = true; else if(c.na) na = true; else c.list.forEach(h => { if(h.d >= from && h.d <= to) hits.push(Object.assign({}, h)); }); });
+  hits.sort((x, y) => x.d.localeCompare(y.d));
+  hits.forEach(h => { h.rel = h.d < a ? "prima dell'arrivo" : h.d === a ? "il giorno dell'arrivo" : (L.b && h.d === L.b && L.b !== a) ? "il giorno dell'ormeggio" : "durante la sosta"; });
+  return Object.assign({}, L, { cc, hits, na, loading });
+}
+// scali da controllare: i prossimi del Radar (entro 60 gg); se il Radar non ne ha, il voyage scritto a mano
+function phCalls(vid){
+  const now = Date.now(), iso = off => { const d = new Date(now + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  let out = [];
+  try { const M = rdModel(), lane = (M && M.lanes || []).find(l => l.vid === vid);
+    if(lane) out = (lane.calls || []).filter(c => !c.past && c.eta != null && c.eta <= 60 && (c.etd == null || c.etd >= -1)).sort((x, y) => x.eta - y.eta).slice(0, 3)
+      .map(c => ({ port: typeof ccTitle === "function" ? ccTitle(c.port) : c.port, a: iso(c.eta), b: c.etb != null ? iso(c.etb) : "", e: c.etd != null ? iso(c.etd) : "", nPO: (c.its || []).filter(x => !x.onb).length })); } catch(e) {}
+  if(!out.length){ try { const v = getVoyage(vid) || {}, d = x => String(x || "").slice(0, 10), n = w => { try { return itemsForLeg(vid, w).length; } catch(e) { return 0; } };
+    [["current", v.current], ["next", v.next]].forEach(([w, l]) => { if(l && l.to) out.push({ port: l.to, a: d(l.eta || l.etb), b: d(l.etb), e: d(l.etd), nPO: n(w) }); }); } catch(e) {} }
+  return out;
+}
+function phStripHTML(vid){
+  const legs = phCalls(vid).map(phLeg).filter(Boolean);
+  if(!legs.length) return "";
+  const rows = legs.map(L => {
+    const where = '<b style="color:#0a1b2e">' + escapeHTML(L.port) + '</b>' + (L.cc ? ' <span style="color:#6a7d90">(' + L.cc + ')</span>' : '') + ' <span style="color:#6a7d90">· arrivo ' + phDay(L.a) + (L.nPO ? ' · ' + L.nPO + ' PO in consegna' : '') + '</span>';
+    if(L.unknown) return '<div style="color:#6a7d90">' + where + ' — paese non riconosciuto: scrivi il porto come «Nome (XX)» con la sigla del paese, es. «Chittagong (BD)».</div>';
+    if(L.loading && !L.hits.length) return '<div style="color:#6a7d90">' + where + ' — controllo le festività…</div>';
+    if(L.na && !L.hits.length) return '<div style="color:#6a7d90">' + where + ' — festività di questo paese non disponibili: chiedi all\'agenzia.</div>';
+    if(!L.hits.length) return '<div>' + where + ' — <span style="color:#14794e;font-weight:600">nessuna festività nazionale</span> fra 3 giorni prima dell\'arrivo e la partenza.</div>';
+    return '<div>' + where + '<div style="display:flex;flex-direction:column;gap:2px;margin-top:3px">' +
+      L.hits.map(h => '<span><span style="font:700 12px var(--font-mono, monospace);color:#a85a00">' + phDay(h.d) + '</span> ' + escapeHTML(h.ln && h.ln !== h.n ? h.n + " · " + h.ln : h.n) + ' <span style="color:#a85a00">— ' + h.rel + '</span></span>').join("") +
+      '</div><div style="color:#44576b;margin-top:3px">Agenzia, dogana e fornitori del posto potrebbero essere chiusi: anticipa consegne e pre-alert.</div></div>';
+  });
+  const warn = legs.some(L => L.hits.length);
+  return '<section class="panel-card" style="padding:11px 16px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.45;border-radius:14px;' + (warn ? 'background:#fff8ec;border:1px solid #f0d3a2' : 'background:#fff;border:1px solid rgba(10,27,46,.10)') + '">' +
+    '<div style="font:700 11px var(--font-mono, monospace);letter-spacing:.07em;color:' + (warn ? '#a85a00' : '#44576b') + '">FESTIVITÀ AL PORTO</div>' + rows.join("") + '</section>';
+}
+// desktop: Panoramica 1a (sotto la rotta) · mobile/vecchia scheda: sotto il voyage
+(function(){
+  const safe = vid => "";   // v3.0e: le festività stanno nel riquadro unico «Viaggio · meteo e festività»
+  if(typeof npHTML === "function"){ const np0 = npHTML;
+    npHTML = function(vid){ const h = np0.apply(this, arguments), s = safe(vid), k = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))';
+      const i = h.indexOf(k); return !s ? h : i > 0 ? h.slice(0, i) + s + h.slice(i) : h.replace(/<\/div>$/, s + '</div>'); }; }
+  if(typeof renderVoyageWidget === "function"){ const rv0 = renderVoyageWidget;
+    renderVoyageWidget = function(vid){ return rv0.apply(this, arguments) + safe(vid); }; }
+})();
+
+// ===== v3.0c (05.11) — METEO: posizione della nave, lungo la rotta e al porto d'arrivo (Open-Meteo, mare + vento) =====
+function wxPortLL(name){
+  const n = phNorm(name); if(!n) return null;
+  if(WX_PORTS_X[n]) return { lat: WX_PORTS_X[n][0], lon: WX_PORTS_X[n][1] }; for(const k in WX_PORTS_X){ if((" " + n + " ").includes(" " + k + " ")) return { lat: WX_PORTS_X[k][0], lon: WX_PORTS_X[k][1] }; }
+  try { for(const p of MP_PORTS){ const k = phNorm(p[0]); if(n === k || (" " + n + " ").includes(" " + k + " ")) return { lat: p[1], lon: p[2] }; } } catch(e) {}
+  const L = window._wxPortLL || {}; if(L[n]) return L[n]; for(const k in L){ if((" " + n + " ").includes(" " + k + " ")) return L[k]; }
+  try { const g = geoLookupSync(name); if(g) return { lat: g.lat, lon: g.lon }; } catch(e) {}
+  return null;
+}
+// punto intermedio sull'arco di cerchio massimo (f = 0..1)
+function wxMid(a, b, f){
+  const r = x => x * Math.PI / 180, dg = x => x * 180 / Math.PI;
+  const p1 = r(a.lat), l1 = r(a.lon), p2 = r(b.lat), l2 = r(b.lon);
+  const d = 2 * Math.asin(Math.sqrt(Math.sin((p2 - p1) / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin((l2 - l1) / 2) ** 2));
+  if(d < 1e-6) return { lat: a.lat, lon: a.lon };
+  const A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+  const x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2), y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2), z = A * Math.sin(p1) + B * Math.sin(p2);
+  return { lat: dg(Math.atan2(z, Math.sqrt(x * x + y * y))), lon: dg(Math.atan2(y, x)) };
+}
+// i punti da guardare: ora · lungo la rotta (1 al giorno, max 4) · porto all'arrivo
+function wxPoints(vid){
+  const now = Date.now(), pts = [];
+  let pos = null, nt = ""; try { pos = getLastKnownPosition(vid); } catch(e) {} try { const n = getNoonMerged(vid); nt = n ? String(n.type || "") : ""; } catch(e) {}
+  let port = "", eta = null;
+  try { const M = rdModel(), lane = (M && M.lanes || []).find(l => l.vid === vid), c = lane && (lane.calls || []).filter(c => !c.past && c.eta != null && (c.eta > -0.5 || (c.etd != null && c.etd > 0))).sort((x, y) => x.eta - y.eta)[0];
+    if(c){ port = typeof ccTitle === "function" ? ccTitle(c.port) : c.port; eta = now + Math.max(0, c.eta) * 864e5; } } catch(e) {}
+  if(!port){ try { const W = mpWhere(vid); if(W && W.port){ port = typeof ccTitle === "function" ? ccTitle(W.port) : W.port; const t = W.eta ? Date.parse(String(W.eta).length <= 10 ? W.eta + "T12:00:00" : W.eta) : NaN; eta = isNaN(t) ? null : t; } } catch(e) {} }
+  const here = pos && pos.coords && pos.coords.lat != null ? { lat: +pos.coords.lat, lon: +pos.coords.lon } : null, dest = port ? wxPortLL(port) : null;
+  if(here) pts.push({ k: "now", lab: nt === "port" ? "In porto ora" : nt === "anchor" ? "In rada ora" : "Posizione attuale", t: now, ll: here, approx: !!(pos && pos.approx) });
+  if(here && dest && eta && eta > now + 864e5 && nt !== "port" && mpNm(here.lat, here.lon, dest.lat, dest.lon) > 150){
+    const days = Math.min(4, Math.floor((eta - now) / 864e5 - 0.25));
+    for(let i = 1; i <= days; i++){ const t = now + i * 864e5, f = (t - now) / (eta - now); pts.push({ k: "route", lab: "In rotta · +" + i + " g", t, ll: wxMid(here, dest, f) }); }
+  }
+  if(port && dest && eta) pts.push({ k: "port", lab: "Arrivo a " + port, t: Math.max(eta, now), ll: dest });
+  else if(port && !dest) pts.push({ k: "port", lab: "Arrivo a " + port, t: eta || now, ll: null });
+  return pts.filter(p => !p.ll || p.t - now <= 15.5 * 864e5).map(p => p.ll ? Object.assign(p, { ll: { lat: Math.round(p.ll.lat * 100) / 100, lon: Math.round(p.ll.lon * 100) / 100 } }) : p);
+}
+window._wxPending = window._wxPending || {};
+function wxCache(){ try { const c = JSON.parse(localStorage.getItem("mpd.wx") || "{}"); return c && typeof c === "object" ? c : {}; } catch(e) { return {}; } }
+// previsioni orarie (vento dal modello meteo, onde dal modello marino) per una lista di punti; cache 3 ore
+function wxGet(vid, pts){
+  const P = pts.filter(p => p.ll), key = vid + "|" + P.map(p => p.ll.lat + "," + p.ll.lon).join(";");
+  const c = wxCache()[vid];
+  if(c && c.key === key && Date.now() - c.at < 3 * 36e5) return c;
+  if(!P.length || window._wxPending[key]) return c && c.key === key ? c : null;
+  window._wxPending[key] = 1;
+  const la = P.map(p => p.ll.lat).join(","), lo = P.map(p => p.ll.lon).join(","), arr = d => Array.isArray(d) ? d : [d];
+  const W = fetch("https://api.open-meteo.com/v1/forecast?latitude=" + la + "&longitude=" + lo + "&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&wind_speed_unit=kn&timezone=GMT&forecast_days=16").then(r => r.ok ? r.json() : Promise.reject()).then(arr);
+  const S = fetch("https://marine-api.open-meteo.com/v1/marine?latitude=" + la + "&longitude=" + lo + "&hourly=wave_height,wave_direction,swell_wave_height&timezone=GMT&forecast_days=8").then(r => r.ok ? r.json() : null).then(d => d ? arr(d) : null).catch(() => null);
+  Promise.all([W, S]).then(([w, s]) => {
+    const pack = (d, f) => d && d.hourly ? { t0: Date.parse(d.hourly.time[0] + ":00Z"), v: f.reduce((o, k) => (o[k] = d.hourly[k], o), {}) } : null;
+    const val = { key, at: Date.now(), pts: P.map((p, i) => ({ w: pack(w[i], ["wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "weather_code"]), s: s ? pack(s[i], ["wave_height", "wave_direction", "swell_wave_height"]) : null })) };
+    const all = wxCache(); all[vid] = val; try { localStorage.setItem("mpd.wx", JSON.stringify(all)); } catch(e) {}
+    if(state && state.view === "vessel" && typeof render === "function") render();
+  }).catch(() => {}).finally(() => { delete window._wxPending[key]; });
+  return c && c.key === key ? c : null;
+}
+function wxAt(pk, k, t){ if(!pk || !pk.v[k]) return null; const i = Math.round((t - pk.t0) / 36e5); const x = pk.v[k][i]; return x == null ? null : x; }
+function wxBft(kn){ const L = [1, 3, 6, 10, 16, 21, 27, 33, 40, 47, 55, 63]; let b = 0; while(b < L.length && kn >= L[b]) b++; return b; }
+function wxDir(d){ return d == null ? "" : ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(((d % 360) + 360) % 360 / 45) % 8]; }
+function wxSky(c){ return c == null ? "" : c >= 95 ? "temporale" : c >= 80 ? "rovesci" : c >= 61 ? "pioggia" : c >= 51 ? "pioviggine" : c >= 45 ? "nebbia" : c >= 3 ? "nuvoloso" : c >= 1 ? "poco nuvoloso" : "sereno"; }
+// --- v3.0d: icone e scheda meteo più leggibile -------------------------------------------------------
+function wxIcon(code, sz){
+  sz = sz || 30; const st = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  const cloud = '<path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 11.5 3.3 3.3 0 0 0 7 18z"/>';
+  const sun = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>';
+  let b, c;
+  if(code == null){ b = cloud; c = "#8a99a8"; }
+  else if(code >= 95){ b = '<path d="M7 15h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 8.5 3.3 3.3 0 0 0 7 15z"/><path d="M12.5 15.5l-2 3.5h3l-2 3.5"/>'; c = "#6b3fa0"; }
+  else if(code >= 61){ b = '<path d="M7 14h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.3 3.3 0 0 0 7 14z"/><path d="M8.5 17l-1 2.5M12.5 17l-1 2.5M16.5 17l-1 2.5"/>'; c = "#1553d8"; }
+  else if(code >= 51){ b = '<path d="M7 14h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6.1 7.5 3.3 3.3 0 0 0 7 14z"/><path d="M9 18v.5M13 18v.5M17 18v.5"/>'; c = "#3f7fd6"; }
+  else if(code >= 45){ b = '<path d="M4 9h16M3 13h18M5 17h14"/>'; c = "#7a8896"; }
+  else if(code >= 3){ b = cloud; c = "#5d6f82"; }
+  else if(code >= 1){ b = '<g transform="translate(-3 -3) scale(.75)">' + sun + '</g><path d="M9 19h8a3.5 3.5 0 0 0 .4-6.97A5 5 0 0 0 8.2 13 2.8 2.8 0 0 0 9 19z" fill="#fff"/>'; c = "#c98a00"; }
+  else { b = sun; c = "#d99a00"; }
+  return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 24 24" ' + st + ' style="color:' + c + ';flex:none" aria-hidden="true">' + b + '</svg>';
+}
+// freccia: dove va il vento (dalla direzione di provenienza + 180°)
+function wxArrow(dir, col){ return dir == null ? "" : '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex:none;transform:rotate(' + Math.round(dir + 180) + 'deg)"><circle cx="12" cy="12" r="11" fill="' + col + '" opacity=".12"/><path d="M12 4.5v13M7.5 13l4.5 5 4.5-5" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+function wxWave(col){ return '<svg width="18" height="12" viewBox="0 0 24 14" aria-hidden="true" style="flex:none"><path d="M1 9c2.5-4 5-4 7.5 0s5 4 7.5 0 5-4 7 0" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linecap="round"/></svg>'; }
+const WX_BFT = ["calma", "bava di vento", "brezza leggera", "brezza tesa", "vento moderato", "vento teso", "vento fresco", "vento forte", "burrasca", "burrasca forte", "tempesta", "tempesta violenta", "uragano"];
+const WX_SEA = h => h == null ? "" : h < 0.5 ? "mare calmo" : h < 1.25 ? "mare poco mosso" : h < 2.5 ? "mare mosso" : h < 4 ? "mare molto mosso" : h < 6 ? "mare agitato" : "mare grosso";
+// v3.0e — modello meteo (punti, valori, sintesi) usato dal riquadro unico
+function wxModel(vid){
+  const pts = wxPoints(vid); if(!pts.length) return null;
+  const D = wxGet(vid, pts), now = Date.now(); let j = 0;
+  const dd = t => { const d = new Date(t); return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0"); }, hhmm = t => String(new Date(t).getHours()).padStart(2, "0") + ":00";
+  const lvlOf = (bf, hs) => (bf != null && bf >= 8) || (hs != null && hs >= 4) ? 2 : (bf != null && bf >= 6) || (hs != null && hs >= 2.5) ? 1 : 0;
+  const cells = pts.map(p => {
+    if(!p.ll) return { p, txt: "porto non trovato" };
+    const r = D && D.pts[j++]; if(!r) return { p, txt: D ? "n.d." : "carico…" };
+    const ws = wxAt(r.w, "wind_speed_10m", p.t), wd = wxAt(r.w, "wind_direction_10m", p.t), wg = wxAt(r.w, "wind_gusts_10m", p.t), wc = wxAt(r.w, "weather_code", p.t);
+    const hs = wxAt(r.s, "wave_height", p.t), sw = wxAt(r.s, "swell_wave_height", p.t);
+    if(ws == null && hs == null) return { p, r, txt: "oltre la previsione" };
+    const bf = ws != null ? wxBft(ws) : null, o = { p, r, ws, wd, wg, wc, hs, sw, bf, lvl: lvlOf(bf, hs) };
+    if(p.k === "port"){ let mh = null, mw = null, mt = null; for(let i = 0; i <= 24; i++){ const t = p.t + i * 36e5, a = wxAt(r.s, "wave_height", t), b = wxAt(r.w, "wind_speed_10m", t); if(a != null && (mh == null || a > mh)) mh = a; if(b != null && (mw == null || b > mw)){ mw = b; mt = t; } } o.pk = { hs: mh, bf: mw != null ? wxBft(mw) : null, t: mt }; o.lvl = Math.max(o.lvl, lvlOf(o.pk.bf, o.pk.hs)); }
+    return o;
+  });
+  const ok = cells.filter(c => !c.txt), worst = ok.reduce((m, c) => Math.max(m, c.lvl), 0);
+  let head = "In attesa della previsione", sub = "";
+  if(ok.length){
+    const maxH = ok.reduce((m, c) => c.hs != null && (m == null || c.hs > m.hs) ? c : m, null), maxB = ok.reduce((m, c) => c.bf != null && (m == null || c.bf > m.bf) ? c : m, null);
+    const first = ok[0], last = ok[ok.length - 1], port = last.p.k === "port" ? last : null, pn = port ? escapeHTML(port.p.lab.replace(/^Arrivo a /, "")) : "";
+    const where = c => c.p.k === "now" ? "adesso" : c.p.k === "port" ? "all'arrivo" : "il " + dd(c.p.t);
+    if(worst === 0) head = "Navigazione tranquilla" + (port ? " fino a " + pn : "");
+    else if(first.lvl < worst) head = "Peggiora " + (port ? "verso " + pn : "nei prossimi giorni");
+    else if(port && port.lvl < first.lvl) head = "Mare duro adesso, migliora verso " + pn;
+    else head = worst === 2 ? "Mare grosso lungo il tratto" : "Mare mosso lungo il tratto";
+    const bits = [];
+    if(maxH && maxH.hs != null) bits.push("onda max " + npF(maxH.hs, 1) + " m " + where(maxH));
+    if(maxB && maxB.bf != null) bits.push("vento max F" + maxB.bf + " " + where(maxB));
+    if(port && port.pk && port.pk.bf != null && (port.pk.bf > (port.bf || 0) || (port.pk.hs || 0) > (port.hs || 0) + 0.3)) bits.push("in porto picco F" + port.pk.bf + " alle " + hhmm(port.pk.t) + " del " + dd(port.pk.t));
+    sub = bits.join(" · ") + (worst === 2 ? " — possibile ritardo o attesa in rada: avvisa agenzia e fornitori." : worst === 1 ? " — tienilo d'occhio per l'ETA." : "");
+  }
+  return { pts, D, cells, ok, worst, head, sub, dd, hhmm, now };
+}
+// grafico dell'onda (area colorata per soglie) + vento (linea), dall'ora al porto (+24 h), con festività in arancio
+function wxChartHTML(M, hol){
+  const P = M.cells.filter(c => c.r), now = M.now; if(!P.length) return "";
+  const t0 = now, t1 = Math.max(P[P.length - 1].p.t + 24 * 36e5, now + 36 * 36e5), step = 3 * 36e5, S = [];
+  for(let t = t0; t <= t1; t += step){
+    let k = 0; for(let i = 0; i < P.length; i++){ if(P[i].p.t <= t) k = i; }
+    if(k < P.length - 1 && t - P[k].p.t > P[k + 1].p.t - t) k++;
+    const r = P[k].r; S.push({ t, hs: wxAt(r.s, "wave_height", t), ws: wxAt(r.w, "wind_speed_10m", t) });
+  }
+  const hv = S.map(x => x.hs).filter(v => v != null); if(!hv.length && !S.some(x => x.ws != null)) return "";
+  const W = 1000, H = 120, ym = Math.max(4.6, (hv.length ? Math.max(...hv) : 0) * 1.15), X = t => (t - t0) / (t1 - t0) * W, Y = v => H - v / ym * H, YB = b => H - b / 12 * H;
+  let area = "", line = "", wind = "", seg = [];
+  const flush = () => { if(seg.length > 1){ area += "M" + seg[0][0].toFixed(1) + "," + H + " " + seg.map(q => "L" + q[0].toFixed(1) + "," + q[1].toFixed(1)).join(" ") + " L" + seg[seg.length - 1][0].toFixed(1) + "," + H + "Z "; line += "M" + seg.map(q => q[0].toFixed(1) + "," + q[1].toFixed(1)).join(" L") + " "; } seg = []; };
+  S.forEach(x => { if(x.hs == null) flush(); else seg.push([X(x.t), Y(x.hs)]); }); flush();
+  const wp = S.filter(x => x.ws != null).map(x => X(x.t).toFixed(1) + "," + YB(wxBft(x.ws) + (x.ws % 1) * 0).toFixed(1)); if(wp.length > 1) wind = "M" + wp.join(" L");
+  const o25 = (2.5 / ym * 100).toFixed(1), o4 = (4 / ym * 100).toFixed(1);
+  const bands = (hol || []).filter(x => { const a = Date.parse(x.d + "T00:00:00"); return a + 864e5 > t0 && a < t1; }).map(x => { const a = Math.max(t0, Date.parse(x.d + "T00:00:00")), b = Math.min(t1, Date.parse(x.d + "T00:00:00") + 864e5); return '<rect x="' + X(a).toFixed(1) + '" y="0" width="' + Math.max(2, X(b) - X(a)).toFixed(1) + '" height="' + H + '" fill="#f0a020" opacity=".16"/>'; }).join("");
+  const days = []; { const d = new Date(t0); d.setHours(24, 0, 0, 0); for(let t = d.getTime(); t < t1; t += 864e5) days.push(t); }
+  const pct = t => (X(t) / W * 100).toFixed(2) + "%";
+  const ticks = days.map(t => '<line x1="' + X(t).toFixed(1) + '" y1="0" x2="' + X(t).toFixed(1) + '" y2="' + H + '" stroke="rgba(10,27,46,.07)"/>').join("");
+  const marks = M.cells.filter(c => c.p.t <= t1).map(c => '<line x1="' + X(c.p.t).toFixed(1) + '" y1="0" x2="' + X(c.p.t).toFixed(1) + '" y2="' + H + '" stroke="' + (c.p.k === "port" ? "#0a1b2e" : "#1553d8") + '" stroke-width="' + (c.p.k === "port" ? 2 : 1) + '" stroke-dasharray="' + (c.p.k === "port" ? "0" : "3 3") + '" vector-effect="non-scaling-stroke" opacity=".55"/>').join("");
+  let lastL = -99; const labs = M.cells.filter(c => c.p.t <= t1).map(c => { const x = X(c.p.t) / W * 100; if(x - lastL < 7 && c.p.k !== "port") return ""; lastL = x; const lab = c.p.k === "now" ? "ORA" : c.p.k === "port" ? "⚓ " + c.p.lab.replace(/^Arrivo a /, "") : "+" + Math.round((c.p.t - t0) / 864e5) + "g"; return '<span style="position:absolute;top:0;left:' + x.toFixed(2) + '%;transform:translateX(' + (x > 85 ? "-100%" : x < 3 ? "0" : "-50%") + ');font:700 10px var(--font-mono, monospace);color:' + (c.p.k === "port" ? "#0a1b2e" : "#1553d8") + ';white-space:nowrap;background:#fff;padding:0 3px">' + escapeHTML(lab) + '</span>'; }).join("");
+  const dlab = days.map(t => '<span style="position:absolute;bottom:0;left:' + pct(t) + ';transform:translateX(-50%);font:500 10px var(--font-mono, monospace);color:#6a7d90">' + M.dd(t) + '</span>').join("");
+  return '<div style="position:relative;padding:16px 46px 16px 34px">' +
+    '<div style="position:relative;height:14px">' + labs + '</div>' +
+    '<div style="position:relative;height:' + H + 'px;margin-top:4px">' +
+      '<svg width="100%" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="display:block;overflow:visible" role="img" aria-label="Altezza onda e forza del vento lungo il viaggio">' +
+        '<defs><linearGradient id="wxg" x1="0" y1="' + H + '" x2="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2f9e6b" stop-opacity=".55"/><stop offset="' + o25 + '%" stop-color="#2f9e6b" stop-opacity=".55"/><stop offset="' + o25 + '%" stop-color="#e09a2b" stop-opacity=".6"/><stop offset="' + o4 + '%" stop-color="#e09a2b" stop-opacity=".6"/><stop offset="' + o4 + '%" stop-color="#d0453b" stop-opacity=".65"/><stop offset="1" stop-color="#d0453b" stop-opacity=".65"/></linearGradient></defs>' +
+        bands + ticks + '<line x1="0" y1="' + Y(2.5).toFixed(1) + '" x2="' + W + '" y2="' + Y(2.5).toFixed(1) + '" stroke="#e09a2b" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><line x1="0" y1="' + Y(4).toFixed(1) + '" x2="' + W + '" y2="' + Y(4).toFixed(1) + '" stroke="#d0453b" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>' +
+        '<path d="' + area + '" fill="url(#wxg)"/><path d="' + line + '" fill="none" stroke="#0a1b2e" stroke-width="1.6" vector-effect="non-scaling-stroke" opacity=".7"/>' +
+        (wind ? '<path d="' + wind + '" fill="none" stroke="#1553d8" stroke-width="1.6" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>' : "") + marks +
+        '<line x1="0" y1="' + H + '" x2="' + W + '" y2="' + H + '" stroke="rgba(10,27,46,.25)" vector-effect="non-scaling-stroke"/></svg>' +
+      '<span style="position:absolute;left:-30px;top:' + (Y(4) / H * 100).toFixed(1) + '%;transform:translateY(-50%);font:600 10px var(--font-mono, monospace);color:#b3261e">4 m</span><span style="position:absolute;left:-30px;top:' + (Y(2.5) / H * 100).toFixed(1) + '%;transform:translateY(-50%);font:600 10px var(--font-mono, monospace);color:#a85a00">2,5</span><span style="position:absolute;left:-30px;bottom:-5px;font:600 10px var(--font-mono, monospace);color:#6a7d90">0</span>' +
+      '<span style="position:absolute;right:-42px;top:-5px;font:600 10px var(--font-mono, monospace);color:#1553d8">F12</span><span style="position:absolute;right:-36px;top:' + (YB(6) / H * 100).toFixed(1) + '%;transform:translateY(-50%);font:600 10px var(--font-mono, monospace);color:#1553d8">F6</span>' +
+    '</div><div style="position:relative;height:14px;margin-top:4px">' + dlab + '</div></div>';
+}
+// riquadro unico: sintesi · grafico · punti · festività degli scali
+function voyStripHTML(vid){
+  const M = wxModel(vid); let legs = []; try { legs = phCalls(vid).map(phLeg).filter(Boolean); } catch(e) {}
+  const seen = {}; legs = legs.filter(L => { const k = L.port + "|" + L.a; if(seen[k]) return false; seen[k] = 1; return true; });
+  if(!M && !legs.length) return "";
+  const C = [{ fg: "#14794e", bg: "#e7f4ec", bar: "#2f9e6b" }, { fg: "#a85a00", bg: "#fdf1de", bar: "#e09a2b" }, { fg: "#b3261e", bg: "#fbe6e4", bar: "#d0453b" }];
+  const hits = [].concat(...legs.map(L => (L.hits || []).map(h => Object.assign({ port: L.port }, h)))), worst = M ? M.worst : 0, tone = C[worst];
+  let sub = M ? M.sub : "";
+  if(hits.length) sub = (sub ? sub + " " : "") + "Festa " + hits.slice(0, 2).map(h => "a " + escapeHTML(h.port) + " il " + phDay(h.d)).join(", ") + ": anticipa consegne e pre-alert.";
+  const icon = M && M.ok.length ? wxIcon(M.ok.reduce((m, c) => (c.wc || 0) > (m || 0) ? c.wc : m, 0), 24) : wxIcon(null, 24);
+  const header = '<div style="background:#0a1b2e;color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">' +
+    '<span style="width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:' + tone.bar + ';flex:none">' + icon.replace(/color:[^;"]+/, "color:#fff") + '</span>' +
+    '<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:220px"><span style="font:700 10px var(--font-mono, monospace);letter-spacing:.08em;color:#9fb1c4">VIAGGIO · METEO E FESTIVITÀ' + (M && M.D ? " · AGG. " + new Date(M.D.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }) : "") + '</span><span style="font-size:17px;font-weight:700;line-height:1.25">' + (M ? M.head : "Scali in arrivo") + '</span>' + (sub ? '<span style="font-size:12.5px;color:#cfd9e4;line-height:1.4;text-wrap:pretty">' + sub + '</span>' : "") + '</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">' + (M ? '<span style="font:700 11px var(--font-mono, monospace);padding:4px 9px;border-radius:999px;background:' + tone.bg + ';color:' + tone.fg + ';white-space:nowrap">' + ["NAVIGABILE", "ATTENZIONE", "MARE DURO"][worst] + '</span>' : "") + (hits.length ? '<span style="font:700 11px var(--font-mono, monospace);padding:4px 9px;border-radius:999px;background:#fdf1de;color:#a85a00;white-space:nowrap">' + hits.length + ' FEST' + (hits.length > 1 ? "E" : "A") + '</span>' : "") + '</div></div>';
+  let chart = "", chips = "";
+  if(M){
+    try { chart = wxChartHTML(M, hits); } catch(e) { console.warn("[meteo grafico]", e); }
+    chips = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:1px;background:rgba(10,27,46,.08);border-top:1px solid rgba(10,27,46,.08)">' + M.cells.map(c => {
+      const p = c.p, k = C[c.lvl || 0], lab = p.k === "now" ? "ORA" : p.k === "port" ? "⚓ " + p.lab.replace(/^Arrivo a /, "").toUpperCase() : "+" + Math.round((p.t - M.now) / 864e5) + "G";
+      const top = '<div style="display:flex;gap:6px;align-items:baseline;min-width:0"><span style="font:700 10px var(--font-mono, monospace);letter-spacing:.06em;color:#0a1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHTML(lab) + '</span><span style="font:500 10px var(--font-mono, monospace);color:#6a7d90;white-space:nowrap">' + (p.k === "now" ? "noon" : M.dd(p.t) + " " + M.hhmm(p.t)) + '</span></div>';
+      if(c.txt) return '<div style="background:#fff;padding:8px 12px;display:flex;flex-direction:column;gap:4px">' + top + '<span style="font-size:12px;color:#6a7d90">' + c.txt + '</span></div>';
+      return '<div style="background:#fff;padding:8px 12px;display:flex;flex-direction:column;gap:4px" title="' + escapeAttr([wxSky(c.wc), c.hs != null ? WX_SEA(c.hs) : "", c.ws != null ? "vento " + wxDir(c.wd) + " " + Math.round(c.ws) + " kn" : "", c.wg != null ? "raffiche " + Math.round(c.wg) + " kn" : "", c.sw != null ? "onda lunga " + npF(c.sw, 1) + " m" : ""].filter(Boolean).join(" · ")) + '">' + top +
+        '<div style="display:flex;align-items:center;gap:7px">' + wxIcon(c.wc, 22) + '<span style="font:700 15px var(--font-mono, monospace);color:' + k.fg + '">' + (c.hs != null ? npF(c.hs, 1) + '<small style="font-size:10px;font-weight:600"> m</small>' : "—") + '</span>' + wxArrow(c.wd, k.fg).replace(/width="22" height="22"/, 'width="18" height="18"') + '<span style="font:700 11px var(--font-mono, monospace);padding:2px 5px;border-radius:5px;background:' + k.bg + ';color:' + k.fg + '">F' + (c.bf != null ? c.bf : "—") + '</span></div>' +
+        (c.pk && c.pk.bf != null ? '<span style="font-size:10.5px;color:#44576b">24 h in porto: max F' + c.pk.bf + (c.pk.hs != null ? " · " + npF(c.pk.hs, 1) + " m" : "") + '</span>' : "") + '</div>';
+    }).join("") + '</div>';
+  }
+  const hol = legs.length ? '<div style="padding:8px 16px;border-top:1px solid rgba(10,27,46,.08);display:flex;gap:6px 14px;flex-wrap:wrap;align-items:baseline;font-size:12px;line-height:1.4">' +
+    '<span style="font:700 10px var(--font-mono, monospace);letter-spacing:.07em;color:' + (hits.length ? "#a85a00" : "#44576b") + '">FESTIVITÀ</span>' + legs.map(L => {
+      const nm = '<b style="color:#0a1b2e">' + escapeHTML(L.port) + '</b>' + (L.cc ? ' <span style="color:#6a7d90">' + L.cc + '</span>' : "") + ' <span style="color:#6a7d90">' + phDay(L.a) + '</span>';
+      if(L.unknown) return '<span>' + nm + ' <span style="color:#6a7d90">— paese? scrivi «' + escapeHTML(L.port) + ' (XX)»</span></span>';
+      if(L.hits && L.hits.length) return '<span>' + nm + ' — ' + L.hits.map(h => '<span style="color:#a85a00;font-weight:600">' + phDay(h.d) + ' ' + escapeHTML(h.n) + '</span> <span style="color:#a85a00">(' + h.rel + ')</span>').join(", ") + '</span>';
+      if(L.loading) return '<span>' + nm + ' <span style="color:#6a7d90">…</span></span>';
+      if(L.na) return '<span>' + nm + ' <span style="color:#6a7d90">— n.d., chiedi all\'agenzia</span></span>';
+      return '<span>' + nm + ' <span style="color:#14794e">✓ nessuna</span></span>';
+    }).join('<span style="color:#c3ccd5">|</span>') + '</div>' : "";
+  const foot = M ? '<div style="padding:5px 16px 7px;font-size:10.5px;color:#6a7d90;border-top:1px solid rgba(10,27,46,.08);display:flex;gap:12px;flex-wrap:wrap"><span><span style="display:inline-block;width:10px;height:8px;background:#2f9e6b;opacity:.6;border-radius:2px"></span> onda (m) · <span style="color:#1553d8">┄ vento (Beaufort)</span> · <span style="display:inline-block;width:10px;height:8px;background:#f0a020;opacity:.35;border-radius:2px"></span> festa · freccia = dove soffia</span><span style="flex:1"></span><span>Open-Meteo, uso non commerciale · rotta stimata in linea retta</span></div>' : "";
+  return '<section class="panel-card" style="padding:0;overflow:hidden;border-radius:14px;background:#fff;border:1px solid rgba(10,27,46,.10)">' + header + chart + chips + hol + foot + '</section>';
+}
+(function(){
+  const safe = vid => { try { return voyStripHTML(vid); } catch(e) { console.warn("[meteo]", e); return ""; } };
+  if(typeof npHTML === "function"){ const np0 = npHTML;
+    npHTML = function(vid){ const h = np0.apply(this, arguments), s = safe(vid), k = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))';
+      const i = h.indexOf(k); return !s ? h : i > 0 ? h.slice(0, i) + s + h.slice(i) : h.replace(/<\/div>$/, s + '</div>'); }; }
+  if(typeof renderVoyageWidget === "function"){ const rv0 = renderVoyageWidget;
+    renderVoyageWidget = function(vid){ return rv0.apply(this, arguments) + safe(vid); }; }
+})();
 
 // --- AGGIORNAMENTO AUTOMATICO (feed n8n: to-do Outlook, noon, posta, Infoship) ---------------------
 window._ar = window._ar || { last: Date.now(), every: 5 * 60000 };
