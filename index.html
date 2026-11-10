@@ -34059,10 +34059,96 @@ function rdCfPaint(){ const S = window._rdcf; let el = document.getElementById("
 // sta nel repo PRIVATO di sync (catalogo/<nave>.html) e si legge con il token del Sync GitHub; le pratiche
 // e lo storico Infoship gli vengono passati vivi dalla dashboard.
 (function(){
-  const CAT = { medliguria: { path: "catalogo/med-liguria.html", code: "MLG" } };
+  const CAT = { medliguria: { path: "catalogo/med-liguria.html", tree: "catalogo/med-liguria-albero.json", code: "MLG" } };
+  // Aggancio acquisti -> voce dell'albero InfoSHIP (stessa funzione nel catalogo e nei test)
+function buildMatcher(T){
+  const stem = w => w.length > 4 && w.endsWith("S") && !w.endsWith("SS") ? w.slice(0, -1) : w;
+  const N = s => " " + String(s||"").toUpperCase().replace(/[^A-Z0-9]+/g," ").trim().split(" ").map(stem).join(" ") + " ";
+  const SYN = [[/\b(BWTS|BWMS|BALCLOR)\b/g," BALLAST WATER TREATMENT "],[/\bAIR HORN\b/g," AIR WHISTLE "],[/\b(AUX\.?\s?ENGINE|AUXILIARY ENGINE|A\/E)\b/g," DIESEL ENGINE GENERATOR "],[/\bM\/?E\b(?=\s+(CRITICAL|SPARE|ENGINE))/g," MAIN ENGINE "],[/\bEM'?CY\b/g," EMERGENCY "],[/\bE\/?G\b/g," EMERGENCY GENERATOR "],[/\bOWS\b/g," OILY WATER SEPARATOR "],[/\bFWG\b/g," FRESH WATER GENERATOR "],[/\b(DATA LOGGER|AMS)\b/g," ALARM MONITORING "],[/\bCARGO CRANE\b/g," DECK CRANE "],[/\bCOOKING RANGE\b/g," ELECTRIC RANGE "],[/\bM\/E\b/g," MAIN ENGINE "],[/\bMAIN ENGINE\b/g," MAINENGINE "]];
+  const GEN1 = new Set("ENGINE DECK STORE STORES SAFETY PAINT TOOL TOOLS CARGO WATER OIL".split(" "));
+  const X = s => { let t = " " + String(s||"").toUpperCase() + " "; SYN.forEach(([a,b]) => { t = t.replace(a, b); }); return t; };
+  const C = s => String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const STOP = new Set("THE AND FOR WITH TYPE UNIT SYSTEM SYSTEMS EQUIPMENT EQUIP MAIN NO N1 N2 N3 N4 PORT STBD SIDE ASSY SET SETS SPARE SPARES PARTS PART MARINE MED LIGURIA MLG".split(" "));
+  const MAKERSTOP = new Set("CO LTD LTD. INC CORP CORPORATION COMPANY MFG MARINE ELECTRIC ELECTRONICS INDUSTRIES INDUSTRY HEAVY MACHINERY WORKS SEISAKUSHO KAISHA KIKAI SHIPBUILDING THE OF AND JAPAN SHIPSERVICE".split(" "));
+  const GENERIC_MAKER = new Set(["MITSUBISHI","MHI","IMABARI","TAIYO"]);
+  const byC = Object.fromEntries(T.map(n => [n.c, n]));
+  const nodes = T.filter(n => n.p && n.c.split("-").length > 2).map(n => {
+    const words = N(X(n.d).replace(/\bN\.?\s?\d+\b/g," ")).trim().split(" ").filter(w => w.length >= 3 && !STOP.has(w) && !/^\d+$/.test(w));
+    const md = C(n.md); const model = md.length >= 3 && /\d/.test(md) && /[A-Z]/.test(md) ? md : "";
+    const mk = N(n.mk).trim().split(" ").filter(w => w.length >= 4 && !MAKERSTOP.has(w))[0] || "";
+    return { n, words: [...new Set(words)], model, mk: GENERIC_MAKER.has(mk) ? "" : mk };
+  });
+  return function match(desc){
+    const dx = X(desc), d = N(dx), dc = C(desc), toks = String(desc||"").toUpperCase().split(/[\s,;()]+/).map(C).filter(t => t.length >= 5 && /\d/.test(t) && /[A-Z]/.test(t)); let best = 0, hits = [];
+    for(const x of nodes){
+      let sc = 0;
+      if(x.model && dc.includes(x.model)) sc += 10; else if(x.model && x.model.length >= 7 && toks.some(t => x.model.startsWith(t))) sc += 8;
+      if(x.mk && d.includes(" " + x.mk + " ")) sc += 3;
+      if(x.words.length){
+        const m = x.words.filter(w => d.includes(" " + w + " ")).length, r = m / x.words.length;
+        if(m >= 2 && r >= 0.6) sc += 8 * r; else if(m === 1 && x.words.length === 1 && x.words[0].length >= 4 && !GEN1.has(x.words[0])) sc += 5;
+      }
+      if(sc > best + 1e-9){ best = sc; hits = [x.n]; } else if(sc > 0 && Math.abs(sc - best) < 1e-9) hits.push(x.n);
+    }
+    if(best < 5) return [];
+    // pari merito: se una voce e il suo "genitore" sono entrambi colpiti, tieni il genitore
+    const set = new Set(hits.map(n => n.c));
+    const top = hits.filter(n => { let p = n.p; while(p){ if(set.has(p)) return false; p = byC[p] && byC[p].p; } return true; });
+    return top.slice(0, 4).map(n => n.c);
+  };
+}
+
+
+  function ghRaw(path){
+    const s = state.settings || {};
+    if(!(s.ghSyncRepo && s.ghSyncRepo.trim() && s.ghSyncToken && s.ghSyncToken.trim())) return Promise.reject(new Error("Sync GitHub non configurato"));
+    const repo = s.ghSyncRepo.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, ""), br = (s.ghSyncBranch || "main").trim();
+    return fetch("https://api.github.com/repos/" + repo + "/contents/" + path + "?ref=" + encodeURIComponent(br), { headers: Object.assign(ghSyncHeaders(), { "Accept": "application/vnd.github.raw" }), cache: "no-store" })
+      .then(r => { if(r.status === 404) throw new Error("nel repo " + repo + " manca il file " + path); if(!r.ok) throw new Error("GitHub ha risposto " + r.status); return r.text(); });
+  }
+  // albero + matcher per riconoscere il macchinario dalla descrizione della pratica
+  const TR = {};
+  function catTree(vid){
+    const c = CAT[vid]; if(!c) return null;
+    if(TR[vid]) return TR[vid].ready ? TR[vid] : null;
+    TR[vid] = { ready: false };
+    ghRaw(c.tree).then(t => { const j = JSON.parse(t), by = {}; j.tree.forEach(n => by[n.c] = n);
+      Object.assign(TR[vid], { ready: true, by, schede: j.schede || {}, match: buildMatcher(j.tree.map(n => Object.assign({ f: "", pm: 0, ad: "" }, n))) });
+      const S = window._pc; if(state.view === "vessel" && state.selectedVesselId === vid && typeof pcPaint === "function" && S && S.sel && S.sel[vid]) pcPaint(vid);
+    }).catch(e => { console.warn("[catalogo] albero", e.message); TR[vid].err = e.message; });
+    return null;
+  }
+  const cl = d => String(d || "").replace(/^\*+\s*|\s*\*+$/g, "").trim();
+  function catMachineHTML(vid, it){
+    const T = catTree(vid); if(!T || !it) return "";
+    const codes = T.match(it.description || ""); if(!codes.length) return "";
+    const V = String(vid).replace(/'/g, "");
+    const rows = codes.map(c => { const n = T.by[c]; let s = null, x = n; while(x && !s){ s = T.schede[x.c]; x = T.by[x.p]; }
+      let ca = null, y = T.by[n.p]; while(y && !n.cr && !ca){ if(y.cr) ca = y; y = T.by[y.p]; }
+      return '<button onclick="catGoto(\'' + V + '\',\'' + c.replace(/'/g, "") + '\')" title="Apri nel catalogo macchinari" style="all:unset;cursor:pointer;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;padding:3px 0">' +
+        '<span style="font-weight:600;color:#1553d8">' + escapeHTML(cl(n.d)) + '</span>' + (n.md ? '<span style="font:12px var(--font-mono);color:#44576b">' + escapeHTML(n.md) + '</span>' : "") +
+        (n.cr ? '<span style="font:700 10px var(--font-mono);color:#fff;background:#c62828;border-radius:4px;padding:1px 5px">CRITICAL</span>' : "") + (s ? '<span style="font-size:12px;color:#1b7a50">◧ scheda ' + escapeHTML(s) + '</span>' : "") + (ca ? '<span style="font-size:12px;color:#c62828">parte di ' + escapeHTML(cl(ca.d)) + ' (critical)</span>' : "") + '</button>'; }).join("");
+    return '<div style="margin:12px 14px 0;padding:9px 12px;border:1px solid rgba(21,83,216,.25);background:rgba(21,83,216,.05);border-radius:10px;font-size:13.5px"><div style="font:700 10.5px var(--font-mono);letter-spacing:.07em;color:#44576b;margin-bottom:2px">⚙ MACCHINARIO</div>' + rows + '</div>';
+  }
+  if(typeof pcCardHTML === "function"){
+    const pc0 = pcCardHTML;
+    pcCardHTML = window.pcCardHTML = function(vid, x){ const h = pc0(vid, x); try { return x ? catMachineHTML(vid, x.it) + h : h; } catch(e) { return h; } };
+  }
+  window.catGoto = function(vid, code){ window._catGoto = code; state.view = "vessel"; state.selectedVesselId = vid; state.detailTab = "macchinari"; render(); window.scrollTo(0, 0); };
+  function openItem(vid, id){
+    const S = window._pc; if(S){ S.sel = S.sel || {}; S.sel[vid] = id; if(S.st) S.st[vid] = "all"; S.q = ""; S.fo = {}; }
+    state.view = "vessel"; state.selectedVesselId = vid; state.detailTab = "procurement"; render(); window.scrollTo(0, 0);
+    if(window.innerWidth < 1100 && typeof openItemDetailPopover === "function") setTimeout(() => openItemDetailPopover(id), 50);
+  }
+  window.catOpenItem = function(id){ const vid = state.selectedVesselId; if(id) openItem(vid, id); };
+  window.catOpenDoc = function(num){
+    const vid = state.selectedVesselId, v = ((state.data && state.data.vessels) || []).find(x => x.vesselId === vid) || {};
+    const it = (v.items || []).find(i => [i.reqNumber, i.poNumber, i.dnNumber].concat(i.rfqNumbers || []).includes(num));
+    if(it) openItem(vid, it.id); else showToast("Il documento " + num + " è solo nello storico Infoship: non c'è una pratica aperta");
+  };
   function catLiveData(vid){
     const c = CAT[vid], v = ((state.data && state.data.vessels) || []).find(x => x.vesselId === vid) || {};
-    const items = (v.items || []).map(it => ({ description: it.description || "", supplier: it.supplier || "", reqNumber: it.reqNumber || "", rfqNumbers: it.rfqNumbers || [], poNumber: it.poNumber || "", dnNumber: it.dnNumber || "", reqStatus: it.reqStatus || "", rfqStatus: it.rfqStatus || "", poStatus: it.poStatus || "", dnStatus: it.dnStatus || "", reqDate: it.reqDate || "", poDate: it.poDate || "", dnDate: it.dnDate || "", deliveryDate: it.deliveryDate || "" }));
+    const items = (v.items || []).map(it => ({ id: it.id || "", description: it.description || "", supplier: it.supplier || "", reqNumber: it.reqNumber || "", rfqNumbers: it.rfqNumbers || [], poNumber: it.poNumber || "", dnNumber: it.dnNumber || "", reqStatus: it.reqStatus || "", rfqStatus: it.rfqStatus || "", poStatus: it.poStatus || "", dnStatus: it.dnStatus || "", reqDate: it.reqDate || "", poDate: it.poDate || "", dnDate: it.dnDate || "", deliveryDate: it.deliveryDate || "" }));
     const hist = [], seen = new Set(), mine = n => String(n || "").toUpperCase().includes("-" + c.code + "-");
     try { const L = isxLoad(); ["rfq","po"].forEach(k => Object.values(L[k] || {}).forEach(r => { if(mine(r.n) && !seen.has(r.n)){ seen.add(r.n); hist.push({ kind: k.toUpperCase(), n: r.n, ds: r.ds || "", h: r.h || "", d: r.d || "", st: r.st || "", v: r.v || 0, cu: r.cu || "" }); } })); } catch(e) {}
     try { ((window._db && window._db.docs) || []).forEach(d => { if(mine(d.number) && !seen.has(d.number)){ seen.add(d.number); hist.push({ kind: d.kind || "", n: d.number, ds: d.description || "", h: d.holder || "", d: d.doc_date || "", st: d.status || "", v: d.total || 0, cu: d.currency || "" }); } }); } catch(e) {}
@@ -34076,15 +34162,9 @@ function rdCfPaint(){ const S = window._rdcf; let el = document.getElementById("
     try {
       window._catCache = window._catCache || {};
       let html = window._catCache[vid];
-      if(!html){
-        const repo = s.ghSyncRepo.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
-        const br = (s.ghSyncBranch || "main").trim();
-        const r = await fetch("https://api.github.com/repos/" + repo + "/contents/" + CAT[vid].path + "?ref=" + encodeURIComponent(br), { headers: Object.assign(ghSyncHeaders(), { "Accept": "application/vnd.github.raw" }), cache: "no-store" });
-        if(r.status === 404) throw new Error("nel repo " + repo + " manca il file " + CAT[vid].path);
-        if(!r.ok) throw new Error("GitHub ha risposto " + r.status);
-        html = window._catCache[vid] = await r.text();
-      }
-      const inj = "<script>window.__PO_LIVE__=" + JSON.stringify(catLiveData(vid)).replace(/</g, "\\u003c") + ";<\/script>";
+      if(!html) html = window._catCache[vid] = await ghRaw(CAT[vid].path);
+      const go = window._catGoto || ""; window._catGoto = "";
+      const inj = "<script>window.__PO_LIVE__=" + JSON.stringify(catLiveData(vid)).replace(/</g, "\\u003c") + ";window.__CAT_GOTO__=" + JSON.stringify(go) + ";<\/script>";
       const doc = html.indexOf("<head>") >= 0 ? html.replace("<head>", "<head>" + inj) : inj + html;
       box.innerHTML = '<iframe id="cat-frame" title="Catalogo macchinari" style="display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:0;border-radius:12px"></iframe>';
       document.getElementById("cat-frame").srcdoc = doc;
