@@ -34054,5 +34054,58 @@ function rdCfPaint(){ const S = window._rdcf; let el = document.getElementById("
 
 </script>
 
+<script>
+// v2.11 — Catalogo macchinari: scheda "Macchinari" nella pagina nave. Il catalogo (disegni dei costruttori)
+// sta nel repo PRIVATO di sync (catalogo/<nave>.html) e si legge con il token del Sync GitHub; le pratiche
+// e lo storico Infoship gli vengono passati vivi dalla dashboard.
+(function(){
+  const CAT = { medliguria: { path: "catalogo/med-liguria.html", code: "MLG" } };
+  function catLiveData(vid){
+    const c = CAT[vid], v = ((state.data && state.data.vessels) || []).find(x => x.vesselId === vid) || {};
+    const items = (v.items || []).map(it => ({ description: it.description || "", supplier: it.supplier || "", reqNumber: it.reqNumber || "", rfqNumbers: it.rfqNumbers || [], poNumber: it.poNumber || "", dnNumber: it.dnNumber || "", reqStatus: it.reqStatus || "", rfqStatus: it.rfqStatus || "", poStatus: it.poStatus || "", dnStatus: it.dnStatus || "", reqDate: it.reqDate || "", poDate: it.poDate || "", dnDate: it.dnDate || "", deliveryDate: it.deliveryDate || "" }));
+    const hist = [], seen = new Set(), mine = n => String(n || "").toUpperCase().includes("-" + c.code + "-");
+    try { const L = isxLoad(); ["rfq","po"].forEach(k => Object.values(L[k] || {}).forEach(r => { if(mine(r.n) && !seen.has(r.n)){ seen.add(r.n); hist.push({ kind: k.toUpperCase(), n: r.n, ds: r.ds || "", h: r.h || "", d: r.d || "", st: r.st || "", v: r.v || 0, cu: r.cu || "" }); } })); } catch(e) {}
+    try { ((window._db && window._db.docs) || []).forEach(d => { if(mine(d.number) && !seen.has(d.number)){ seen.add(d.number); hist.push({ kind: d.kind || "", n: d.number, ds: d.description || "", h: d.holder || "", d: d.doc_date || "", st: d.status || "", v: d.total || 0, cu: d.currency || "" }); } }); } catch(e) {}
+    return { syncedAt: (state.data && state.data.lastSync) || new Date().toISOString(), items, hist };
+  }
+  async function catLoad(vid){
+    const box = document.getElementById("cat-box"); if(!box) return;
+    const s = state.settings || {};
+    if(!(s.ghSyncRepo && s.ghSyncRepo.trim() && s.ghSyncToken && s.ghSyncToken.trim())){ box.innerHTML = '<p style="padding:16px">Il catalogo si legge dal repo privato del Sync GitHub: configuralo nelle impostazioni.</p>'; return; }
+    box.innerHTML = '<p style="padding:16px">Caricamento del catalogo…</p>';
+    try {
+      window._catCache = window._catCache || {};
+      let html = window._catCache[vid];
+      if(!html){
+        const repo = s.ghSyncRepo.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+        const br = (s.ghSyncBranch || "main").trim();
+        const r = await fetch("https://api.github.com/repos/" + repo + "/contents/" + CAT[vid].path + "?ref=" + encodeURIComponent(br), { headers: Object.assign(ghSyncHeaders(), { "Accept": "application/vnd.github.raw" }), cache: "no-store" });
+        if(r.status === 404) throw new Error("nel repo " + repo + " manca il file " + CAT[vid].path);
+        if(!r.ok) throw new Error("GitHub ha risposto " + r.status);
+        html = window._catCache[vid] = await r.text();
+      }
+      const inj = "<script>window.__PO_LIVE__=" + JSON.stringify(catLiveData(vid)).replace(/</g, "\\u003c") + ";<\/script>";
+      const doc = html.indexOf("<head>") >= 0 ? html.replace("<head>", "<head>" + inj) : inj + html;
+      box.innerHTML = '<iframe id="cat-frame" title="Catalogo macchinari" style="display:block;width:100%;height:calc(100vh - 150px);min-height:560px;border:0;border-radius:12px"></iframe>';
+      document.getElementById("cat-frame").srcdoc = doc;
+    } catch(e) {
+      console.error("[catalogo]", e);
+      box.innerHTML = '<p style="padding:16px">Catalogo non disponibile: ' + escapeHTML(e.message || String(e)) + '</p>';
+    }
+  }
+  window.catOpen = function(){ window.setVesselDetailTab("macchinari"); const bar = document.querySelector(".vd-subtabs"); if(bar) catLoad(bar.dataset.vid); };
+  function catAddTab(){
+    const bar = document.querySelector(".vd-subtabs"); if(!bar || bar.querySelector('[data-tab="macchinari"]')) return;
+    const vid = bar.dataset.vid; if(!CAT[vid]) return;
+    const on = state.detailTab === "macchinari";
+    const b = document.createElement("button"); b.className = "vd-subtab" + (on ? " active" : ""); b.dataset.tab = "macchinari"; b.textContent = "Macchinari"; b.onclick = window.catOpen; bar.appendChild(b);
+    const p = document.createElement("div"); p.className = "vd-panel"; p.dataset.tab = "macchinari"; p.style.display = on ? "" : "none"; p.innerHTML = '<div id="cat-box"></div>';
+    (document.getElementById("view-root") || bar.parentNode).appendChild(p);
+    if(on){ document.querySelectorAll(".vd-panel").forEach(x => { x.style.display = x.dataset.tab === "macchinari" ? "" : "none"; }); catLoad(vid); }
+  }
+  function start(){ const root = document.getElementById("view-root"); if(!root) return; new MutationObserver(catAddTab).observe(root, { childList: true }); catAddTab(); }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+</script>
 </body>
 </html>
