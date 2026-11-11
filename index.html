@@ -34130,9 +34130,23 @@ function buildMatcher(T){
         (n.cr ? '<span style="font:700 10px var(--font-mono);color:#fff;background:#c62828;border-radius:4px;padding:1px 5px">CRITICAL</span>' : "") + (s ? '<span style="font-size:12px;color:#1b7a50">◧ scheda ' + escapeHTML(s) + '</span>' : "") + (ca ? '<span style="font-size:12px;color:#c62828">parte di ' + escapeHTML(cl(ca.d)) + ' (critical)</span>' : "") + '</button>'; }).join("");
     return '<div style="margin:12px 14px 0;padding:9px 12px;border:1px solid rgba(21,83,216,.25);background:rgba(21,83,216,.05);border-radius:10px;font-size:13.5px"><div style="font:700 10.5px var(--font-mono);letter-spacing:.07em;color:#44576b;margin-bottom:2px">⚙ MACCHINARIO</div>' + rows + '</div>';
   }
+  // IMPA: riconosce i codici a 6 cifre nella descrizione della pratica
+  const ISN = {"10":"Provisions","11":"Welfare items","15":"Cloth & linen","17":"Tableware & galley","19":"Clothing","21":"Rope & hawsers","23":"Rigging & deck items","25":"Marine paint","27":"Painting equipment","31":"Protective gear","33":"Safety equipment","35":"Hose & couplings","37":"Nautical equipment","39":"Medicine","45":"Petroleum products","47":"Stationery","49":"Hardware","51":"Brushes & mats","53":"Lavatory equipment","55":"Cleaning & chemicals","59":"Pneumatic & electrical tools","61":"Hand tools","63":"Cutting tools","65":"Measuring tools","67":"Metal sheets & bars","69":"Screws & nuts","71":"Pipes & tubes","73":"Pipe fittings","75":"Valves & cocks","77":"Bearings","79":"Electrical equipment","81":"Packing & jointing","85":"Welding equipment","87":"Machinery equipment"};
+  let IM = null;
+  function impaData(){ if(IM) return IM.ready ? IM : null; IM = { ready:false }; ghRaw("catalogo/impa.json").then(t => { const j = JSON.parse(t), p2r = {}, rn = {}; Object.entries(j.ref2pg).forEach(([r,p]) => (p2r[p] = p2r[p] || []).push(r)); j.names.forEach(([n,r]) => { (rn[r] = rn[r] || []); if(!rn[r].includes(n)) rn[r].push(n); }); Object.assign(IM, { ready:true, cat:j.cat, p2r, rn }); }).catch(e => { IM.err = e.message; }); return null; }
+  function impaHTML(it){
+    const txt = String((it && it.description) || ""), found = [], rx = /(?<![\d.])(\d{2})[ .]?(\d{2})[ .]?(\d{2})(?![\d.])/g; let m;
+    while((m = rx.exec(txt))){ if(ISN[m[1]]) found.push(m[1] + m[2] + m[3]); }
+    const generic = /\bIMPA\b/i.test(txt);
+    if(!found.length && !generic) return "";
+    const D = impaData();
+    const rows = [...new Set(found)].slice(0, 6).map(c => { let nm = ""; if(D){ const pg = D.cat[c.slice(0,4)]; if(pg){ const refs = D.p2r[pg] || []; nm = [...new Set(refs.flatMap(r => D.rn[r] || []))].slice(0, 4).join(", ") + " · PDF pag. " + pg; } }
+      return '<div style="padding:2px 0"><b style="font-family:var(--font-mono)">' + c.replace(/(\d{2})(\d{2})(\d{2})/, "$1 $2 $3") + '</b> · ' + escapeHTML(ISN[c.slice(0,2)]) + (nm ? '<span style="color:#44576b"> — ' + escapeHTML(nm) + '</span>' : "") + '</div>'; }).join("");
+    return '<div style="margin:10px 14px 0;padding:9px 12px;border:1px solid rgba(27,122,80,.3);background:rgba(27,122,80,.06);border-radius:10px;font-size:13.5px"><div style="font:700 10.5px var(--font-mono);letter-spacing:.07em;color:#44576b;margin-bottom:2px">📘 IMPA</div>' + (rows || '<div>La richiesta cita il catalogo IMPA: i codici sono nelle righe del documento. Cercali nella scheda Macchinari → IMPA.</div>') + '</div>';
+  }
   if(typeof pcCardHTML === "function"){
     const pc0 = pcCardHTML;
-    pcCardHTML = window.pcCardHTML = function(vid, x){ const h = pc0(vid, x); try { return x ? catMachineHTML(vid, x.it) + h : h; } catch(e) { return h; } };
+    pcCardHTML = window.pcCardHTML = function(vid, x){ const h = pc0(vid, x); try { return x ? catMachineHTML(vid, x.it) + impaHTML(x.it) + h : h; } catch(e) { return h; } };
   }
   window.catGoto = function(vid, code){ window._catGoto = code; state.view = "vessel"; state.selectedVesselId = vid; state.detailTab = "macchinari"; render(); window.scrollTo(0, 0); };
   function openItem(vid, id){
