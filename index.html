@@ -34153,9 +34153,9 @@ function buildMatcher(T){
   }
   window.catImpaPage = async function(pg){
     if(IP.urls[pg]) return IP.urls[pg];
-    if(!IP.idx) IP.idx = JSON.parse(await ghRaw("catalogo/impa-hd/index.json"));
+    if(!IP.idx) IP.idx = JSON.parse(await ghRaw("catalogo/impa_hd/index.json"));
     const e = IP.idx[pg]; if(!e) throw new Error("pagina non presente");
-    const f = e[0]; if(!IP.files[f]) IP.files[f] = ghBin("catalogo/impa-hd/" + f);
+    const f = e[0]; if(!IP.files[f]) IP.files[f] = ghBin("catalogo/impa_hd/" + f);
     const buf = await IP.files[f];
     return IP.urls[pg] = URL.createObjectURL(new Blob([buf.slice(e[1], e[1] + e[2])], { type: "image/webp" }));
   };
