@@ -3078,18 +3078,54 @@
       {
         "isNoonReport": true,
         "_loose": true,
-        "etaISO": "2026-11-04",
-        "etaText": "PRE-ALERT deliveries on board at CHITTAGONG (ETA 04.11.2026) - 8 PO - update",
+        "etaISO": "2026-11-19",
+        "etaText": "19.11.2026 AM AGW WP",
         "vesselId": "medtoscana",
         "date": "2026-11-14",
-        "wind": "•    Electric motor, Pump, Generator rewinding & over-hauling."
+        "wind": "•    Electric motor, Pump, Generator rewinding & over-hauling.",
+        "type": "sea",
+        "bunkers": {
+          "lsfo": "259.487",
+          "lsmgo": "53.369"
+        },
+        "course": "152",
+        "speed": "12.00",
+        "sea": "NW/1.0 MTR",
+        "swell": "SW/ABT 1.0 MTR",
+        "consumption": {
+          "lsfo": "14.20",
+          "lsmgo": "0.10"
+        },
+        "lat": "18-05.1N",
+        "lon": "091-25.2E",
+        "positionText": "18-05.1N / 091-25.2E",
+        "milesToGo": "1295"
       },
       {
         "isNoonReport": true,
         "_loose": true,
-        "wind": "•    Electric motor, Pump, Generator rewinding & over-hauling.",
+        "wind": "SE/4",
         "vesselId": "medtoscana",
-        "date": "2026-11-15"
+        "date": "2026-11-15",
+        "type": "sea",
+        "bunkers": {
+          "lsfo": "240.827",
+          "lsmgo": "53.269"
+        },
+        "course": "151",
+        "speed": "11.71",
+        "sea": "SE/1.0 MTR",
+        "swell": "SW/ABT 1.0 MTR",
+        "etaText": "19.11.2026 0600LT AGW WP/ SINGAPORE",
+        "etaISO": "2026-11-19T06:00",
+        "consumption": {
+          "lsfo": "18.66",
+          "lsmgo": "0.10"
+        },
+        "lat": "13-57.3N",
+        "lon": "093-43.7E",
+        "positionText": "13-57.3N / 093-43.7E",
+        "milesToGo": "1014"
       }
     ],
     "medliguria": [
@@ -6854,6 +6890,39 @@
         },
         "vesselId": "medliguria",
         "date": "2026-11-12"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "591.26",
+          "lsmgo": "44.70",
+          "fw": "278"
+        },
+        "vesselId": "medliguria",
+        "date": "2026-11-13"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "588.51",
+          "lsmgo": "44.70",
+          "fw": "276"
+        },
+        "vesselId": "medliguria",
+        "date": "2026-11-14"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "585.78",
+          "lsmgo": "44.70",
+          "fw": "270"
+        },
+        "vesselId": "medliguria",
+        "date": "2026-11-15"
       }
     ],
     "peppino": [
@@ -10633,6 +10702,63 @@
           "unit": "Ltrs"
         },
         "milesToGo": "544.0"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "lat": "00-16.38N",
+        "lon": "045-24.68W",
+        "positionText": "00-16.38N / 045-24.68W",
+        "speed": "10.75",
+        "wind": "11 Weather Conditions (",
+        "sea": "11 Weather Conditions (sea state / waves",
+        "current": "1 Current Position (LAT/LONG)",
+        "vesselId": "peppino",
+        "date": "2026-11-14",
+        "bunkers": {
+          "lsfo": "394.58",
+          "lsmgo": "152.14",
+          "fw": "70.0"
+        },
+        "etaISO": "2026-11-15T06:00",
+        "etaText": "BR ALU P/STN. More than 11.0m /   15.11.2026 0600 LT / 0900 GMT (WP-AGW)",
+        "consumption": {
+          "lsfo": "21.20",
+          "lsmgo": "0.0",
+          "fw": "7.0"
+        },
+        "cylinderOil": {
+          "daily": "120.00",
+          "unit": "Ltrs"
+        },
+        "milesToGo": "221.0"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "355.78"
+        },
+        "vesselId": "peppino",
+        "date": "2026-11-15",
+        "type": "sea",
+        "speed": "18",
+        "milesToGo": "10",
+        "wind": "3.  Wind (Direction/Speed) NE / 5 / 18 knots",
+        "sea": "11 Weather Conditions (sea state / waves",
+        "current": "E / 0.3kts",
+        "lat": "02-10.5S",
+        "lon": "044-10.0W",
+        "positionText": "02-10.5S / 044-10.0W",
+        "consumption": {
+          "lsfo": "0.30",
+          "lsmgo": "0.10",
+          "fw": "4.0"
+        },
+        "cylinderOil": {
+          "daily": "0.00",
+          "unit": "Ltrs"
+        }
       }
     ],
     "norrbotten": [
@@ -11616,8 +11742,64 @@
         "sea": "S / 2 / 0.5 m",
         "current": "SE / 0.1 KTS",
         "vesselId": "norrbotten"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "voyageNo": "001",
+        "date": "2026-11-14",
+        "lat": "44-01.80N",
+        "lon": "010-02.30E",
+        "positionText": "44-01.80N / 010-02.30E",
+        "speed": "0",
+        "milesToGo": "0",
+        "consumption": {
+          "mgo": "0.4",
+          "fw": "4.0"
+        },
+        "bunkers": {
+          "fw": "37.0"
+        },
+        "cylinderOil": {
+          "daily": "0",
+          "rob": "2.6",
+          "unit": "L"
+        },
+        "etaText": "ETA Next Port: Awaiting orders",
+        "wind": "SW / 2 KTS",
+        "sea": "S / 2 / 0.2 m",
+        "current": "SE / 0.1 KTS",
+        "vesselId": "norrbotten"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "speed": "0",
+        "wind": "SW / 2 KTS",
+        "sea": "N / 2 / 0.4 m",
+        "current": "NE / 0.1 KTS",
+        "vesselId": "norrbotten",
+        "date": "2026-11-15",
+        "voyageNo": "001",
+        "lat": "43-59.0N",
+        "lon": "010-01.60E",
+        "positionText": "43-59.0N / 010-01.60E",
+        "milesToGo": "3.2",
+        "consumption": {
+          "mgo": "1.5",
+          "fw": "4.0"
+        },
+        "bunkers": {
+          "fw": "33.0"
+        },
+        "cylinderOil": {
+          "daily": "0",
+          "rob": "2.6",
+          "unit": "L"
+        },
+        "etaText": "ETA Next Port: Awaiting orders"
       }
     ]
   },
-  "syncedAt": "2026-11-15T18:04:53.294Z"
+  "syncedAt": "2026-11-15T19:09:05.668Z"
 }
