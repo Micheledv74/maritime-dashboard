@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-11-16T11:30:35.792Z",
+  "lastSync": "2026-11-16T11:35:38.831Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -9,15 +9,15 @@
       "rfqOpen": 20,
       "rfqOverdue7": 8,
       "rfqOverdue15": 5,
-      "readyForPO": 16,
-      "orders": 15,
+      "readyForPO": 12,
+      "orders": 19,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 26,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 86,
-      "pctPOToDN": 95,
+      "pctReqToPO": 87,
+      "pctPOToDN": 93,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -1969,22 +1969,27 @@
         {
           "id": "med toscana::amperemeter for lo purifier kerger catalogue",
           "description": "Amperemeter for L.O. purifier, KERGER catalogue",
-          "supplier": "—",
+          "supplier": "LG Marine Services(HK) Co.,Limited",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00117",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00295",
+            "2026-MDT-HQRQ-00296"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 2,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
@@ -2065,22 +2070,27 @@
         {
           "id": "med toscana::bump test kit for 5gas detector",
           "description": "BUMP TEST KIT FOR 5-GAS DETECTOR",
-          "supplier": "—",
+          "supplier": "LG Marine Services(HK) Co.,Limited",
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00108",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00293",
+            "2026-MDT-HQRQ-00294"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 2,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
@@ -2213,7 +2223,7 @@
         {
           "id": "med toscana::clear view window control panel",
           "description": "Clear View Window control panel",
-          "supplier": "G&P TECH CO.",
+          "supplier": "Dongjin Intec Co., Ltd.",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00110",
           "rfqNumbers": [
@@ -2223,7 +2233,7 @@
             "2026-MDT-HQRQ-00260",
             "2026-MDT-HQRQ-00261"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00129",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
@@ -2231,9 +2241,9 @@
           "rfqPct": 80,
           "rfqDays": 11,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
@@ -2243,13 +2253,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-02",
-          "poDate": "",
+          "poDate": "2026-11-16",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-11-20",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-11-20"
         },
         {
           "id": "med toscana::pressure switch for m/e jacket cooling system",
@@ -2374,54 +2384,62 @@
             "2026-MDT-HQRQ-00248",
             "2026-MDT-HQRQ-00249",
             "2026-MDT-HQRQ-00250",
-            "2026-MDT-HQRQ-00251"
+            "2026-MDT-HQRQ-00251",
+            "2026-MDT-HQRQ-00289",
+            "2026-MDT-HQRQ-00290"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00128",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 5,
+          "rfqIssued": 7,
           "rfqClosed": 5,
-          "rfqPct": 100,
+          "rfqPct": 71,
           "rfqDays": 11,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Offer Acknowledged"
+            "RFQ Offer Acknowledged",
+            "RFQ Created"
           ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-09-27",
-          "poDate": "",
+          "poDate": "2026-11-16",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::portable gas detectors",
           "description": "PORTABLE GAS DETECTORS",
-          "supplier": "—",
+          "supplier": "LG Marine Services(HK) Co.,Limited",
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00107",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00291",
+            "2026-MDT-HQRQ-00292"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 2,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
@@ -2587,22 +2605,26 @@
         {
           "id": "med toscana::uhf radio for isps",
           "description": "UHF RADIO FOR ISPS",
-          "supplier": "—",
+          "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "DECK Department",
           "reqNumber": "2026-MDT-SHPR-00102",
-          "rfqNumbers": [],
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00288"
+          ],
           "poNumber": "",
           "dnNumber": "",
           "dnInfoshipId": "",
-          "rfqIssued": 0,
+          "rfqIssued": 1,
           "rfqClosed": 0,
           "rfqPct": 0,
-          "rfqDays": null,
-          "rfqStatus": "",
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
-          "rfqStatusSummary": [],
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
@@ -3516,7 +3538,7 @@
         {
           "id": "med toscana::main cooling sea water pump model: fev200d maker: naniwa pump mfg co ltd",
           "description": "Main Cooling Sea Water pump, Model: FEV-200D, Maker: Naniwa Pump MFG. Co., Ltd",
-          "supplier": "Dongjin Intec Co., Ltd.",
+          "supplier": "G&P TECH CO.",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00089",
           "rfqNumbers": [
@@ -3526,7 +3548,7 @@
             "2026-MDT-HQRQ-00190",
             "2026-MDT-HQRQ-00191"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00127",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
@@ -3534,7 +3556,7 @@
           "rfqPct": 80,
           "rfqDays": 90,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
@@ -3546,13 +3568,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-08-11",
-          "poDate": "",
+          "poDate": "2026-11-16",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::medicine",
@@ -3989,7 +4011,7 @@
             "2026-MDT-HQRQ-00149",
             "2026-MDT-HQRQ-00150"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00126",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
@@ -3997,7 +4019,7 @@
           "rfqPct": 60,
           "rfqDays": 105,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
@@ -4009,13 +4031,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-07-18",
-          "poDate": "",
+          "poDate": "2026-11-16",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::viscosity sensor for fuel module fcm 1000 maker: alfa laval",
@@ -4038,7 +4060,7 @@
           "rfqPct": 100,
           "rfqDays": 105,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "PO Approved",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
