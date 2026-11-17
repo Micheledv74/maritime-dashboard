@@ -1,16 +1,16 @@
 {
-  "lastSync": "2026-11-17T11:50:34.467Z",
+  "lastSync": "2026-11-17T11:55:40.608Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
-      "totalReq": 305,
-      "rfqOpen": 19,
+      "totalReq": 306,
+      "rfqOpen": 18,
       "rfqOverdue7": 8,
       "rfqOverdue15": 5,
       "readyForPO": 12,
-      "orders": 19,
+      "orders": 20,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 26,
@@ -28,6 +28,43 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med toscana::medicine::2026-MDT-HQPO-00130",
+          "description": "MEDICINE",
+          "supplier": "FARMACIA GHIGLIAZZA",
+          "department": "DECK Department",
+          "reqNumber": "2026-MDT-SHPR-00096",
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00193",
+            "2026-MDT-HQRQ-00297"
+          ],
+          "poNumber": "2026-MDT-HQPO-00103, 2026-MDT-HQPO-00130",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 2,
+          "rfqClosed": 2,
+          "rfqPct": 100,
+          "rfqDays": 91,
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
+          "dnStatus": "",
+          "reqStatus": "REQ Ordered",
+          "rfqStatusSummary": [
+            "RFQ Offer Acknowledged"
+          ],
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-08-15",
+          "poDate": "2026-11-17",
+          "dnDate": "",
+          "poDeliveryDate": "2026-12-01",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "2026-12-01"
+        },
         {
           "id": "med toscana::bwts pneumatic blocksingleaction",
           "description": "BWTS PNEUMATIC BLOCK,SINGLE-ACTION",
@@ -117,14 +154,15 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 3,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 33,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
           "rfqDetails": [],
@@ -1685,20 +1723,19 @@
             "2026-MDT-HQRQ-00193",
             "2026-MDT-HQRQ-00297"
           ],
-          "poNumber": "2026-MDT-HQPO-00103",
+          "poNumber": "2026-MDT-HQPO-00103, 2026-MDT-HQPO-00130",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 2,
-          "rfqClosed": 1,
-          "rfqPct": 50,
+          "rfqClosed": 2,
+          "rfqPct": 100,
           "rfqDays": 91,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Endorsed",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Offer Acknowledged",
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -3584,7 +3621,7 @@
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
@@ -13973,16 +14010,16 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 3,
-          "rfqPct": 60,
+          "rfqClosed": 4,
+          "rfqPct": 80,
           "rfqDays": 12,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor",
-            "RFQ Offer Acknowledged"
+            "RFQ Offer Acknowledged",
+            "RFQ Sent to Vendor"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -19933,8 +19970,8 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 4,
-          "rfqClosed": 2,
-          "rfqPct": 50,
+          "rfqClosed": 3,
+          "rfqPct": 75,
           "rfqDays": 12,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
@@ -19942,8 +19979,7 @@
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
-            "RFQ Refused",
-            "RFQ Sent to Vendor"
+            "RFQ Refused"
           ],
           "rfqDetails": [],
           "poDetails": [],
