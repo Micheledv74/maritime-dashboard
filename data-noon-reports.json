@@ -7107,6 +7107,17 @@
         },
         "vesselId": "medliguria",
         "date": "2026-11-20"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "566.74",
+          "lsmgo": "44.50",
+          "fw": "241"
+        },
+        "vesselId": "medliguria",
+        "date": "2026-11-21"
       }
     ],
     "peppino": [
@@ -11039,30 +11050,32 @@
       {
         "isNoonReport": true,
         "_loose": true,
-        "etaISO": "2026-11-23",
-        "etaText": "Eta Fazendinha Plt Stn will be 23.11.2026/04.00Lt/AGW/Wp",
-        "wind": "N 3 /9knots",
-        "current": "Alumar, Brazil   / Alumar berth",
+        "etaISO": "2026-11-23T04:00",
+        "etaText": "FAZENDINHA P/STN.    23.11.2026 0400 LT / 0700 GMT (WP-AGW)",
+        "wind": "11 Weather Conditions (",
+        "current": "1 Current Position (LAT/LONG)",
         "vesselId": "peppino",
         "date": "2026-11-21",
         "consumption": {
-          "lsfo": "2.41",
-          "lsmgo": "0.00",
+          "lsfo": "11.35",
+          "lsmgo": "0.0",
           "fw": "3.0"
         },
         "cylinderOil": {
-          "daily": "0.0",
+          "daily": "70.00",
           "unit": "Ltrs"
         },
-        "lat": "02-27.00S",
-        "lon": "044-21.24W",
-        "positionText": "02-27.00S / 044-21.24W",
-        "speed": "9",
+        "lat": "00-20.51S",
+        "lon": "044-21.41W",
+        "positionText": "00-20.51S / 044-21.41W",
+        "speed": "12.08",
         "bunkers": {
           "lsfo": "345.36",
           "lsmgo": "152.04",
           "fw": "181.0"
-        }
+        },
+        "milesToGo": "472.0",
+        "sea": "11 Weather Conditions (sea state / waves"
       }
     ],
     "norrbotten": [
@@ -12274,5 +12287,5 @@
       }
     ]
   },
-  "syncedAt": "2026-11-21T16:07:04.977Z"
+  "syncedAt": "2026-11-21T17:08:19.283Z"
 }
