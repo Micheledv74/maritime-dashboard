@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-11-25T23:20:33.084Z",
+  "lastSync": "2026-11-25T23:25:36.185Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
@@ -2335,14 +2335,32 @@
           "rfqPct": 100,
           "rfqDays": 30,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "PO Finalized",
+          "poStatus": "PO Published",
           "dnStatus": "DN Received on Board",
           "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
-          "rfqDetails": [],
-          "poDetails": [],
+          "rfqDetails": [
+            {
+              "number": "2026-MDT-HQRQ-00237",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "RFQ Offer Acknowledged",
+              "date": "2026-10-26",
+              "deadline": "2026-11-10"
+            }
+          ],
+          "poDetails": [
+            {
+              "number": "2026-MDT-HQPO-00117",
+              "supplier": "MARINOSHIP SERVICES",
+              "code": "SSS0068",
+              "status": "PO Published",
+              "date": "2026-10-27",
+              "deadline": "2026-11-10"
+            }
+          ],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-23",
