@@ -7223,6 +7223,21 @@
         },
         "vesselId": "medliguria",
         "date": "2026-11-25"
+      },
+      {
+        "isNoonReport": true,
+        "type": "sea",
+        "wind": "COSP : NA",
+        "sea": "ROB on sailing : (LAST LINE) LSFO- 820.90 mt/ LSMGO- 44.50 mt",
+        "current": "Bunker lifted, if any : YES, VLSFO: 270.010 MT",
+        "vesselId": "medliguria",
+        "date": "2026-11-26",
+        "_loose": true,
+        "bunkers": {
+          "lsfo": "811.94",
+          "lsmgo": "44.50",
+          "fw": "218"
+        }
       }
     ],
     "peppino": [
@@ -11236,6 +11251,29 @@
         "wind": "11 Weather Conditions (",
         "current": "1 Current Position (LAT/LONG)",
         "sea": "11 Weather Conditions (sea state / waves"
+      },
+      {
+        "isNoonReport": true,
+        "_loose": true,
+        "lat": "021-27.5S",
+        "lon": "056-27.2W",
+        "positionText": "021-27.5S / 056-27.2W",
+        "speed": "9",
+        "wind": "3.  Wind (Direction/Speed) NE / 3 / 9 knots",
+        "sea": "11 Weather Conditions (sea state / waves",
+        "current": "NE / 0.3kts",
+        "vesselId": "peppino",
+        "date": "2026-11-26",
+        "consumption": {
+          "lsfo": "19.00",
+          "lsmgo": "0.00",
+          "fw": "4.0"
+        },
+        "cylinderOil": {
+          "daily": "90.00",
+          "unit": "Ltrs"
+        },
+        "milesToGo": "10"
       }
     ],
     "norrbotten": [
@@ -12587,5 +12625,5 @@
       }
     ]
   },
-  "syncedAt": "2026-11-26T17:03:45.548Z"
+  "syncedAt": "2026-11-26T18:05:04.493Z"
 }
