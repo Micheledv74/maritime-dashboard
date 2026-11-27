@@ -1,23 +1,23 @@
 {
-  "lastSync": "2026-11-27T16:40:32.878Z",
+  "lastSync": "2026-11-27T16:45:26.494Z",
   "schemaVersion": "2.0",
   "vessels": [
     {
       "vesselId": "medtoscana",
       "vesselName": "MED TOSCANA",
-      "totalReq": 322,
-      "rfqOpen": 14,
-      "rfqOverdue7": 6,
-      "rfqOverdue15": 6,
-      "readyForPO": 11,
-      "orders": 36,
+      "totalReq": 323,
+      "rfqOpen": 11,
+      "rfqOverdue7": 5,
+      "rfqOverdue15": 5,
+      "readyForPO": 8,
+      "orders": 51,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 26,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 88,
-      "pctPOToDN": 88,
+      "pctReqToPO": 92,
+      "pctPOToDN": 83,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -28,6 +28,78 @@
       "navStatus": null,
       "aisLastSeen": null,
       "items": [
+        {
+          "id": "med toscana::engine consumable",
+          "description": "ENGINE CONSUMABLE",
+          "supplier": "YH MARINE TRADE CO.,LTD",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MDT-SHPR-00140",
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00332"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 1,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-11-26",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
+        {
+          "id": "med toscana::bridge window wiper twin blades outside mounted model:wsoh2vp1::2026-MDT-SHPR-00144",
+          "description": "Bridge Window Wiper, Twin Blades Outside Mounted. Model:WSO-H-2-V-P-1",
+          "supplier": "YH MARINE TRADE CO.,LTD",
+          "department": "ENGINE Department",
+          "reqNumber": "2026-MDT-SHPR-00144",
+          "rfqNumbers": [
+            "2026-MDT-HQRQ-00333"
+          ],
+          "poNumber": "",
+          "dnNumber": "",
+          "dnInfoshipId": "",
+          "rfqIssued": 1,
+          "rfqClosed": 0,
+          "rfqPct": 0,
+          "rfqDays": 0,
+          "rfqStatus": "RFQ Sent to Vendor",
+          "poStatus": "",
+          "dnStatus": "",
+          "reqStatus": "REQ Price Sourcing",
+          "rfqStatusSummary": [
+            "RFQ Sent to Vendor"
+          ],
+          "rfqDetails": [],
+          "poDetails": [],
+          "dnDetails": [],
+          "poSplit": null,
+          "reqDate": "2026-11-27",
+          "poDate": "",
+          "dnDate": "",
+          "poDeliveryDate": "",
+          "dnDeliveryDate": "",
+          "origin": "",
+          "transportMode": "",
+          "deliveryDate": "—"
+        },
         {
           "id": "med toscana::electrical store impa marine catalogue 6 and 8",
           "description": "Electrical store. IMPA marine catalogue 6 and 8",
@@ -109,32 +181,32 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00328"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00150",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-26",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-11",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-11"
         },
         {
           "id": "med toscana::cargo crane macgregor type glb 36282/28828gr serial no 62507916625079176250791862507919::2026-MDT-SHPR-00139",
@@ -146,7 +218,7 @@
             "2026-MDT-HQRQ-00329",
             "2026-MDT-HQRQ-00330"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00156",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 2,
@@ -154,7 +226,7 @@
           "rfqPct": 0,
           "rfqDays": 1,
           "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
@@ -165,13 +237,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-26",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::lock out tag out kit::2026-MDT-HQPO-00003",
@@ -219,7 +291,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00321"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00152",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -227,9 +299,9 @@
           "rfqPct": 100,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -238,13 +310,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-20",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::paints and thinner for engine",
@@ -255,32 +327,32 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00319"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00149",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 2,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-21",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::deck for painting for 3 months",
@@ -291,7 +363,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00320"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00153",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -299,9 +371,9 @@
           "rfqPct": 100,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -310,18 +382,18 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-20",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::logic module program e30248 for main air compressor #2",
           "description": "LOGIC MODULE. PROGRAM E30248. FOR MAIN AIR COMPRESSOR #2",
-          "supplier": "MACGREGOR",
+          "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00138",
           "rfqNumbers": [
@@ -329,7 +401,7 @@
             "2026-MDT-HQRQ-00313",
             "2026-MDT-HQRQ-00314"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00161",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 3,
@@ -337,9 +409,9 @@
           "rfqPct": 33,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor",
@@ -350,13 +422,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-25",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::galley and cabins request",
@@ -367,7 +439,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00318"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00154",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -375,9 +447,9 @@
           "rfqPct": 100,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -386,13 +458,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-23",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::beck order mdt",
@@ -435,32 +507,32 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00310"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00147",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 100,
           "rfqDays": 3,
-          "rfqStatus": "RFQ Sent to Vendor",
-          "poStatus": "",
+          "rfqStatus": "RFQ Offer Acknowledged",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-20",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-09",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-09"
         },
         {
           "id": "med toscana::me air blower pressure switch for start/stop type: 9bo2876",
@@ -471,7 +543,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00316"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00159",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -479,9 +551,9 @@
           "rfqPct": 100,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -490,13 +562,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-19",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::sodium metabisulfite for bwts neutralizing tank",
@@ -507,7 +579,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00315"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00160",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -515,9 +587,9 @@
           "rfqPct": 100,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -526,13 +598,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-23",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::mooring ropes",
@@ -543,7 +615,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00317"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00158",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -551,9 +623,9 @@
           "rfqPct": 100,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -562,13 +634,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-16",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::viking s30 liferafts",
@@ -642,7 +714,7 @@
         {
           "id": "med toscana::bwts pneumatic blocksingleaction",
           "description": "BWTS PNEUMATIC BLOCK,SINGLE-ACTION",
-          "supplier": "LG Marine Services(HK) Co.,Limited",
+          "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00133",
           "rfqNumbers": [
@@ -650,7 +722,7 @@
             "2026-MDT-HQRQ-00304",
             "2026-MDT-HQRQ-00305"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00157",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 3,
@@ -658,9 +730,9 @@
           "rfqPct": 33,
           "rfqDays": 11,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Sent to Vendor",
             "RFQ Offer Acknowledged"
@@ -670,13 +742,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-13",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::gulf marine lubricant::2026-MDT-SHPR-00134",
@@ -687,7 +759,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00306"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00148",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -695,9 +767,9 @@
           "rfqPct": 100,
           "rfqDays": 11,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -706,13 +778,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-11-13",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::cargo crane macgregor type glb 36282/28828gr serial no 62507916625079176250791862507919",
@@ -735,7 +807,7 @@
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
@@ -770,8 +842,8 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 3,
-          "rfqPct": 60,
+          "rfqClosed": 4,
+          "rfqPct": 80,
           "rfqDays": 22,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
@@ -811,14 +883,15 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 2,
+          "rfqPct": 40,
           "rfqDays": 22,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
+            "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
           ],
           "rfqDetails": [],
@@ -2749,7 +2822,7 @@
           "rfqNumbers": [
             "2026-MDT-HQRQ-00298"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00151",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 1,
@@ -2757,9 +2830,9 @@
           "rfqPct": 100,
           "rfqDays": 11,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged"
           ],
@@ -2768,13 +2841,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-12",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-01",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-01"
         },
         {
           "id": "med toscana::voltage transducer for bus 440vac main switch board terasaki",
@@ -2983,7 +3056,7 @@
         {
           "id": "med toscana::main switch board terasaki voltage transducer for bus 440vac control and alarm",
           "description": "Main Switch board TERASAKI voltage transducer for bus 440VAC control and alarm",
-          "supplier": "Dongjin Intec Co., Ltd.",
+          "supplier": "YH MARINE TRADE CO.,LTD",
           "department": "ENGINE Department",
           "reqNumber": "2026-MDT-SHPR-00113",
           "rfqNumbers": [
@@ -2992,7 +3065,7 @@
             "2026-MDT-HQRQ-00324",
             "2026-MDT-HQRQ-00325"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MDT-HQPO-00155",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 4,
@@ -3000,9 +3073,9 @@
           "rfqPct": 75,
           "rfqDays": 2,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
@@ -3012,13 +3085,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-10-05",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-10",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-10"
         },
         {
           "id": "med toscana::emergency diesel generator fuel injection pipe",
@@ -3039,16 +3112,15 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 7,
-          "rfqClosed": 5,
-          "rfqPct": 71,
+          "rfqClosed": 7,
+          "rfqPct": 100,
           "rfqDays": 22,
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "PO Published",
           "dnStatus": "",
           "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
-            "RFQ Offer Acknowledged",
-            "RFQ Sent to Vendor"
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -12613,7 +12685,7 @@
           "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Cancelled",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
@@ -14094,18 +14166,18 @@
       "vesselId": "medliguria",
       "vesselName": "MED LIGURIA",
       "totalReq": 116,
-      "rfqOpen": 21,
+      "rfqOpen": 19,
       "rfqOverdue7": 1,
       "rfqOverdue15": 1,
-      "readyForPO": 6,
-      "orders": 5,
+      "readyForPO": 5,
+      "orders": 6,
       "poReadyForDN": 0,
       "dn": 0,
       "dnPending": 13,
       "delivery": "delayed",
       "deliveryColor": "red",
-      "pctReqToPO": 75,
-      "pctPOToDN": 94,
+      "pctReqToPO": 76,
+      "pctPOToDN": 93,
       "lat": null,
       "lng": null,
       "sog": null,
@@ -14269,15 +14341,16 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 20,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Sent to Vendor",
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -14346,15 +14419,17 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 20,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Sent to Vendor",
+            "RFQ Offer Acknowledged",
+            "RFQ Refused"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -14687,7 +14762,8 @@
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Sent to Vendor",
+            "RFQ Refused"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -15673,7 +15749,7 @@
         {
           "id": "med liguria::bwts afu unit",
           "description": "BWTS AFU Unit",
-          "supplier": "YH MARINE TRADE CO.,LTD",
+          "supplier": "CSSC SUNRUI / SHIPSERVICE",
           "department": "ENGINE Department",
           "reqNumber": "2026-MLG-SHPR-00078",
           "rfqNumbers": [
@@ -15681,7 +15757,7 @@
             "2026-MLG-HQRQ-00164",
             "2026-MLG-HQRQ-00165"
           ],
-          "poNumber": "",
+          "poNumber": "2026-MLG-HQPO-00091",
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 3,
@@ -15689,9 +15765,9 @@
           "rfqPct": 67,
           "rfqDays": 22,
           "rfqStatus": "RFQ Offer Acknowledged",
-          "poStatus": "",
+          "poStatus": "PO Published",
           "dnStatus": "",
-          "reqStatus": "REQ Price Sourcing",
+          "reqStatus": "REQ Ordered",
           "rfqStatusSummary": [
             "RFQ Offer Acknowledged",
             "RFQ Sent to Vendor"
@@ -15701,13 +15777,13 @@
           "dnDetails": [],
           "poSplit": null,
           "reqDate": "2026-08-22",
-          "poDate": "",
+          "poDate": "2026-11-27",
           "dnDate": "",
-          "poDeliveryDate": "",
+          "poDeliveryDate": "2026-12-12",
           "dnDeliveryDate": "",
           "origin": "",
           "transportMode": "",
-          "deliveryDate": "—"
+          "deliveryDate": "2026-12-12"
         },
         {
           "id": "med liguria::pressure temperature calibrators impa catalogue",
@@ -19220,7 +19296,7 @@
       "vesselId": "peppino",
       "vesselName": "PEPPINO",
       "totalReq": 208,
-      "rfqOpen": 24,
+      "rfqOpen": 22,
       "rfqOverdue7": 0,
       "rfqOverdue15": 0,
       "readyForPO": 10,
@@ -19519,15 +19595,16 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 20,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Sent to Vendor",
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
@@ -19597,15 +19674,16 @@
           "dnNumber": "",
           "dnInfoshipId": "",
           "rfqIssued": 5,
-          "rfqClosed": 0,
-          "rfqPct": 0,
+          "rfqClosed": 1,
+          "rfqPct": 20,
           "rfqDays": 1,
-          "rfqStatus": "RFQ Sent to Vendor",
+          "rfqStatus": "RFQ Offer Acknowledged",
           "poStatus": "",
           "dnStatus": "",
           "reqStatus": "REQ Price Sourcing",
           "rfqStatusSummary": [
-            "RFQ Sent to Vendor"
+            "RFQ Sent to Vendor",
+            "RFQ Offer Acknowledged"
           ],
           "rfqDetails": [],
           "poDetails": [],
